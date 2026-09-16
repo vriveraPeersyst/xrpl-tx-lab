@@ -7,7 +7,7 @@
  *   - the rippled release notes entry that mentions it
  * Writes src/data/github/<Amendment>.json and src/data/github/index.json.
  *
- * Usage: pnpm github [--only Name] [--max-age-hours 20]
+ * Usage: pnpm github [--only Name] [--max-age-hours 20] [--refetch] [--excerpt 8000]
  * Respects rate limits (search: 30/min; core: 5000/h). Re-uses cached PR data when a PR's
  * updated_at has not changed.
  */
@@ -22,7 +22,8 @@ const arg = (n: string) => { const i = process.argv.indexOf(n); return i >= 0 ? 
 const only = arg("--only");
 const maxAgeH = Number(arg("--max-age-hours") ?? 20);
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-const EXCERPT = 700;
+const EXCERPT = Number(arg("--excerpt") ?? 8000);
+const refetch = process.argv.includes("--refetch");
 
 function gh(p: string): any {
   try { return JSON.parse(execSync(`gh api --paginate=false ${JSON.stringify(p)}`, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], maxBuffer: 50 * 1024 * 1024 })); }
@@ -66,7 +67,7 @@ let processed = 0;
 for (const name of list) {
   const file = path.join(OUT, `${name}.json`);
   const prev = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : undefined;
-  if (prev && !only && Date.now() - new Date(prev.fetchedAt).getTime() < maxAgeH * 3600_000) { index[name] = prev.summary; continue; }
+  if (prev && !only && !refetch && Date.now() - new Date(prev.fetchedAt).getTime() < maxAgeH * 3600_000) { index[name] = prev.summary; continue; }
   const bare = name.replace(/^fix/, "").replace(/V\d+_\d+$/, "");
   const q = `repo:XRPLF/rippled "${name}" in:title`;
   const items = await search(q);
@@ -79,7 +80,7 @@ for (const name of list) {
     seen.add(it.number);
     const base = { number: it.number, title: it.title, url: it.html_url, state: it.state, author: it.user?.login, createdAt: it.created_at, updatedAt: it.updated_at, closedAt: it.closed_at, labels: (it.labels ?? []).map((l: any) => l.name), comments: it.comments, body: excerpt(it.body) };
     if (!it.pull_request) { issues.push(base); continue; }
-    const cached = prev?.prs?.find((p: any) => p.number === it.number && p.updatedAt === it.updated_at);
+    const cached = refetch ? undefined : prev?.prs?.find((p: any) => p.number === it.number && p.updatedAt === it.updated_at);
     if (cached) { prs.push(cached); continue; }
     const pr = gh(`repos/XRPLF/rippled/pulls/${it.number}`);
     const comments = (gh(`repos/XRPLF/rippled/issues/${it.number}/comments?per_page=100`) ?? []).map((c: any) => ({ author: c.user?.login, date: c.created_at, body: excerpt(c.body), url: c.html_url }));

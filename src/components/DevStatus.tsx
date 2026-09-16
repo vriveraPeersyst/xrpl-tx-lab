@@ -1,3 +1,4 @@
+import Link from "@/components/NLink";
 import { devStatus, type GithubAmendment } from "@/lib/content";
 
 const fmt = (s?: string) => (s ? new Date(s).toLocaleDateString("en-US") : "—");
@@ -38,7 +39,7 @@ export function DevStatus({ gh }: { gh?: GithubAmendment }) {
             <tbody>
               {gh.prs.map((p) => (
                 <tr key={p.number}>
-                  <td><a className="link" href={p.url} target="_blank" rel="noreferrer">#{p.number}</a> {p.title}{p.labels.length > 0 && <span className="block text-xs text-muted">{p.labels.join(", ")}</span>}</td>
+                  <td><Link href={`/amendments/${gh.name}/pr/${p.number}`} className="link">#{p.number}</Link> <Link href={`/amendments/${gh.name}/pr/${p.number}`} className="hover:underline">{p.title}</Link> <a className="text-xs text-muted hover:underline" href={p.url} target="_blank" rel="noreferrer">GitHub ↗</a>{p.labels.length > 0 && <span className="block text-xs text-muted">{p.labels.join(", ")}</span>}</td>
                   <td><span className={`badge ${p.merged ? "bg-accent-soft text-accent-ink" : p.state === "open" ? "bg-[#dbf15e] text-black" : "bg-surface-2 text-muted"}`}>{p.merged ? "merged" : p.draft ? "draft" : p.state}</span></td>
                   <td className="text-xs">{p.author}</td>
                   <td className="text-xs">{fmt(p.createdAt)}</td>
@@ -63,11 +64,11 @@ export function DevStatus({ gh }: { gh?: GithubAmendment }) {
 
       {timeline.length > 0 && (
         <details className="card">
-          <summary className="cursor-pointer text-sm font-semibold text-fg">Developer discussion timeline ({timeline.length} entries: changes requested, bugs found, tests, decisions)</summary>
+          <summary className="cursor-pointer text-sm font-semibold text-fg">Developer discussion across all PRs ({timeline.length} entries, newest first; open a PR above for the full thread)</summary>
           <ul className="mt-3 space-y-3">
             {timeline.map((x, i) => (
               <li key={i} className="border-b border-border pb-3 text-sm">
-                <div className="flex flex-wrap gap-2 text-xs text-muted"><span className="font-medium text-fg">{x.author}</span><span>{new Date(x.date).toLocaleString("en-US")}</span><span>{x.kind}</span><a className="link" href={x.url} target="_blank" rel="noreferrer">PR #{x.pr}</a></div>
+                <div className="flex flex-wrap gap-2 text-xs text-muted"><span className="font-medium text-fg">{x.author}</span><span>{new Date(x.date).toLocaleString("en-US")}</span><span>{x.kind}</span><Link className="link" href={`/amendments/${gh.name}/pr/${x.pr}`}>PR #{x.pr}</Link></div>
                 <p className="mt-1 whitespace-pre-wrap">{x.body || <span className="text-muted">(no text)</span>}</p>
               </li>
             ))}
