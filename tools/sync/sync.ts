@@ -143,7 +143,10 @@ if (!process.env.SYNC_NO_GIT) {
   if (dirty) {
     run("git add src/data content src/lib/tx/registry.ts");
     const msg = `sync: testnet ${after.buildVersion} (${after.validatedLedger.seq})${changes.length ? "\n\n" + changes.map((c) => "- " + c).join("\n") : ""}${generated.length ? "\n\nGenerado: " + generated.join(", ") : ""}\n\nCo-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`;
-    run(`git commit -q -m ${JSON.stringify(msg)}`);
+    const msgFile = path.join(ROOT, ".git/SYNC_COMMIT_MSG");
+    fs.writeFileSync(msgFile, msg);
+    run(`git commit -q -F ${JSON.stringify(msgFile)}`);
+    fs.unlinkSync(msgFile);
     log("commit hecho");
     if (!process.env.SYNC_NO_PUSH && sh("git remote").length) { run("git push -q"); log("push hecho"); }
   } else log("sin cambios en el repo");
