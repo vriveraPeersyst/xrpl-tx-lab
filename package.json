@@ -6,21 +6,37 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "rippled:fetch": "git clone --depth 1 --branch develop https://github.com/XRPLF/rippled.git vendor/rippled",
+    "extract": "tsx tools/extract/extract.ts",
+    "testnet:snapshot": "tsx tools/extract/testnet.ts",
+    "lint:coverage": "tsx tools/lint/coverage.ts",
+    "sync": "tsx tools/sync/sync.ts",
+    "prebuild": "tsx tools/lint/coverage.ts || true"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.102.8",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.46.0",
     "next": "16.3.5",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "tailwind-merge": "^3.7.0",
+    "xrpl": "5.2.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5"
   },
   "packageManager": "pnpm@11.5.1"

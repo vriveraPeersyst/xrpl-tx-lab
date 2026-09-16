@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# XRPL Tx Lab
 
-## Getting Started
+Web educativa sobre la **XRPL Testnet**: todos los tipos de transacción, objetos del ledger,
+amendments, flags, campos y códigos de resultado, explicados a partir del **código fuente de
+xrpld** (la versión que corre en testnet) y ejecutables desde la propia página con **Xaman**.
 
-First, run the development server:
+## Cómo funciona
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```
+vendor/rippled  ──extract──▶  src/data/protocol.json   (campos, transactores, TER, flags, amendments…)
+XRPL Testnet    ──snapshot─▶  src/data/testnet.json    (server_definitions + feature: la verdad viva)
+content/**.md   ──lint─────▶  src/data/coverage.json   (¿todo tiene doc y UI?)  → falla el build si no
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- `tools/extract/extract.ts` parsea `transactions.macro`, `ledger_entries.macro`, `features.macro`,
+  `sfields.macro`, `permissions.macro`, `TxFlags.h`, `LedgerFormats.h`, `TER.h/.cpp`,
+  `InnerObjectFormats.cpp`, `TxFormats.cpp` y cada transactor (`preflight`/`preclaim`/`doApply`:
+  códigos TER, amendments consultados, flags y campos).
+- `tools/extract/testnet.ts` guarda `server_info`, `feature` y `server_definitions` de testnet.
+- `tools/lint/coverage.ts` exige, para todo lo que exista en testnet: doc en `content/`, entrada en
+  `src/lib/tx/registry.ts` (ejemplo + pistas), renderer por tipo de campo, descripción de cada flag y
+  de cada TER. Avisa (sin fallar) de las divergencias fuente ↔ testnet.
+- `tools/sync/sync.ts` hace todo lo anterior en cadena, alinea `vendor/rippled` con la versión de
+  testnet (tag exacto o `develop`), genera docs para lo nuevo (con `claude -p` si está disponible,
+  si no un stub `draft: true`) y hace commit/push.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Arranque
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm install
+pnpm rippled:fetch          # clona XRPLF/rippled (develop) en vendor/rippled
+pnpm testnet:snapshot       # src/data/testnet.json
+pnpm extract                # src/data/protocol.json
+pnpm lint:coverage          # cobertura
+cp .env.local.example .env.local   # y pon NEXT_PUBLIC_XAMAN_API_KEY
+pnpm dev
+```
 
-## Learn More
+Xaman: crea una app en https://apps.xaman.dev (tipo *browser / web3 PKCE*), añade el origen de la
+web y usa su API key pública. Todo payload se fuerza a `TESTNET`.
 
-To learn more about Next.js, take a look at the following resources:
+## Actualización automática (Mac mini)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Mismo patrón que `qwen-onehextwo`: job one-shot con pm2 y `cron_restart`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pm2 start ecosystem.config.cjs   # xrpl-tx-lab-sync, 12:00 Europe/Madrid
+pm2 save
+pm2 logs xrpl-tx-lab-sync
+pnpm sync                        # ejecución manual (SYNC_NO_GIT=1 para no commitear)
+```
 
-## Deploy on Vercel
+## Contenido
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`content/GUIDE.md` define el formato de `content/tx/*.md`, `content/objects/*.md`,
+`content/amendments/*.md` y `content/flags.json`. La UI genera automáticamente tablas de campos,
+flags, TER y amendments; el markdown aporta la explicación.

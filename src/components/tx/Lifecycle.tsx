@@ -1,0 +1,35 @@
+import Link from "next/link";
+import type { TransactorAnalysis } from "@/lib/protocol";
+
+/** Diagrama de las fases del transactor con los códigos TER que devuelve cada una. */
+export function Lifecycle({ t }: { t: TransactorAnalysis }) {
+  const phases = [
+    { key: "preflight", label: "preflight", desc: "Validación estática: campos, flags, amendments.", fns: ["checkExtraFeatures", "getFlagsMask", "preflight", "preflightSigValidated", "checkGranularSemantics"] },
+    { key: "preclaim", label: "preclaim", desc: "Comprobaciones contra el ledger actual.", fns: ["preclaim", "calculateBaseFee", "checkSeqProxy", "checkPriorTxAndLastLedger", "checkFee", "checkSign", "checkPermission"] },
+    { key: "doApply", label: "doApply", desc: "Aplica los cambios al ledger.", fns: ["doApply", "applyGuts", "apply", "visitInvariantEntry", "finalizeInvariants"] },
+  ];
+  const codes = (fns: string[]) => {
+    const set = new Set<string>();
+    for (const fn of fns) for (const c of t.functions[fn]?.ter ?? []) set.add(c);
+    return [...set].filter((c) => c !== "tesSUCCESS").sort();
+  };
+  const present = phases.map((p) => ({ ...p, codes: codes(p.fns), has: p.fns.some((f) => f in t.functions) }));
+  return (
+    <div className="grid gap-3 md:grid-cols-3">
+      {present.map((p, i) => (
+        <div key={p.key} className="relative card">
+          {i < present.length - 1 && <div className="absolute -right-3 top-6 hidden text-muted md:block">→</div>}
+          <div className="flex items-baseline justify-between"><h4 className="font-mono font-semibold">{p.label}</h4><span className="text-xs text-muted">{i + 1}/3</span></div>
+          <p className="text-xs text-muted">{p.desc}</p>
+          {p.has ? (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {p.codes.length ? p.codes.map((c) => <Link key={c} href={`/results#${c}`} className={`badge font-mono ${c.startsWith("tec") ? "bg-warning/15 text-warning" : "bg-danger/10 text-danger"}`}>{c}</Link>) : <span className="text-xs text-muted">sin códigos de error propios (usa los genéricos de Transactor)</span>}
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-muted">Hereda la implementación genérica de <code>Transactor</code>.</p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}

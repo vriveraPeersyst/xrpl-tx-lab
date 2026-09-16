@@ -1,26 +1,89 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #f7f8fa;
+  --fg: #14171f;
+  --muted: #5d6675;
+  --surface: #ffffff;
+  --surface-2: #eef1f5;
+  --border: #d9dee6;
+  --accent: #0a5cff;
+  --accent-soft: #e6eeff;
+  --success: #158a4a;
+  --warning: #b26a00;
+  --danger: #c62828;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    --bg: #0d1117;
+    --fg: #e6edf3;
+    --muted: #8b95a5;
+    --surface: #161b22;
+    --surface-2: #1f262f;
+    --border: #2d3540;
+    --accent: #5b9cff;
+    --accent-soft: #14213a;
+    --success: #3fb950;
+    --warning: #d29922;
+    --danger: #f85149;
   }
 }
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+:root[data-theme="dark"] {
+  --bg: #0d1117;
+  --fg: #e6edf3;
+  --muted: #8b95a5;
+  --surface: #161b22;
+  --surface-2: #1f262f;
+  --border: #2d3540;
+  --accent: #5b9cff;
+  --accent-soft: #14213a;
+  --success: #3fb950;
+  --warning: #d29922;
+  --danger: #f85149;
 }
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); }
+code { font-family: var(--font-mono); font-size: 0.92em; }
+
+.btn-primary { @apply rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50; }
+.btn-secondary { @apply rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:border-accent disabled:cursor-not-allowed disabled:opacity-50; }
+.link { @apply text-accent hover:underline; }
+.card { @apply rounded-lg border border-border bg-surface p-4; }
+.badge { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium; }
+
+.prose-doc { @apply text-[15px] leading-7; }
+.prose-doc h2 { @apply mt-8 mb-3 text-xl font-semibold; }
+.prose-doc h3 { @apply mt-6 mb-2 text-lg font-semibold; }
+.prose-doc p { @apply my-3; }
+.prose-doc ul { @apply my-3 ml-5 list-disc; }
+.prose-doc ol { @apply my-3 ml-5 list-decimal; }
+.prose-doc li { @apply my-1; }
+.prose-doc a { @apply text-accent hover:underline; }
+.prose-doc code { @apply rounded bg-surface-2 px-1 py-0.5 text-[0.9em]; }
+.prose-doc pre { @apply my-3 overflow-auto rounded-md border border-border bg-surface-2 p-3 text-xs; }
+.prose-doc pre code { @apply bg-transparent p-0; }
+.prose-doc table { @apply my-4 w-full border-collapse text-sm; }
+.prose-doc th, .prose-doc td { @apply border border-border px-2 py-1 text-left align-top; }
+.prose-doc blockquote { @apply my-3 border-l-4 border-accent/40 pl-3 text-muted; }
+
+.tbl { @apply w-full border-collapse text-sm; }
+.tbl th { @apply border-b border-border px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-muted; }
+.tbl td { @apply border-b border-border px-2 py-1.5 align-top; }
