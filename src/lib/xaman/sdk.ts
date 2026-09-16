@@ -76,5 +76,3 @@ export function getXummInstance(): XummInstance | undefined {
 }
 
 export const XAMAN_API_KEY = process.env.NEXT_PUBLIC_XAMAN_API_KEY ?? "";
-/** All payloads are forced to TESTNET: this site only operates on the test network. */
-export const XAMAN_FORCE_NETWORK = "TESTNET";

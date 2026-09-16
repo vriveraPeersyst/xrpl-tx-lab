@@ -1,11 +1,12 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
+import Link from "@/components/NLink";
+import { useNetwork } from "@/lib/net-context";
 import { useXaman } from "@/lib/xaman/provider";
 import { useXamanSign } from "@/lib/xaman/use-sign";
 import { rendererFor, ARRAY_INNER } from "@/lib/form/renderers";
 import { fillPlaceholders } from "@/lib/form/placeholders";
-import { accountInfo, simulate, txByHash, TESTNET_EXPLORER, RpcError } from "@/lib/xrpl/rpc";
+import { accountInfo, simulate, txByHash, explorerTx, RpcError } from "@/lib/xrpl/rpc";
 import { TxResult } from "./TxResult";
 import { useSearchParams } from "next/navigation";
 import { decodePrefill } from "@/lib/wallet/actions";
@@ -27,6 +28,7 @@ const HIDDEN_COMMON = new Set(["TransactionType", "Account", "SigningPubKey", "T
 
 export function TxBuilder(p: BuilderProps) {
   const xaman = useXaman();
+  const net = useNetwork();
   const signer = useXamanSign();
   const params = useSearchParams();
   const prefill = useMemo(() => { const q = params.get("prefill"); return q ? decodePrefill(q) : undefined; }, [params]);
@@ -41,8 +43,8 @@ export function TxBuilder(p: BuilderProps) {
 
   useEffect(() => {
     if (!xaman.account) return;
-    accountInfo(xaman.account).then((r) => setSeq(r.account_data.Sequence)).catch(() => setSeq(undefined));
-  }, [xaman.account]);
+    accountInfo(net, xaman.account).then((r) => setSeq(r.account_data.Sequence)).catch(() => setSeq(undefined));
+  }, [xaman.account, net]);
 
   const loadExample = useCallback(() => {
     const filled = fillPlaceholders(prefill ?? p.example, { account: xaman.account, seq });
@@ -61,12 +63,13 @@ export function TxBuilder(p: BuilderProps) {
   const problems: string[] = [];
   if (!xaman.account) problems.push("Connect Xaman to fill in Account and sign.");
   if (missing.length) problems.push(`Missing required fields: ${missing.join(", ")}.`);
-  if (p.amendmentGate && !p.amendmentGate.enabled) problems.push(`The ${p.amendmentGate.name} amendment is not active on testnet: the node will return temDISABLED.`);
+  if (p.amendmentGate && !p.amendmentGate.enabled) problems.push(`The ${p.amendmentGate.name} amendment is not active on ${net.label}: the node will return temDISABLED.`);
+  if (!net.xaman) problems.push(`Xaman cannot sign on ${net.label}. You can still simulate here, or copy the JSON and sign it with another tool.`);
 
   const runSimulate = async () => {
     setSim({ loading: true });
     try {
-      const r = await simulate(tx);
+      const r = await simulate(net, tx);
       setSim({ loading: false, result: r });
     } catch (e) {
       setSim({ loading: false, error: e instanceof RpcError ? `${e.code}: ${e.message}` : e instanceof Error ? e.message : String(e) });
@@ -75,14 +78,14 @@ export function TxBuilder(p: BuilderProps) {
 
   const runSign = async () => {
     setFinal({ loading: false });
-    const res = await signer.sign(tx, `${p.name} · XRPL Tx Lab (testnet)`);
+    const res = await signer.sign(tx, `${p.name} · XRPL Tx Lab (${net.label})`, net.xaman);
     if (res?.meta.signed && res.response.txid) {
       setFinal({ loading: true });
       // The tx takes a few seconds to validate; we retry.
       for (let i = 0; i < 12; i++) {
         await new Promise((r) => setTimeout(r, 2500));
         try {
-          const t = await txByHash(res.response.txid);
+          const t = await txByHash(net, res.response.txid);
           if (t.validated) { setFinal({ loading: false, tx: t }); return; }
         } catch { /* txnNotFound still */ }
       }
@@ -130,7 +133,7 @@ export function TxBuilder(p: BuilderProps) {
         <div className="flex flex-wrap gap-2">
           <button type="button" className="btn-secondary" disabled={sim.loading} onClick={runSimulate}>{sim.loading ? "Simulating…" : "Simulate (no signing)"}</button>
           {xaman.account ? (
-            <button type="button" className="btn-primary" disabled={signer.status === "creating" || signer.status === "awaiting" || missing.length > 0} onClick={runSign}>{signer.status === "creating" ? "Creating payload…" : signer.status === "awaiting" ? "Waiting for signature…" : "Sign and submit with Xaman"}</button>
+            <button type="button" className="btn-primary" disabled={!net.xaman || signer.status === "creating" || signer.status === "awaiting" || missing.length > 0} onClick={runSign} title={net.xaman ? undefined : `Xaman cannot sign on ${net.label}`}>{signer.status === "creating" ? "Creating payload…" : signer.status === "awaiting" ? "Waiting for signature…" : "Sign and submit with Xaman"}</button>
           ) : (
             <button type="button" className="btn-primary" disabled={!xaman.configured || xaman.connecting} onClick={xaman.connect}>{xaman.configured ? "Connect Xaman" : "Xaman not configured"}</button>
           )}
@@ -151,7 +154,7 @@ export function TxBuilder(p: BuilderProps) {
             <div className="flex flex-col items-center gap-3 sm:flex-row">
               <img src={signer.created.refs.qr_png} alt="Xaman signing QR" className="h-44 w-44 rounded bg-white p-1" />
               <div className="space-y-2 text-sm">
-                <p>Scan the QR with the Xaman app (<b>Testnet</b> network) or open the link on mobile.</p>
+                <p>Scan the QR with the Xaman app (<b>{net.label}</b> network) or open the link on mobile.</p>
                 <a className="btn-primary inline-block" href={signer.created.next.always} target="_blank" rel="noreferrer">Open in Xaman</a>
                 <button type="button" className="btn-secondary block" onClick={signer.cancel}>Cancel</button>
               </div>
@@ -161,14 +164,14 @@ export function TxBuilder(p: BuilderProps) {
         {(signer.status === "rejected" || signer.status === "expired" || signer.status === "error") && <div className="notice notice-error">{signer.error}</div>}
         {signer.status === "signed" && signer.txid && (
           <div className="notice notice-ok">
-            <p>Signed and submitted. Hash: <a className="link" href={`${TESTNET_EXPLORER}/transactions/${signer.txid}`} target="_blank" rel="noreferrer">{signer.txid}</a></p>
+            <p>Signed and submitted. Hash: {explorerTx(net, signer.txid) ? <a className="link" href={explorerTx(net, signer.txid)} target="_blank" rel="noreferrer">{signer.txid}</a> : <span className="font-mono">{signer.txid}</span>}</p>
             {signer.resolved?.response.dispatched_result && <p className="text-muted">Preliminary node result: <code>{signer.resolved.response.dispatched_result}</code></p>}
             {final.loading && <p className="text-muted">Waiting for validation…</p>}
             {final.error && <p className="text-warning">{final.error}</p>}
             {final.tx && <TxResult engineResult={String((final.tx.meta as Record<string, unknown>)?.TransactionResult ?? "")} meta={final.tx.meta as Record<string, unknown>} txJson={(final.tx.tx_json ?? final.tx) as Record<string, unknown>} validated hash={signer.txid} />}
           </div>
         )}
-        <p className="text-xs text-muted">Everything is signed and sent to the <b>XRPL Testnet</b> (force_network=TESTNET). Xaman sessions live in your browser. <Link href="/account" className="link">View my account</Link>.</p>
+        <p className="text-xs text-muted">Everything is signed and sent to <b>{net.label}</b>{net.xaman ? ` (force_network=${net.xaman})` : ""}. Xaman sessions live in your browser. <Link href="/account" className="link">View my account</Link>.</p>
       </div>
     </div>
   );
@@ -181,7 +184,7 @@ function FieldRow({ f, value, onChange, flags, innerObjects }: { f: BuilderField
   return (
     <div>
       <label className="field-label">
-        <span><Link className="font-mono hover:underline" href={`/fields/${f.name}`}>{f.name}</Link>{f.optionality === "required" ? <span className="ml-1 text-danger">*</span> : null}{f.optionality === "default" ? <span className="ml-1 text-xs text-muted">(por defecto)</span> : null}</span>
+        <span><Link className="font-mono hover:underline" href={`/fields/${f.name}`}>{f.name}</Link>{f.optionality === "required" ? <span className="ml-1 text-danger">*</span> : null}{f.optionality === "default" ? <span className="ml-1 text-xs text-muted">(default)</span> : null}</span>
         <span className="field-type mono">{f.type}{f.mptSupported ? " · MPT" : ""}</span>
       </label>
       {R({ field: f.name, value, onChange, hint: f.hint, required: f.optionality === "required", flags: f.name === "Flags" ? flags : undefined, inner: inner?.fields.length ? inner : undefined })}

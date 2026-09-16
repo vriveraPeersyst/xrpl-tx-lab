@@ -1,14 +1,16 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/NLink";
+import { useNetId, useNetwork } from "@/lib/net-context";
 import { useState } from "react";
-import { protocol, TER_CATEGORIES } from "@/lib/protocol";
-import { TESTNET_EXPLORER } from "@/lib/xrpl/rpc";
+import { getNet, TER_CATEGORIES } from "@/lib/protocol";
+import { explorerTx } from "@/lib/xrpl/rpc";
 
 interface AffectedNode { CreatedNode?: { LedgerEntryType: string; LedgerIndex: string; NewFields?: Record<string, unknown> }; ModifiedNode?: { LedgerEntryType: string; LedgerIndex: string; FinalFields?: Record<string, unknown>; PreviousFields?: Record<string, unknown> }; DeletedNode?: { LedgerEntryType: string; LedgerIndex: string; FinalFields?: Record<string, unknown> } }
 
 export function TxResult({ engineResult, message, meta, txJson, validated, hash }: { engineResult: string; message?: string; meta?: Record<string, unknown>; txJson?: Record<string, unknown>; validated?: boolean; hash?: string }) {
   const [open, setOpen] = useState(false);
-  const code = protocol.results.find((r) => r.code === engineResult);
+  const net = useNetwork();
+  const code = getNet(useNetId()).getResult(engineResult);
   const cat = TER_CATEGORIES[engineResult.slice(0, 3)];
   const nodes = (meta?.AffectedNodes as AffectedNode[] | undefined) ?? [];
   const ok = engineResult === "tesSUCCESS";
@@ -19,7 +21,7 @@ export function TxResult({ engineResult, message, meta, txJson, validated, hash 
         {cat && <span className="ml-2 text-xs text-muted">{cat.label}</span>}
         <p className="text-muted">{code?.description ?? message}</p>
         {cat && !ok && <p className="text-xs text-muted">{cat.meaning}</p>}
-        {validated && <p className="text-xs">Validated in ledger{typeof txJson?.ledger_index === "number" ? ` ${txJson.ledger_index}` : ""}. {hash && <a className="link" href={`${TESTNET_EXPLORER}/transactions/${hash}`} target="_blank" rel="noreferrer">View in the explorer</a>}</p>}
+        {validated && <p className="text-xs">Validated in ledger{typeof txJson?.ledger_index === "number" ? ` ${txJson.ledger_index}` : ""}. {hash && explorerTx(net, hash) && <a className="link" href={explorerTx(net, hash)} target="_blank" rel="noreferrer">View in the explorer</a>}</p>}
       </div>
       {nodes.length > 0 && (
         <div>

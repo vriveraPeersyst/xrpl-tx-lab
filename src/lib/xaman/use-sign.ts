@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useRef, useState } from "react";
-import { getXummInstance, XAMAN_FORCE_NETWORK, type XummCreatedPayload, type XummResolvedPayload } from "./sdk";
+import { getXummInstance, type XummCreatedPayload, type XummResolvedPayload } from "./sdk";
 
 export type SignStatus = "idle" | "creating" | "awaiting" | "signed" | "rejected" | "expired" | "error";
 
@@ -20,13 +20,14 @@ export function useXamanSign() {
   const [state, setState] = useState<SignState>({ status: "idle", created: null, resolved: null, txid: null, error: null });
   const uuidRef = useRef<string | null>(null);
 
-  const sign = useCallback(async (txjson: Record<string, unknown>, instruction?: string) => {
+  const sign = useCallback(async (txjson: Record<string, unknown>, instruction?: string, forceNetwork?: string) => {
     const xumm = getXummInstance();
     if (!xumm?.payload) { setState({ status: "error", created: null, resolved: null, txid: null, error: "Connect a Xaman account first" }); return null; }
+    if (!forceNetwork) { setState({ status: "error", created: null, resolved: null, txid: null, error: "Xaman cannot sign on this network" }); return null; }
     setState({ status: "creating", created: null, resolved: null, txid: null, error: null });
     try {
       const { created, resolved } = await xumm.payload.createAndSubscribe(
-        { txjson, options: { submit: true, force_network: XAMAN_FORCE_NETWORK, expire: 10, instruction: instruction ?? "XRPL Tx Lab · testnet" } },
+        { txjson, options: { submit: true, force_network: forceNetwork, expire: 10, instruction: instruction ?? "XRPL Tx Lab · testnet" } },
         (event) => ("signed" in event.data || "expired" in event.data ? event : undefined),
       );
       uuidRef.current = created.uuid;

@@ -17,8 +17,9 @@ import path from "node:path";
 import { execSync } from "node:child_process";
 
 const ROOT = path.resolve(import.meta.dirname, "../..");
-const RIPPLED = process.env.RIPPLED_DIR ?? path.join(ROOT, "vendor/rippled");
-const OUT = path.join(ROOT, "src/data/protocol.json");
+const arg = (name: string) => { const i = process.argv.indexOf(name); return i >= 0 ? process.argv[i + 1] : undefined; };
+const RIPPLED = arg("--source") ?? process.env.RIPPLED_DIR ?? path.join(ROOT, "vendor/rippled");
+const OUT = arg("--out") ?? path.join(ROOT, "src/data/protocol.json");
 
 const read = (rel: string) => fs.readFileSync(path.join(RIPPLED, rel), "utf8");
 

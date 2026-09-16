@@ -24,35 +24,17 @@ const sh = (cmd: string, cwd = ROOT) => execSync(cmd, { cwd, stdio: "pipe", enco
 const run = (cmd: string, cwd = ROOT) => execSync(cmd, { cwd, stdio: "inherit" });
 const readJson = (rel: string) => (fs.existsSync(path.join(ROOT, rel)) ? JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")) : undefined);
 
-const before = readJson("src/data/testnet.json");
+const NET_DIR = path.join(ROOT, "src/data/networks");
+const readSnap = (id: string) => readJson(`src/data/networks/${id}/snapshot.json`);
+const netIds = () => (fs.existsSync(NET_DIR) ? fs.readdirSync(NET_DIR).filter((n) => fs.existsSync(path.join(NET_DIR, n, "snapshot.json"))).sort() : []);
+const before: Record<string, any> = Object.fromEntries(netIds().map((id) => [id, readSnap(id)]));
 
-// 1. Snapshot
-run("pnpm exec tsx tools/extract/testnet.ts");
-const after = readJson("src/data/testnet.json");
+// 1. Snapshots of every network (unreachable ones keep their previous snapshot)
+run("pnpm exec tsx tools/extract/snapshot.ts");
+const after: Record<string, any> = Object.fromEntries(netIds().map((id) => [id, readSnap(id)]));
 
-// 2. rippled source aligned with testnet
-function ensureSource(version: string) {
-  if (!fs.existsSync(RIPPLED)) {
-    log("cloning rippled (develop)…");
-    run(`git clone --depth 1 --branch develop ${REPO} ${RIPPLED}`);
-  }
-  const tag = version.replace(/\+.*$/, "");
-  const hasTag = sh(`git ls-remote --tags ${REPO} refs/tags/${tag}`).length > 0;
-  if (hasTag) {
-    log(`tag ${tag} exists on GitHub → exact checkout`);
-    run(`git fetch --depth 1 origin tag ${tag}`, RIPPLED);
-    run(`git checkout -q ${tag}`, RIPPLED);
-  } else {
-    log(`no public tag ${tag} → using develop (latest)`);
-    run("git fetch --depth 1 origin develop", RIPPLED);
-    run("git checkout -q develop", RIPPLED);
-    run("git reset -q --hard origin/develop", RIPPLED);
-  }
-}
-ensureSource(after.buildVersion);
-
-// 3. Extract
-run("pnpm exec tsx tools/extract/extract.ts");
+// 2+3. Source per version (tag or develop) and extraction
+run("pnpm exec tsx tools/extract/all.ts --update");
 
 // 4. Lint + generation of what is missing
 function lint(): any {
@@ -90,7 +72,7 @@ for (const n of cov.report.missingAmendmentDocs) writeDoc("amendments", n);
 
 if (cov.report.missingRegistry.length) {
   // Minimal registry entry: example with the required fields and placeholders.
-  const protocol = readJson("src/data/protocol.json");
+  const protocol = readJson(`src/data/protocol/${Object.values(after)[0]?.sourceRef ?? "develop"}.json`);
   const regPath = path.join(ROOT, "src/lib/tx/registry.ts");
   let reg = fs.readFileSync(regPath, "utf8");
   for (const name of cov.report.missingRegistry) {
@@ -121,18 +103,21 @@ cov = lint();
 
 // 5. Change log + git
 const changes: string[] = [];
-if (before) {
-  if (before.buildVersion !== after.buildVersion) changes.push(`xrpld on testnet: ${before.buildVersion} → ${after.buildVersion}`);
-  const prev = new Map(before.amendments.map((a: any) => [a.name, a]));
-  for (const a of after.amendments) {
-    const p: any = prev.get(a.name);
-    if (!p) changes.push(`new amendment: ${a.name}${a.enabled ? " (active)" : ""}`);
-    else if (p.enabled !== a.enabled) changes.push(`amendment ${a.name}: ${p.enabled ? "active" : "inactive"} → ${a.enabled ? "active" : "inactive"}`);
-    else if ((p.majority ?? 0) !== (a.majority ?? 0) && a.majority) changes.push(`amendment ${a.name}: reached majority (activation expected)`);
+for (const id of Object.keys(after)) {
+  const b = before[id];
+  const a = after[id];
+  if (!b) { changes.push(`${id}: first snapshot (xrpld ${a.buildVersion})`); continue; }
+  if (b.buildVersion !== a.buildVersion) changes.push(`${id}: xrpld ${b.buildVersion} → ${a.buildVersion}`);
+  const prev = new Map(b.amendments.map((x: any) => [x.name, x]));
+  for (const x of a.amendments) {
+    const p: any = prev.get(x.name);
+    if (!p) changes.push(`${id}: new amendment ${x.name}${x.enabled ? " (enabled)" : ""}`);
+    else if (p.enabled !== x.enabled) changes.push(`${id}: amendment ${x.name}: ${p.enabled ? "enabled" : "disabled"} → ${x.enabled ? "enabled" : "disabled"}`);
+    else if ((p.majority ?? 0) !== (x.majority ?? 0) && x.majority) changes.push(`${id}: amendment ${x.name} reached majority (activation scheduled)`);
   }
-  if (before.definitions.hash !== after.definitions.hash) changes.push(`server_definitions changed: ${before.definitions.hash.slice(0, 8)} → ${after.definitions.hash.slice(0, 8)}`);
+  if (b.definitions.hash !== a.definitions.hash) changes.push(`${id}: server_definitions changed ${b.definitions.hash.slice(0, 8)} → ${a.definitions.hash.slice(0, 8)}`);
 }
-const entry = { at: new Date().toISOString(), testnet: after.buildVersion, source: readJson("src/data/protocol.json").source, changes, generated, coverageOk: cov.ok, errors: cov.errors, warnings: cov.warnings };
+const entry = { at: new Date().toISOString(), networks: Object.fromEntries(Object.entries(after).map(([id, a]) => [id, { version: a.buildVersion, ledger: a.validatedLedger?.seq, sourceRef: a.sourceRef }])), changes, generated, coverageOk: cov.ok, errors: cov.errors, warnings: cov.warnings };
 const logPath = path.join(ROOT, "src/data/sync-log.json");
 const history = readJson("src/data/sync-log.json") ?? [];
 fs.writeFileSync(logPath, JSON.stringify([entry, ...history].slice(0, 200), null, 2));
@@ -142,7 +127,7 @@ if (!process.env.SYNC_NO_GIT) {
   const dirty = sh("git status --porcelain -- src/data content src/lib/tx/registry.ts");
   if (dirty) {
     run("git add src/data content src/lib/tx/registry.ts");
-    const msg = `sync: testnet ${after.buildVersion} (${after.validatedLedger.seq})${changes.length ? "\n\n" + changes.map((c) => "- " + c).join("\n") : ""}${generated.length ? "\n\nGenerated: " + generated.join(", ") : ""}\n\nCo-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`;
+    const msg = `sync: ${Object.entries(after).map(([id, a]) => `${id} ${a.buildVersion}`).join(", ")}${changes.length ? "\n\n" + changes.map((c) => "- " + c).join("\n") : ""}${generated.length ? "\n\nGenerated: " + generated.join(", ") : ""}\n\nCo-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`;
     const msgFile = path.join(ROOT, ".git/SYNC_COMMIT_MSG");
     fs.writeFileSync(msgFile, msg);
     run(`git commit -q -F ${JSON.stringify(msgFile)}`);

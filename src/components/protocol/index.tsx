@@ -1,19 +1,19 @@
-import Link from "next/link";
-import { amendmentStatus, getFeature, getResult, TER_CATEGORIES, type MergedField, type TestnetAmendment } from "@/lib/protocol";
+import NLink from "@/components/NLink";
+import { TER_CATEGORIES, type MergedField, type NetData, type SnapshotAmendment } from "@/lib/protocol";
 
-export function AmendmentBadge({ name, showName = true }: { name: string; showName?: boolean }) {
-  const s = amendmentStatus(name);
-  const f = getFeature(name);
+export function AmendmentBadge({ d, name, showName = true }: { d: NetData; name: string; showName?: boolean }) {
+  const s = d.amendmentStatus(name);
+  const f = d.getFeature(name);
   const state = !s ? (f ? "source only" : "unknown") : s.enabled ? "active" : s.vetoed ? "vetoed" : s.majority ? "majority" : s.supported ? "voting" : "unsupported";
   const cls = state === "active" ? "bg-accent-soft text-accent-ink" : state === "majority" ? "bg-[#edf4ff] text-[#0a4dc0]" : state === "voting" ? "bg-[#dbf15e] text-black" : state === "vetoed" ? "bg-[#fdece7] text-[#a22514]" : "bg-surface-2 text-muted";
   return (
-    <Link href={`/amendments/${name}`} className={`badge ${cls} hover:opacity-80`} title={`Amendment ${name}: ${state} on testnet`}>
+    <NLink href={`/amendments/${name}`} className={`badge ${cls} hover:opacity-80`} title={`Amendment ${name}: ${state} on ${d.network.label}`}>
       {showName && <span className="font-mono">{name}</span>}<span className={showName ? "ml-1 opacity-80" : ""}>{state}</span>
-    </Link>
+    </NLink>
   );
 }
 
-export function amendmentState(s?: TestnetAmendment): { label: string; cls: string } {
+export function amendmentState(s?: SnapshotAmendment): { label: string; cls: string } {
   if (!s) return { label: "source only", cls: "bg-surface-2 text-muted" };
   if (s.enabled) return { label: "active", cls: "bg-accent-soft text-accent-ink" };
   if (s.vetoed) return { label: "vetoed", cls: "bg-[#fdece7] text-[#a22514]" };
@@ -22,11 +22,11 @@ export function amendmentState(s?: TestnetAmendment): { label: string; cls: stri
   return { label: "unsupported", cls: "bg-surface-2 text-muted" };
 }
 
-export function TerBadge({ code }: { code: string }) {
-  const r = getResult(code);
+export function TerBadge({ d, code }: { d: NetData; code: string }) {
+  const r = d.getResult(code);
   const cat = TER_CATEGORIES[code.slice(0, 3)];
   const cls = code === "tesSUCCESS" ? "bg-accent-soft text-accent-ink" : code.startsWith("tec") ? "bg-[#dbf15e] text-black" : "bg-[#fdece7] text-[#a22514]";
-  return <Link href={`/results#${code}`} className={`badge font-mono ${cls} hover:opacity-80`} title={`${r?.description ?? ""} (${cat?.label ?? ""})`}>{code}</Link>;
+  return <NLink href={`/results#${code}`} className={`badge font-mono ${cls} hover:opacity-80`} title={`${r?.description ?? ""} (${cat?.label ?? ""})`}>{code}</NLink>;
 }
 
 export function FieldsTable({ fields, hints, scope }: { fields: MergedField[]; hints?: Record<string, string>; scope?: string }) {
@@ -36,13 +36,13 @@ export function FieldsTable({ fields, hints, scope }: { fields: MergedField[]; h
       <tbody>
         {fields.map((f) => (
           <tr key={f.name} className={!f.inTestnet ? "opacity-60" : ""}>
-            <td><Link href={`/fields/${f.name}`} className="font-mono hover:underline">{f.name}</Link></td>
-            <td><Link href={`/fields#${f.type}`} className="font-mono text-xs text-muted hover:underline">{f.type}</Link></td>
+            <td><NLink href={`/fields/${f.name}`} className="font-mono hover:underline">{f.name}</NLink></td>
+            <td><NLink href={`/fields#${f.type}`} className="font-mono text-xs text-muted hover:underline">{f.type}</NLink></td>
             <td>{f.optionality === "required" ? <span className="text-danger">required</span> : f.optionality === "default" ? <span title="If omitted, it is serialized with its default value">default</span> : "optional"}</td>
             <td className="text-xs text-muted">
               {f.mptSupported && <span className="badge mr-1 bg-accent-soft text-accent-ink">supports MPT</span>}
-              {!f.inTestnet && <span className="badge mr-1 bg-surface-2">source only (not yet on testnet)</span>}
-              {f.inTestnet && !f.inSource && <span className="badge mr-1 bg-surface-2">testnet only</span>}
+              {!f.inTestnet && <span className="badge mr-1 bg-surface-2">source only (not yet on this network)</span>}
+              {f.inTestnet && !f.inSource && <span className="badge mr-1 bg-surface-2">network only</span>}
               {hints?.[f.name]}
               {scope === "common" && COMMON_HINTS[f.name]}
             </td>

@@ -39,6 +39,11 @@ export function listDocs(kind: "tx" | "objects" | "amendments"): string[] {
   return fs.readdirSync(dir).filter((f) => f.endsWith(".md")).map((f) => f.replace(/\.md$/, "")).sort();
 }
 
+export function readResultDocs(): Record<string, string> {
+  const file = path.join(ROOT, "results.json");
+  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : {};
+}
+
 export function readFlagDocs(): Record<string, string> {
   const file = path.join(ROOT, "flags.json");
   return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : {};
@@ -49,12 +54,12 @@ export function flagDoc(scope: string, flag: string): string | undefined {
   return docs[`${scope}.${flag}`] ?? docs[flag];
 }
 
-export function readCoverage(): { ok: boolean; errors: string[]; warnings: string[]; report: Record<string, string[]>; testnet: { version: string; ledger: number; fetchedAt: string } } | undefined {
+export function readCoverage(): { ok: boolean; errors: string[]; warnings: string[]; report: Record<string, string[]>; networks?: Record<string, { version: string }> } | undefined {
   const file = path.join(process.cwd(), "src/data/coverage.json");
   return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : undefined;
 }
 
-export function readSyncLog(): { at: string; testnet: string; changes: string[]; generated: string[]; coverageOk: boolean; errors: string[]; warnings: string[] }[] {
+export function readSyncLog(): { at: string; testnet?: string; networks?: Record<string, { version: string; ledger?: number; sourceRef?: string }>; changes: string[]; generated: string[]; coverageOk: boolean; errors: string[]; warnings: string[] }[] {
   const file = path.join(process.cwd(), "src/data/sync-log.json");
   return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : [];
 }

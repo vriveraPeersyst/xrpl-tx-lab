@@ -4,7 +4,7 @@ import { useXaman } from "@/lib/xaman/provider";
 
 export function ConnectButton() {
   const x = useXaman();
-  if (!x.configured) return <span className="text-xs text-muted" title="Define NEXT_PUBLIC_XAMAN_API_KEY">Xaman not configured</span>;
+  if (!x.configured) return <span className="whitespace-nowrap text-xs text-muted" title="Define NEXT_PUBLIC_XAMAN_API_KEY">Xaman not configured</span>;
   if (x.account)
     return (
       <div className="flex items-center gap-2 text-sm">
