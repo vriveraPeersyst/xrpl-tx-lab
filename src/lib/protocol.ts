@@ -20,6 +20,9 @@ export interface TransactorAnalysis {
   allFlags: string[];
   allFields: string[];
   lines: number;
+  ownerReserveFee?: boolean;
+  customBaseFee?: boolean;
+  ownerCountCalls?: string[];
 }
 export interface Transaction {
   tag: string;

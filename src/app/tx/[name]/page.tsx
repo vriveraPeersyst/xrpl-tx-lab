@@ -7,6 +7,8 @@ import { Markdown } from "@/components/Markdown";
 import { AmendmentBadge, FieldsTable, TerBadge } from "@/components/protocol";
 import { TxBuilder } from "@/components/tx/TxBuilder";
 import { Lifecycle } from "@/components/tx/Lifecycle";
+import { Suspense } from "react";
+import { txFeeRules, TX_CREATES, RESERVE_RULES, reserveXrp, formatXrp } from "@/lib/reserves";
 
 export function generateStaticParams() {
   return testnetTxNames().map((name) => ({ name }));
@@ -57,6 +59,7 @@ export default async function TxPage({ params }: { params: Promise<{ name: strin
 
       <section id="builder" className="space-y-3">
         <h2 className="text-xl font-semibold">Construir y enviar en testnet</h2>
+        <Suspense fallback={<div className="text-sm text-muted">Cargando builder…</div>}>
         <TxBuilder
           name={name}
           fields={fields.map((f) => ({ name: f.name, type: f.type, optionality: f.optionality, inTestnet: f.inTestnet, hint: spec?.hints?.[f.name], mptSupported: f.mptSupported }))}
@@ -68,7 +71,30 @@ export default async function TxPage({ params }: { params: Promise<{ name: strin
           amendmentGate={gate}
           pseudo={pseudo}
         />
+        </Suspense>
       </section>
+
+      {!pseudo && (
+        <section id="coste" className="space-y-3">
+          <h2 className="text-xl font-semibold">Cuánto cuesta</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="card">
+              <h3 className="mb-2 font-semibold">Fee (se destruye)</h3>
+              <ul className="space-y-2 text-sm">{txFeeRules(name).map((r) => <li key={r.label}><b>{r.label}</b>{r.drops !== undefined && <span className="ml-1 font-mono">{r.drops} drops</span>}{r.xrp !== undefined && <span className="ml-1 font-mono">{formatXrp(r.xrp)}</span>}<span className="block text-xs text-muted">{r.note}</span></li>)}</ul>
+            </div>
+            <div className="card">
+              <h3 className="mb-2 font-semibold">Reserva (se bloquea, se libera al borrar)</h3>
+              {(TX_CREATES[name] ?? []).length ? (
+                <ul className="space-y-2 text-sm">{(TX_CREATES[name] ?? []).map((o) => { const r = RESERVE_RULES[o]; return <li key={o}><Link href={`/objects/${o}`} className="font-mono hover:underline">{o}</Link>{r && <span className="ml-1 font-mono">{r.units}{r.variable ? "+" : ""} × {formatXrp(testnet.reserves.incXrp)} = {formatXrp(reserveXrp(r.units))}</span>}{r && <span className="block text-xs text-muted">{r.note}</span>}</li>; })}</ul>
+              ) : (
+                <p className="text-sm text-muted">No crea objetos nuevos: no bloquea reserva adicional.</p>
+              )}
+              {t.transactor?.ownerCountCalls?.length ? <details className="mt-2"><summary className="cursor-pointer text-xs text-muted">Evidencia en el código ({t.transactor.ownerCountCalls.length})</summary><ul className="mt-1 space-y-1 font-mono text-xs text-muted">{t.transactor.ownerCountCalls.map((c) => <li key={c}>{c}</li>)}</ul></details> : null}
+              <p className="mt-2 text-xs text-muted">Valores de testnet: base {formatXrp(testnet.reserves.baseXrp)}, incremento {formatXrp(testnet.reserves.incXrp)}. <Link href="/reserves" className="link">Tabla completa y calculadora</Link>.</p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {doc ? (
         <section className="max-w-3xl"><Markdown>{doc.body}</Markdown></section>

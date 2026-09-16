@@ -21,6 +21,7 @@ const NAV = [
   ["/results", "Resultados"],
   ["/fields", "Campos"],
   ["/permissions", "Permisos"],
+  ["/reserves", "Reservas y fees"],
   ["/account", "Mi cuenta"],
 ] as const;
 

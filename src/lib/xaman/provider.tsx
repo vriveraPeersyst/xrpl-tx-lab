@@ -23,6 +23,7 @@ export function XamanProvider({ children }: { children: ReactNode }) {
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sdkRef = useRef<XummInstance | null>(null);
+  const [sdk, setSdk] = useState<XummInstance | null>(null);
   const configured = Boolean(XAMAN_API_KEY);
 
   const sync = useCallback(async (xumm: XummInstance) => {
@@ -43,6 +44,7 @@ export function XamanProvider({ children }: { children: ReactNode }) {
       .then((xumm) => {
         if (!alive) return;
         sdkRef.current = xumm;
+        setSdk(xumm);
         setReady(true);
         xumm.on("success", () => void sync(xumm));
         xumm.on("retrieved", () => void sync(xumm));
@@ -72,7 +74,7 @@ export function XamanProvider({ children }: { children: ReactNode }) {
     try { await sdkRef.current?.logout(); } finally { setAccount(null); setNetwork(null); }
   }, []);
 
-  const value = useMemo<XamanSession>(() => ({ ready, configured, account, network, connecting, error, connect, disconnect, sdk: sdkRef.current }), [ready, configured, account, network, connecting, error, connect, disconnect]);
+  const value = useMemo<XamanSession>(() => ({ ready, configured, account, network, connecting, error, connect, disconnect, sdk }), [ready, configured, account, network, connecting, error, connect, disconnect, sdk]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

@@ -7,6 +7,8 @@ import { rendererFor, ARRAY_INNER } from "@/lib/form/renderers";
 import { fillPlaceholders } from "@/lib/form/placeholders";
 import { accountInfo, simulate, txByHash, TESTNET_EXPLORER, RpcError } from "@/lib/xrpl/rpc";
 import { TxResult } from "./TxResult";
+import { useSearchParams } from "next/navigation";
+import { decodePrefill } from "@/lib/wallet/actions";
 
 export interface BuilderField { name: string; type: string; optionality: "required" | "optional" | "default"; inTestnet: boolean; common?: boolean; hint?: string; mptSupported?: boolean }
 export interface BuilderProps {
@@ -26,6 +28,8 @@ const HIDDEN_COMMON = new Set(["TransactionType", "Account", "SigningPubKey", "T
 export function TxBuilder(p: BuilderProps) {
   const xaman = useXaman();
   const signer = useXamanSign();
+  const params = useSearchParams();
+  const prefill = useMemo(() => { const q = params.get("prefill"); return q ? decodePrefill(q) : undefined; }, [params]);
   const [tx, setTx] = useState<Record<string, unknown>>({ TransactionType: p.name });
   const [raw, setRaw] = useState(false);
   const [rawText, setRawText] = useState("");
@@ -41,18 +45,17 @@ export function TxBuilder(p: BuilderProps) {
   }, [xaman.account]);
 
   const loadExample = useCallback(() => {
-    const filled = fillPlaceholders(p.example, { account: xaman.account, seq });
+    const filled = fillPlaceholders(prefill ?? p.example, { account: xaman.account, seq });
     setTx({ ...filled, TransactionType: p.name, Account: xaman.account ?? filled.Account });
     setSim({ loading: false });
     setFinal({ loading: false });
     signer.reset();
-  }, [p.example, p.name, xaman.account, seq, signer]);
+  }, [p.example, p.name, xaman.account, seq, signer, prefill]);
 
-  useEffect(() => { loadExample(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [xaman.account, seq]);
+  useEffect(() => { void Promise.resolve().then(loadExample); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [xaman.account, seq, prefill]);
 
   const set = (k: string, v: unknown) => setTx((t) => { const n = { ...t }; if (v === undefined || v === "" ) delete n[k]; else n[k] = v; return n; });
   const json = useMemo(() => JSON.stringify(tx, null, 2), [tx]);
-  useEffect(() => { if (!raw) setRawText(json); }, [json, raw]);
 
   const missing = p.fields.filter((f) => f.optionality === "required" && f.inTestnet && tx[f.name] === undefined).map((f) => f.name);
   const problems: string[] = [];
@@ -97,7 +100,7 @@ export function TxBuilder(p: BuilderProps) {
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <button type="button" className="btn-secondary" onClick={loadExample}>Cargar ejemplo</button>
-          <button type="button" className="btn-secondary" onClick={() => { setRaw(!raw); setRawErr(null); }}>{raw ? "Formulario" : "Editar JSON"}</button>
+          <button type="button" className="btn-secondary" onClick={() => { setRawText(json); setRaw(!raw); setRawErr(null); }}>{raw ? "Formulario" : "Editar JSON"}</button>
           <button type="button" className="btn-secondary" onClick={() => setShowCommon(!showCommon)}>{showCommon ? "Ocultar comunes" : "Campos comunes"}</button>
         </div>
         {p.prerequisites?.length ? (
@@ -181,7 +184,7 @@ function FieldRow({ f, value, onChange, flags, innerObjects }: { f: BuilderField
         <span><Link className="font-mono hover:underline" href={`/fields/${f.name}`}>{f.name}</Link>{f.optionality === "required" ? <span className="ml-1 text-danger">*</span> : null}{f.optionality === "default" ? <span className="ml-1 text-xs text-muted">(por defecto)</span> : null}</span>
         <span className="text-xs text-muted">{f.type}{f.mptSupported ? " · MPT" : ""}</span>
       </label>
-      <R field={f.name} value={value} onChange={onChange} hint={f.hint} required={f.optionality === "required"} flags={f.name === "Flags" ? flags : undefined} inner={inner?.fields.length ? inner : undefined} />
+      {R({ field: f.name, value, onChange, hint: f.hint, required: f.optionality === "required", flags: f.name === "Flags" ? flags : undefined, inner: inner?.fields.length ? inner : undefined })}
       {f.hint && <p className="mt-1 text-xs text-muted">{f.hint}</p>}
     </div>
   );

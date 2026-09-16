@@ -116,6 +116,12 @@ interface TransactorAnalysis {
   allFlags: string[];
   allFields: string[];
   lines: number;
+  /** Cobra el owner reserve incremental como fee (calculateOwnerReserveFee). */
+  ownerReserveFee: boolean;
+  /** Define su propio calculateBaseFee (fee distinto del base). */
+  customBaseFee: boolean;
+  /** Llamadas a increaseOwnerCount/decreaseOwnerCount/adjustOwnerCount encontradas (evidencia de reserva). */
+  ownerCountCalls: string[];
 }
 
 interface Transaction {
@@ -239,6 +245,9 @@ function analyzeTransactor(header: string | undefined, className: string): Trans
     allFlags: matches(all, FLAG_RE),
     allFields: matches(all, SFIELD_RE).map((f) => f.slice(2)),
     lines: cpp.split("\n").length,
+    ownerReserveFee: /calculateOwnerReserveFee/.test(code),
+    customBaseFee: /::calculateBaseFee\(/.test(code),
+    ownerCountCalls: uniq([...code.matchAll(/\b(increaseOwnerCount|decreaseOwnerCount|adjustOwnerCount)\s*\(([^;]*)\)/g)].map((m) => `${m[1]}(${m[2].replace(/\s+/g, " ").trim()})`)),
   };
 }
 

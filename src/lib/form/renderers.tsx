@@ -150,6 +150,7 @@ function BlobInput({ value, onChange, field }: RendererProps) {
   );
 }
 
+// eslint-disable-next-line react/display-name
 const hashRenderer = (len: number): Renderer => (p) => <Text value={p.value} onChange={p.onChange} placeholder={`${len} caracteres hex`} pattern={new RegExp(`^[0-9a-fA-F]{${len}}$`)} />;
 
 export const renderers: Record<string, Renderer> = {

@@ -4,6 +4,7 @@ import { getLedgerEntry, testnetLedgerEntryNames, testnet, protocol, fieldType, 
 import { readDoc, flagDoc } from "@/lib/content";
 import { Markdown } from "@/components/Markdown";
 import { FieldsTable } from "@/components/protocol";
+import { RESERVE_RULES, reserveXrp, formatXrp } from "@/lib/reserves";
 
 export function generateStaticParams() {
   return testnetLedgerEntryNames().map((name) => ({ name }));
@@ -38,6 +39,15 @@ export default async function ObjectPage({ params }: { params: Promise<{ name: s
           {doc?.data.xrplDocs && <a className="link" href={doc.data.xrplDocs} target="_blank" rel="noreferrer">xrpl.org ↗</a>}
         </div>
       </header>
+      {RESERVE_RULES[name] && (
+        <section className="card">
+          <h2 className="mb-1 font-semibold">Cuánto XRP bloquea</h2>
+          <p className="text-2xl font-semibold">{RESERVE_RULES[name].units}{RESERVE_RULES[name].variable ? "+" : ""} × {formatXrp(testnet.reserves.incXrp)} = {formatXrp(reserveXrp(RESERVE_RULES[name].units))}</p>
+          <p className="text-sm">Lo paga: {RESERVE_RULES[name].owner}.</p>
+          <p className="text-sm text-muted">{RESERVE_RULES[name].note}</p>
+          <p className="mt-1 text-xs text-muted">Se libera al borrar el objeto. <Link href="/reserves" className="link">Reservas y fees</Link>.</p>
+        </section>
+      )}
       {doc ? <section className="max-w-3xl"><Markdown>{doc.body}</Markdown></section> : <section className="card text-sm text-muted">Documentación pendiente. Datos extraídos del código a continuación.</section>}
       <section className="space-y-2">
         <h2 className="text-xl font-semibold">Campos ({fields.length})</h2>
