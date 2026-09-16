@@ -1,23 +1,23 @@
 ---
 title: DynamicMPT
-summary: Hace mutables por defecto los metadatos, la comisión de transferencia y los flags de capacidad de un MPT, salvo los que el emisor declare inmutables.
+summary: Makes an MPT's metadata, transfer fee and capability flags mutable by default, except for those the issuer declares immutable.
 xls: XLS-0094
 xlsUrl: https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0094-dynamic-MPT
 xrplDocs: https://xrpl.org/resources/known-amendments#dynamicmpt
 introducedIn: 3.3.0
 ---
 
-## Qué cambia
+## What changes
 
-Con [MPTokensV1](/amendments/MPTokensV1) una emisión de MPT quedaba fijada en el momento de crearla: `MPTokenMetadata`, `TransferFee` y los flags de capacidad (`CanLock`, `RequireAuth`, `CanEscrow`, `CanTrade`, `CanTransfer`, `CanClawback`) no se podían cambiar. DynamicMPT invierte el criterio: todo eso pasa a ser modificable con `MPTokenIssuanceSet`, salvo lo que el emisor bloquee explícitamente en el nuevo campo `ImmutableFlags` al crear la emisión.
+With [MPTokensV1](/amendments/MPTokensV1), an MPT issuance was fixed at the moment it was created: `MPTokenMetadata`, `TransferFee` and the capability flags (`CanLock`, `RequireAuth`, `CanEscrow`, `CanTrade`, `CanTransfer`, `CanClawback`) could not be changed. DynamicMPT reverses that default: all of that becomes modifiable via `MPTokenIssuanceSet`, except for what the issuer explicitly locks in the new `ImmutableFlags` field when creating the issuance.
 
-`MPTokenIssuanceSet` gana los flags `tfMPTSetCanLock`/`tfMPTClearCanLock` y equivalentes para cada capacidad, más la posibilidad de enviar `MPTokenMetadata` y `TransferFee` nuevos. Reglas de `preflight`: una transacción no puede mezclar mutación con lock/unlock, no puede llevar `Holder` cuando muta la emisión, y sin el amendment cualquier mutación devuelve `temDISABLED`. Intentar cambiar un campo declarado inmutable falla con `tecNO_PERMISSION`. Sin el amendment, `ImmutableFlags` en `MPTokenIssuanceCreate` es un campo desconocido y la transacción no pasa.
+`MPTokenIssuanceSet` gains the flags `tfMPTSetCanLock`/`tfMPTClearCanLock` and equivalents for each capability, plus the ability to submit new `MPTokenMetadata` and `TransferFee` values. `preflight` rules: a transaction cannot mix mutation with lock/unlock, it cannot carry `Holder` when mutating the issuance, and without the amendment any mutation returns `temDISABLED`. Attempting to change a field declared immutable fails with `tecNO_PERMISSION`. Without the amendment, `ImmutableFlags` in `MPTokenIssuanceCreate` is an unknown field and the transaction does not pass.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Modificadas: [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate) (campo `ImmutableFlags`) y [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet) (flags de mutación y campos editables).
-- Objetos: [MPTokenIssuance](/objects/MPTokenIssuance).
+- Modified: [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate) (`ImmutableFlags` field) and [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet) (mutation flags and editable fields).
+- Objects: [MPTokenIssuance](/objects/MPTokenIssuance).
 
-## Estado y contexto
+## Status and context
 
-Los emisores institucionales pedían poder corregir metadatos (por ejemplo, un enlace a documentación legal) o ajustar comisiones sin destruir y reemitir el token, algo imposible cuando ya circula. Al mismo tiempo, los titulares necesitan garantías de que ciertas propiedades no cambiarán. La XLS-94 combina ambas cosas: mutable por defecto, con un compromiso irreversible por propiedad. Convive con [ConfidentialTransfer](/amendments/ConfidentialTransfer), cuyo flag `CanHoldConfidentialBalance` también puede fijarse como inmutable.
+Institutional issuers asked to be able to correct metadata (for example, a link to legal documentation) or adjust fees without destroying and reissuing the token, which was impossible once it was already circulating. At the same time, holders need assurance that certain properties will not change. XLS-94 combines both: mutable by default, with an irreversible per-property commitment. It coexists with [ConfidentialTransfer](/amendments/ConfidentialTransfer), whose `CanHoldConfidentialBalance` flag can likewise be set as immutable.

@@ -1,19 +1,19 @@
 ---
 title: FeeEscalation
-summary: Cambia el mecanismo de transaction cost para que suba automáticamente con la carga de la red en lugar de ser un valor fijo.
+summary: Changes the transaction cost mechanism so it rises automatically with network load instead of being a fixed value.
 xrplDocs: https://xrpl.org/resources/known-amendments#feeescalation
 ---
 
-## Qué cambia
+## What changes
 
-Antes de FeeEscalation, el coste de una transacción era un valor de red prácticamente fijo (la `base fee`), independiente de cuánta demanda hubiera en ese momento. Con este amendment, cada validador calcula un coste mínimo por transacción en función de cuántas transacciones compiten ya por entrar en el ledger abierto: cuantas más transacciones en cola, mayor el coste necesario para que la tuya se incluya. El coste se expresa como un múltiplo de la `base fee` y escala de forma no lineal con la ocupación del ledger, penalizando fuertemente los picos de tráfico.
+Before FeeEscalation, the cost of a transaction was a practically fixed network value (the `base fee`), independent of how much demand there was at any given moment. With this amendment, each validator calculates a minimum cost per transaction based on how many transactions are already competing to get into the open ledger: the more transactions in the queue, the higher the cost needed for yours to be included. The cost is expressed as a multiple of the `base fee` and scales non-linearly with ledger occupancy, heavily penalizing traffic spikes.
 
-Esto convierte el campo `Fee` de cada transacción en un mecanismo de puja implícita: quien paga más que el mínimo del momento tiene prioridad para entrar en el siguiente ledger cerrado, mientras que transacciones con `Fee` bajo pueden quedarse fuera repetidamente durante congestión y acabar expirando si llevan `LastLedgerSequence`.
+This turns the `Fee` field of each transaction into an implicit bidding mechanism: whoever pays more than the current minimum has priority to get into the next closed ledger, while transactions with a low `Fee` can repeatedly be left out during congestion and eventually expire if they carry a `LastLedgerSequence`.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-Afecta al campo `Fee`, presente en todas las transacciones, y a cómo cada `rippled` ordena su cola local de transacciones candidatas antes de proponerlas para el consenso. No introduce ni modifica objetos del ledger.
+It affects the `Fee` field, present in all transactions, and how each `rippled` orders its local queue of candidate transactions before proposing them for consensus. It does not introduce or modify any ledger objects.
 
-## Estado y contexto
+## Status and context
 
-Antes de este amendment, un atacante podía saturar la red con transacciones baratas y bloquear el procesamiento de las legítimas, ya que todas costaban lo mismo sin importar la congestión. FeeEscalation introduce un mercado de fees dentro de cada servidor: el coste sube solo cuando hace falta, protegiendo la red frente a spam sin penalizar el uso normal en momentos de baja demanda. Está retirado (`XRPL_RETIRE_FEATURE` en `features.macro`): el mecanismo de fee escalation es hoy el único que existe en la red. No debe confundirse con [XRPFees](/amendments/XRPFees), que ajusta valores concretos de reserva y fee base, no el mecanismo de escalado en sí.
+Before this amendment, an attacker could flood the network with cheap transactions and block the processing of legitimate ones, since all transactions cost the same regardless of congestion. FeeEscalation introduces a fee market within each server: the cost rises only when needed, protecting the network from spam without penalizing normal usage during periods of low demand. It is retired (`XRPL_RETIRE_FEATURE` in `features.macro`): the fee escalation mechanism is today the only one that exists on the network. It should not be confused with [XRPFees](/amendments/XRPFees), which adjusts specific reserve and base fee values, not the scaling mechanism itself.

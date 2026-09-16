@@ -1,73 +1,73 @@
 ---
 title: CredentialAccept
-summary: El sujeto de una credencial la acepta, dejándola operativa para preautorizaciones y dominios permisionados.
+summary: The subject of a credential accepts it, making it operational for preauthorizations and permissioned domains.
 category: identidad
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/credentialaccept
 amendment: Credentials
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-Cuando un emisor crea una credencial con [CredentialCreate](/tx/CredentialCreate), esta queda pendiente: existe en el ledger pero no cuenta como válida para nada (no sirve para pasar un [PermissionedDomain](/objects/PermissionedDomain) ni para una preautorización de depósito por credencial). `CredentialAccept` es el paso en el que el sujeto de la credencial la reconoce y la activa, marcando el objeto [Credential](/objects/Credential) con el flag `lsfAccepted`.
+When an issuer creates a credential with [CredentialCreate](/tx/CredentialCreate), it remains pending: it exists on the ledger but doesn't count as valid for anything (it can't pass a [PermissionedDomain](/objects/PermissionedDomain) check nor be used for a credential-based deposit preauthorization). `CredentialAccept` is the step where the subject of the credential acknowledges and activates it, marking the [Credential](/objects/Credential) object with the `lsfAccepted` flag.
 
-Este diseño en dos pasos evita que cualquiera pueda "etiquetarte" con afirmaciones que no quieres llevar asociadas a tu cuenta: nadie puede forzarte a aceptar una credencial, y hasta que lo hagas, esta no tiene efecto alguno en el resto del protocolo.
+This two-step design prevents anyone from "tagging" you with claims you don't want associated with your account: no one can force you to accept a credential, and until you do, it has no effect anywhere else in the protocol.
 
-## Cuándo usarlo
+## When to use it
 
-- Confirmar una credencial de KYC/AML que un proveedor te ha emitido, antes de operar en un DEX permisionado.
-- Activar una credencial de "cliente acreditado" para poder depositar en cuentas con `DepositPreauth` basado en credenciales.
-- Cualquier flujo de onboarding en el que primero un tercero certifica algo sobre ti y luego tú lo confirmas.
+- Confirming a KYC/AML credential a provider has issued you, before operating on a permissioned DEX.
+- Activating an "accredited client" credential to be able to deposit into accounts with credential-based `DepositPreauth`.
+- Any onboarding flow where a third party first certifies something about you and then you confirm it.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`CredentialAccept::preflight`** valida forma: `Issuer` no puede estar vacío (`temINVALID_ACCOUNT_ID`) y `CredentialType` debe tener entre 1 y 64 bytes (`temMALFORMED`). Con [fixInvalidTxFlags](/amendments/fixInvalidTxFlags), cualquier flag fuera de los universales se rechaza.
+**`CredentialAccept::preflight`** validates form: `Issuer` cannot be empty (`temINVALID_ACCOUNT_ID`) and `CredentialType` must be between 1 and 64 bytes (`temMALFORMED`). With [fixInvalidTxFlags](/amendments/fixInvalidTxFlags), any flag outside the universal ones is rejected.
 
-**`CredentialAccept::preclaim`** comprueba contra el ledger: el `Issuer` debe existir como cuenta (`tecNO_ISSUER`), debe existir una credencial con esa terna Subject (el que envía la tx) / Issuer / CredentialType (`tecNO_ENTRY` si no), y esa credencial no puede estar ya aceptada (`tecDUPLICATE`).
+**`CredentialAccept::preclaim`** checks against the ledger: the `Issuer` must exist as an account (`tecNO_ISSUER`), a credential must exist with that Subject (the sender)/Issuer/CredentialType triple (`tecNO_ENTRY` if not), and that credential must not already be accepted (`tecDUPLICATE`).
 
-**`CredentialAccept::doApply`** localiza el objeto `Credential`, comprueba la reserva de propietario disponible en la cuenta que acepta (puede crecer el owner count) y activa el flag `lsfAccepted`. Si la credencial ya caducó según `Expiration` respecto al momento de cierre del ledger anterior, la transacción falla con `tecEXPIRED` en lugar de aceptar una credencial muerta.
+**`CredentialAccept::doApply`** locates the `Credential` object, checks the available owner reserve on the accepting account (the owner count may grow), and activates the `lsfAccepted` flag. If the credential has already expired according to `Expiration` relative to the previous ledger's close time, the transaction fails with `tecEXPIRED` instead of accepting a dead credential.
 
-## Campos clave
+## Key fields
 
-- **Issuer** — la cuenta que creó la credencial. Junto con tu propia cuenta (como `Subject` implícito) y `CredentialType`, identifica el objeto a aceptar.
-- **CredentialType** — debe coincidir exactamente (mismo hex) con el usado en el `CredentialCreate` original.
+- **Issuer** — the account that created the credential. Together with your own account (as the implicit `Subject`) and `CredentialType`, it identifies the object to accept.
+- **CredentialType** — must match exactly (same hex) the one used in the original `CredentialCreate`.
 
-No hay más campos: `CredentialAccept` no lleva `URI` ni `Expiration` — esos solo se fijan al crear la credencial.
+There are no other fields: `CredentialAccept` doesn't carry `URI` or `Expiration` — those are only set when creating the credential.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_ENTRY** — no existe ninguna credencial pendiente con ese `Issuer` y `CredentialType` para tu cuenta. Revisa que el `CredentialCreate` se envió correctamente.
-- **tecNO_ISSUER** — la cuenta indicada en `Issuer` no existe (o nunca se activó).
-- **tecDUPLICATE** — la credencial ya estaba aceptada; no hace falta repetir la operación.
-- **tecEXPIRED** — el `Expiration` de la credencial ya pasó; pide al emisor que cree una nueva.
-- **temMALFORMED** — `CredentialType` vacío o demasiado largo.
+- **tecNO_ENTRY** — there's no pending credential with that `Issuer` and `CredentialType` for your account. Check that the `CredentialCreate` was sent correctly.
+- **tecNO_ISSUER** — the account indicated in `Issuer` doesn't exist (or was never activated).
+- **tecDUPLICATE** — the credential was already accepted; no need to repeat the operation.
+- **tecEXPIRED** — the credential's `Expiration` has already passed; ask the issuer to create a new one.
+- **temMALFORMED** — `CredentialType` is empty or too long.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "CredentialAccept",
-  "Account": "rXXXX_TU_CUENTA",
-  "Issuer": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Issuer": "rYYYY_OTHER_ACCOUNT",
   "CredentialType": "4B5943"
 }
 ```
 
-Acepta, desde tu cuenta, la credencial de tipo "KYC" que `rYYYY_OTRA_CUENTA` te emitió.
+Accepts, from your account, the "KYC" type credential that `rYYYY_OTHER_ACCOUNT` issued to you.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Desde otra cuenta, emite primero [CredentialCreate](/tx/CredentialCreate) hacia tu cuenta como `Subject` (mismo `CredentialType`).
-2. Firma y envía el `CredentialAccept` de arriba desde tu cuenta.
-3. Consulta `account_objects` con `type: "credential"` en tu cuenta o en la del emisor: el objeto muestra `Flags: 65536` (`lsfAccepted`).
-4. Intenta enviar el mismo `CredentialAccept` otra vez: obtendrás `tecDUPLICATE`.
-5. Usa esa credencial aceptada como `AcceptedCredentials` al crear un [PermissionedDomainSet](/tx/PermissionedDomainSet) desde la cuenta del emisor.
+1. From another account, first submit [CredentialCreate](/tx/CredentialCreate) toward your account as `Subject` (same `CredentialType`).
+2. Sign and send the `CredentialAccept` above from your account.
+3. Query `account_objects` with `type: "credential"` on your account or the issuer's: the object shows `Flags: 65536` (`lsfAccepted`).
+4. Try sending the same `CredentialAccept` again: you'll get `tecDUPLICATE`.
+5. Use that accepted credential as `AcceptedCredentials` when creating a [PermissionedDomainSet](/tx/PermissionedDomainSet) from the issuer's account.
 
-## Relacionado
+## Related
 
-- [CredentialCreate](/tx/CredentialCreate) — la crea, en estado pendiente.
-- [CredentialDelete](/tx/CredentialDelete) — la revoca o elimina tras caducar.
-- [PermissionedDomainSet](/tx/PermissionedDomainSet) — consume credenciales aceptadas.
-- [DepositPreauth](/tx/DepositPreauth) — preautoriza depósitos por credencial.
-- Objetos: [Credential](/objects/Credential).
+- [CredentialCreate](/tx/CredentialCreate) — creates it, in pending state.
+- [CredentialDelete](/tx/CredentialDelete) — revokes or removes it after expiration.
+- [PermissionedDomainSet](/tx/PermissionedDomainSet) — consumes accepted credentials.
+- [DepositPreauth](/tx/DepositPreauth) — preauthorizes deposits by credential.
+- Objects: [Credential](/objects/Credential).
 - Amendments: [Credentials](/amendments/Credentials).

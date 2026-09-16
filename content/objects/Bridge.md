@@ -1,43 +1,43 @@
 ---
 title: Bridge
-summary: Define un puente entre dos cadenas XRPL: la cuenta puerta, el activo que cruza, la recompensa a los testigos y los contadores de reclamaciones.
+summary: Defines a bridge between two XRPL chains: the door account, the asset that crosses, the reward for witnesses, and the claim counters.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/bridge
 createdBy: XChainCreateBridge
 modifiedBy: XChainModifyBridge, XChainCreateClaimID, XChainAccountCreateCommit, XChainAddAccountCreateAttestation
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `Bridge` es la mitad de un puente entre dos redes XRPL (por ejemplo, mainnet y una sidechain). Cada cadena tiene su propio objeto `Bridge` en la cuenta *puerta* (door account) de ese lado. El objeto dice qué activo se bloquea en una cadena y se emite en la otra, cuánto cobran los testigos por atestiguar y lleva la cuenta de las reclamaciones para que ningún cruce se cobre dos veces.
+A `Bridge` is one half of a bridge between two XRPL networks (for example, mainnet and a sidechain). Each chain has its own `Bridge` object on the *door account* for that side. The object states which asset is locked on one chain and issued on the other, how much witnesses charge for attesting, and keeps track of claims so that no crossing is charged twice.
 
-Un puente es de tipo "bloquear y emitir": en la cadena de origen los fondos se quedan en la puerta (`LockingChainDoor`) y en la de destino la puerta emisora (`IssuingChainDoor`) crea el token equivalente. Los testigos vigilan una cadena y firman atestaciones para la otra.
+A bridge is of the "lock and issue" type: on the source chain the funds stay in the door (`LockingChainDoor`) and on the destination chain the issuing door (`IssuingChainDoor`) creates the equivalent token. Witnesses watch one chain and sign attestations for the other.
 
-**Estado en testnet**: el amendment [XChainBridge](/amendments/XChainBridge) no está activado, así que hoy no puedes crear este objeto en la testnet pública. El código sigue en rippled y lo describimos por completitud.
+**Status on testnet**: the [XChainBridge](/amendments/XChainBridge) amendment is not enabled, so you cannot create this object on public testnet today. The code remains in rippled and we describe it for completeness.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [XChainCreateBridge](/tx/XChainCreateBridge), enviada por la cuenta puerta. `XChainCreateBridge::preclaim` exige que la cuenta sea una de las dos puertas y que no exista ya un puente para ese par puerta/moneda; `doApply` crea el objeto con los contadores a cero y suma 1 a `OwnerCount`.
-- **Modificación**: [XChainModifyBridge](/tx/XChainModifyBridge) cambia `SignatureReward` y `MinAccountCreateAmount`. [XChainCreateClaimID](/tx/XChainCreateClaimID) incrementa `XChainClaimID` en la cadena de destino; [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit) incrementa `XChainAccountCreateCount` en la de origen y [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation) avanza `XChainAccountClaimCount` en la de destino cuando se completa una creación de cuenta.
-- **Borrado**: no hay transacción para borrarlo, y bloquea [AccountDelete](/tx/AccountDelete) de la puerta.
+- **Creation**: [XChainCreateBridge](/tx/XChainCreateBridge), sent by the door account. `XChainCreateBridge::preclaim` requires the account to be one of the two doors and that no bridge already exist for that door/currency pair; `doApply` creates the object with the counters at zero and adds 1 to `OwnerCount`.
+- **Modification**: [XChainModifyBridge](/tx/XChainModifyBridge) changes `SignatureReward` and `MinAccountCreateAmount`. [XChainCreateClaimID](/tx/XChainCreateClaimID) increments `XChainClaimID` on the destination chain; [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit) increments `XChainAccountCreateCount` on the source chain, and [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation) advances `XChainAccountClaimCount` on the destination chain when an account creation completes.
+- **Deletion**: there is no transaction to delete it, and it blocks [AccountDelete](/tx/AccountDelete) of the door.
 
-## Campos clave
+## Key fields
 
-- **XChainBridge** — la definición completa del puente: `LockingChainDoor`, `LockingChainIssue`, `IssuingChainDoor`, `IssuingChainIssue`. Es la misma en las dos cadenas y forma parte de la clave del objeto.
-- **Account** — la puerta de esta cadena (una de las dos del `XChainBridge`).
-- **SignatureReward** — XRP (o el activo) que se reparte entre los testigos cuyas atestaciones cuentan para una reclamación. Lo paga quien crea el [XChainOwnedClaimID](/objects/XChainOwnedClaimID).
-- **MinAccountCreateAmount** — mínimo para [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit); si falta, las creaciones de cuenta a través del puente están desactivadas.
-- **XChainClaimID** — último identificador de reclamación emitido. Cada `XChainCreateClaimID` usa el siguiente.
-- **XChainAccountCreateCount** — cuántos `XChainAccountCreateCommit` se han enviado desde esta cadena.
-- **XChainAccountClaimCount** — cuántas creaciones de cuenta se han completado en esta cadena. Deben procesarse en orden estricto.
+- **XChainBridge** — the full definition of the bridge: `LockingChainDoor`, `LockingChainIssue`, `IssuingChainDoor`, `IssuingChainIssue`. It's the same on both chains and forms part of the object's key.
+- **Account** — this chain's door (one of the two in `XChainBridge`).
+- **SignatureReward** — XRP (or the asset) distributed among the witnesses whose attestations count toward a claim. Paid by whoever creates the [XChainOwnedClaimID](/objects/XChainOwnedClaimID).
+- **MinAccountCreateAmount** — minimum for [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit); if absent, account creation through the bridge is disabled.
+- **XChainClaimID** — last claim identifier issued. Each `XChainCreateClaimID` uses the next one.
+- **XChainAccountCreateCount** — how many `XChainAccountCreateCommit` have been sent from this chain.
+- **XChainAccountClaimCount** — how many account creations have completed on this chain. They must be processed in strict order.
 
 ## Flags
 
-No tiene flags `lsf*`.
+It has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-Con `ledger_entry` pasa la definición del puente y la cuenta puerta:
+With `ledger_entry`, pass the bridge definition and the door account:
 
 ```json
 { "method": "ledger_entry", "params": [{
@@ -52,7 +52,7 @@ Con `ledger_entry` pasa la definición del puente y la cuenta puerta:
 }] }
 ```
 
-La clave es `SHA512Half(0x0042 || puerta_de_esta_cadena || moneda)` (`keylet::bridge`). En `account_objects` usa `type: "bridge"`. Respuesta típica:
+The key is `SHA512Half(0x0042 || this_chain's_door || currency)` (`keylet::bridge`). In `account_objects`, use `type: "bridge"`. Typical response:
 
 ```json
 {
@@ -76,11 +76,11 @@ La clave es `SHA512Half(0x0042 || puerta_de_esta_cadena || moneda)` (`keylet::br
 }
 ```
 
-## Reserva
+## Reserve
 
-Cuenta como 1 en el `OwnerCount` de la cuenta puerta.
+Counts as 1 in the door account's `OwnerCount`.
 
-## Relacionado
+## Related
 
 - [XChainCreateBridge](/tx/XChainCreateBridge), [XChainModifyBridge](/tx/XChainModifyBridge), [XChainCommit](/tx/XChainCommit), [XChainClaim](/tx/XChainClaim)
 - [XChainOwnedClaimID](/objects/XChainOwnedClaimID), [XChainOwnedCreateAccountClaimID](/objects/XChainOwnedCreateAccountClaimID)

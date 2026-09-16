@@ -1,28 +1,28 @@
 ---
 title: AMMClawback
-summary: Permite usar tokens con clawback en AMMs y añade AMMClawback para que el emisor recupere tokens depositados en un pool.
+summary: Allows tokens with clawback to be used in AMMs and adds AMMClawback so the issuer can recover tokens deposited in a pool.
 xls: XLS-0073
 xlsUrl: https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0073-amm-clawback
 xrplDocs: https://xrpl.org/resources/known-amendments#ammclawback
 introducedIn: 2.3.0
 ---
 
-## Qué cambia
+## What changes
 
-Antes de este amendment, `AMMCreate` rechazaba cualquier token cuyo emisor tuviera activado `lsfAllowTrustLineClawback`: como el pool es una pseudocuenta sin claves, el emisor no tenía forma de recuperar los tokens una vez dentro. AMMClawback elimina esa restricción y añade una transacción específica para que el emisor pueda retirar del pool los tokens que pertenecen a un proveedor de liquidez concreto.
+Before this amendment, `AMMCreate` rejected any token whose issuer had `lsfAllowTrustLineClawback` enabled: since the pool is a keyless pseudo-account, the issuer had no way to recover the tokens once they were inside. AMMClawback removes that restriction and adds a dedicated transaction so the issuer can withdraw from the pool the tokens belonging to a specific liquidity provider.
 
-La operación no actúa sobre el pool en bruto: el emisor indica el titular (`Holder`) y el activo, y el ledger quema los LP tokens de ese titular en la proporción necesaria y devuelve al emisor la parte correspondiente de su token. Con el flag `tfClawTwoAssets` el emisor que ha emitido ambos activos del pool puede recuperar los dos a la vez.
+The operation does not act on the raw pool: the issuer specifies the holder (`Holder`) and the asset, and the ledger burns that holder's LP tokens in the necessary proportion and returns to the issuer the corresponding share of its token. With the `tfClawTwoAssets` flag, an issuer who has issued both assets in the pool can recover both at once.
 
-También modifica `AMMDeposit` para impedir depositar tokens congelados (trust line con freeze) en un pool.
+It also modifies `AMMDeposit` to prevent depositing frozen tokens (a trust line with freeze) into a pool.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nueva: [AMMClawback](/tx/AMMClawback).
-- Modificadas: [AMMCreate](/tx/AMMCreate) acepta tokens con clawback habilitado; [AMMDeposit](/tx/AMMDeposit) rechaza activos congelados.
-- Objetos: [AMM](/objects/AMM) y las líneas [RippleState](/objects/RippleState) entre el emisor y la pseudocuenta del pool.
+- New: [AMMClawback](/tx/AMMClawback).
+- Modified: [AMMCreate](/tx/AMMCreate) accepts tokens with clawback enabled; [AMMDeposit](/tx/AMMDeposit) rejects frozen assets.
+- Objects: [AMM](/objects/AMM) and the [RippleState](/objects/RippleState) lines between the issuer and the pool's pseudo-account.
 
-## Estado y contexto
+## Status and context
 
-[Clawback](/amendments/Clawback) se diseñó para emisores regulados (stablecoins, activos tokenizados) que necesitan recuperar fondos por orden judicial o sanciones. Sin embargo, dejaba un hueco: bastaba con depositar el token en un AMM para ponerlo fuera del alcance del emisor. La XLS-73 cierra ese hueco y, de paso, permite que esos mismos emisores ofrezcan liquidez en AMMs sin renunciar a sus obligaciones de cumplimiento.
+[Clawback](/amendments/Clawback) was designed for regulated issuers (stablecoins, tokenized assets) that need to recover funds by court order or sanctions. However, it left a gap: simply depositing the token into an AMM was enough to put it out of the issuer's reach. XLS-73 closes that gap and, at the same time, allows those same issuers to provide liquidity in AMMs without giving up their compliance obligations.
 
-Un error de redondeo en el cálculo de la cantidad recuperada se corrigió más tarde con `fixAMMClawbackRounding`.
+A rounding error in the calculation of the recovered amount was later fixed with `fixAMMClawbackRounding`.

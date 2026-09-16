@@ -1,21 +1,21 @@
 ---
 title: Escrow
-summary: Introduce los escrows de XRP condicionados por tiempo o por crypto-condition, con las transacciones EscrowCreate, EscrowFinish y EscrowCancel.
+summary: Introduces XRP escrows conditioned on time or on a crypto-condition, with the EscrowCreate, EscrowFinish and EscrowCancel transactions.
 xrplDocs: https://xrpl.org/resources/known-amendments#escrow
 ---
 
-## Qué cambia
+## What changes
 
-Este amendment añade el objeto [Escrow](/objects/Escrow) y las tres transacciones que lo gestionan. [EscrowCreate](/tx/EscrowCreate) aparta una cantidad de XRP del emisor y la bloquea hasta que se cumpla una condición: un tiempo mínimo (`FinishAfter`), una crypto-condition (`Condition`, verificada con un `Fulfillment` en el finish) o ambas. Puede llevar también `CancelAfter`, a partir del cual cualquiera puede cancelar el escrow y devolver los fondos al creador.
+This amendment adds the [Escrow](/objects/Escrow) object and the three transactions that manage it. [EscrowCreate](/tx/EscrowCreate) sets aside an amount of XRP from the sender and locks it until a condition is met: a minimum time (`FinishAfter`), a crypto-condition (`Condition`, verified with a `Fulfillment` at finish time), or both. It can also carry `CancelAfter`, after which anyone can cancel the escrow and return the funds to the creator.
 
-[EscrowFinish](/tx/EscrowFinish) libera el XRP hacia el `Destination` fijado en la creación, una vez pasado `FinishAfter` (si existe) y, si hay `Condition`, presentando un `Fulfillment` válido para ella. [EscrowCancel](/tx/EscrowCancel) devuelve el XRP al creador original, solo disponible tras `CancelAfter`. Mientras el escrow está pendiente, el XRP no cuenta como saldo disponible del creador pero sí incrementa su `OwnerCount` y por tanto su reserva.
+[EscrowFinish](/tx/EscrowFinish) releases the XRP to the `Destination` set at creation, once `FinishAfter` has passed (if present) and, if there is a `Condition`, upon presenting a valid `Fulfillment` for it. [EscrowCancel](/tx/EscrowCancel) returns the XRP to the original creator, and is only available after `CancelAfter`. While the escrow is pending, the XRP does not count as the creator's available balance, but it does increase their `OwnerCount` and therefore their reserve.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nuevas: [EscrowCreate](/tx/EscrowCreate), [EscrowFinish](/tx/EscrowFinish) y [EscrowCancel](/tx/EscrowCancel).
-- Nuevo objeto: [Escrow](/objects/Escrow), enlazado en los directorios de propietario del creador y del destinatario.
-- [AccountRoot](/objects/AccountRoot): el `OwnerCount` sube mientras el escrow existe.
+- New: [EscrowCreate](/tx/EscrowCreate), [EscrowFinish](/tx/EscrowFinish) and [EscrowCancel](/tx/EscrowCancel).
+- New object: [Escrow](/objects/Escrow), linked in the owner directories of both the creator and the destination.
+- [AccountRoot](/objects/AccountRoot): `OwnerCount` increases while the escrow exists.
 
-## Estado y contexto
+## Status and context
 
-Es uno de los amendments fundacionales de la XRPL para pagos condicionados: permite construir depósitos en garantía, pagos diferidos programados o liberaciones sujetas a que un tercero presente una prueba criptográfica, todo sin intermediarios ni contratos inteligentes. No debe confundirse con [TokenEscrow](/amendments/TokenEscrow), un amendment posterior que extiende este mismo mecanismo a tokens emitidos (IOU) además de XRP. Al estar retirado (`XRPL_RETIRE_FEATURE` en `features.macro`), su comportamiento lleva años siendo el único disponible en cualquier red XRPL activa.
+It is one of the XRPL's foundational amendments for conditional payments: it allows building escrow deposits, scheduled deferred payments, or releases contingent on a third party presenting a cryptographic proof, all without intermediaries or smart contracts. It should not be confused with [TokenEscrow](/amendments/TokenEscrow), a later amendment that extends this same mechanism to issued tokens (IOUs) in addition to XRP. Being retired (`XRPL_RETIRE_FEATURE` in `features.macro`), its behavior has for years been the only one available on any active XRPL network.

@@ -1,20 +1,20 @@
 ---
 title: ImmediateOfferKilled
-summary: Cambia el código de resultado de una OfferCreate con tfImmediateOrCancel que no cruza con nada, de tesSUCCESS a tecKILLED.
+summary: Changes the result code of an OfferCreate with tfImmediateOrCancel that does not cross with anything, from tesSUCCESS to tecKILLED.
 xrplDocs: https://xrpl.org/resources/known-amendments#immediateofferkilled
 ---
 
-## Qué cambia
+## What changes
 
-El flag `tfImmediateOrCancel` en [OfferCreate](/tx/OfferCreate) pide que la oferta se cruce inmediatamente contra el libro de órdenes y, si no puede cruzar (total o parcialmente) en el momento, se cancele sin dejar remanente en el ledger. Antes de este amendment, cuando una oferta `tfImmediateOrCancel` no cruzaba nada en absoluto, la transacción devolvía igualmente `tesSUCCESS`: desde el punto de vista del código de resultado parecía haber tenido éxito, aunque en la práctica no hubiera pasado nada.
+The `tfImmediateOrCancel` flag on [OfferCreate](/tx/OfferCreate) requests that the offer be crossed immediately against the order book and, if it cannot cross (fully or partially) at that moment, be cancelled without leaving a remainder on the ledger. Before this amendment, when a `tfImmediateOrCancel` offer crossed nothing at all, the transaction still returned `tesSUCCESS`: from the result code's point of view it appeared to have succeeded, even though in practice nothing had happened.
 
-Con ImmediateOfferKilled activo, ese mismo caso —ninguna cantidad cruzada— devuelve `tecKILLED` en lugar de `tesSUCCESS`. La transacción se sigue incluyendo en el ledger (paga la comisión, como cualquier resultado `tec`), pero el código de resultado refleja correctamente que la intención de la oferta no se cumplió.
+With ImmediateOfferKilled active, that same case — no amount crossed — returns `tecKILLED` instead of `tesSUCCESS`. The transaction is still included in the ledger (it pays the fee, like any `tec` result), but the result code correctly reflects that the offer's intent was not fulfilled.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [OfferCreate](/tx/OfferCreate): cambia el resultado devuelto cuando `tfImmediateOrCancel` está activo y no hay cruce alguno.
-- No crea ni modifica el objeto [Offer](/objects/Offer), porque en este caso concreto nunca se llega a crear la oferta en el ledger.
+- [OfferCreate](/tx/OfferCreate): changes the result returned when `tfImmediateOrCancel` is active and there is no crossing at all.
+- It does not create or modify the [Offer](/objects/Offer) object, because in this specific case the offer is never actually created on the ledger.
 
-## Estado y contexto
+## Status and context
 
-Antes del fix, un cliente que enviara una oferta IOC sin liquidez disponible para cruzar veía `tesSUCCESS` y tenía que inspeccionar los metadatos de la transacción para darse cuenta de que en realidad no se había ejecutado nada, un comportamiento confuso para quien integra trading automatizado sobre el DEX de XRPL. `tecKILLED` hace explícito ese resultado en el propio código de la transacción, sin necesidad de parsear metadatos para distinguir "se cruzó algo" de "no se cruzó nada".
+Before the fix, a client that submitted an IOC offer with no available liquidity to cross would see `tesSUCCESS` and had to inspect the transaction metadata to realize that nothing had actually been executed — a confusing behavior for anyone integrating automated trading on top of the XRPL DEX. `tecKILLED` makes that outcome explicit in the transaction's own code, without needing to parse metadata to distinguish "something crossed" from "nothing crossed".

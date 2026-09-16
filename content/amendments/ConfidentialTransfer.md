@@ -1,26 +1,26 @@
 ---
 title: ConfidentialTransfer
-summary: Transferencias confidenciales de MPT con cifrado EC-ElGamal y pruebas de conocimiento cero; saldos e importes ocultos, supply auditable.
+summary: Confidential MPT transfers with EC-ElGamal encryption and zero-knowledge proofs; hidden balances and amounts, auditable supply.
 xls: XLS-0096
 xlsUrl: https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0096-confidential-mpt
 xrplDocs: https://xrpl.org/resources/known-amendments#confidentialtransfer
 introducedIn: 3.3.0
 ---
 
-## Qué cambia
+## What changes
 
-Permite que un Multi-Purpose Token tenga, además del saldo público, un saldo cifrado por titular. El emisor habilita la capacidad en la emisión con el flag `tfMPTCanHoldConfidentialBalance` y publica una clave EC-ElGamal (`IssuerElGamalKey`); opcionalmente designa un auditor con su propia clave (`AuditorElGamalKey`). Ambas cosas se gestionan en `MPTokenIssuanceCreate` y `MPTokenIssuanceSet`, y sin el amendment se rechazan con `temDISABLED`.
+Allows a Multi-Purpose Token to have, in addition to the public balance, an encrypted balance per holder. The issuer enables the capability at issuance with the `tfMPTCanHoldConfidentialBalance` flag and publishes an EC-ElGamal key (`IssuerElGamalKey`); it can optionally designate an auditor with their own key (`AuditorElGamalKey`). Both are managed in `MPTokenIssuanceCreate` and `MPTokenIssuanceSet`, and without the amendment they are rejected with `temDISABLED`.
 
-Los titulares convierten saldo público en confidencial (`ConfidentialMPTConvert`), lo envían cifrado (`ConfidentialMPTSend`), consolidan lo recibido en su bandeja de entrada (`ConfidentialMPTMergeInbox`) y lo devuelven a claro (`ConfidentialMPTConvertBack`). Cada operación adjunta pruebas de conocimiento cero que los validadores verifican sin conocer los importes. El emisor conserva la posibilidad de reclamar con `ConfidentialMPTClawback`.
+Holders convert public balance into confidential balance (`ConfidentialMPTConvert`), send it encrypted (`ConfidentialMPTSend`), consolidate what they receive in their inbox (`ConfidentialMPTMergeInbox`), and convert it back to clear balance (`ConfidentialMPTConvertBack`). Each operation attaches zero-knowledge proofs that validators verify without knowing the amounts. The issuer retains the ability to claw back with `ConfidentialMPTClawback`.
 
-La emisión lleva la cuenta del total cifrado en circulación (`ConfidentialOutstandingAmount`); mientras no sea cero, `MPTokenAuthorize` no permite al emisor dar de baja determinadas relaciones.
+The issuance tracks the total encrypted amount in circulation (`ConfidentialOutstandingAmount`); while it is not zero, `MPTokenAuthorize` does not allow the issuer to remove certain relationships.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nuevas: [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert), [ConfidentialMPTMergeInbox](/tx/ConfidentialMPTMergeInbox), [ConfidentialMPTConvertBack](/tx/ConfidentialMPTConvertBack), [ConfidentialMPTSend](/tx/ConfidentialMPTSend) y [ConfidentialMPTClawback](/tx/ConfidentialMPTClawback).
-- Modificadas: [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate), [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet) y [MPTokenAuthorize](/tx/MPTokenAuthorize).
-- Objetos: [MPTokenIssuance](/objects/MPTokenIssuance) y [MPToken](/objects/MPToken) ganan campos cifrados.
+- New: [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert), [ConfidentialMPTMergeInbox](/tx/ConfidentialMPTMergeInbox), [ConfidentialMPTConvertBack](/tx/ConfidentialMPTConvertBack), [ConfidentialMPTSend](/tx/ConfidentialMPTSend), and [ConfidentialMPTClawback](/tx/ConfidentialMPTClawback).
+- Modified: [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate), [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet), and [MPTokenAuthorize](/tx/MPTokenAuthorize).
+- Objects: [MPTokenIssuance](/objects/MPTokenIssuance) and [MPToken](/objects/MPToken) gain encrypted fields.
 
-## Estado y contexto
+## Status and context
 
-Las instituciones que tokenizan activos no pueden exponer públicamente los saldos de sus clientes ni el tamaño de cada operación, pero sí necesitan que reguladores y auditores puedan verificar el supply total y, en su caso, descifrar operaciones concretas. La XLS-96 aporta esa privacidad "con puerta de auditoría" sobre MPT, sin tocar los tokens de trust line. Se apoya en [MPTokensV1](/amendments/MPTokensV1) y convive con [DynamicMPT](/amendments/DynamicMPT) (el flag confidencial puede declararse inmutable en `ImmutableFlags`). La rotación de claves se propone aparte en XLS-99 (`ConfidentialMPTKeyRotation`, aún no soportado).
+Institutions tokenizing assets cannot publicly expose their clients' balances or the size of each operation, but they do need regulators and auditors to be able to verify total supply and, where applicable, decrypt specific operations. XLS-96 provides that "audit-gated" privacy on top of MPT, without touching trust-line tokens. It builds on [MPTokensV1](/amendments/MPTokensV1) and coexists with [DynamicMPT](/amendments/DynamicMPT) (the confidential flag can be declared immutable in `ImmutableFlags`). Key rotation is proposed separately in XLS-99 (`ConfidentialMPTKeyRotation`, not yet supported).

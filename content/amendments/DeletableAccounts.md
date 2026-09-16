@@ -1,24 +1,24 @@
 ---
 title: DeletableAccounts
-summary: Permite borrar cuentas con AccountDelete y cambia el Sequence inicial de las cuentas nuevas para evitar repeticiones.
+summary: Allows accounts to be deleted with AccountDelete and changes the initial Sequence of new accounts to prevent replays.
 xls: XLS-0007
 xlsUrl: https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0007-deletable-accounts
 xrplDocs: https://xrpl.org/resources/known-amendments#deletableaccounts
 introducedIn: 1.4.0
 ---
 
-## Qué cambia
+## What changes
 
-Añade `AccountDelete`, que elimina el `AccountRoot` y envía el XRP restante a otra cuenta. La transacción cuesta al menos el owner reserve incremental (no la comisión base) y exige que la cuenta no tenga objetos que no se puedan borrar automáticamente: escrows, canales de pago, cheques o páginas de NFT la bloquean con `tecHAS_OBLIGATIONS`, y una cuenta con más de 1000 objetos devuelve `tefTOO_BIG`. Además, hay que esperar: no se puede borrar si `Sequence + 256 > ledger actual` (`tecTOO_SOON`).
+Adds `AccountDelete`, which removes the `AccountRoot` and sends the remaining XRP to another account. The transaction costs at least the incremental owner reserve (not the base fee) and requires that the account have no objects that cannot be deleted automatically: escrows, payment channels, checks or NFT pages block it with `tecHAS_OBLIGATIONS`, and an account with more than 1000 objects returns `tefTOO_BIG`. There is also a waiting period: the account cannot be deleted if `Sequence + 256 > current ledger` (`tecTOO_SOON`).
 
-El segundo cambio es más sutil: las cuentas nuevas ya no empiezan con `Sequence = 1`, sino con el índice del ledger en que se crean. Así, si una cuenta se borra y se vuelve a crear, ninguna transacción antigua firmada con secuencias bajas puede volver a aplicarse.
+The second change is more subtle: new accounts no longer start with `Sequence = 1`, but with the index of the ledger in which they are created. This way, if an account is deleted and recreated, no old transaction signed with low sequence numbers can be applied again.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nueva: [AccountDelete](/tx/AccountDelete).
-- Modificada: [Payment](/tx/Payment) al crear cuentas asigna el nuevo `Sequence` inicial.
-- Objetos: [AccountRoot](/objects/AccountRoot), [DirectoryNode](/objects/DirectoryNode) del propietario y objetos borrables como [RippleState](/objects/RippleState), [Offer](/objects/Offer), [SignerList](/objects/SignerList), [Ticket](/objects/Ticket) y [DepositPreauth](/objects/DepositPreauth).
+- New: [AccountDelete](/tx/AccountDelete).
+- Modified: [Payment](/tx/Payment) assigns the new initial `Sequence` when creating accounts.
+- Objects: [AccountRoot](/objects/AccountRoot), the owner's [DirectoryNode](/objects/DirectoryNode), and deletable objects such as [RippleState](/objects/RippleState), [Offer](/objects/Offer), [SignerList](/objects/SignerList), [Ticket](/objects/Ticket) and [DepositPreauth](/objects/DepositPreauth).
 
-## Estado y contexto
+## Status and context
 
-Hasta 2020 una cuenta del XRPL era permanente: el reserve base quedaba bloqueado para siempre y el estado del ledger solo podía crecer. La XLS-7 permitió recuperar la mayor parte del reserve (se quema una unidad de owner reserve como coste) y fijó la regla de secuencia para que el borrado no abriera ataques de repetición. Amendments posteriores han ampliado la lista de objetos que se borran o que impiden el borrado (por ejemplo `fixNFTokenReserve`, [DID](/amendments/DID) o [Credentials](/amendments/Credentials)). Retirado en rippled: forma parte del protocolo base.
+Until 2020, an XRPL account was permanent: the base reserve remained locked forever and the ledger state could only grow. XLS-7 allowed most of the reserve to be recovered (one owner reserve unit is burned as a cost) and set the sequence rule so that deletion would not open replay attacks. Later amendments have expanded the list of objects that get deleted or that prevent deletion (for example `fixNFTokenReserve`, [DID](/amendments/DID) or [Credentials](/amendments/Credentials)). Retired in rippled: it is part of the base protocol.

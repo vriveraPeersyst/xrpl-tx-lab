@@ -1,73 +1,73 @@
 ---
 title: CredentialDelete
-summary: Borra una credencial: el emisor la revoca, el sujeto renuncia a ella o cualquiera limpia una ya caducada.
+summary: Deletes a credential: the issuer revokes it, the subject gives it up, or anyone cleans up one that has already expired.
 category: identidad
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/credentialdelete
 amendment: Credentials
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`CredentialDelete` elimina un objeto [Credential](/objects/Credential) del ledger y libera la reserva de propietario asociada. A diferencia de crear o aceptar, aquí no importa tanto quién eres respecto a la credencial sino qué papel juegas: puedes borrar una credencial en la que apareces como `Issuer` o como `Subject` sin restricciones, pero solo puedes borrar la credencial de un tercero (ni emisor ni sujeto) si ya ha caducado.
+`CredentialDelete` removes a [Credential](/objects/Credential) object from the ledger and frees up the associated owner reserve. Unlike creating or accepting, here what matters isn't so much who you are relative to the credential but which role you play: you can delete a credential where you appear as `Issuer` or as `Subject` without restrictions, but you can only delete a third party's credential (neither issuer nor subject) if it has already expired.
 
-La transacción es flexible con los campos: si omites `Subject` o `Issuer`, el transactor asume que ese campo eres tú. Así, la cuenta que fue sujeto puede borrar "su" credencial pasando solo el `Issuer`, y el emisor puede revocarla pasando solo el `Subject`.
+The transaction is flexible with its fields: if you omit `Subject` or `Issuer`, the transactor assumes that field is you. So the account that was the subject can delete "its" credential by passing only the `Issuer`, and the issuer can revoke it by passing only the `Subject`.
 
-## Cuándo usarlo
+## When to use it
 
-- El emisor revoca una credencial porque el cliente dejó de cumplir el criterio (p. ej. perdió la acreditación).
-- El sujeto renuncia a una credencial que ya no necesita, liberando su reserva.
-- Cualquier cuenta hace limpieza de una credencial caducada que un tercero dejó abandonada en el ledger, para recuperar su propia reserva si aplica o simplemente sanear el estado.
-- Antes de borrar una cuenta con [AccountDelete](/tx/AccountDelete): las credenciales asociadas bloquean el borrado si no se limpian antes.
+- The issuer revokes a credential because the client no longer meets the criteria (e.g., lost their accreditation).
+- The subject gives up a credential they no longer need, freeing up their reserve.
+- Any account cleans up an expired credential a third party left abandoned on the ledger, to recover its own reserve if applicable or simply to sanitize the state.
+- Before deleting an account with [AccountDelete](/tx/AccountDelete): associated credentials block the deletion if not cleaned up first.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`CredentialDelete::preflight`** exige que al menos uno de `Subject` o `Issuer` esté presente (`temMALFORMED` si ninguno lo está); si alguno está presente no puede ser la cuenta cero (`temINVALID_ACCOUNT_ID`). `CredentialType` debe tener entre 1 y 64 bytes.
+**`CredentialDelete::preflight`** requires at least one of `Subject` or `Issuer` to be present (`temMALFORMED` if neither is); if either is present it cannot be the zero account (`temINVALID_ACCOUNT_ID`). `CredentialType` must be between 1 and 64 bytes.
 
-**`CredentialDelete::preclaim`** resuelve `Subject` e `Issuer`: si faltan, toma el valor de `Account` (quien envía la tx). Comprueba que existe una credencial con esa terna exacta; si no, `tecNO_ENTRY`.
+**`CredentialDelete::preclaim`** resolves `Subject` and `Issuer`: if missing, it takes the value of `Account` (the sender of the transaction). It checks that a credential with that exact triple exists; if not, `tecNO_ENTRY`.
 
-**`CredentialDelete::doApply`** es donde se aplica la regla de permisos: si ni el `Subject` ni el `Issuer` de la credencial coinciden con quien envía la transacción, solo se permite borrarla si ya está caducada (comprobado contra el `parentCloseTime` del ledger anterior); si no ha caducado, `tecNO_PERMISSION`. Si eres el emisor o el sujeto, puedes borrarla en cualquier momento, esté o no aceptada o caducada. Al borrar, se libera el objeto del directorio de propietario y se ajusta el owner count de la cuenta que lo poseía (el emisor, salvo autoaceptación).
+**`CredentialDelete::doApply`** is where the permission rule is applied: if neither the credential's `Subject` nor its `Issuer` matches the sender of the transaction, deletion is only allowed if it has already expired (checked against the previous ledger's `parentCloseTime`); if it hasn't expired, `tecNO_PERMISSION`. If you're the issuer or the subject, you can delete it at any time, whether or not it's accepted or expired. On deletion, the object is released from the owner directory and the owner count of the account that owned it is adjusted (the issuer, except in self-acceptance).
 
-## Campos clave
+## Key fields
 
-- **Subject** — opcional; si lo omites, se asume tu propia cuenta. Indícalo cuando el emisor borra la credencial de un sujeto concreto.
-- **Issuer** — opcional; si lo omites, se asume tu propia cuenta. Indícalo cuando el sujeto borra una credencial que otro le emitió.
-- **CredentialType** — debe coincidir exactamente con el usado al crearla.
+- **Subject** — optional; if omitted, your own account is assumed. Provide it when the issuer deletes a specific subject's credential.
+- **Issuer** — optional; if omitted, your own account is assumed. Provide it when the subject deletes a credential someone else issued to them.
+- **CredentialType** — must match exactly the one used when creating it.
 
-En la práctica solo omites uno de los dos campos: no tiene sentido omitir ambos (falla en `preflight`) ni tiene sentido indicar los dos si además eres uno de ellos (aunque es válido, es redundante).
+In practice you only omit one of the two fields: it makes no sense to omit both (fails in `preflight`) nor to include both if you're also one of them (although valid, it's redundant).
 
-## Errores habituales
+## Common errors
 
-- **tecNO_ENTRY** — no existe ninguna credencial con esa terna Subject/Issuer/CredentialType.
-- **tecNO_PERMISSION** — intentas borrar la credencial de un tercero que todavía no ha caducado.
-- **temMALFORMED** — no indicaste ni `Subject` ni `Issuer`, o `CredentialType` tiene una longitud inválida.
-- **temINVALID_ACCOUNT_ID** — `Subject` o `Issuer` apuntan a la cuenta cero.
+- **tecNO_ENTRY** — no credential exists with that Subject/Issuer/CredentialType triple.
+- **tecNO_PERMISSION** — you're trying to delete a third party's credential that hasn't expired yet.
+- **temMALFORMED** — you didn't indicate `Subject` or `Issuer`, or `CredentialType` has an invalid length.
+- **temINVALID_ACCOUNT_ID** — `Subject` or `Issuer` points to the zero account.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "CredentialDelete",
-  "Account": "rXXXX_TU_CUENTA",
-  "Subject": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Subject": "rYYYY_OTHER_ACCOUNT",
   "CredentialType": "4B5943"
 }
 ```
 
-Como emisor (`rXXXX_TU_CUENTA`), revoca la credencial "KYC" que emitiste sobre `rYYYY_OTRA_CUENTA`.
+As issuer (`rXXXX_YOUR_ACCOUNT`), revokes the "KYC" credential you issued about `rYYYY_OTHER_ACCOUNT`.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Crea y acepta una credencial entre dos cuentas de prueba (ver [CredentialCreate](/tx/CredentialCreate) y [CredentialAccept](/tx/CredentialAccept)).
-2. Como emisor, envía el `CredentialDelete` del ejemplo indicando el `Subject`.
-3. Consulta `account_objects` con `type: "credential"` en ambas cuentas: el objeto ya no aparece.
-4. Repite el flujo pero, esta vez, intenta borrarla desde una tercera cuenta sin ser emisor ni sujeto: verás `tecNO_PERMISSION` mientras no haya caducado.
-5. Crea una credencial con `Expiration` en el pasado próximo y, tras superar ese instante, bórrala desde la tercera cuenta: ahora sí tendrá éxito.
+1. Create and accept a credential between two test accounts (see [CredentialCreate](/tx/CredentialCreate) and [CredentialAccept](/tx/CredentialAccept)).
+2. As issuer, send the `CredentialDelete` from the example indicating the `Subject`.
+3. Query `account_objects` with `type: "credential"` on both accounts: the object no longer appears.
+4. Repeat the flow but this time try deleting it from a third account that's neither issuer nor subject: you'll see `tecNO_PERMISSION` as long as it hasn't expired.
+5. Create a credential with `Expiration` set in the near past and, after that moment has passed, delete it from the third account: now it will succeed.
 
-## Relacionado
+## Related
 
-- [CredentialCreate](/tx/CredentialCreate) — la crea.
-- [CredentialAccept](/tx/CredentialAccept) — la activa.
-- [AccountDelete](/tx/AccountDelete) — requiere limpiar credenciales antes de borrar la cuenta.
-- Objetos: [Credential](/objects/Credential).
+- [CredentialCreate](/tx/CredentialCreate) — creates it.
+- [CredentialAccept](/tx/CredentialAccept) — activates it.
+- [AccountDelete](/tx/AccountDelete) — requires cleaning up credentials before deleting the account.
+- Objects: [Credential](/objects/Credential).
 - Amendments: [Credentials](/amendments/Credentials).

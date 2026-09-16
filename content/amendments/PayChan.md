@@ -1,21 +1,21 @@
 ---
 title: PayChan
-summary: Introduce los canales de pago unidireccionales para hacer micropagos off-ledger con reclamaciones firmadas fuera de cadena.
+summary: Introduces unidirectional payment channels for making off-ledger micropayments with claims signed off-chain.
 xrplDocs: https://xrpl.org/resources/known-amendments#paychan
 introducedIn: 0.90.0
 ---
 
-## Qué cambia
+## What changes
 
-Introduce el objeto `PayChannel` (`ltPAYCHAN`): un canal de pago unidireccional entre una cuenta origen y una cuenta destino, con un `Amount` total reservado en XRP, un `Balance` de lo ya reclamado, una `PublicKey` para verificar firmas, un `SettleDelay` (tiempo mínimo antes de poder cerrar el canal sin acuerdo mutuo) y opcionalmente `Expiration` y `CancelAfter`.
+Introduces the `PayChannel` object (`ltPAYCHAN`): a unidirectional payment channel between a source account and a destination account, with a total `Amount` reserved in XRP, a `Balance` of what has already been claimed, a `PublicKey` for verifying signatures, a `SettleDelay` (the minimum time before the channel can be closed without mutual agreement), and optionally `Expiration` and `CancelAfter`.
 
-`PaymentChannelCreate` abre el canal bloqueando el `Amount` indicado de la cuenta origen. A partir de ahí, el origen puede firmar fuera de cadena, sin coste ni latencia de ledger, sucesivas "reclamaciones" que autorizan al destino a retirar una cantidad creciente del canal; cada firma sustituye a la anterior, así que solo hace falta enviar a la red la última. `PaymentChannelClaim` es la transacción que liquida: el destino la usa para cobrar presentando la firma más reciente (verificada contra `PublicKey`), y cualquiera de las dos partes puede usarla para cerrar el canal (de mutuo acuerdo, o unilateralmente una vez pasado `SettleDelay`/`Expiration`), devolviendo el remanente al origen. `PaymentChannelFund` permite al origen añadir más XRP al canal ya abierto, opcionalmente extendiendo su `Expiration`.
+`PaymentChannelCreate` opens the channel by locking the specified `Amount` from the source account. From there, the source can sign, off-chain and with no ledger cost or latency, successive "claims" that authorize the destination to withdraw an increasing amount from the channel; each signature supersedes the previous one, so only the latest one needs to be sent to the network. `PaymentChannelClaim` is the settlement transaction: the destination uses it to collect by presenting the most recent signature (verified against `PublicKey`), and either party can use it to close the channel (by mutual agreement, or unilaterally once `SettleDelay`/`Expiration` has passed), returning the remainder to the source. `PaymentChannelFund` allows the source to add more XRP to an already-open channel, optionally extending its `Expiration`.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nuevas: [PaymentChannelCreate](/tx/PaymentChannelCreate), [PaymentChannelFund](/tx/PaymentChannelFund) y [PaymentChannelClaim](/tx/PaymentChannelClaim).
-- Objeto: nuevo [PayChannel](/objects/PayChannel), enlazado en el owner directory de la cuenta origen (y, según el ledger, también en el de destino).
+- New: [PaymentChannelCreate](/tx/PaymentChannelCreate), [PaymentChannelFund](/tx/PaymentChannelFund) and [PaymentChannelClaim](/tx/PaymentChannelClaim).
+- Object: new [PayChannel](/objects/PayChannel), linked in the source account's owner directory (and, depending on the ledger, also in the destination's).
 
-## Estado y contexto
+## Status and context
 
-Los canales de pago resuelven el caso de uso de micropagos repetidos entre las mismas dos partes: streaming de contenido pagado por segundo, tarificación por API, propinas frecuentes, etc. Sin canal, cada micropago sería una transacción `Payment` en el ledger, con su coste de comisión y su latencia de confirmación; con un canal, solo la apertura y el cierre (o el reaprovisionamiento) tocan el ledger, mientras que las reclamaciones intermedias se negocian y firman off-chain. Amendments y fixes posteriores (como `fixPayChanCancelAfter`, que corrige el comportamiento de `CancelAfter`, o `fixPayChanRecipientOwnerDir`) ajustan detalles de este diseño original.
+Payment channels address the use case of repeated micropayments between the same two parties: content streaming paid per second, per-API pricing, frequent tips, etc. Without a channel, each micropayment would be a `Payment` transaction on the ledger, with its fee cost and confirmation latency; with a channel, only the opening and closing (or re-funding) touch the ledger, while the intermediate claims are negotiated and signed off-chain. Later amendments and fixes (such as `fixPayChanCancelAfter`, which corrects the behavior of `CancelAfter`, or `fixPayChanRecipientOwnerDir`) adjust details of this original design.

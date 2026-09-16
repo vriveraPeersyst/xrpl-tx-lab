@@ -1,48 +1,48 @@
 ---
 title: Check
-summary: Un cheque diferido: el emisor autoriza un pago hasta un máximo y el destinatario decide cuándo y cuánto cobrar.
+summary: A deferred check: the issuer authorizes a payment up to a maximum, and the recipient decides when and how much to cash.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/check
 createdBy: CheckCreate
 modifiedBy: CheckCash, CheckCancel
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `Check` funciona como un cheque bancario. Quien lo emite no mueve fondos: solo deja en el ledger una promesa de pagar hasta `SendMax` a `Destination`. El destinatario lo cobra cuando quiere con [CheckCash](/tx/CheckCash), y en ese momento se comprueba que el emisor tenga saldo. Si no lo tiene, el cheque rebota (`tecUNFUNDED`) pero sigue existiendo.
+A `Check` works like a bank check. Whoever issues it doesn't move funds: they merely leave a promise in the ledger to pay up to `SendMax` to `Destination`. The recipient cashes it whenever they want with [CheckCash](/tx/CheckCash), and at that point the issuer's balance is checked. If they don't have enough, the check bounces (`tecUNFUNDED`) but keeps existing.
 
-Es la forma de "empujar" un pago a alguien que tiene `lsfDepositAuth` o `lsfRequireDestTag`, o de dejar que el receptor elija el momento fiscal o de liquidez para cobrar.
+It's a way to "push" a payment to someone who has `lsfDepositAuth` or `lsfRequireDestTag`, or to let the recipient choose the tax or liquidity moment to cash it.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [CheckCreate](/tx/CheckCreate). `preclaim` exige que el destino exista, que no tenga `lsfDisallowIncomingCheck`, y que el cheque no haya nacido ya caducado. `doApply` crea el objeto, lo enlaza en el directorio del emisor (`OwnerNode`) y en el del destino (`DestinationNode`), y suma 1 al `OwnerCount` del emisor.
-- **Cobro**: [CheckCash](/tx/CheckCash) por parte del destinatario, con `Amount` exacto o `DeliverMin`. Si el cheque es de un token y el destinatario no tiene línea de confianza, con [CheckCashMakesTrustLine](/amendments/CheckCashMakesTrustLine) se crea sola. Al cobrar, el objeto se borra siempre, incluso si se cobra menos de `SendMax`.
-- **Cancelación**: [CheckCancel](/tx/CheckCancel). La puede enviar el emisor o el destinatario en cualquier momento; cualquier cuenta puede cancelarlo si ya ha pasado `Expiration`.
-- **Borrado en cascada**: [AccountDelete](/tx/AccountDelete) del emisor o del destino borra los cheques asociados.
+- **Creation**: [CheckCreate](/tx/CheckCreate). `preclaim` requires the destination to exist, not to have `lsfDisallowIncomingCheck`, and the check to not already be born expired. `doApply` creates the object, links it in the issuer's directory (`OwnerNode`) and in the destination's (`DestinationNode`), and adds 1 to the issuer's `OwnerCount`.
+- **Cashing**: [CheckCash](/tx/CheckCash) by the recipient, with an exact `Amount` or `DeliverMin`. If the check is for a token and the recipient has no trust line, with [CheckCashMakesTrustLine](/amendments/CheckCashMakesTrustLine) one is created automatically. When cashed, the object is always deleted, even if less than `SendMax` is cashed.
+- **Cancellation**: [CheckCancel](/tx/CheckCancel). It can be sent by the issuer or the destination at any time; any account can cancel it once `Expiration` has passed.
+- **Cascading deletion**: [AccountDelete](/tx/AccountDelete) of the issuer or the destination deletes the associated checks.
 
-## Campos clave
+## Key fields
 
-- **Account** — emisor, quien pagará. La reserva se le cobra a él.
-- **Destination** — único que puede cobrarlo.
-- **SendMax** — tope que se transfiere, en drops o en token emitido. Si es un token, el `issuer` es el emisor del token, y al cobrar se aplica su `TransferRate`.
-- **Sequence** — la secuencia (o el ticket) de la `CheckCreate`; junto con `Account` forma la clave del objeto.
-- **Expiration** — segundos desde el Ripple Epoch (2000-01-01). Pasado ese momento `CheckCash` falla con `tecEXPIRED` y cualquiera puede cancelarlo.
-- **InvoiceID** — hash de 256 bits libre para que el emisor referencie una factura.
-- **OwnerNode / DestinationNode** — páginas del directorio del emisor y del destino donde está enlazado.
+- **Account** — issuer, who will pay. The reserve is charged to them.
+- **Destination** — the only one who can cash it.
+- **SendMax** — cap on what's transferred, in drops or in an issued token. If it's a token, the `issuer` is the token's issuer, and its `TransferRate` applies when cashed.
+- **Sequence** — the sequence (or ticket) of the `CheckCreate`; together with `Account` it forms the object's key.
+- **Expiration** — seconds since the Ripple Epoch (2000-01-01). Once past that point, `CheckCash` fails with `tecEXPIRED` and anyone can cancel it.
+- **InvoiceID** — a free-form 256-bit hash for the issuer to reference an invoice.
+- **OwnerNode / DestinationNode** — pages of the issuer's and destination's directories where it's linked.
 
 ## Flags
 
-No tiene flags `lsf*`.
+It has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "check"` lo devuelve tanto para el emisor como para el destinatario. Con `ledger_entry`, `check` acepta solo el ID del objeto:
+`account_objects` with `type: "check"` returns it for both the issuer and the recipient. With `ledger_entry`, `check` accepts only the object's ID:
 
 ```json
 { "method": "ledger_entry", "params": [{ "check": "C4A46CCD8F096E994C4B0DEAB6CE98E722FC17D7944C28B95F0A5F5B0E5D2A6B", "ledger_index": "validated" }] }
 ```
 
-El ID es `SHA512Half(0x0043 || AccountID_emisor || Sequence)` (`keylet::check`), y lo encuentras en los metadatos de la `CheckCreate` (`CreatedNode.LedgerIndex`). Respuesta típica:
+The ID is `SHA512Half(0x0043 || issuer_AccountID || Sequence)` (`keylet::check`), and you can find it in the `CheckCreate` metadata (`CreatedNode.LedgerIndex`). Typical response:
 
 ```json
 {
@@ -65,11 +65,11 @@ El ID es `SHA512Half(0x0043 || AccountID_emisor || Sequence)` (`keylet::check`),
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 1 unidad de reserva de propietario (0,2 XRP en testnet) del emisor mientras exista.
+Consumes 1 unit of owner reserve (0.2 XRP on testnet) from the issuer while it exists.
 
-## Relacionado
+## Related
 
 - [CheckCreate](/tx/CheckCreate), [CheckCash](/tx/CheckCash), [CheckCancel](/tx/CheckCancel)
 - [Escrow](/objects/Escrow), [PayChannel](/objects/PayChannel), [AccountRoot](/objects/AccountRoot)

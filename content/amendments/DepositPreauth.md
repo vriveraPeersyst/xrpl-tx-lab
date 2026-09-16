@@ -1,22 +1,22 @@
 ---
 title: DepositPreauth
-summary: Lista blanca de remitentes para cuentas con DepositAuth, más el método deposit_authorized y tecEXPIRED para ofertas caducadas.
+summary: A whitelist of senders for accounts with DepositAuth, plus the deposit_authorized method and tecEXPIRED for expired offers.
 xrplDocs: https://xrpl.org/resources/known-amendments#depositpreauth
 introducedIn: 1.1.0
 ---
 
-## Qué cambia
+## What changes
 
-Añade la transacción `DepositPreauth` y el objeto del mismo nombre. Una cuenta con `lsfDepositAuth` puede preautorizar a otra (`Authorize`) para que le envíe pagos directamente, y revocarlo después (`Unauthorize`). Cada preautorización es un objeto propio que consume una unidad de owner reserve. El motor comprueba la existencia del objeto en `preclaim` de `Payment`, `EscrowFinish` y `PaymentChannelClaim` antes de aplicar la regla de DepositAuth. Se añade el método RPC `deposit_authorized` para consultarlo.
+Adds the `DepositPreauth` transaction and the object of the same name. An account with `lsfDepositAuth` can preauthorize another account (`Authorize`) to send it payments directly, and revoke that later (`Unauthorize`). Each preauthorization is its own object and consumes one unit of owner reserve. The engine checks for the object's existence in `preclaim` of `Payment`, `EscrowFinish` and `PaymentChannelClaim` before applying the DepositAuth rule. The RPC method `deposit_authorized` is added to query it.
 
-Dos ajustes adicionales: un pago cross-currency de una cuenta a sí misma ya no falla por DepositAuth, y `OfferCreate` con `Expiration` en el pasado devuelve `tecEXPIRED` en vez de `tesSUCCESS` sin efecto.
+Two additional adjustments: a cross-currency payment from an account to itself no longer fails due to DepositAuth, and `OfferCreate` with an `Expiration` in the past returns `tecEXPIRED` instead of `tesSUCCESS` with no effect.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nueva: [DepositPreauth](/tx/DepositPreauth).
-- Modificadas: [Payment](/tx/Payment), [EscrowFinish](/tx/EscrowFinish), [PaymentChannelClaim](/tx/PaymentChannelClaim) y [OfferCreate](/tx/OfferCreate).
-- Nuevo objeto [DepositPreauth](/objects/DepositPreauth); afecta a [AccountRoot](/objects/AccountRoot) (owner count).
+- New: [DepositPreauth](/tx/DepositPreauth).
+- Modified: [Payment](/tx/Payment), [EscrowFinish](/tx/EscrowFinish), [PaymentChannelClaim](/tx/PaymentChannelClaim) and [OfferCreate](/tx/OfferCreate).
+- New object [DepositPreauth](/objects/DepositPreauth); affects [AccountRoot](/objects/AccountRoot) (owner count).
 
-## Estado y contexto
+## Status and context
 
-[DepositAuth](/amendments/DepositAuth) resolvía el cumplimiento, pero obligaba al destinatario a cobrar cheques uno a uno. Las preautorizaciones permiten mantener el bloqueo por defecto y abrir excepciones a contrapartes verificadas (custodios, exchanges, clientes con KYC). Con [Credentials](/amendments/Credentials) el mismo objeto puede autorizar por credencial en lugar de por cuenta, lo que escala mejor. Retirado en rippled: forma parte del protocolo base.
+[DepositAuth](/amendments/DepositAuth) solved compliance, but forced the recipient to cash checks one by one. Preauthorizations allow the default block to be kept while opening exceptions for verified counterparties (custodians, exchanges, KYC'd clients). With [Credentials](/amendments/Credentials), the same object can authorize by credential instead of by account, which scales better. Retired in rippled: it is part of the base protocol.

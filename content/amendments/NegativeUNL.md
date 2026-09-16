@@ -1,21 +1,21 @@
 ---
 title: NegativeUNL
-summary: Permite marcar temporalmente en el ledger a validadores de la UNL que no están validando, para mantener el quórum efectivo.
+summary: Allows temporarily marking UNL validators that are not validating on the ledger, in order to maintain the effective quorum.
 xrplDocs: https://xrpl.org/resources/known-amendments#negativeunl
 introducedIn: 1.7.0
 ---
 
-## Qué cambia
+## What changes
 
-Introduce el objeto singleton `NegativeUNL` (`ltNEGATIVE_UNL`, solo puede existir uno en el ledger), con los campos `DisabledValidators` (la lista actual de validadores marcados como inactivos), `ValidatorToDisable` y `ValidatorToReEnable` (los cambios propuestos para el ledger flag ledger, aún no aplicados). No es una transacción que un usuario pueda enviar: los propios validadores, al cerrar cada ledger flag ledger (uno de cada 256), votan sobre qué validadores de la UNL llevan un número de ledgers consecutivos sin validar y proponen añadirlos o quitarlos de la lista negativa. Si suficientes validadores coinciden, el cambio se aplica de forma automática al ledger mediante una pseudo-transacción interna del protocolo.
+Introduces the singleton object `NegativeUNL` (`ltNEGATIVE_UNL`, only one can exist on the ledger), with the fields `DisabledValidators` (the current list of validators marked as inactive), `ValidatorToDisable` and `ValidatorToReEnable` (the proposed changes for the flag ledger, not yet applied). It is not a transaction a user can submit: the validators themselves, when closing each flag ledger (one out of every 256), vote on which UNL validators have gone a number of consecutive ledgers without validating and propose adding or removing them from the negative list. If enough validators agree, the change is applied automatically to the ledger via an internal protocol pseudo-transaction.
 
-El efecto práctico es que el quórum de consenso (normalmente el 80 % de la UNL) se calcula excluyendo a los validadores de la lista negativa, en vez de sobre el tamaño nominal de la UNL. Así, si varios validadores dejan de funcionar temporalmente, la red no necesita que sobrevivan más validadores "sanos" de los estrictamente necesarios para seguir alcanzando el 80 % real.
+The practical effect is that the consensus quorum (normally 80% of the UNL) is calculated excluding the validators on the negative list, rather than over the nominal size of the UNL. So, if several validators temporarily stop functioning, the network does not need more "healthy" validators to survive than are strictly necessary to keep reaching the real 80%.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nuevo objeto: [NegativeUNL](/objects/NegativeUNL), singleton del ledger.
-- No añade transacciones de usuario; el cambio de estado se produce mediante el mecanismo de votación de validadores en los ledgers flag, gestionado internamente por el protocolo de consenso.
+- New object: [NegativeUNL](/objects/NegativeUNL), a ledger singleton.
+- Does not add user transactions; the state change occurs through the validator voting mechanism on flag ledgers, managed internally by the consensus protocol.
 
-## Estado y contexto
+## Status and context
 
-Antes de este amendment, si un número suficiente de validadores de la UNL dejaba de validar (por caídas, mantenimiento, problemas de red), la red podía perder la capacidad de alcanzar el quórum del 80 % necesario para cerrar ledgers, aunque los validadores restantes estuvieran perfectamente sincronizados entre sí. NegativeUNL resuelve esto haciendo que el quórum se calcule sobre los validadores activos reales, no sobre el conjunto nominal de la UNL, mejorando la disponibilidad de la red frente a caídas parciales sin comprometer la seguridad del consenso.
+Before this amendment, if a sufficient number of UNL validators stopped validating (due to outages, maintenance, network issues), the network could lose the ability to reach the 80% quorum needed to close ledgers, even if the remaining validators were perfectly in sync with each other. NegativeUNL resolves this by making the quorum be calculated over the actually active validators, rather than over the nominal UNL set, improving network availability against partial outages without compromising the security of consensus.

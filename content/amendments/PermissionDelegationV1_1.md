@@ -1,22 +1,22 @@
 ---
 title: PermissionDelegationV1_1
-summary: Permite a una cuenta autorizar a otra a firmar en su nombre solo ciertos tipos de transacciones, sin compartir claves.
+summary: Allows an account to authorize another account to sign only certain types of transactions on its behalf, without sharing keys.
 xrplDocs: https://xrpl.org/resources/known-amendments#permissiondelegationv1_1
 introducedIn: 3.0.0
 ---
 
-## Qué cambia
+## What changes
 
-Introduce el objeto `Delegate` (`ltDELEGATE`), que registra que la cuenta `Account` ha delegado en la cuenta `Authorize` un conjunto de permisos (`Permissions`), hasta un máximo de `kPermissionMaxSize` entradas sin duplicados. Cada permiso identifica un tipo de transacción o una operación concreta que la cuenta delegada puede firmar en nombre de la cuenta que delega; la lista de qué transacciones son delegables la resuelve `Permission::getInstance().isDelegable(...)`, que depende también de qué amendments estén activos.
+Introduces the `Delegate` object (`ltDELEGATE`), which records that account `Account` has delegated to account `Authorize` a set of permissions (`Permissions`), up to a maximum of `kPermissionMaxSize` entries with no duplicates. Each permission identifies a transaction type or a specific operation that the delegated account can sign on behalf of the delegating account; the list of which transactions are delegable is resolved by `Permission::getInstance().isDelegable(...)`, which also depends on which amendments are active.
 
-`DelegateSet` crea, actualiza o borra este objeto: rechaza en `preflight` con `temMALFORMED` que una cuenta se delegue permisos a sí misma o que la lista contenga un permiso repetido o no delegable, y en `preclaim` comprueba que la cuenta autorizada existe y no es una pseudo-cuenta (por ejemplo, la cuenta interna de un AMM o un Vault, que no pueden actuar como delegados). Una vez creado el `Delegate`, el motor de transacciones (`Transactor.cpp`) comprueba, para cualquier transacción firmada por una cuenta distinta al `Account` original, si esa relación de delegación existe y cubre el tipo de transacción enviado; solo entonces la deja pasar en nombre de la cuenta delegante.
+`DelegateSet` creates, updates or deletes this object: it rejects in `preflight` with `temMALFORMED` an account delegating permissions to itself, or a permissions list containing a duplicated or non-delegable permission, and in `preclaim` checks that the authorized account exists and is not a pseudo-account (for example, the internal account of an AMM or a Vault, which cannot act as delegates). Once the `Delegate` object is created, the transaction engine (`Transactor.cpp`) checks, for any transaction signed by an account other than the original `Account`, whether that delegation relationship exists and covers the submitted transaction type; only then does it let it through on behalf of the delegating account.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nueva: [DelegateSet](/tx/DelegateSet), que crea, modifica o elimina la delegación (una lista vacía de `Permissions` borra el objeto).
-- Objeto: nuevo [Delegate](/objects/Delegate).
-- Afecta indirectamente a cualquier transacción firmada por la cuenta delegada en nombre de la delegante, verificada contra los `Permissions` almacenados.
+- New: [DelegateSet](/tx/DelegateSet), which creates, modifies or removes the delegation (an empty `Permissions` list deletes the object).
+- Object: new [Delegate](/objects/Delegate).
+- Indirectly affects any transaction signed by the delegated account on behalf of the delegating account, verified against the stored `Permissions`.
 
-## Estado y contexto
+## Status and context
 
-Antes de este mecanismo, la única forma de que un tercero operase en nombre de una cuenta era el multifirmado o el control directo de la clave, lo que en ambos casos da acceso total a la cuenta. PermissionDelegationV1_1 permite delegar de forma granular —por ejemplo, autorizar a un bot a enviar `Payment` pero no a cambiar la clave maestra ni a hacer `AccountDelete`— sin exponer ni compartir credenciales, un patrón habitual en custodia institucional y automatización de operaciones.
+Before this mechanism, the only way for a third party to operate on behalf of an account was multisigning or direct control of the key, both of which grant full access to the account. PermissionDelegationV1_1 allows delegating in a granular way—for example, authorizing a bot to send `Payment` but not to change the master key or perform `AccountDelete`—without exposing or sharing credentials, a common pattern in institutional custody and operational automation.

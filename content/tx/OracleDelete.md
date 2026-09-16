@@ -1,66 +1,66 @@
 ---
 title: OracleDelete
-summary: Elimina un oráculo de precios y libera la reserva que consumía.
+summary: Deletes a price oracle and frees the reserve it consumed.
 category: oraculos
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/oracledelete
 amendment: PriceOracle
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-`OracleDelete` borra un objeto [Oracle](/objects/Oracle) completo del ledger: todos los pares de precios que contenía desaparecen de una vez, y recuperas la reserva de propietario que consumía. Se identifica exactamente igual que al crearlo, con `OracleDocumentID`, ya que una cuenta puede mantener varios oráculos en paralelo.
+`OracleDelete` removes a complete [Oracle](/objects/Oracle) object from the ledger: every price pair it contained disappears at once, and you recover the owner reserve it consumed. It's identified exactly the same way it was created, with `OracleDocumentID`, since an account can maintain several oracles in parallel.
 
-No hay borrado parcial de pares con esta transacción — para eso usas [OracleSet](/tx/OracleSet) omitiendo `AssetPrice` en la entrada que quieras retirar. `OracleDelete` es todo o nada.
+There's no partial deletion of pairs with this transaction — for that you use [OracleSet](/tx/OracleSet), omitting `AssetPrice` on the entry you want to remove. `OracleDelete` is all or nothing.
 
-## Cuándo usarlo
+## When to use it
 
-- Retirar un feed de precios que ya no vas a mantener actualizado.
-- Liberar la reserva de un oráculo obsoleto o de pruebas.
-- Limpiar oráculos antes de un `AccountDelete`, si acumulan reserva de propietario.
-- Sustituir un oráculo por otro con distinto `OracleDocumentID` sin arrastrar el histórico de pares antiguos: en vez de sobrescribir con [OracleSet](/tx/OracleSet), a veces es más simple borrar y volver a crear desde cero.
+- Withdrawing a price feed you're no longer going to keep updated.
+- Freeing the reserve of an obsolete or test oracle.
+- Cleaning up oracles before an `AccountDelete`, if they're accumulating owner reserve.
+- Replacing an oracle with another one under a different `OracleDocumentID` without carrying over the old pair history: instead of overwriting with [OracleSet](/tx/OracleSet), it's sometimes simpler to delete and recreate from scratch.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`OracleDelete::preflight`** no valida nada específico: siempre devuelve `tesSUCCESS`.
+**`OracleDelete::preflight`** doesn't validate anything specific: it always returns `tesSUCCESS`.
 
-**`OracleDelete::preclaim`** comprueba que existe un oráculo con tu cuenta como propietario y el `OracleDocumentID` indicado; si no, `tecNO_ENTRY`.
+**`OracleDelete::preclaim`** checks that an oracle exists with your account as owner and the given `OracleDocumentID`; if not, `tecNO_ENTRY`.
 
-**`OracleDelete::doApply`**, a través de la función interna `deleteOracle`, elimina el objeto del directorio de propietario (`tefBAD_LEDGER` si el directorio está en un estado inconsistente), reduce tu owner count en 1 y borra el objeto del ledger. El efecto es inmediato: el oráculo y todos sus pares de precios dejan de existir en ese mismo ledger.
+**`OracleDelete::doApply`**, through the internal `deleteOracle` function, removes the object from the owner directory (`tefBAD_LEDGER` if the directory is in an inconsistent state), decreases your owner count by 1, and deletes the object from the ledger. The effect is immediate: the oracle and all its price pairs stop existing in that same ledger.
 
-## Campos clave
+## Key fields
 
-- **OracleDocumentID** — el identificador del oráculo a borrar, el mismo que usaste al crearlo con [OracleSet](/tx/OracleSet).
+- **OracleDocumentID** — the identifier of the oracle to delete, the same one you used when creating it with [OracleSet](/tx/OracleSet).
 
-## Errores habituales
+## Common errors
 
-- **tecNO_ENTRY** — no existe ningún oráculo con ese `OracleDocumentID` en tu cuenta.
-- **tefBAD_LEDGER** — inconsistencia interna al eliminar la entrada del directorio de propietario.
+- **tecNO_ENTRY** — no oracle exists with that `OracleDocumentID` on your account.
+- **tefBAD_LEDGER** — internal inconsistency while removing the entry from the owner directory.
 
-A diferencia de `OracleSet`, aquí no hay validaciones de tiempo ni de formato: si el oráculo existe y es tuyo, la transacción tiene éxito. Ten en cuenta que cualquier aplicación que dependa de ese `OracleDocumentID` (por ejemplo, un `LoanBrokerSet` que lo referencia como fuente de precio) dejará de poder consultarlo una vez borrado.
+Unlike `OracleSet`, there are no timing or format validations here: if the oracle exists and is yours, the transaction succeeds. Keep in mind that any application depending on that `OracleDocumentID` (for example, a `LoanBrokerSet` referencing it as a price source) will no longer be able to query it once deleted.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "OracleDelete",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "OracleDocumentID": 1
 }
 ```
 
-Elimina el oráculo número 1 de tu cuenta.
+Deletes oracle number 1 belonging to your account.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Crea un oráculo de prueba con [OracleSet](/tx/OracleSet) si aún no tienes uno.
-2. Confirma que existe consultando `get_aggregate_price` con tu cuenta y `oracle_document_id: 1`.
-3. Firma y envía el `OracleDelete` del ejemplo.
-4. Repite la consulta `get_aggregate_price`: ahora fallará porque el oráculo ya no existe. Comprueba también con `account_objects` (`type: "oracle"`) que el objeto ha desaparecido.
-5. Envía el mismo `OracleDelete` otra vez: recibirás `tecNO_ENTRY`.
+1. Create a test oracle with [OracleSet](/tx/OracleSet) if you don't already have one.
+2. Confirm it exists by querying `get_aggregate_price` with your account and `oracle_document_id: 1`.
+3. Sign and submit the example `OracleDelete`.
+4. Repeat the `get_aggregate_price` query: it will now fail because the oracle no longer exists. Also check with `account_objects` (`type: "oracle"`) that the object has disappeared.
+5. Submit the same `OracleDelete` again: you'll get `tecNO_ENTRY`.
 
-## Relacionado
+## Related
 
-- [OracleSet](/tx/OracleSet) — crea o actualiza el oráculo.
-- Objetos: [Oracle](/objects/Oracle).
+- [OracleSet](/tx/OracleSet) — creates or updates the oracle.
+- Objects: [Oracle](/objects/Oracle).
 - Amendments: [PriceOracle](/amendments/PriceOracle).

@@ -1,19 +1,19 @@
 ---
 title: HardenedValidations
-summary: Endurece el formato de los mensajes de validación de los validadores UNL, añadiendo campos de diagnóstico y protecciones de red.
+summary: Hardens the format of UNL validator validation messages, adding diagnostic fields and network protections.
 xrplDocs: https://xrpl.org/resources/known-amendments#hardenedvalidations
 ---
 
-## Qué cambia
+## What changes
 
-Los validadores de la red publican mensajes de "validation" para cada ledger propuesto, y esos mensajes son la base del consenso: cuando suficientes validadores del UNL de un nodo validan el mismo ledger, ese nodo lo considera final. HardenedValidations amplía el formato de esos mensajes con campos adicionales de diagnóstico, entre ellos un `Cookie` (un identificador que ayuda a detectar si un validador está corriendo varias instancias con la misma clave, algo indebido) y el `ServerVersion` del software que emite la validación, útil para monitorizar qué versiones de rippled corre la red.
+Network validators publish "validation" messages for each proposed ledger, and those messages are the basis of consensus: when enough validators from a node's UNL validate the same ledger, that node considers it final. HardenedValidations extends the format of those messages with additional diagnostic fields, including a `Cookie` (an identifier that helps detect whether a validator is running multiple instances with the same key, which is improper) and the `ServerVersion` of the software emitting the validation, useful for monitoring which rippled versions the network is running.
 
-El amendment también endurece las reglas de validación de esos mensajes en sí mismos: campos con formato incorrecto o inconsistencias que antes se toleraban pasan a rechazarse, reduciendo la superficie para mensajes de validación malformados o manipulados que pudieran usarse para confundir al mecanismo de consenso.
+The amendment also hardens the validation rules for those messages themselves: fields with incorrect format or inconsistencies that used to be tolerated are now rejected, reducing the attack surface for malformed or manipulated validation messages that could be used to confuse the consensus mechanism.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-No afecta a ninguna transacción de usuario ni a objetos del ledger. Es un cambio en el protocolo peer-to-peer de mensajes de validación entre nodos validadores, invisible para quien construye o envía transacciones en XRPL.
+It does not affect any user transaction or ledger object. It is a change to the peer-to-peer protocol for validation messages between validator nodes, invisible to whoever builds or sends transactions on XRPL.
 
-## Estado y contexto
+## Status and context
 
-Se introdujo como parte del esfuerzo continuo de hardening de la capa de consenso de rippled: cuantos más campos de diagnóstico lleve una validation, más fácil es para los operadores de validadores y para herramientas de monitorización detectar configuraciones erróneas (como una misma clave de validador corriendo en dos servidores a la vez) antes de que afecten a la seguridad de la red. Al ser puramente interno al protocolo de consenso entre servidores, no cambia el formato de ninguna transacción ni el comportamiento visible desde una aplicación cliente.
+It was introduced as part of the ongoing effort to harden rippled's consensus layer: the more diagnostic fields a validation carries, the easier it is for validator operators and monitoring tools to detect misconfigurations (such as the same validator key running on two servers at once) before they affect network security. Since it is purely internal to the consensus protocol between servers, it does not change the format of any transaction or the behavior visible from a client application.

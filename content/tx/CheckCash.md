@@ -1,80 +1,80 @@
 ---
 title: CheckCash
-summary: Cobra un Check del que eres destinatario, por un importe exacto (Amount) o por lo máximo posible a partir de un mínimo (DeliverMin).
+summary: Cashes a Check you're the recipient of, either for an exact amount (Amount) or for the maximum possible from a minimum (DeliverMin).
 category: cheques
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/checkcash
 xls: XLS-0011
 amendment: Checks
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`CheckCash` es la transacción con la que el destinatario de un [Check](/objects/Check) lo cobra. Solo puede enviarla la cuenta que figura como `Destination` en el cheque. Los fondos se mueven en ese momento desde la cuenta que emitió el cheque hacia la tuya; si el emisor no tiene saldo suficiente, el cobro falla y el cheque sigue en el ledger.
+`CheckCash` is the transaction with which the recipient of a [Check](/objects/Check) cashes it. Only the account listed as `Destination` on the check can send it. The funds move at that moment from the account that issued the check to yours; if the issuer doesn't have enough balance, the cashing fails and the check stays on the ledger.
 
-Hay dos modos, excluyentes: con `Amount` pides una cantidad exacta y la transacción falla si no se puede entregar entera; con `DeliverMin` pides "todo lo que se pueda hasta `SendMax`, siempre que sea al menos este mínimo", y el importe real queda en el campo `delivered_amount` de los metadatos. Si el cobro tiene éxito el cheque se borra y el emisor recupera su reserva.
+There are two modes, mutually exclusive: with `Amount` you request an exact amount and the transaction fails if it can't be delivered in full; with `DeliverMin` you request "as much as possible up to `SendMax`, as long as it's at least this minimum," and the actual amount ends up in the `delivered_amount` field of the metadata. If the cashing succeeds the check is deleted and the issuer recovers its reserve.
 
-Con tokens, el cobro pasa por el motor de pagos (`flow()`), igual que un `Payment` sin paths, así que puede aplicar el `TransferRate` del emisor del token. Gracias a [CheckCashMakesTrustLine](/amendments/CheckCashMakesTrustLine), si no tienes trust line con el emisor del token, se crea automáticamente al cobrar (pagando tú la reserva).
+With tokens, the cashing goes through the payment engine (`flow()`), just like a pathless `Payment`, so it can apply the token issuer's `TransferRate`. Thanks to [CheckCashMakesTrustLine](/amendments/CheckCashMakesTrustLine), if you don't have a trust line with the token's issuer, one is created automatically when cashing (you pay the reserve).
 
-## Cuándo usarlo
+## When to use it
 
-- Aceptar un pago que te han enviado por cheque, sobre todo si tu cuenta usa `DepositAuth`.
-- Cobrar parcialmente con `DeliverMin` cuando el emisor puede no tener todo el saldo.
-- Recibir un token nuevo sin haber creado antes la trust line.
+- Accepting a payment sent to you via check, especially if your account uses `DepositAuth`.
+- Cashing partially with `DeliverMin` when the issuer might not have the full balance.
+- Receiving a new token without having created the trust line beforehand.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`CheckCash::preflight`** (estático). Con [fixCleanup3_3_0](/amendments/fixCleanup3_3_0) activo, un `CheckID` a cero es `temMALFORMED`. Debe haber exactamente uno de `Amount` o `DeliverMin` (`temMALFORMED` si hay ambos o ninguno). El importe elegido tiene que ser legal y positivo (`temBAD_AMOUNT`) y con moneda válida (`temBAD_CURRENCY`). Importes en MPT se rechazan en `checkExtraFeatures` mientras MPTokensV2 no exista en la red.
+**`CheckCash::preflight`** (static). With [fixCleanup3_3_0](/amendments/fixCleanup3_3_0) active, a `CheckID` of all zeros is `temMALFORMED`. There must be exactly one of `Amount` or `DeliverMin` (`temMALFORMED` if there are both or neither). The chosen amount must be legal and positive (`temBAD_AMOUNT`) and with a valid currency (`temBAD_CURRENCY`). MPT amounts are rejected in `checkExtraFeatures` as long as MPTokensV2 doesn't exist on the network.
 
-**`CheckCash::preclaim`** (contra el ledger). El cheque debe existir (`tecNO_ENTRY`) y tú debes ser su `Destination` (`tecNO_PERMISSION`). Si tu cuenta tiene `lsfRequireDestTag` pero el cheque no lleva `DestinationTag`, `tecDST_TAG_NEEDED`. Si `Expiration` ya pasó respecto al cierre del ledger padre, `tecEXPIRED`. El importe que pides debe ser de la misma moneda y emisor que el `SendMax` del cheque (`temMALFORMED`) y no superarlo (`tecPATH_PARTIAL`). Luego comprueba con `accountFunds` que el emisor del cheque dispone de al menos ese importe, ignorando fondos congelados o no autorizados; en XRP, se le suma una unidad de reserva (`fees().increment`) porque al cobrar el cheque el emisor libera la reserva del objeto. Si no llega, `tecPATH_PARTIAL`. Para tokens de los que no eres emisor: el emisor del token debe existir (`tecNO_ISSUER`); si tiene `lsfRequireAuth`, necesitas una trust line ya autorizada (`tecNO_AUTH`), porque no se puede crear una línea autorizada al vuelo; y tu trust line con el emisor no puede estar congelada (`tecFROZEN`).
+**`CheckCash::preclaim`** (against the ledger). The check must exist (`tecNO_ENTRY`) and you must be its `Destination` (`tecNO_PERMISSION`). If your account has `lsfRequireDestTag` but the check doesn't carry a `DestinationTag`, `tecDST_TAG_NEEDED`. If `Expiration` has already passed relative to the parent ledger's close time, `tecEXPIRED`. The amount you request must be of the same currency and issuer as the check's `SendMax` (`temMALFORMED`) and can't exceed it (`tecPATH_PARTIAL`). It then checks with `accountFunds` that the check's issuer has at least that amount available, ignoring frozen or unauthorized funds; for XRP, one reserve unit is added to that (`fees().increment`) because cashing the check releases the object's reserve for the issuer. If it's not enough, `tecPATH_PARTIAL`. For tokens you're not the issuer of: the token's issuer must exist (`tecNO_ISSUER`); if it has `lsfRequireAuth`, you need an already-authorized trust line (`tecNO_AUTH`), because an authorized line can't be created on the fly; and your trust line with the issuer can't be frozen (`tecFROZEN`).
 
-**`CheckCash::doApply`** (efectos). Trabaja sobre un `PaymentSandbox`. Si el cheque es en XRP, calcula el líquido del emisor con `xrpLiquid` descontando su reserva menos un objeto (el cheque que va a desaparecer); con `DeliverMin` entrega `max(DeliverMin, min(SendMax, líquido))`, con `Amount` entrega exactamente `Amount`; si el líquido no llega, `tecUNFUNDED_PAYMENT`. Luego `transferXRP`. Si es en tokens: si no existe tu trust line con el emisor, comprueba que cubres la reserva de un objeto más (`tecNO_LINE_INSUF_RESERVE`) y la crea con `trustCreate` con límite 0 y el flag NoRipple según tu `lsfDefaultRipple`. Después eleva temporalmente el límite de tu trust line al máximo, para que el cobro no falle aunque supere tu `LimitAmount` (el código razona que si firmas el cobro es que quieres los fondos), llama a `flow()` con `SendMax` del cheque como tope y `partial payment` solo si usaste `DeliverMin`, y restaura el límite al salir. Si con `DeliverMin` el resultado es inferior al mínimo, `tecPATH_PARTIAL`. Registra `delivered_amount` en los metadatos en todos los casos. Por último quita el cheque de tu directorio y del emisor, baja el `OwnerCount` del emisor y borra el objeto.
+**`CheckCash::doApply`** (effects). It works on a `PaymentSandbox`. If the check is in XRP, it computes the issuer's liquid balance with `xrpLiquid`, subtracting their reserve minus one object (the check that's about to disappear); with `DeliverMin` it delivers `max(DeliverMin, min(SendMax, liquid))`, with `Amount` it delivers exactly `Amount`; if the liquid balance isn't enough, `tecUNFUNDED_PAYMENT`. Then `transferXRP`. If it's in tokens: if your trust line with the issuer doesn't exist, it checks that you cover the reserve for one more object (`tecNO_LINE_INSUF_RESERVE`) and creates it with `trustCreate` with limit 0 and the NoRipple flag based on your `lsfDefaultRipple`. It then temporarily raises the limit of your trust line to the maximum, so that the cashing doesn't fail even if it exceeds your `LimitAmount` (the code reasons that if you're signing the cashing, you want the funds), calls `flow()` with the check's `SendMax` as the cap and `partial payment` only if you used `DeliverMin`, and restores the limit on exit. If with `DeliverMin` the result is below the minimum, `tecPATH_PARTIAL`. It records `delivered_amount` in the metadata in every case. Finally it removes the check from your directory and from the issuer's, decrements the issuer's `OwnerCount`, and deletes the object.
 
-## Campos clave
+## Key fields
 
-- **CheckID** — El `index` del objeto Check (hash de 64 hex). Lo obtienes en `account_objects` con `type: "check"`.
-- **Amount** — Cantidad exacta a cobrar. Debe ser de la misma moneda que `SendMax` y no superarlo. Excluyente con `DeliverMin`.
-- **DeliverMin** — Mínimo aceptable; el transactor intenta entregar lo máximo posible hasta `SendMax`. Excluyente con `Amount`. Mira `delivered_amount` en los metadatos para saber cuánto recibiste.
+- **CheckID** — The `index` of the Check object (64-hex hash). You get it from `account_objects` with `type: "check"`.
+- **Amount** — Exact amount to cash. Must be of the same currency as `SendMax` and can't exceed it. Mutually exclusive with `DeliverMin`.
+- **DeliverMin** — Acceptable minimum; the transactor tries to deliver as much as possible up to `SendMax`. Mutually exclusive with `Amount`. Check `delivered_amount` in the metadata to know how much you received.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_ENTRY** — `CheckID` incorrecto o el cheque ya fue cobrado o cancelado.
-- **tecNO_PERMISSION** — No eres el `Destination` del cheque.
-- **tecEXPIRED** — El cheque ha caducado; cancélalo con [CheckCancel](/tx/CheckCancel) para liberar la reserva del emisor.
-- **tecPATH_PARTIAL** — Pides más que `SendMax`, el emisor no tiene fondos suficientes (en preclaim), o con `DeliverMin` el resultado no alcanzó el mínimo.
-- **tecUNFUNDED_PAYMENT** — Cheque en XRP cuyo emisor no tiene líquido suficiente por encima de su reserva.
-- **temMALFORMED** — `Amount` y `DeliverMin` a la vez o ninguno, o la moneda no coincide con `SendMax`.
-- **tecNO_LINE_INSUF_RESERVE** — Hace falta crear una trust line y no cubres su reserva.
-- **tecNO_AUTH** — El emisor del token exige autorización y tu trust line no está autorizada.
+- **tecNO_ENTRY** — Wrong `CheckID`, or the check was already cashed or canceled.
+- **tecNO_PERMISSION** — You're not the check's `Destination`.
+- **tecEXPIRED** — The check has expired; cancel it with [CheckCancel](/tx/CheckCancel) to free the issuer's reserve.
+- **tecPATH_PARTIAL** — You're requesting more than `SendMax`, the issuer doesn't have enough funds (at preclaim), or with `DeliverMin` the result didn't reach the minimum.
+- **tecUNFUNDED_PAYMENT** — Check in XRP whose issuer doesn't have enough liquid balance above their reserve.
+- **temMALFORMED** — `Amount` and `DeliverMin` both set or neither, or the currency doesn't match `SendMax`.
+- **tecNO_LINE_INSUF_RESERVE** — A trust line needs to be created and you don't cover its reserve.
+- **tecNO_AUTH** — The token's issuer requires authorization and your trust line isn't authorized.
 
-## Ejemplo
+## Example
 
-Cobra 1 XRP exacto de un cheque cuyo `index` es el `CheckID`:
+Cashes exactly 1 XRP from a check whose `index` is the `CheckID`:
 
 ```json
 {
   "TransactionType": "CheckCash",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "CheckID": "49647F0D748DC3FE26BDACBC57F251AADEFFF391403EC9BF87C97F67E9977FB0",
   "Amount": "1000000"
 }
 ```
 
-Para cobrar "lo máximo posible, al menos 0,5 XRP", sustituye `Amount` por `"DeliverMin": "500000"`.
+To cash "as much as possible, at least 0.5 XRP," replace `Amount` with `"DeliverMin": "500000"`.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Desde la otra cuenta, crea un cheque a tu favor con [CheckCreate](/tx/CheckCreate) y `SendMax` `1000000`.
-2. Consulta `account_objects` con `type: "check"` sobre tu cuenta y copia el `index` del cheque en `CheckID`.
-3. Envía `CheckCash` con `Amount` `1000000`. Espera `tesSUCCESS`; en los metadatos verás `delivered_amount`.
-4. Vuelve a consultar `account_objects`: el cheque ha desaparecido. `account_info` de tu cuenta muestra 1 XRP más (menos la fee) y el emisor ha recuperado una unidad de `OwnerCount`.
-5. Repite la prueba con `Amount` mayor que `SendMax` para ver `tecPATH_PARTIAL`, o desde una cuenta que no sea el destino para ver `tecNO_PERMISSION`.
+1. From the other account, create a check payable to you with [CheckCreate](/tx/CheckCreate) and `SendMax` `1000000`.
+2. Query `account_objects` with `type: "check"` on your account and copy the check's `index` into `CheckID`.
+3. Send `CheckCash` with `Amount` `1000000`. Expect `tesSUCCESS`; in the metadata you'll see `delivered_amount`.
+4. Query `account_objects` again: the check has disappeared. `account_info` for your account shows 1 XRP more (minus the fee) and the issuer has recovered one `OwnerCount` unit.
+5. Repeat the test with an `Amount` higher than `SendMax` to see `tecPATH_PARTIAL`, or from an account that isn't the destination to see `tecNO_PERMISSION`.
 
-## Relacionado
+## Related
 
-- [CheckCreate](/tx/CheckCreate) — emite el cheque.
-- [CheckCancel](/tx/CheckCancel) — retira o limpia un cheque.
-- [Check](/objects/Check) — el objeto que se consume.
-- [Checks](/amendments/Checks) — amendment de los cheques.
-- [CheckCashMakesTrustLine](/amendments/CheckCashMakesTrustLine) — creación automática de la trust line al cobrar.
-- [TrustSet](/tx/TrustSet) — crear la trust line a mano si el emisor exige autorización.
+- [CheckCreate](/tx/CheckCreate) — issues the check.
+- [CheckCancel](/tx/CheckCancel) — withdraws or cleans up a check.
+- [Check](/objects/Check) — the object that gets consumed.
+- [Checks](/amendments/Checks) — the checks amendment.
+- [CheckCashMakesTrustLine](/amendments/CheckCashMakesTrustLine) — automatic trust line creation when cashing.
+- [TrustSet](/tx/TrustSet) — create the trust line manually if the issuer requires authorization.

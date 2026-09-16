@@ -1,47 +1,47 @@
 ---
 title: Sponsorship
-summary: Permite a una cuenta pagar la reserva y/o las comisiones de otra, sin cederle control sobre sus fondos.
+summary: Allows one account to pay the reserve and/or fees of another, without giving it control over its funds.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/sponsorship
 createdBy: SponsorshipSet
 modifiedBy: SponsorshipSet, SponsorshipTransfer
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `Sponsorship` vincula a un `Owner` (el patrocinador) con un `Sponsee` (la cuenta patrocinada): el patrocinador puede asumir la owner reserve de los objetos que cree el patrocinado, o cubrir el coste de sus comisiones de transacción, o ambas cosas, según los flags que active. Es útil para aplicaciones que quieren dar de alta usuarios sin que estos necesiten tener XRP propio desde el primer momento, sin por ello tener custodia de sus claves ni de sus fondos: el patrocinado sigue firmando sus propias transacciones.
+A `Sponsorship` links an `Owner` (the sponsor) with a `Sponsee` (the sponsored account): the sponsor can take on the owner reserve of the objects the sponsee creates, or cover the cost of its transaction fees, or both, depending on which flags are activated. This is useful for applications that want to onboard users without requiring them to have their own XRP from the very start, without thereby taking custody of their keys or their funds: the sponsee still signs its own transactions.
 
-Cada objeto que el patrocinado cree mientras el sponsorship está activo puede quedar enlazado a él (vía `LowSponsor`/`HighSponsor` en una `RippleState`, por ejemplo), de forma que su reserva la cuenta el patrocinador y no el patrocinado.
+Every object the sponsee creates while the sponsorship is active can be linked to it (via `LowSponsor`/`HighSponsor` on a `RippleState`, for example), so that its reserve is counted against the sponsor and not the sponsee.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [SponsorshipSet](/tx/SponsorshipSet), por el patrocinador, indicando `Sponsee` y qué cubre (`lsfSponsorshipRequireSignForFee`, `lsfSponsorshipRequireSignForReserve`, o ninguno para patrocinio abierto). Puede fijar `MaxFee`, el tope de lo que está dispuesto a cubrir en comisiones.
-- **Actualización**: el mismo [SponsorshipSet](/tx/SponsorshipSet) ajusta `MaxFee` o los flags de cobertura sobre un sponsorship existente.
-- **Transferencia de objetos patrocinados**: [SponsorshipTransfer](/tx/SponsorshipTransfer) mueve la responsabilidad de reserva de objetos ya creados de un patrocinador a otro (o de vuelta al propio patrocinado), sin tener que recrear los objetos.
-- **Borrado**: cuando el patrocinador retira el patrocinio y `RemainingOwnerCount` llega a cero (no quedan objetos patrocinados pendientes de reserva).
+- **Creation**: [SponsorshipSet](/tx/SponsorshipSet), by the sponsor, specifying `Sponsee` and what it covers (`lsfSponsorshipRequireSignForFee`, `lsfSponsorshipRequireSignForReserve`, or neither for open sponsorship). It can set `MaxFee`, the cap on what it is willing to cover in fees.
+- **Update**: the same [SponsorshipSet](/tx/SponsorshipSet) adjusts `MaxFee` or the coverage flags on an existing sponsorship.
+- **Transfer of sponsored objects**: [SponsorshipTransfer](/tx/SponsorshipTransfer) moves the reserve responsibility of already-created objects from one sponsor to another (or back to the sponsee itself), without having to recreate the objects.
+- **Deletion**: when the sponsor withdraws sponsorship and `RemainingOwnerCount` reaches zero (no sponsored objects remain pending reserve coverage).
 
-## Campos clave
+## Key fields
 
-- **Owner** — el patrocinador, quien asume el coste.
-- **Sponsee** — la cuenta patrocinada.
-- **FeeAmount / MaxFee** — lo ya gastado en comisiones cubiertas y el tope que el patrocinador está dispuesto a asumir.
-- **RemainingOwnerCount** — cuántas unidades de owner reserve del patrocinado sigue cubriendo este sponsorship en este momento.
-- **OwnerNode / SponseeNode** — páginas del directorio del patrocinador y del patrocinado donde está enlazado.
+- **Owner** — the sponsor, who assumes the cost.
+- **Sponsee** — the sponsored account.
+- **FeeAmount / MaxFee** — what has already been spent on covered fees and the cap the sponsor is willing to assume.
+- **RemainingOwnerCount** — how many owner reserve units of the sponsee this sponsorship is currently still covering.
+- **OwnerNode / SponseeNode** — the sponsor's and sponsee's directory pages where it is linked.
 
 ## Flags
 
-- **lsfSponsorshipRequireSignForFee** — el patrocinador exige firmar (autorizar explícitamente) cada vez que se le carga una comisión, en vez de cubrirla automáticamente hasta `MaxFee`.
-- **lsfSponsorshipRequireSignForReserve** — igual, pero para la owner reserve de nuevos objetos del patrocinado.
+- **lsfSponsorshipRequireSignForFee** — the sponsor requires signing off (explicit authorization) each time a fee is charged to it, instead of automatically covering it up to `MaxFee`.
+- **lsfSponsorshipRequireSignForReserve** — same, but for the owner reserve of the sponsee's new objects.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "sponsorship"` lo devuelve tanto para el patrocinador como para el patrocinado. Con `ledger_entry`, `sponsorship` acepta `sponsor` y `sponsee`:
+`account_objects` with `type: "sponsorship"` returns it for both the sponsor and the sponsee. With `ledger_entry`, `sponsorship` accepts `sponsor` and `sponsee`:
 
 ```json
 { "method": "ledger_entry", "params": [{ "sponsorship": { "sponsor": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "sponsee": "rfkE1aSy9G8Upk4JssnwBxhEv5p4mn2KTy" }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x003E || AccountID_sponsor || AccountID_sponsee)` (`keylet::sponsorship`, namespace `'>'`). Respuesta típica:
+The index is `SHA512Half(0x003E || AccountID_sponsor || AccountID_sponsee)` (`keylet::sponsorship`, namespace `'>'`). Typical response:
 
 ```json
 {
@@ -58,11 +58,11 @@ El índice es `SHA512Half(0x003E || AccountID_sponsor || AccountID_sponsee)` (`k
 }
 ```
 
-## Reserva
+## Reserve
 
-El objeto `Sponsorship` en sí consume 1 unidad de owner reserve del patrocinador; los objetos que patrocina para el `Sponsee` se descuentan aparte del `OwnerCount` de este último mientras el sponsorship los cubra.
+The `Sponsorship` object itself consumes 1 owner reserve unit from the sponsor; the objects it sponsors for the `Sponsee` are deducted separately from the sponsee's `OwnerCount` while the sponsorship covers them.
 
-## Relacionado
+## Related
 
 - [SponsorshipSet](/tx/SponsorshipSet), [SponsorshipTransfer](/tx/SponsorshipTransfer)
 - [AccountRoot](/objects/AccountRoot), [RippleState](/objects/RippleState), [SignerList](/objects/SignerList)

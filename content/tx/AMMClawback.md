@@ -1,98 +1,98 @@
 ---
 title: AMMClawback
-summary: Permite al emisor de un token recuperar (clawback) el token que un tenedor tiene depositado en un AMM, retirando su liquidez por él.
+summary: Lets a token issuer claw back a token that a holder has deposited into an AMM, withdrawing their liquidity on their behalf.
 category: amm
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/ammclawback
 xls: XLS-0073
 amendment: AMMClawback
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-El [Clawback](/tx/Clawback) ordinario recupera tokens de la trust line de un tenedor. Pero si ese tenedor ha depositado los tokens en un [AMM](/objects/AMM), ya no están en su trust line: están en la pseudocuenta del fondo, y él solo tiene LP tokens. `AMMClawback` cubre ese hueco: el emisor obliga a una **retirada equilibrada** de la posición del tenedor (`Holder`) en el AMM y, de lo que sale, se queda con su propio token. El otro activo del par se entrega al tenedor, salvo que el emisor emita también ese segundo activo y active `tfClawTwoAssets`, en cuyo caso recupera ambos.
+Ordinary [Clawback](/tx/Clawback) recovers tokens from a holder's trust line. But if that holder has deposited the tokens into an [AMM](/objects/AMM), they're no longer on their trust line: they're in the pool's pseudo-account, and the holder only has LP tokens. `AMMClawback` fills that gap: the issuer forces a **balanced withdrawal** of the holder's (`Holder`) position from the AMM and, of what comes out, keeps its own token. The other asset in the pair is delivered to the holder, unless the issuer also issues that second asset and enables `tfClawTwoAssets`, in which case it claws back both.
 
-Quema los LP tokens del tenedor, reduce las reservas del fondo y, si el fondo queda vacío, lo borra igual que [AMMWithdraw](/tx/AMMWithdraw). Ignora congelaciones, autorizaciones y reserva del tenedor: el emisor tiene prioridad (privilegio `OverrideFreeze`).
+It burns the holder's LP tokens, reduces the pool's reserves, and, if the pool ends up empty, deletes it just like [AMMWithdraw](/tx/AMMWithdraw). It ignores the holder's freezes, authorization, and reserve: the issuer takes priority (`OverrideFreeze` privilege).
 
-Antes del amendment [AMMClawback](/amendments/AMMClawback), `AMMCreate` rechazaba tokens con clawback habilitado; ahora se permiten precisamente porque existe esta transacción.
+Before the [AMMClawback](/amendments/AMMClawback) amendment, `AMMCreate` rejected tokens with clawback enabled; now they're allowed precisely because this transaction exists.
 
-## Cuándo usarlo
+## When to use it
 
-- Emisores regulados (stablecoins, activos tokenizados) que deben poder recuperar fondos por orden legal aunque estén en un AMM.
-- Retirar de circulación el token de una cuenta comprometida sin depender de que ella retire su liquidez.
-- Vaciar completamente un AMM de tu token cuando quieres discontinuarlo: tras el clawback del último LP el fondo se borra.
+- Regulated issuers (stablecoins, tokenized assets) who must be able to recover funds by legal order even if they're in an AMM.
+- Removing a compromised account's token from circulation without relying on that account withdrawing its own liquidity.
+- Completely draining an AMM of your token when you want to discontinue it: after clawing back the last LP, the pool is deleted.
 
-## Cómo funciona por dentro
+## How it works inside
 
-`AMMClawback::checkExtraFeatures` exige [AMMClawback](/amendments/AMMClawback) (activo en testnet), y [MPTokensV2](/amendments/MPTokensV2) si interviene un MPT.
+`AMMClawback::checkExtraFeatures` requires [AMMClawback](/amendments/AMMClawback) (active on testnet), and [MPTokensV2](/amendments/MPTokensV2) if an MPT is involved.
 
 `AMMClawback::preflight`:
-- `Account` (emisor) ≠ `Holder` (`temMALFORMED`).
-- `Asset` no puede ser XRP (`temMALFORMED`): XRP no tiene emisor.
-- `Asset.issuer` debe ser `Account` (`temMALFORMED`).
-- Con `tfClawTwoAssets`, `Asset2.issuer` también debe ser `Account` (`temINVALID_FLAG`).
-- Si hay `Amount`, su activo debe ser `Asset` (`temBAD_AMOUNT`) y ser positivo.
+- `Account` (issuer) ≠ `Holder` (`temMALFORMED`).
+- `Asset` cannot be XRP (`temMALFORMED`): XRP has no issuer.
+- `Asset.issuer` must be `Account` (`temMALFORMED`).
+- With `tfClawTwoAssets`, `Asset2.issuer` must also be `Account` (`temINVALID_FLAG`).
+- If `Amount` is present, its asset must be `Asset` (`temBAD_AMOUNT`) and must be positive.
 
 `AMMClawback::preclaim`:
-- `Holder` debe existir (`terNO_ACCOUNT`); el par debe tener AMM (`terNO_AMM`).
-- El emisor debe tener `lsfAllowTrustLineClawback` **y no** `lsfNoFreeze` (`tecNO_PERMISSION`). Ambos se fijan con [AccountSet](/tx/AccountSet) y son irreversibles; `AllowTrustLineClawback` solo puede activarse en una cuenta sin trust lines. Para MPT, la emisión debe tener `lsfMPTCanClawback`.
-- Con `tfClawTwoAssets`, la misma comprobación para `Asset2`.
+- `Holder` must exist (`terNO_ACCOUNT`); the pair must have an AMM (`terNO_AMM`).
+- The issuer must have `lsfAllowTrustLineClawback` **and not** `lsfNoFreeze` (`tecNO_PERMISSION`). Both are set via [AccountSet](/tx/AccountSet) and are irreversible; `AllowTrustLineClawback` can only be enabled on an account with no trust lines. For MPT, the issuance must have `lsfMPTCanClawback`.
+- With `tfClawTwoAssets`, the same check applies to `Asset2`.
 
-`AMMClawback::doApply` (en `applyGuts`):
-1. Con [fixAMMClawbackRounding](/amendments/fixAMMClawbackRounding) (activo) primero llama a `verifyAndAdjustLPTokenBalance` para corregir desajustes de redondeo si el tenedor es el último LP. Si el tenedor no tiene LP tokens → `tecAMM_BALANCE`.
-2. **Sin `Amount`**: `AMMWithdraw::equalWithdrawTokens` con todos los LP tokens del tenedor (`WithdrawAll::Yes`), sin comisión, ignorando freeze, auth y reserva.
-3. **Con `Amount`**: `equalWithdrawMatchingOneAmount` calcula la fracción `Amount / reservaDeAsset`, retira esa misma fracción del otro activo y de los LP tokens. Si la fracción cubre todos los LP tokens del tenedor (más de los que tiene; con [fixCleanup3_4_0](/amendments/fixCleanup3_4_0), aún no activo, también si son exactamente iguales) se convierte en retirada total. Con `fixAMMClawbackRounding` redondea LP tokens y activos a favor del fondo (`getRoundedLPTokens`, `getRoundedAsset`).
-4. Comprueba la invariante de precisión y llama a `deleteAMMAccountIfEmpty`.
-5. Lo retirado de `Asset` va del tenedor al emisor con `directSendNoFee` (equivale a quemarlo). Con `tfClawTwoAssets` ocurre lo mismo con `Asset2`; si no, el tenedor se queda con el segundo activo. Si el tenedor había borrado su trust line, se recrea sin exigir reserva (`ReserveHandling::IgnoreReserve`), para que no pueda esquivar el clawback.
+`AMMClawback::doApply` (in `applyGuts`):
+1. With [fixAMMClawbackRounding](/amendments/fixAMMClawbackRounding) (active) it first calls `verifyAndAdjustLPTokenBalance` to fix rounding mismatches if the holder is the last LP. If the holder has no LP tokens → `tecAMM_BALANCE`.
+2. **Without `Amount`**: `AMMWithdraw::equalWithdrawTokens` with all of the holder's LP tokens (`WithdrawAll::Yes`), no fee, ignoring freeze, auth, and reserve.
+3. **With `Amount`**: `equalWithdrawMatchingOneAmount` computes the fraction `Amount / assetReserve`, withdraws that same fraction of the other asset and of the LP tokens. If the fraction covers all of the holder's LP tokens (more than they have; with [fixCleanup3_4_0](/amendments/fixCleanup3_4_0), not yet active, also if exactly equal) it becomes a full withdrawal. With `fixAMMClawbackRounding` it rounds LP tokens and assets in favor of the pool (`getRoundedLPTokens`, `getRoundedAsset`).
+4. Checks the precision invariant and calls `deleteAMMAccountIfEmpty`.
+5. What's withdrawn of `Asset` goes from the holder to the issuer via `directSendNoFee` (equivalent to burning it). With `tfClawTwoAssets` the same happens with `Asset2`; otherwise the holder keeps the second asset. If the holder had deleted their trust line, it's recreated without requiring reserve (`ReserveHandling::IgnoreReserve`), so they can't dodge the clawback.
 
-Un detalle: en la retirada, el `Amount` que pides se interpreta contra la reserva del fondo, así que el emisor recupera como máximo la parte proporcional del tenedor; no puede llevarse liquidez de otros LP.
+One detail: in the withdrawal, the `Amount` you request is interpreted against the pool's reserve, so the issuer recovers at most the holder's proportional share; it cannot take liquidity from other LPs.
 
-## Campos clave
+## Key fields
 
-- **Holder** — Cuenta cuyo depósito en el AMM se recupera. Debe tener LP tokens de ese fondo.
-- **Asset** — Tu token (con `issuer` = tu cuenta). Es el activo que recuperas.
-- **Asset2** — El otro activo del par, para identificar el AMM.
-- **Amount** — Cuánto de `Asset` recuperar. Si lo omites, se retira **toda** la posición del tenedor. Si lo indicas, se retira la fracción equivalente de los dos activos.
+- **Holder** — Account whose deposit in the AMM is being clawed back. Must have LP tokens of that pool.
+- **Asset** — Your token (with `issuer` = your account). This is the asset you're clawing back.
+- **Asset2** — The other asset in the pair, used to identify the AMM.
+- **Amount** — How much of `Asset` to claw back. If omitted, **all** of the holder's position is withdrawn. If specified, the equivalent fraction of both assets is withdrawn.
 
 ## Flags
 
-- **tfClawTwoAssets** (1) — Recupera también `Asset2`. Solo válido si emites los dos activos del fondo.
+- **tfClawTwoAssets** (1) — Also claws back `Asset2`. Only valid if you issue both assets in the pool.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_PERMISSION** — Tu cuenta no tiene `lsfAllowTrustLineClawback`, o tiene `lsfNoFreeze`. Activa `asfAllowTrustLineClawback` (16) con `AccountSet` antes de emitir cualquier trust line.
-- **temMALFORMED** — `Asset` es XRP, su `issuer` no es tu cuenta, o `Holder` eres tú.
-- **temINVALID_FLAG** — `tfClawTwoAssets` con un `Asset2` que no emites.
-- **tecAMM_BALANCE** — El tenedor no tiene LP tokens de este AMM.
-- **tecAMM_INVALID_TOKENS** / **tecAMM_FAILED** — `Amount` tan pequeño que redondea a cero LP tokens o deja una retirada de un solo lado.
-- **terNO_AMM** / **terNO_ACCOUNT** — El par no tiene AMM o `Holder` no existe.
+- **tecNO_PERMISSION** — Your account doesn't have `lsfAllowTrustLineClawback`, or it has `lsfNoFreeze`. Enable `asfAllowTrustLineClawback` (16) with `AccountSet` before issuing any trust line.
+- **temMALFORMED** — `Asset` is XRP, its `issuer` isn't your account, or `Holder` is you.
+- **temINVALID_FLAG** — `tfClawTwoAssets` with an `Asset2` you don't issue.
+- **tecAMM_BALANCE** — The holder has no LP tokens for this AMM.
+- **tecAMM_INVALID_TOKENS** / **tecAMM_FAILED** — `Amount` so small it rounds to zero LP tokens or leaves a one-sided withdrawal.
+- **terNO_AMM** / **terNO_ACCOUNT** — The pair has no AMM, or `Holder` doesn't exist.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "AMMClawback",
-  "Account": "rXXXX_TU_CUENTA",
-  "Holder": "rYYYY_OTRA_CUENTA",
-  "Asset": { "currency": "USD", "issuer": "rXXXX_TU_CUENTA" },
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Holder": "rYYYY_OTHER_ACCOUNT",
+  "Asset": { "currency": "USD", "issuer": "rXXXX_YOUR_ACCOUNT" },
   "Asset2": { "currency": "XRP" }
 }
 ```
 
-Recupera toda la posición de `rYYYY_OTRA_CUENTA` en el fondo USD/XRP: el USD vuelve al emisor y el XRP se entrega al tenedor.
+Claws back all of `rYYYY_OTHER_ACCOUNT`'s position in the USD/XRP pool: the USD goes back to the issuer and the XRP is delivered to the holder.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-Aquí tu cuenta actúa como **emisor**, así que necesitas preparar el escenario:
+Here your account acts as the **issuer**, so you need to set up the scenario:
 
-1. Con `rXXXX_TU_CUENTA` envía [AccountSet](/tx/AccountSet) con `SetFlag: 16` (`asfAllowTrustLineClawback`) **antes** de que nadie abra trust lines contigo, y `SetFlag: 8` (`asfDefaultRipple`).
-2. Desde `rYYYY_OTRA_CUENTA` abre una trust line USD hacia tu cuenta ([TrustSet](/tx/TrustSet)) y págale, por ejemplo, 100 USD con un [Payment](/tx/Payment).
-3. Con `rYYYY_OTRA_CUENTA` crea el AMM USD/XRP ([AMMCreate](/tx/AMMCreate) con 50 USD y 10 XRP). Anota `amm_info`.
-4. Con `rXXXX_TU_CUENTA` envía el ejemplo. En los metadatos verás que la línea de LP tokens del tenedor se pone a cero, que la trust line USD de la pseudocuenta baja y que el tenedor recibe los 10 XRP; como era el único LP, el AMM se borra (`DeletedNode` de `AMM` y `AccountRoot`).
-5. Repite el escenario y prueba `Amount: {currency: "USD", issuer: "rXXXX_TU_CUENTA", value: "10"}`: solo se retira un quinto de la posición y el AMM sigue vivo con `lp_token.value` reducido.
-6. Envía la transacción desde una cuenta sin `AllowTrustLineClawback` para ver `tecNO_PERMISSION`.
+1. With `rXXXX_YOUR_ACCOUNT` send [AccountSet](/tx/AccountSet) with `SetFlag: 16` (`asfAllowTrustLineClawback`) **before** anyone opens trust lines with you, and `SetFlag: 8` (`asfDefaultRipple`).
+2. From `rYYYY_OTHER_ACCOUNT` open a USD trust line to your account ([TrustSet](/tx/TrustSet)) and have it pay you, say, 100 USD with a [Payment](/tx/Payment).
+3. With `rYYYY_OTHER_ACCOUNT` create the USD/XRP AMM ([AMMCreate](/tx/AMMCreate) with 50 USD and 10 XRP). Note the `amm_info`.
+4. With `rXXXX_YOUR_ACCOUNT` send the example. In the metadata you'll see the holder's LP token line set to zero, the pseudo-account's USD trust line decrease, and the holder receive the 10 XRP; since it was the only LP, the AMM is deleted (`DeletedNode` for `AMM` and `AccountRoot`).
+5. Repeat the scenario and try `Amount: {currency: "USD", issuer: "rXXXX_YOUR_ACCOUNT", value: "10"}`: only a fifth of the position is withdrawn and the AMM stays alive with a reduced `lp_token.value`.
+6. Send the transaction from an account without `AllowTrustLineClawback` to see `tecNO_PERMISSION`.
 
-## Relacionado
+## Related
 
 - [Clawback](/tx/Clawback), [AMMWithdraw](/tx/AMMWithdraw), [AMMCreate](/tx/AMMCreate), [AMMDelete](/tx/AMMDelete), [AccountSet](/tx/AccountSet)
 - [AMM](/objects/AMM), [RippleState](/objects/RippleState)

@@ -1,47 +1,47 @@
 ---
 title: Oracle
-summary: Un feed de precios publicado on-chain por un proveedor, con una o varias parejas de activos y su cotización.
+summary: A price feed published on-chain by a provider, with one or more asset pairs and their quote.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/oracle
 createdBy: OracleSet
 modifiedBy: OracleSet
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `Oracle` publica precios de referencia en el ledger: por ejemplo, cuánto vale 1 XRP en USD según un proveedor concreto. Cada entrada de `PriceDataSeries` es un par `BaseAsset`/`QuoteAsset` con su precio (`AssetPrice`) y escala (`Scale`). No hay validación de que el precio sea correcto: cualquier cuenta puede crear un `Oracle` y publicar lo que quiera; quien lo consuma (por ejemplo, un `Vault` con lending, o una aplicación externa) decide en qué proveedores confía.
+An `Oracle` publishes reference prices in the ledger: for example, how much 1 XRP is worth in USD according to a particular provider. Each entry in `PriceDataSeries` is a `BaseAsset`/`QuoteAsset` pair with its price (`AssetPrice`) and scale (`Scale`). There is no validation that the price is correct: any account can create an `Oracle` and publish whatever it wants; whoever consumes it (for example, a `Vault` with lending, or an external application) decides which providers to trust.
 
-Una misma cuenta puede tener varios `Oracle`, distinguidos por `OracleDocumentID`.
+A single account can have several `Oracle` objects, distinguished by `OracleDocumentID`.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [OracleSet](/tx/OracleSet) sin `Oracle` previo con ese `OracleDocumentID`. Fija `Provider` (nombre del proveedor, en bytes), `AssetClass` (categoría del activo, p. ej. "currency") y la serie inicial de precios.
-- **Actualización**: el mismo [OracleSet](/tx/OracleSet), sobre un `Oracle` existente del mismo `Owner` y `OracleDocumentID`, reemplaza `PriceDataSeries` y actualiza `LastUpdateTime`. No hay límite de frecuencia protocolario, pero un `LastUpdateTime` demasiado antiguo o futuro respecto al `close_time` del ledger hace que la transacción falle.
-- **Borrado**: [OracleDelete](/tx/OracleDelete), solo por el `Owner`.
+- **Creation**: [OracleSet](/tx/OracleSet) without a prior `Oracle` under that `OracleDocumentID`. Sets `Provider` (provider name, in bytes), `AssetClass` (asset category, e.g. "currency") and the initial price series.
+- **Update**: the same [OracleSet](/tx/OracleSet), on an existing `Oracle` with the same `Owner` and `OracleDocumentID`, replaces `PriceDataSeries` and updates `LastUpdateTime`. There's no protocol-level rate limit, but a `LastUpdateTime` too far in the past or future relative to the ledger's `close_time` causes the transaction to fail.
+- **Deletion**: [OracleDelete](/tx/OracleDelete), only by the `Owner`.
 
-## Campos clave
+## Key fields
 
-- **Owner** — quien publica el oráculo y paga su reserva.
-- **OracleDocumentID** — identificador local (elegido por el dueño) para distinguir varios oráculos de la misma cuenta.
-- **Provider** — nombre del proveedor de datos, en bytes libres (p. ej. el nombre de una empresa de feeds).
-- **AssetClass** — categoría del activo cotizado (moneda, materia prima, etc.), en bytes libres.
-- **PriceDataSeries** — array de pares `BaseAsset`/`QuoteAsset` con `AssetPrice` y `Scale`; el precio real es `AssetPrice / 10^Scale`.
-- **LastUpdateTime** — segundos Unix (no Ripple Epoch, a diferencia de casi todo lo demás en el ledger) de la última actualización de precios.
-- **URI** — enlace opcional a documentación o metadatos adicionales del proveedor.
+- **Owner** — who publishes the oracle and pays its reserve.
+- **OracleDocumentID** — local identifier (chosen by the owner) to distinguish multiple oracles from the same account.
+- **Provider** — name of the data provider, in free-form bytes (e.g. the name of a feed provider company).
+- **AssetClass** — category of the quoted asset (currency, commodity, etc.), in free-form bytes.
+- **PriceDataSeries** — array of `BaseAsset`/`QuoteAsset` pairs with `AssetPrice` and `Scale`; the actual price is `AssetPrice / 10^Scale`.
+- **LastUpdateTime** — Unix seconds (not Ripple Epoch, unlike almost everything else in the ledger) of the last price update.
+- **URI** — optional link to documentation or additional metadata from the provider.
 
 ## Flags
 
-No tiene flags `lsf*`.
+Has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "oracle"` lo devuelve para el `Owner`. Con `ledger_entry`, `oracle` acepta `account` y `oracle_document_id`:
+`account_objects` with `type: "oracle"` returns it for the `Owner`. With `ledger_entry`, `oracle` accepts `account` and `oracle_document_id`:
 
 ```json
 { "method": "ledger_entry", "params": [{ "oracle": { "account": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "oracle_document_id": 1 }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x0052 || AccountID_owner || OracleDocumentID)` (`keylet::oracle`, namespace `'R'`). Respuesta típica:
+The index is `SHA512Half(0x0052 || AccountID_owner || OracleDocumentID)` (`keylet::oracle`, namespace `'R'`). Typical response:
 
 ```json
 {
@@ -61,11 +61,11 @@ El índice es `SHA512Half(0x0052 || AccountID_owner || OracleDocumentID)` (`keyl
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 1 unidad de reserva de propietario (0,2 XRP en testnet) del dueño.
+Consumes 1 unit of owner reserve (0.2 XRP on testnet) from the owner.
 
-## Relacionado
+## Related
 
 - [OracleSet](/tx/OracleSet), [OracleDelete](/tx/OracleDelete)
 - [Vault](/objects/Vault), [LoanBroker](/objects/LoanBroker)

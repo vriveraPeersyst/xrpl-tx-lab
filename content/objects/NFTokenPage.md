@@ -1,42 +1,42 @@
 ---
 title: NFTokenPage
-summary: Una página que agrupa hasta 32 NFTs de una misma cuenta; el conjunto de páginas encadenadas es el "inventario" de NFTs del dueño.
+summary: A page that groups up to 32 NFTs from the same account; the set of chained pages is the owner's NFT "inventory".
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/nftokenpage
 createdBy: NFTokenMint
 modifiedBy: NFTokenMint, NFTokenBurn, NFTokenAcceptOffer, NFTokenModify
 reserve: 0
 ---
 
-## Qué representa
+## What it represents
 
-Los NFTs no son objetos individuales del ledger: viven agrupados en `NFTokenPage`, ordenados por `NFTokenID` dentro de cada página, con hasta 32 por página. Todas las páginas de una misma cuenta forman una lista doblemente enlazada (`PreviousPageMin`/`NextPageMin`) cuyo índice está construido de forma que el propio ID de la página incorpora el `AccountID` del dueño en los primeros bytes; así rippled puede ubicar el rango de páginas de una cuenta sin necesidad de un directorio de propietario aparte.
+NFTs are not individual ledger objects: they live grouped inside `NFTokenPage`, sorted by `NFTokenID` within each page, with up to 32 per page. All pages belonging to the same account form a doubly linked list (`PreviousPageMin`/`NextPageMin`) whose index is constructed so that the page ID itself embeds the owner's `AccountID` in the first bytes; this lets rippled locate an account's page range without needing a separate owner directory.
 
-A diferencia de casi todo lo demás en el ledger, tener NFTs **no consume owner reserve**: puedes acumular cientos de NFTs sin que te cueste XRP adicional por reserva (aunque sí sigue existiendo el coste de cada transacción de mint).
+Unlike almost everything else in the ledger, holding NFTs **does not consume owner reserve**: you can accumulate hundreds of NFTs without paying additional XRP in reserve (though the cost of each mint transaction still applies).
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [NFTokenMint](/tx/NFTokenMint) inserta el nuevo `NFTokenID` en la página adecuada (ordenado por ID), creando una página nueva si la existente ya tiene 32 tokens o no hay ninguna todavía.
-- **Modificación**: [NFTokenBurn](/tx/NFTokenBurn) elimina un token de su página, fusionando o eliminando páginas si quedan vacías o poco llenas. [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer) mueve el token de la página del vendedor a una página del comprador. [NFTokenModify](/tx/NFTokenModify) cambia la `URI` del token sin moverlo de página, solo si el NFT se emitió con `tfMutable`.
-- **Borrado**: automático cuando una página se queda sin tokens; no hay una transacción dedicada a borrar la página en sí.
+- **Creation**: [NFTokenMint](/tx/NFTokenMint) inserts the new `NFTokenID` into the appropriate page (sorted by ID), creating a new page if the existing one already has 32 tokens or none exists yet.
+- **Modification**: [NFTokenBurn](/tx/NFTokenBurn) removes a token from its page, merging or removing pages that become empty or sparsely filled. [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer) moves the token from the seller's page to a page owned by the buyer. [NFTokenModify](/tx/NFTokenModify) changes the token's `URI` without moving it to another page, only if the NFT was minted with `tfMutable`.
+- **Deletion**: automatic when a page runs out of tokens; there is no dedicated transaction to delete the page itself.
 
-## Campos clave
+## Key fields
 
-- **NFTokens** — array ordenado por `NFTokenID`, cada entrada con `NFTokenID`, `URI` (opcional) y los flags/emisor/taxon/número de serie codificados dentro del propio ID.
-- **PreviousPageMin / NextPageMin** — enlazan con la página anterior/siguiente de la misma cuenta; ausentes en los extremos de la lista.
+- **NFTokens** — array sorted by `NFTokenID`, each entry with `NFTokenID`, `URI` (optional), and the flags/issuer/taxon/serial number encoded within the ID itself.
+- **PreviousPageMin / NextPageMin** — link to the previous/next page of the same account; absent at the ends of the list.
 
 ## Flags
 
-No tiene flags `lsf*` propios (los flags de cada NFT individual, como `tfBurnable` o `tfMutable`, van codificados dentro del `NFTokenID`, no como `lsf*` del objeto página).
+Has no `lsf*` flags of its own (flags for each individual NFT, such as `tfBurnable` or `tfMutable`, are encoded within the `NFTokenID`, not as `lsf*` flags on the page object).
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "nft_page"` devuelve todas las páginas de la cuenta; para listar NFTs de forma más directa conviene el método dedicado `account_nfts`. Con `ledger_entry`, `nft_page` solo acepta el ID del objeto directamente:
+`account_objects` with `type: "nft_page"` returns all pages for the account; for listing NFTs more directly, the dedicated `account_nfts` method is preferable. With `ledger_entry`, `nft_page` only accepts the object ID directly:
 
 ```json
 { "method": "ledger_entry", "params": [{ "nft_page": "0000000000000000000000000000000000000000000000000000FFFFFFFF", "ledger_index": "validated" }] }
 ```
 
-Los IDs límite se calculan con `keylet::nftokenPageMin(owner)` (los bytes de `AccountID` en la parte alta, resto a cero) y `keylet::nftokenPageMax(owner)` (los mismos bytes con el resto a `nft::kPageMask`); las páginas intermedias tienen IDs entre ambos. Respuesta típica:
+The boundary IDs are computed with `keylet::nftokenPageMin(owner)` (the `AccountID` bytes in the high part, the rest zeroed) and `keylet::nftokenPageMax(owner)` (the same bytes with the rest set to `nft::kPageMask`); intermediate pages have IDs between the two. Typical response:
 
 ```json
 {
@@ -52,7 +52,7 @@ Los IDs límite se calculan con `keylet::nftokenPageMin(owner)` (los bytes de `A
 }
 ```
 
-## Relacionado
+## Related
 
 - [NFTokenMint](/tx/NFTokenMint), [NFTokenBurn](/tx/NFTokenBurn), [NFTokenModify](/tx/NFTokenModify)
 - [NFTokenOffer](/objects/NFTokenOffer)

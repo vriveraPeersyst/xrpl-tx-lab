@@ -1,66 +1,66 @@
 ---
 title: ConfidentialMPTSend
-summary: Envía saldo confidencial de un MPT a otra cuenta, sin revelar el importe en el ledger.
+summary: Sends confidential MPT balance to another account, without revealing the amount on the ledger.
 category: confidencial
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/confidentialmptsend
 amendment: ConfidentialTransfer
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-`ConfidentialMPTSend` es el equivalente confidencial de un `Payment` de MPT: mueve valor de tu saldo confidencial gastable al buzón (`ConfidentialBalanceInbox`) del destinatario, cifrado en todo momento. Nadie que consulte el ledger puede ver cuánto has enviado —ni siquiera el destinatario, hasta que descifra el importe con su propia clave—, pero el emisor y, si existe, el auditor designado pueden verificarlo con sus claves.
+`ConfidentialMPTSend` is the confidential equivalent of an MPT `Payment`: it moves value from your spendable confidential balance to the inbox (`ConfidentialBalanceInbox`) of the recipient, encrypted at all times. No one querying the ledger can see how much you've sent —not even the recipient, until they decrypt the amount with their own key— but the sender and, if one exists, the designated auditor can verify it with their keys.
 
-La transacción viaja con compromisos criptográficos (`AmountCommitment`, `BalanceCommitment`) y versiones del importe cifradas bajo la clave de cada parte relevante (remitente, destinatario, emisor de la MPT, auditor), más una prueba de conocimiento cero que certifica que todo es consistente sin revelar el valor real.
+The transaction travels with cryptographic commitments (`AmountCommitment`, `BalanceCommitment`) and versions of the amount encrypted under the key of each relevant party (sender, recipient, MPT issuer, auditor), plus a zero-knowledge proof that certifies everything is consistent without revealing the actual value.
 
-**Este tipo de transacción depende del amendment `ConfidentialTransfer`, que hoy no está activo en testnet.** Cualquier intento de enviarla falla mientras el amendment no esté activo.
+**This transaction type depends on the `ConfidentialTransfer` amendment, which is not currently active on testnet.** Any attempt to send it fails while the amendment isn't active.
 
-## Cuándo usarlo (cuando el amendment esté activo)
+## When to use it (once the amendment is active)
 
-- Liquidar una operación entre dos instituciones sin exponer el importe a terceros que consulten el ledger.
-- Pagar nóminas o transferencias internas de una organización en un MPT, manteniendo la confidencialidad de cada importe individual.
-- Cualquier flujo donde el supply total deba ser auditable pero los movimientos individuales no.
+- Settling a transaction between two institutions without exposing the amount to third parties querying the ledger.
+- Paying payroll or internal transfers within an organization in an MPT, keeping each individual amount confidential.
+- Any flow where the total supply must be auditable but individual movements must not be.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`ConfidentialMPTSend::checkExtraFeatures`** exige [Credentials](/amendments/Credentials) si incluyes `CredentialIDs` para acceder a un destino con `DepositAuth` por credencial.
+**`ConfidentialMPTSend::checkExtraFeatures`** requires [Credentials](/amendments/Credentials) if you include `CredentialIDs` to access a destination with credential-based `DepositAuth`.
 
-**`ConfidentialMPTSend::preflight`** valida que los textos cifrados (`SenderEncryptedAmount`, `DestinationEncryptedAmount`, `IssuerEncryptedAmount`, `AuditorEncryptedAmount`, `AmountCommitment`, `BalanceCommitment`, `ZKProof`) tengan el formato criptográfico esperado (`temBAD_CIPHERTEXT` si no) y que la estructura general sea correcta (`temMALFORMED`).
+**`ConfidentialMPTSend::preflight`** validates that the ciphertext fields (`SenderEncryptedAmount`, `DestinationEncryptedAmount`, `IssuerEncryptedAmount`, `AuditorEncryptedAmount`, `AmountCommitment`, `BalanceCommitment`, `ZKProof`) have the expected cryptographic format (`temBAD_CIPHERTEXT` if not) and that the overall structure is correct (`temMALFORMED`).
 
-**`ConfidentialMPTSend::calculateBaseFee`** también participa en la verificación de la prueba criptográfica como parte del cálculo de fee.
+**`ConfidentialMPTSend::calculateBaseFee`** also participates in verifying the cryptographic proof as part of the fee calculation.
 
-**`ConfidentialMPTSend::preclaim`** exige que el destino exista (`terNO_ACCOUNT` si no) y no requiera `DestinationTag` sin que lo hayas indicado (`tecDST_TAG_NEEDED`), que la emisión permita saldo confidencial y transferencias (`lsfMPTCanHoldConfidentialBalance`, `lsfMPTCanTransfer`), y que no falte autorización si la emisión la requiere (`tecNO_AUTH`). Aplica el `TransferFee` de la emisión cuando corresponde, igual que un `Payment` directo de MPT.
+**`ConfidentialMPTSend::preclaim`** requires that the destination exist (`terNO_ACCOUNT` if not) and not require a `DestinationTag` you haven't provided (`tecDST_TAG_NEEDED`), that the issuance allow confidential balances and transfers (`lsfMPTCanHoldConfidentialBalance`, `lsfMPTCanTransfer`), and that authorization isn't missing if the issuance requires it (`tecNO_AUTH`). It applies the issuance's `TransferFee` when applicable, just like a direct MPT `Payment`.
 
-**`ConfidentialMPTSend::doApply`** descuenta el compromiso de tu saldo confidencial gastable y añade el correspondiente al buzón (`ConfidentialBalanceInbox`) del destinatario, quien deberá fusionarlo con [ConfidentialMPTMergeInbox](/tx/ConfidentialMPTMergeInbox) para poder gastarlo.
+**`ConfidentialMPTSend::doApply`** deducts the commitment from your spendable confidential balance and adds the corresponding one to the recipient's inbox (`ConfidentialBalanceInbox`), who will need to merge it with [ConfidentialMPTMergeInbox](/tx/ConfidentialMPTMergeInbox) to be able to spend it.
 
-## Campos clave
+## Key fields
 
-- **Destination** — la cuenta que recibe el envío confidencial.
-- **DestinationTag** — igual que en un `Payment`, identifica al beneficiario final en cuentas compartidas.
-- **SenderEncryptedAmount** / **DestinationEncryptedAmount** / **IssuerEncryptedAmount** / **AuditorEncryptedAmount** — el mismo importe cifrado bajo la clave de cada parte que necesita poder verlo.
-- **AmountCommitment** / **BalanceCommitment** — compromisos criptográficos del importe enviado y de tu saldo resultante.
-- **ZKProof** — prueba de que todo lo anterior es consistente, sin revelar el importe real.
-- **CredentialIDs** — opcional, para acceder a un destino con preautorización de depósito basada en credenciales.
+- **Destination** — the account receiving the confidential transfer.
+- **DestinationTag** — same as in a `Payment`, identifies the final beneficiary in shared accounts.
+- **SenderEncryptedAmount** / **DestinationEncryptedAmount** / **IssuerEncryptedAmount** / **AuditorEncryptedAmount** — the same amount encrypted under the key of each party that needs to be able to see it.
+- **AmountCommitment** / **BalanceCommitment** — cryptographic commitments of the amount sent and of your resulting balance.
+- **ZKProof** — proof that all of the above is consistent, without revealing the actual amount.
+- **CredentialIDs** — optional, for accessing a destination with credential-based deposit preauthorization.
 
-## Errores habituales
+## Common errors
 
-- **tecDST_TAG_NEEDED** — el destino exige `DestinationTag` y no lo incluiste.
-- **tecNO_AUTH** — la emisión requiere autorización explícita y no la tienes.
-- **tecNO_PERMISSION** — la emisión no permite saldo confidencial o transferencias.
-- **tecNO_TARGET** / **terNO_ACCOUNT** — el destino no existe.
-- **temBAD_CIPHERTEXT** — algún campo cifrado tiene un formato inválido.
+- **tecDST_TAG_NEEDED** — the destination requires a `DestinationTag` and you didn't include one.
+- **tecNO_AUTH** — the issuance requires explicit authorization and you don't have it.
+- **tecNO_PERMISSION** — the issuance doesn't allow confidential balances or transfers.
+- **tecNO_TARGET** / **terNO_ACCOUNT** — the destination doesn't exist.
+- **temBAD_CIPHERTEXT** — some encrypted field has an invalid format.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-El amendment `ConfidentialTransfer` no está activo hoy en testnet, así que cualquier envío de `ConfidentialMPTSend` desde el builder devolverá un error de tipo `temDISABLED`. Los campos criptográficos del ejemplo quedan vacíos porque generarlos requiere herramientas externas que esta web no implementa.
+The `ConfidentialTransfer` amendment isn't active on testnet today, so any submission of `ConfidentialMPTSend` from the builder will return a `temDISABLED` error. The cryptographic fields in the example are left empty because generating them requires external tools this site doesn't implement.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "ConfidentialMPTSend",
-  "Account": "rXXXX_TU_CUENTA",
-  "Destination": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Destination": "rYYYY_OTHER_ACCOUNT",
   "MPTokenIssuanceID": "000000000000000000000000000000000000000000000000",
   "HolderEncryptedAmount": "",
   "DestinationEncryptedAmount": "",
@@ -70,11 +70,11 @@ El amendment `ConfidentialTransfer` no está activo hoy en testnet, así que cua
 }
 ```
 
-Intentaría enviar saldo confidencial de esa emisión a `rYYYY_OTRA_CUENTA`; hoy falla con `temDISABLED`.
+Would attempt to send confidential balance from that issuance to `rYYYY_OTHER_ACCOUNT`; today it fails with `temDISABLED`.
 
-## Relacionado
+## Related
 
-- [ConfidentialMPTMergeInbox](/tx/ConfidentialMPTMergeInbox) — el destinatario consolida lo recibido.
-- [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) y [ConfidentialMPTConvertBack](/tx/ConfidentialMPTConvertBack) — entrada y salida del modo confidencial.
-- [Payment](/tx/Payment) — el equivalente en claro para MPT.
+- [ConfidentialMPTMergeInbox](/tx/ConfidentialMPTMergeInbox) — the recipient consolidates what they received.
+- [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) and [ConfidentialMPTConvertBack](/tx/ConfidentialMPTConvertBack) — entering and exiting confidential mode.
+- [Payment](/tx/Payment) — the plaintext equivalent for MPT.
 - Amendments: [ConfidentialTransfer](/amendments/ConfidentialTransfer), [Credentials](/amendments/Credentials).

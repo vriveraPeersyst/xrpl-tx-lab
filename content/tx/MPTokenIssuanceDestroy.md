@@ -1,65 +1,65 @@
 ---
 title: MPTokenIssuanceDestroy
-summary: Elimina una emisión MPT que ya no tiene unidades en circulación y devuelve su reserva al emisor.
+summary: Removes an MPT issuance that no longer has units in circulation and returns its reserve to the issuer.
 category: mpt
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/mptokenissuancedestroy
 xls: XLS-0033
 amendment: MPTokensV1
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-`MPTokenIssuanceDestroy` borra el objeto [MPTokenIssuance](/objects/MPTokenIssuance) del ledger. Solo puede hacerlo el emisor y solo cuando `OutstandingAmount` es 0, es decir, cuando todos los tenedores han devuelto sus unidades al emisor (un [Payment](/tx/Payment) al emisor las "quema") o el emisor las ha recuperado con [Clawback](/tx/Clawback).
+`MPTokenIssuanceDestroy` deletes the [MPTokenIssuance](/objects/MPTokenIssuance) object from the ledger. Only the issuer can do this, and only when `OutstandingAmount` is 0 — that is, when all holders have returned their units to the issuer (a [Payment](/tx/Payment) to the issuer "burns" them) or the issuer has recovered them with [Clawback](/tx/Clawback).
 
-Los objetos [MPToken](/objects/MPToken) de los tenedores no se borran automáticamente; cada tenedor los elimina con [MPTokenAuthorize](/tx/MPTokenAuthorize) y `tfMPTUnauthorize`. Pueden hacerlo antes o después de destruir la emisión.
+Holders' [MPToken](/objects/MPToken) objects are not deleted automatically; each holder removes theirs with [MPTokenAuthorize](/tx/MPTokenAuthorize) and `tfMPTUnauthorize`. They can do this before or after the issuance is destroyed.
 
-## Cuándo usarlo
+## When to use it
 
-- Retirar un token de prueba o una emisión que ya cumplió su función.
-- Recuperar la unidad de reserva (0,2 XRP) que ocupa la emisión.
-- Cerrar ordenadamente un programa de puntos tras canjear todos los saldos.
+- Retiring a test token or an issuance that has already served its purpose.
+- Recovering the reserve unit (0.2 XRP) occupied by the issuance.
+- Cleanly closing a points program after redeeming all balances.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`MPTokenIssuanceDestroy::preflight`** no añade comprobaciones propias.
+**`MPTokenIssuanceDestroy::preflight`** adds no checks of its own.
 
 **`MPTokenIssuanceDestroy::preclaim`**:
-1. Busca la emisión por `MPTokenIssuanceID`; si no existe → `tecOBJECT_NOT_FOUND`.
-2. Su `Issuer` debe ser tu cuenta; si no → `tecNO_PERMISSION`.
-3. `OutstandingAmount` debe ser 0; si no → `tecHAS_OBLIGATIONS`.
-4. `LockedAmount` (unidades retenidas en escrows con [TokenEscrow](/amendments/TokenEscrow)) también debe ser 0; si no → `tecHAS_OBLIGATIONS`.
+1. Looks up the issuance by `MPTokenIssuanceID`; if it doesn't exist → `tecOBJECT_NOT_FOUND`.
+2. Its `Issuer` must be your account; if not → `tecNO_PERMISSION`.
+3. `OutstandingAmount` must be 0; if not → `tecHAS_OBLIGATIONS`.
+4. `LockedAmount` (units held in escrows with [TokenEscrow](/amendments/TokenEscrow)) must also be 0; if not → `tecHAS_OBLIGATIONS`.
 
-**`MPTokenIssuanceDestroy::doApply`**: quita la emisión de tu directorio de propietario (`tefBAD_LEDGER` si el enlace está roto), baja tu `OwnerCount` en 1 y borra el objeto.
+**`MPTokenIssuanceDestroy::doApply`**: removes the issuance from your owner directory (`tefBAD_LEDGER` if the link is broken), lowers your `OwnerCount` by 1, and deletes the object.
 
-## Campos clave
+## Key fields
 
-- **MPTokenIssuanceID** — identificador de 48 hex de la emisión. Lo encuentras en `account_objects` (`type: "mpt_issuance"`) o en el campo `mpt_issuance_id` de la transacción de creación.
+- **MPTokenIssuanceID** — the 48-hex-character identifier of the issuance. You'll find it in `account_objects` (`type: "mpt_issuance"`) or in the `mpt_issuance_id` field of the creation transaction.
 
-## Errores habituales
+## Common errors
 
-- **tecOBJECT_NOT_FOUND** — el ID no corresponde a ninguna emisión (el ejemplo lleva ceros; sustitúyelo).
-- **tecNO_PERMISSION** — la emisión existe pero no es tuya.
-- **tecHAS_OBLIGATIONS** — todavía hay unidades en manos de tenedores o retenidas en escrow. Pide a los tenedores que te las devuelvan o usa `Clawback` si la emisión tiene `lsfMPTCanClawback`.
+- **tecOBJECT_NOT_FOUND** — the ID doesn't correspond to any issuance (the example uses all zeros; replace it).
+- **tecNO_PERMISSION** — the issuance exists but isn't yours.
+- **tecHAS_OBLIGATIONS** — there are still units held by holders or locked in escrow. Ask holders to return them, or use `Clawback` if the issuance has `lsfMPTCanClawback`.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "MPTokenIssuanceDestroy",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "MPTokenIssuanceID": "000000000000000000000000000000000000000000000000"
 }
 ```
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Crea una emisión con [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate) y copia su `MPTokenIssuanceID`.
-2. Carga el ejemplo con ese ID y envía: `tesSUCCESS`. En `account_objects` (`type: "mpt_issuance"`) ya no aparece y `OwnerCount` ha bajado en 1.
-3. Para ver `tecHAS_OBLIGATIONS`: crea otra emisión, haz que la otra cuenta la autorice con [MPTokenAuthorize](/tx/MPTokenAuthorize), envíale 100 unidades con un `Payment` e intenta destruirla.
-4. Haz que la otra cuenta te devuelva las 100 unidades con un `Payment` a tu cuenta (`OutstandingAmount` vuelve a 0) y repite la destrucción: ahora funciona.
+1. Create an issuance with [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate) and copy its `MPTokenIssuanceID`.
+2. Load the example with that ID and submit: `tesSUCCESS`. In `account_objects` (`type: "mpt_issuance"`) it no longer appears, and `OwnerCount` has dropped by 1.
+3. To see `tecHAS_OBLIGATIONS`: create another issuance, have the other account authorize it with [MPTokenAuthorize](/tx/MPTokenAuthorize), send it 100 units with a `Payment`, and try to destroy it.
+4. Have the other account send the 100 units back to you with a `Payment` (`OutstandingAmount` returns to 0) and repeat the destruction: this time it works.
 
-## Relacionado
+## Related
 
 - [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate), [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet), [MPTokenAuthorize](/tx/MPTokenAuthorize), [Clawback](/tx/Clawback)
 - [MPTokenIssuance](/objects/MPTokenIssuance), [MPToken](/objects/MPToken)

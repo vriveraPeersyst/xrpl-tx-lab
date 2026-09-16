@@ -1,24 +1,24 @@
 ---
 title: Credentials
-summary: Añade credenciales verificables on-chain (CredentialCreate/Accept/Delete) y su uso en DepositPreauth y pagos.
+summary: Adds on-chain verifiable credentials (CredentialCreate/Accept/Delete) and their use in DepositPreauth and payments.
 xls: XLS-0070
 xlsUrl: https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0070-credentials
 xrplDocs: https://xrpl.org/resources/known-amendments#credentials
 introducedIn: 2.3.0
 ---
 
-## Qué cambia
+## What changes
 
-Introduce el objeto `Credential`: una afirmación firmada por un emisor sobre un sujeto, identificada por `Issuer`, `Subject` y `CredentialType`. El emisor la crea con `CredentialCreate`; hasta que el sujeto la acepta con `CredentialAccept` no cuenta como válida (flag `lsfAccepted`), y cualquiera de los dos puede borrarla con `CredentialDelete`. Puede llevar `Expiration` y una `URI` con la evidencia fuera de cadena.
+Introduces the `Credential` object: an assertion signed by an issuer about a subject, identified by `Issuer`, `Subject`, and `CredentialType`. The issuer creates it with `CredentialCreate`; it doesn't count as valid until the subject accepts it with `CredentialAccept` (`lsfAccepted` flag), and either party can delete it with `CredentialDelete`. It can carry an `Expiration` and a `URI` with off-chain evidence.
 
-La autorización de depósito deja de ser solo por cuenta: `DepositPreauth` admite `AuthorizeCredentials`, una lista de pares emisor/tipo, de modo que cualquier cuenta que presente ese conjunto de credenciales puede depositar. Para ello, `Payment`, `EscrowFinish`, `PaymentChannelClaim` y `AccountDelete` ganan el campo `CredentialIDs`; la función `credentials::valid` comprueba en `preclaim` que existen, están aceptadas, no han caducado y pertenecen al remitente. Una credencial caducada que se presenta se borra del ledger en la misma transacción.
+Deposit authorization is no longer limited to per-account: `DepositPreauth` supports `AuthorizeCredentials`, a list of issuer/type pairs, so that any account presenting that set of credentials can deposit. To that end, `Payment`, `EscrowFinish`, `PaymentChannelClaim`, and `AccountDelete` gain the `CredentialIDs` field; the `credentials::valid` function checks in `preclaim` that the credentials exist, are accepted, have not expired, and belong to the sender. An expired credential that is presented is deleted from the ledger in the same transaction.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nuevas: [CredentialCreate](/tx/CredentialCreate), [CredentialAccept](/tx/CredentialAccept) y [CredentialDelete](/tx/CredentialDelete).
-- Modificadas: [DepositPreauth](/tx/DepositPreauth), [Payment](/tx/Payment), [EscrowFinish](/tx/EscrowFinish), [PaymentChannelClaim](/tx/PaymentChannelClaim) y [AccountDelete](/tx/AccountDelete). Amendments posteriores reutilizan el mecanismo en [PermissionedDomainSet](/tx/PermissionedDomainSet), [VaultWithdraw](/tx/VaultWithdraw), [LoanBrokerCoverWithdraw](/tx/LoanBrokerCoverWithdraw) y [ConfidentialMPTSend](/tx/ConfidentialMPTSend).
-- Objetos: nuevo [Credential](/objects/Credential); [DepositPreauth](/objects/DepositPreauth) puede almacenar credenciales en lugar de una cuenta.
+- New: [CredentialCreate](/tx/CredentialCreate), [CredentialAccept](/tx/CredentialAccept), and [CredentialDelete](/tx/CredentialDelete).
+- Modified: [DepositPreauth](/tx/DepositPreauth), [Payment](/tx/Payment), [EscrowFinish](/tx/EscrowFinish), [PaymentChannelClaim](/tx/PaymentChannelClaim), and [AccountDelete](/tx/AccountDelete). Later amendments reuse the mechanism in [PermissionedDomainSet](/tx/PermissionedDomainSet), [VaultWithdraw](/tx/VaultWithdraw), [LoanBrokerCoverWithdraw](/tx/LoanBrokerCoverWithdraw), and [ConfidentialMPTSend](/tx/ConfidentialMPTSend).
+- Objects: new [Credential](/objects/Credential); [DepositPreauth](/objects/DepositPreauth) can store credentials instead of an account.
 
-## Estado y contexto
+## Status and context
 
-[DepositAuth](/amendments/DepositAuth) obligaba a preautorizar cuenta por cuenta, algo inviable para un negocio con miles de clientes verificados. La XLS-70 separa "quién te ha verificado" de "quién te paga": un proveedor KYC emite la credencial una vez y cualquier receptor que confíe en ese proveedor la acepta. Es la base de los [PermissionedDomains](/amendments/PermissionedDomains) y, por tanto, del [PermissionedDEX](/amendments/PermissionedDEX) y del protocolo de préstamos.
+[DepositAuth](/amendments/DepositAuth) required preauthorizing account by account, which was unworkable for a business with thousands of verified customers. XLS-70 separates "who has verified you" from "who pays you": a KYC provider issues the credential once, and any recipient who trusts that provider accepts it. It is the foundation for [PermissionedDomains](/amendments/PermissionedDomains) and, in turn, for the [PermissionedDEX](/amendments/PermissionedDEX) and the lending protocol.

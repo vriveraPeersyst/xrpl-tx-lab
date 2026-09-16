@@ -1,76 +1,76 @@
 ---
 title: NFTokenBurn
-summary: Destruye un NFToken de forma permanente y elimina hasta 500 ofertas asociadas a él.
+summary: Permanently destroys an NFToken and removes up to 500 offers associated with it.
 category: nft
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/nftokenburn
 xls: XLS-0020
 amendment: NonFungibleTokensV1_1
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-`NFTokenBurn` borra un token de la [NFTokenPage](/objects/NFTokenPage) que lo contiene. Si la página queda vacía se elimina y el `OwnerCount` del propietario baja. Además incrementa `BurnedNFTokens` en el `AccountRoot` del emisor y limpia las ofertas de compra y venta que apuntaban a ese token.
+`NFTokenBurn` removes a token from the [NFTokenPage](/objects/NFTokenPage) that contains it. If the page ends up empty, it's deleted and the owner's `OwnerCount` drops. It also increments `BurnedNFTokens` on the issuer's `AccountRoot` and clears the buy and sell offers that pointed at that token.
 
-Normalmente lo envía el propietario del token. Pero si el NFT se acuñó con `tfBurnable`, también puede quemarlo el emisor (o la cuenta que el emisor tenga como `NFTokenMinter`) aunque el token esté en manos de otra cuenta: en ese caso se indica el propietario actual en `Owner`.
+Normally the token's owner sends it. But if the NFT was minted with `tfBurnable`, the issuer (or the account the issuer has set as `NFTokenMinter`) can also burn it even if the token is held by another account: in that case the current owner is specified in `Owner`.
 
-## Cuándo usarlo
+## When to use it
 
-- Retirar un coleccionable o entrada que ya se ha canjeado.
-- Como emisor con `tfBurnable`, revocar un certificado o licencia que ya no es válida.
-- Liberar reserva: si era el último token de una página, recuperas 0,2 XRP de reserva de propietario.
+- Retiring a collectible or ticket that's already been redeemed.
+- As an issuer with `tfBurnable`, revoking a certificate or license that's no longer valid.
+- Freeing reserve: if it was the last token in a page, you recover 0.2 XRP of owner reserve.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`NFTokenBurn::preflight`** no hace comprobaciones propias; solo aplican las genéricas (fee, firma, flags universales).
+**`NFTokenBurn::preflight`** performs no checks of its own; only the generic ones apply (fee, signature, universal flags).
 
 **`NFTokenBurn::preclaim`**:
-1. Determina el propietario: `Owner` si está presente, si no `Account`.
-2. Busca el token en las páginas de ese propietario (`nft::findToken`). Si no está → `tecNO_ENTRY`.
-3. Si `Owner` es distinto de `Account`:
-   - el token debe llevar el flag `kFlagBurnable` en su ID; si no → `tecNO_PERMISSION`;
-   - `Account` debe ser el emisor codificado en el ID, o bien la cuenta que ese emisor tenga en `NFTokenMinter`; si no → `tecNO_PERMISSION`.
+1. Determines the owner: `Owner` if present, otherwise `Account`.
+2. Looks up the token in that owner's pages (`nft::findToken`). If not found → `tecNO_ENTRY`.
+3. If `Owner` differs from `Account`:
+   - the token must carry the `kFlagBurnable` flag in its ID; if not → `tecNO_PERMISSION`;
+   - `Account` must be the issuer encoded in the ID, or the account that issuer has set as `NFTokenMinter`; if not → `tecNO_PERMISSION`.
 
 **`NFTokenBurn::doApply`**:
-1. `nft::removeToken` quita el token de la página del propietario (fusionando o borrando páginas según haga falta).
-2. Suma 1 a `BurnedNFTokens` en la cuenta del emisor si esa cuenta existe.
-3. Borra ofertas de venta del token (`keylet::nftSells`) hasta un máximo de 500 entradas (`kMaxDeletableTokenOfferEntries`); si sobran, sigue con las de compra (`keylet::nftBuys`) hasta completar ese máximo. Las ofertas que no quepan en el límite quedan huérfanas y se pueden cancelar después con [NFTokenCancelOffer](/tx/NFTokenCancelOffer).
+1. `nft::removeToken` removes the token from the owner's page (merging or deleting pages as needed).
+2. Adds 1 to `BurnedNFTokens` on the issuer's account, if that account exists.
+3. Deletes sell offers for the token (`keylet::nftSells`) up to a maximum of 500 entries (`kMaxDeletableTokenOfferEntries`); if there's room left, it continues with buy offers (`keylet::nftBuys`) up to that same limit. Offers that don't fit within the limit become orphaned and can be canceled afterward with [NFTokenCancelOffer](/tx/NFTokenCancelOffer).
 
-No hay comprobación de reserva: quemar solo libera espacio.
+There's no reserve check: burning only frees space.
 
-## Campos clave
+## Key fields
 
-- **NFTokenID** — identificador de 64 caracteres hex del token. Recuerda que lleva codificados el emisor y los flags; el nodo los lee directamente del ID sin consultar nada más.
-- **Owner** — solo cuando quemas un token que no es tuyo. Debe ser la cuenta que lo tiene ahora mismo.
+- **NFTokenID** — the token's 64-character hex identifier. Remember it encodes the issuer and the flags; the node reads them directly from the ID without querying anything else.
+- **Owner** — only when burning a token that isn't yours. Must be the account that currently holds it.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_ENTRY** — el token no está en las páginas del propietario indicado. Suele ser un `NFTokenID` mal copiado o un `Owner` desactualizado (el token cambió de manos).
-- **tecNO_PERMISSION** — intentas quemar un token ajeno sin `tfBurnable`, o lo tiene `tfBurnable` pero tú no eres su emisor ni el `NFTokenMinter` del emisor.
-- **temDISABLED** — no ocurre en testnet: el amendment `NonFungibleTokensV1_1` está activo.
+- **tecNO_ENTRY** — the token isn't in the specified owner's pages. Usually a mistyped `NFTokenID` or an outdated `Owner` (the token changed hands).
+- **tecNO_PERMISSION** — you're trying to burn someone else's token without `tfBurnable`, or it has `tfBurnable` but you're neither its issuer nor the issuer's `NFTokenMinter`.
+- **temDISABLED** — doesn't happen on testnet: the `NonFungibleTokensV1_1` amendment is active.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "NFTokenBurn",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "NFTokenID": "0000000000000000000000000000000000000000000000000000000000000000"
 }
 ```
 
-Sustituye `NFTokenID` por uno real de `account_nfts`. Para quemar un token ajeno con `tfBurnable` añade `"Owner": "rYYYY_OTRA_CUENTA"`.
+Replace `NFTokenID` with a real one from `account_nfts`. To burn someone else's token with `tfBurnable`, add `"Owner": "rYYYY_OTHER_ACCOUNT"`.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Acuña un token con [NFTokenMint](/tx/NFTokenMint) usando `Flags: 9` (`tfBurnable` + `tfTransferable`).
-2. Consulta `account_nfts` y copia el `NFTokenID`.
-3. Opcional: crea una oferta de venta con [NFTokenCreateOffer](/tx/NFTokenCreateOffer) para ver cómo la quema la elimina.
-4. Carga el ejemplo con ese `NFTokenID`, firma y envía.
-5. Vuelve a `account_nfts`: el token ya no está. En `account_info` verás `BurnedNFTokens` incrementado en el emisor, y si tenías una sola página, `OwnerCount` ha bajado en 1.
-6. Si creaste la oferta, `nft_sell_offers` con ese ID ahora responde con error `objectNotFound`.
+1. Mint a token with [NFTokenMint](/tx/NFTokenMint) using `Flags: 9` (`tfBurnable` + `tfTransferable`).
+2. Query `account_nfts` and copy the `NFTokenID`.
+3. Optional: create a sell offer with [NFTokenCreateOffer](/tx/NFTokenCreateOffer) to see how burning removes it.
+4. Load the example with that `NFTokenID`, sign, and submit.
+5. Check `account_nfts` again: the token is gone. In `account_info` you'll see `BurnedNFTokens` incremented on the issuer, and if you only had one page, `OwnerCount` has dropped by 1.
+6. If you created the offer, `nft_sell_offers` with that ID now returns an `objectNotFound` error.
 
-## Relacionado
+## Related
 
 - [NFTokenMint](/tx/NFTokenMint), [NFTokenCancelOffer](/tx/NFTokenCancelOffer)
 - [NFTokenPage](/objects/NFTokenPage), [NFTokenOffer](/objects/NFTokenOffer)

@@ -1,77 +1,77 @@
 ---
 title: CredentialCreate
-summary: Un emisor crea una credencial verificable sobre otra cuenta (por ejemplo, un KYC superado).
+summary: An issuer creates a verifiable credential about another account (for example, KYC passed).
 category: identidad
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/credentialcreate
 amendment: Credentials
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`CredentialCreate` es la primera pieza del sistema de identidad on-chain del XRPL: permite que una cuenta (el emisor) afirme algo sobre otra cuenta (el sujeto), por ejemplo "esta cuenta ha superado mi proceso KYC". El resultado es un objeto [Credential](/objects/Credential) en el ledger, identificado por la terna `Issuer` + `Subject` + `CredentialType`.
+`CredentialCreate` is the first piece of the XRPL's on-chain identity system: it allows one account (the issuer) to assert something about another account (the subject), for example "this account has passed my KYC process." The result is a [Credential](/objects/Credential) object on the ledger, identified by the `Issuer` + `Subject` + `CredentialType` triple.
 
-La credencial no es válida de inmediato: se crea en estado pendiente y el sujeto tiene que aceptarla explícitamente con [CredentialAccept](/tx/CredentialAccept). Esto evita que alguien te "etiquete" con una credencial que no reconoces. Puedes acompañarla de una `URI` que apunte a la evidencia fuera de cadena (un certificado, un documento firmado) y de un `Expiration` a partir del cual deja de ser válida.
+The credential isn't immediately valid: it's created in a pending state, and the subject has to explicitly accept it with [CredentialAccept](/tx/CredentialAccept). This prevents someone from "tagging" you with a credential you don't recognize. You can attach a `URI` pointing to off-chain evidence (a certificate, a signed document) and an `Expiration` after which it's no longer valid.
 
-## Cuándo usarlo
+## When to use it
 
-- Un proveedor KYC certifica que una cuenta ha pasado su verificación.
-- Un exchange o custodio emite una credencial de "cliente acreditado" para acceder a un [PermissionedDomain](/objects/PermissionedDomain).
-- Preparar una preautorización de depósito por credencial en lugar de por cuenta individual (ver [DepositPreauth](/tx/DepositPreauth)).
-- Emitir credenciales caducables (por ejemplo, validez de 30 días) para procesos de verificación que se renuevan periódicamente.
+- A KYC provider certifies that an account has passed its verification.
+- An exchange or custodian issues an "accredited client" credential to grant access to a [PermissionedDomain](/objects/PermissionedDomain).
+- Setting up a credential-based deposit preauthorization instead of one per individual account (see [DepositPreauth](/tx/DepositPreauth)).
+- Issuing expirable credentials (for example, valid for 30 days) for verification processes that renew periodically.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`CredentialCreate::preflight`** solo valida forma: `Subject` debe estar presente (`temMALFORMED` si falta), `CredentialType` debe tener entre 1 y 64 bytes, y si incluyes `URI` no puede estar vacía ni superar el máximo permitido. Con [fixInvalidTxFlags](/amendments/fixInvalidTxFlags) activo, cualquier flag no universal se rechaza.
+**`CredentialCreate::preflight`** only validates form: `Subject` must be present (`temMALFORMED` if missing), `CredentialType` must be between 1 and 64 bytes, and if you include `URI` it cannot be empty or exceed the maximum allowed length. With [fixInvalidTxFlags](/amendments/fixInvalidTxFlags) active, any non-universal flag is rejected.
 
-**`CredentialCreate::preclaim`** mira el ledger: el `Subject` debe existir (`tecNO_TARGET` si no), no puede existir ya una credencial con la misma terna Issuer/Subject/CredentialType (`tecDUPLICATE`), y —con [fixCleanup3_3_0](/amendments/fixCleanup3_3_0)— el sujeto no puede ser una pseudo-cuenta como un AMM o un Vault (`tecPSEUDO_ACCOUNT`).
+**`CredentialCreate::preclaim`** looks at the ledger: the `Subject` must exist (`tecNO_TARGET` if not), a credential with the same Issuer/Subject/CredentialType triple must not already exist (`tecDUPLICATE`), and —with [fixCleanup3_3_0](/amendments/fixCleanup3_3_0)— the subject cannot be a pseudo-account such as an AMM or a Vault (`tecPSEUDO_ACCOUNT`).
 
-**`CredentialCreate::doApply`** crea el objeto `Credential` con `Issuer` = quien envía la transacción y `Subject` = la cuenta indicada, lo añade al directorio del emisor y, si el emisor y el sujeto son la misma cuenta, la marca como aceptada automáticamente (`lsfAccepted`) sin necesidad de un `CredentialAccept` posterior. Consume reserva de propietario y puede fallar con `tecDIR_FULL` si el directorio del emisor está lleno, o con `tecEXPIRED` si el `Expiration` indicado ya pasó respecto al ledger que la crea.
+**`CredentialCreate::doApply`** creates the `Credential` object with `Issuer` = the sender of the transaction and `Subject` = the indicated account, adds it to the issuer's directory, and, if the issuer and the subject are the same account, marks it as accepted automatically (`lsfAccepted`) without needing a subsequent `CredentialAccept`. It consumes owner reserve and can fail with `tecDIR_FULL` if the issuer's directory is full, or with `tecEXPIRED` if the indicated `Expiration` has already passed relative to the ledger that creates it.
 
-## Campos clave
+## Key fields
 
-- **Subject** — la cuenta sobre la que se afirma algo. La credencial vive en el espacio de esa cuenta.
-- **CredentialType** — hex de 1 a 64 bytes que identifica el tipo de credencial (p.ej. `4B5943` = "KYC"). Junto a `Issuer` y `Subject`, forma la clave única de la credencial.
-- **Expiration** — timestamp en segundos Ripple Epoch (2000-01-01). Pasado ese punto, la credencial se considera caducada aunque siga en el ledger hasta que alguien la borre.
-- **URI** — hex opcional (máx. 256 bytes) con un enlace o hash a la evidencia fuera de cadena. El ledger no la interpreta.
+- **Subject** — the account something is being asserted about. The credential lives in that account's namespace.
+- **CredentialType** — 1 to 64 bytes of hex identifying the credential type (e.g., `4B5943` = "KYC"). Together with `Issuer` and `Subject`, it forms the credential's unique key.
+- **Expiration** — timestamp in Ripple Epoch seconds (2000-01-01). Past that point, the credential is considered expired even though it remains on the ledger until someone deletes it.
+- **URI** — optional hex (max 256 bytes) with a link or hash pointing to off-chain evidence. The ledger doesn't interpret it.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_TARGET** — el `Subject` indicado no existe como cuenta activada.
-- **tecDUPLICATE** — ya existe una credencial con ese mismo Issuer, Subject y CredentialType.
-- **tecPSEUDO_ACCOUNT** — el `Subject` es una cuenta pseudo (AMM, Vault, LoanBroker), que no puede recibir credenciales.
-- **temMALFORMED** — falta `Subject`, o `CredentialType`/`URI` tienen una longitud inválida.
-- **tecDIR_FULL** — el directorio de propietario del emisor está al límite.
-- **tecINSUFFICIENT_RESERVE** — no te queda XRP por encima de la reserva para crear el objeto.
+- **tecNO_TARGET** — the indicated `Subject` doesn't exist as an activated account.
+- **tecDUPLICATE** — a credential with that same Issuer, Subject, and CredentialType already exists.
+- **tecPSEUDO_ACCOUNT** — the `Subject` is a pseudo-account (AMM, Vault, LoanBroker), which cannot receive credentials.
+- **temMALFORMED** — `Subject` is missing, or `CredentialType`/`URI` have an invalid length.
+- **tecDIR_FULL** — the issuer's owner directory is at its limit.
+- **tecINSUFFICIENT_RESERVE** — you don't have XRP above the reserve to create the object.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "CredentialCreate",
-  "Account": "rXXXX_TU_CUENTA",
-  "Subject": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Subject": "rYYYY_OTHER_ACCOUNT",
   "CredentialType": "4B5943",
   "Expiration": "{{time+2592000}}",
   "URI": "68747470733A2F2F6578616D706C652E636F6D"
 }
 ```
 
-Emite una credencial de tipo "KYC" sobre la otra cuenta, válida 30 días.
+Issues a "KYC" type credential about the other account, valid for 30 days.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Firma la transacción anterior desde la cuenta que hace de emisor; el `Subject` es la otra cuenta de tu par de pruebas.
-2. Comprueba con `account_objects` (tipo `credential`) en la cuenta emisora: verás el objeto `Credential` sin el flag `lsfAccepted`.
-3. Desde la cuenta `Subject`, envía [CredentialAccept](/tx/CredentialAccept) con el mismo `Issuer` y `CredentialType`.
-4. Repite `account_objects`: ahora el objeto tiene `lsfAccepted` activo.
-5. Prueba a repetir el mismo `CredentialCreate`: recibirás `tecDUPLICATE`.
+1. Sign the transaction above from the account acting as issuer; the `Subject` is the other account in your test pair.
+2. Check with `account_objects` (type `credential`) on the issuing account: you'll see the `Credential` object without the `lsfAccepted` flag.
+3. From the `Subject` account, send [CredentialAccept](/tx/CredentialAccept) with the same `Issuer` and `CredentialType`.
+4. Repeat `account_objects`: now the object has `lsfAccepted` set.
+5. Try repeating the same `CredentialCreate`: you'll get `tecDUPLICATE`.
 
-## Relacionado
+## Related
 
-- [CredentialAccept](/tx/CredentialAccept) — el sujeto confirma la credencial.
-- [CredentialDelete](/tx/CredentialDelete) — la revoca o el sujeto renuncia a ella.
-- [DepositPreauth](/tx/DepositPreauth) — usa credenciales para preautorizar depósitos.
-- [PermissionedDomainSet](/tx/PermissionedDomainSet) — exige credenciales concretas para entrar en un dominio.
-- Objetos: [Credential](/objects/Credential).
+- [CredentialAccept](/tx/CredentialAccept) — the subject confirms the credential.
+- [CredentialDelete](/tx/CredentialDelete) — revokes it, or the subject gives it up.
+- [DepositPreauth](/tx/DepositPreauth) — uses credentials to preauthorize deposits.
+- [PermissionedDomainSet](/tx/PermissionedDomainSet) — requires specific credentials to enter a domain.
+- Objects: [Credential](/objects/Credential).
 - Amendments: [Credentials](/amendments/Credentials).

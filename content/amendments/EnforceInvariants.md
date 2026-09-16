@@ -1,19 +1,19 @@
 ---
 title: EnforceInvariants
-summary: Activa las comprobaciones de invariantes del ledger tras aplicar cada transacción, rechazándola si deja el estado en un valor imposible.
+summary: Activates the ledger's invariant checks after applying each transaction, rejecting it if it leaves the state in an impossible value.
 xrplDocs: https://xrpl.org/resources/known-amendments#enforceinvariants
 ---
 
-## Qué cambia
+## What changes
 
-Rippled ejecuta, tras aplicar cada transacción, un conjunto de "invariant checks": reglas globales que nada debería poder violar, como que el XRP total no cambie salvo por quema de fees, que los balances de `AccountRoot` no se vuelvan negativos, o que las entradas de un directorio sigan siendo consistentes. Estas comprobaciones viven en `libxrpl/tx/invariants/` (por ejemplo `NFTInvariant`, `AMMInvariant`, `FreezeInvariant`) y se ejecutan desde `InvariantRunner`, que recorre cada entrada del ledger modificada y llama a `visitEntry` y `finalize` de cada checker registrado.
+After applying each transaction, rippled runs a set of "invariant checks": global rules that nothing should be able to violate, such as the total XRP not changing except through fee burning, `AccountRoot` balances not going negative, or directory entries remaining consistent. These checks live in `libxrpl/tx/invariants/` (for example `NFTInvariant`, `AMMInvariant`, `FreezeInvariant`) and run from `InvariantRunner`, which walks every modified ledger entry and calls `visitEntry` and `finalize` on each registered checker.
 
-Antes de EnforceInvariants, un fallo de estas comprobaciones solo se registraba en el log del servidor sin bloquear la transacción. Con el amendment activo, si cualquier invariante falla, la transacción se rechaza con `tecINVARIANT_FAILED` (o `tefINVARIANT_FAILED` si el fallo ocurre en una comprobación que no debería depender del resultado de la transacción), y el ledger no aplica los cambios que la violaban. Es una red de seguridad a nivel de protocolo, independiente de la lógica de cada transactor.
+Before EnforceInvariants, a failure in these checks was only logged on the server without blocking the transaction. With the amendment active, if any invariant fails, the transaction is rejected with `tecINVARIANT_FAILED` (or `tefINVARIANT_FAILED` if the failure occurs in a check that should not depend on the transaction's outcome), and the ledger does not apply the changes that violated it. It is a protocol-level safety net, independent of each transactor's logic.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-Afecta transversalmente a toda transacción que modifique el ledger, no a una transacción concreta. Los checkers cubren objetos como [AccountRoot](/objects/AccountRoot), [RippleState](/objects/RippleState), [NFTokenPage](/objects/NFTokenPage), [AMM](/objects/AMM) y las estructuras de directorios que indexan esos objetos.
+It affects, across the board, every transaction that modifies the ledger, not a specific transaction. The checkers cover objects such as [AccountRoot](/objects/AccountRoot), [RippleState](/objects/RippleState), [NFTokenPage](/objects/NFTokenPage), [AMM](/objects/AMM) and the directory structures that index those objects.
 
-## Estado y contexto
+## Status and context
 
-Es la última línea de defensa contra bugs de implementación: aunque un transactor tenga un error de lógica, las invariant checks impiden que ese error se traduzca en un estado del ledger corrupto (XRP creado de la nada, balances negativos, referencias rotas). Al ser un amendment de tipo "feature" ya retirado (`XRPL_RETIRE_FEATURE` en `features.macro`), su comportamiento es hoy el único posible: las comprobaciones de invariantes están siempre activas en cualquier red XRPL moderna.
+It is the last line of defense against implementation bugs: even if a transactor has a logic error, the invariant checks prevent that error from translating into a corrupted ledger state (XRP created out of nothing, negative balances, broken references). Being a "feature"-type amendment that has already been retired (`XRPL_RETIRE_FEATURE` in `features.macro`), its behavior is today the only one possible: invariant checks are always active on any modern XRPL network.

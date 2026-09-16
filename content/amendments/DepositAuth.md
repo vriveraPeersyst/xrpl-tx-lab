@@ -1,21 +1,21 @@
 ---
 title: DepositAuth
-summary: Flag de cuenta que rechaza cualquier ingreso no iniciado por la propia cuenta, para cumplir normativa de origen de fondos.
+summary: Account flag that rejects any deposit not initiated by the account itself, in order to comply with source-of-funds regulations.
 xrplDocs: https://xrpl.org/resources/known-amendments#depositauth
 introducedIn: 0.90.0
 ---
 
-## Qué cambia
+## What changes
 
-Añade el flag `asfDepositAuth` (`lsfDepositAuth` en `AccountRoot`). Con él activado, los `Payment` que tengan a la cuenta como destino fallan con `tecNO_PERMISSION`, sean de XRP, tokens o MPT. `EscrowFinish` y `PaymentChannelClaim` también fallan si los envía otra cuenta; solo el propio destinatario puede ejecutarlos. La cuenta sí puede recibir fondos cobrando cheques (`CheckCash`), porque es ella quien inicia la transacción.
+Adds the flag `asfDepositAuth` (`lsfDepositAuth` in `AccountRoot`). With it enabled, `Payment` transactions that have the account as destination fail with `tecNO_PERMISSION`, whether they are in XRP, tokens or MPT. `EscrowFinish` and `PaymentChannelClaim` also fail if sent by another account; only the recipient itself can execute them. The account can still receive funds by cashing checks (`CheckCash`), because it is the one initiating the transaction.
 
-Hay una excepción para no dejar cuentas inservibles: si el saldo está por debajo del reserve base, acepta pagos en XRP de hasta el reserve base. El amendment corrige de paso un error por el que `EscrowCreate` y `PaymentChannelCreate` aplicaban `lsfDisallowXRP`, que es un flag meramente informativo.
+There is an exception so accounts don't become unusable: if the balance is below the base reserve, it accepts XRP payments of up to the base reserve. The amendment also fixes a bug whereby `EscrowCreate` and `PaymentChannelCreate` applied `lsfDisallowXRP`, which is a purely informational flag.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Modificadas: [AccountSet](/tx/AccountSet), [Payment](/tx/Payment), [EscrowFinish](/tx/EscrowFinish), [PaymentChannelClaim](/tx/PaymentChannelClaim), [EscrowCreate](/tx/EscrowCreate) y [PaymentChannelCreate](/tx/PaymentChannelCreate).
-- Objetos: [AccountRoot](/objects/AccountRoot).
+- Modified: [AccountSet](/tx/AccountSet), [Payment](/tx/Payment), [EscrowFinish](/tx/EscrowFinish), [PaymentChannelClaim](/tx/PaymentChannelClaim), [EscrowCreate](/tx/EscrowCreate) and [PaymentChannelCreate](/tx/PaymentChannelCreate).
+- Objects: [AccountRoot](/objects/AccountRoot).
 
-## Estado y contexto
+## Status and context
 
-Algunas entidades financieras no pueden aceptar fondos de origen desconocido: deben verificar al remitente antes de que el dinero entre. En un ledger donde cualquiera puede enviar a cualquiera eso era imposible. DepositAuth convierte la cuenta en "solo salida" y deja al titular controlar cada entrada mediante cheques o preautorizaciones. Fue el primer paso de una línea que continúa con [DepositPreauth](/amendments/DepositPreauth) (listas blancas de cuentas) y [Credentials](/amendments/Credentials) (autorización por credenciales). Está retirado en rippled y forma parte del protocolo base.
+Some financial institutions cannot accept funds from an unknown source: they must verify the sender before the money comes in. On a ledger where anyone can send to anyone, that was impossible. DepositAuth turns the account into "outgoing only" and lets the holder control each incoming transfer via checks or preauthorizations. It was the first step in a line that continues with [DepositPreauth](/amendments/DepositPreauth) (account whitelists) and [Credentials](/amendments/Credentials) (credential-based authorization). It is retired in rippled and is part of the base protocol.

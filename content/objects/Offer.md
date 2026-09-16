@@ -1,49 +1,49 @@
 ---
 title: Offer
-summary: Una orden abierta en el libro de órdenes del DEX nativo: ofrece un activo a cambio de otro a un precio dado.
+summary: An open order in the native DEX's order book: offers one asset in exchange for another at a given price.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/offer
 createdBy: OfferCreate
 modifiedBy: OfferCreate
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `Offer` es una orden límite: "doy hasta `TakerGets`, a cambio de `TakerPays`". El DEX de XRPL es de libro de órdenes central, no de pools automáticos (eso es [AMM](/objects/AMM)); cada `Offer` se cuelga de un `DirectoryNode` de libro (`BookDirectory`), que agrupa todas las ofertas del mismo par de activos a la misma calidad (precio). La parte de la orden que no se cruza al instante queda viva en el ledger hasta que alguien la cruza, expira, o el propio dueño la cancela.
+An `Offer` is a limit order: "I give up to `TakerGets`, in exchange for `TakerPays`". The XRPL DEX is a central limit order book, not an automated pool (that's [AMM](/objects/AMM)); each `Offer` hangs off a book `DirectoryNode` (`BookDirectory`), which groups all offers for the same asset pair at the same quality (price). The portion of the order that doesn't match instantly stays live in the ledger until someone matches it, it expires, or the owner cancels it.
 
-Puede ser de tipo `lsfSell` (vender exactamente `TakerGets`, aceptando más de `TakerPays` si el mercado mejora) o normal (llenarse exactamente hasta `TakerPays`).
+It can be of type `lsfSell` (sell exactly `TakerGets`, accepting more than `TakerPays` if the market improves) or normal (fill exactly up to `TakerPays`).
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [OfferCreate](/tx/OfferCreate). Primero se intenta cruzar contra el libro existente; lo que sobra (si `tfImmediateOrCancel` no está activo) se guarda como `Offer` nuevo, enlazado a `BookDirectory` (`BookNode`) y al directorio del dueño (`OwnerNode`).
-- **Cruce parcial o total**: cada [OfferCreate](/tx/OfferCreate) posterior que cruce contra esta orden reduce `TakerPays`/`TakerGets` proporcionalmente; si llega a cero, se borra.
-- **Cancelación**: [OfferCancel](/tx/OfferCancel), solo por el propio dueño, indicando el `OfferSequence` a retirar.
-- **Caducidad**: si `Expiration` ha pasado, la orden ya no se cruza aunque siga en el ledger; se limpia la primera vez que otra transacción la encuentra caducada (`tecEXPIRED` implícito al recorrer el libro, no un error directo).
-- **Borrado en cascada**: [AccountDelete](/tx/AccountDelete) del dueño borra sus ofertas pendientes.
+- **Creation**: [OfferCreate](/tx/OfferCreate). It first attempts to match against the existing book; whatever remains (if `tfImmediateOrCancel` is not set) is stored as a new `Offer`, linked to `BookDirectory` (`BookNode`) and to the owner's directory (`OwnerNode`).
+- **Partial or full match**: each subsequent [OfferCreate](/tx/OfferCreate) that matches against this order reduces `TakerPays`/`TakerGets` proportionally; if it reaches zero, it's deleted.
+- **Cancellation**: [OfferCancel](/tx/OfferCancel), only by the owner, specifying the `OfferSequence` to withdraw.
+- **Expiration**: if `Expiration` has passed, the order no longer matches even though it remains in the ledger; it's cleaned up the first time another transaction finds it expired (an implicit `tecEXPIRED` while traversing the book, not a direct error).
+- **Cascading deletion**: [AccountDelete](/tx/AccountDelete) of the owner deletes their pending offers.
 
-## Campos clave
+## Key fields
 
-- **TakerGets / TakerPays** — lo que ofrece y lo que pide el creador de la orden; el ratio entre ambos define el precio (`quality`).
-- **BookDirectory / BookNode** — el directorio de libro en el que está indexada esta orden, cuya clave incorpora el precio en los últimos 64 bits.
-- **Expiration** — segundos desde el Ripple Epoch; pasado ese momento la orden deja de ser válida para cruzar.
-- **DomainID** — si está presente, la orden solo es visible/cruzable dentro de ese [PermissionedDomain](/objects/PermissionedDomain), para mercados con control de acceso.
-- **AdditionalBooks** — libros adicionales (aparte del principal calculado por `TakerPays`/`TakerGets`) en los que también aparece indexada esta orden, usado con dominios permisionados.
+- **TakerGets / TakerPays** — what the order's creator offers and what they ask for; the ratio between the two defines the price (`quality`).
+- **BookDirectory / BookNode** — the book directory this order is indexed in, whose key embeds the price in the last 64 bits.
+- **Expiration** — seconds since the Ripple Epoch; past that point the order is no longer valid for matching.
+- **DomainID** — if present, the order is only visible/matchable within that [PermissionedDomain](/objects/PermissionedDomain), for access-controlled markets.
+- **AdditionalBooks** — additional books (besides the primary one computed from `TakerPays`/`TakerGets`) in which this order is also indexed, used with permissioned domains.
 
 ## Flags
 
-- **lsfPassive** — la orden no cruza contra otras órdenes al mismo precio exacto al crearse; solo se cuelga en el libro.
-- **lsfSell** — vender exactamente `TakerGets`, aceptando recibir más de `TakerPays` si hay mejor precio disponible, en vez de limitarse a esa cantidad exacta.
-- **lsfHybrid** — la orden participa tanto en el libro abierto como en un libro de dominio permisionado (requiere `DomainID` y `AdditionalBooks`).
+- **lsfPassive** — the order does not match against other orders at the exact same price when created; it only rests in the book.
+- **lsfSell** — sell exactly `TakerGets`, accepting to receive more than `TakerPays` if a better price is available, instead of being limited to that exact amount.
+- **lsfHybrid** — the order participates both in the open book and in a permissioned domain book (requires `DomainID` and `AdditionalBooks`).
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "offer"` lo devuelve para su dueño; `book_offers` recorre el libro de un par de activos. Con `ledger_entry`, `offer` acepta `account` y `seq` (la `Sequence` de la `OfferCreate`):
+`account_objects` with `type: "offer"` returns it for its owner; `book_offers` traverses the book for an asset pair. With `ledger_entry`, `offer` accepts `account` and `seq` (the `Sequence` of the `OfferCreate`):
 
 ```json
 { "method": "ledger_entry", "params": [{ "offer": { "account": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "seq": 20790113 }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x006F || AccountID_dueño || Sequence)` (`keylet::offer`, namespace `'o'`). Respuesta típica:
+The index is `SHA512Half(0x006F || AccountID_owner || Sequence)` (`keylet::offer`, namespace `'o'`). Typical response:
 
 ```json
 {
@@ -61,11 +61,11 @@ El índice es `SHA512Half(0x006F || AccountID_dueño || Sequence)` (`keylet::off
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 1 unidad de reserva de propietario (0,2 XRP en testnet) del dueño mientras exista.
+Consumes 1 unit of owner reserve (0.2 XRP on testnet) from the owner while it exists.
 
-## Relacionado
+## Related
 
 - [OfferCreate](/tx/OfferCreate), [OfferCancel](/tx/OfferCancel)
 - [AMM](/objects/AMM), [DirectoryNode](/objects/DirectoryNode), [PermissionedDomain](/objects/PermissionedDomain)

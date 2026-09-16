@@ -1,39 +1,39 @@
 ---
 title: LedgerHashes
-summary: Objeto de sistema que guarda hashes de ledgers pasados para permitir saltar hacia atrás en el histórico sin recorrerlo entero.
+summary: System object that stores hashes of past ledgers to allow jumping backward through history without traversing it entirely.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/ledgerhashes
 createdBy: sistema (consenso)
 modifiedBy: sistema (consenso)
 reserve: 0
 ---
 
-## Qué representa
+## What it represents
 
-Cada ledger enlaza con el anterior por su hash, pero recorrer esa cadena uno a uno para llegar a un ledger antiguo sería carísimo. `LedgerHashes` implementa una "skip list": guarda hasta 256 hashes de ledgers anteriores para que se pueda saltar directamente hacia atrás con pocos saltos, en vez de ledger a ledger.
+Each ledger links to the previous one by its hash, but walking that chain one by one to reach an old ledger would be very expensive. `LedgerHashes` implements a "skip list": it stores up to 256 hashes of previous ledgers so you can jump directly backward in few hops, instead of ledger by ledger.
 
-Hay dos variantes, ambas con el mismo `LedgerEntryType`:
+There are two variants, both with the same `LedgerEntryType`:
 
-- **Skip list corta**: un objeto de índice fijo que se actualiza en cada ledger y guarda los últimos 256 hashes.
-- **Skip list larga**: un objeto por cada rango de 65536 ledgers ("flag ledger"), que guarda los hashes de los ledgers múltiplos de 256 dentro de ese rango. Con la corta y la larga combinadas, se puede llegar a cualquier ledger histórico en como mucho dos saltos.
+- **Short skip list**: a fixed-index object that gets updated on every ledger and stores the last 256 hashes.
+- **Long skip list**: one object per range of 65536 ledgers ("flag ledger"), storing the hashes of the ledgers that are multiples of 256 within that range. With the short and long lists combined, you can reach any historical ledger in at most two hops.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación y actualización**: automáticas, en cada cierre de ledger, como parte del propio proceso de consenso. Ninguna transacción de usuario los toca; no hay un `EnableAmendment` o `SetFee` equivalente para este tipo.
-- **Borrado**: nunca se borran.
+- **Creation and update**: automatic, on every ledger close, as part of the consensus process itself. No user transaction touches them; there is no `EnableAmendment` or `SetFee` equivalent for this type.
+- **Deletion**: they are never deleted.
 
-## Campos clave
+## Key fields
 
-- **Hashes** — vector de hasta 256 hashes de 256 bits, en orden.
-- **FirstLedgerSequence** — solo en la skip list larga: el primer índice de ledger cubierto.
-- **LastLedgerSequence** — solo en la skip list larga: el último índice de ledger cubierto.
+- **Hashes** — vector of up to 256 256-bit hashes, in order.
+- **FirstLedgerSequence** — only in the long skip list: the first ledger index covered.
+- **LastLedgerSequence** — only in the long skip list: the last ledger index covered.
 
 ## Flags
 
-No tiene flags `lsf*`.
+It has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-No pertenece a ninguna cuenta, así que no aparece en `account_objects`. Con `ledger_entry`, el parámetro `hashes` admite dos formas: `true` para la skip list corta, o un número de índice de ledger para la skip list larga que cubre ese rango:
+It does not belong to any account, so it does not appear in `account_objects`. With `ledger_entry`, the `hashes` parameter accepts two forms: `true` for the short skip list, or a ledger index number for the long skip list that covers that range:
 
 ```json
 { "method": "ledger_entry", "params": [{ "hashes": true, "ledger_index": "validated" }] }
@@ -43,7 +43,7 @@ No pertenece a ninguna cuenta, así que no aparece en `account_objects`. Con `le
 { "method": "ledger_entry", "params": [{ "hashes": 20800000, "ledger_index": "validated" }] }
 ```
 
-El índice de la corta es fijo: `SHA512Half(0x0073)` (`keylet::skip()`, namespace `'s'`). El de la larga se calcula con `SHA512Half(0x0073 || (ledger_index >> 16))`, es decir, un objeto distinto por cada bloque de 65536 ledgers. Respuesta típica:
+The index of the short list is fixed: `SHA512Half(0x0073)` (`keylet::skip()`, namespace `'s'`). The index of the long list is computed as `SHA512Half(0x0073 || (ledger_index >> 16))`, i.e. a different object for each block of 65536 ledgers. Typical response:
 
 ```json
 {
@@ -59,8 +59,8 @@ El índice de la corta es fijo: `SHA512Half(0x0073)` (`keylet::skip()`, namespac
 }
 ```
 
-En la práctica es más rápido usar directamente `ledger` con `ledger_index` para obtener un hash concreto; `LedgerHashes` se usa sobre todo internamente en rippled para servir `ledger_range` y respuestas de histórico.
+In practice it is faster to use `ledger` directly with `ledger_index` to get a specific hash; `LedgerHashes` is mainly used internally in rippled to serve `ledger_range` and history responses.
 
-## Relacionado
+## Related
 
 - [Amendments](/objects/Amendments), [FeeSettings](/objects/FeeSettings), [NegativeUNL](/objects/NegativeUNL)

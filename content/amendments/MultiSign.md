@@ -1,21 +1,21 @@
 ---
 title: MultiSign
-summary: Introduce la firma múltiple de transacciones mediante SignerListSet, el objeto SignerList y el campo Signers.
+summary: Introduces multi-signing of transactions via SignerListSet, the SignerList object, and the Signers field.
 xrplDocs: https://xrpl.org/resources/known-amendments#multisign
 ---
 
-## Qué cambia
+## What changes
 
-Antes de MultiSign, una cuenta de XRPL solo podía autorizar transacciones con su master key o su regular key: una única firma, de una única clave. MultiSign añade una alternativa: una cuenta puede definir una lista de firmantes autorizados con `SignerListSet`, que crea un objeto `SignerList` con hasta 8 entradas (`SignerEntries`), cada una con la dirección de un firmante y un peso (`SignerWeight`), más un `SignerQuorum` mínimo que hay que alcanzar sumando pesos para que el conjunto de firmas sea válido.
+Before MultiSign, an XRPL account could only authorize transactions with its master key or its regular key: a single signature, from a single key. MultiSign adds an alternative: an account can define a list of authorized signers with `SignerListSet`, which creates a `SignerList` object with up to 8 entries (`SignerEntries`), each with a signer's address and a weight (`SignerWeight`), plus a minimum `SignerQuorum` that must be reached by summing weights for the set of signatures to be valid.
 
-Con una `SignerList` configurada, cualquier transacción puede omitir la firma única habitual y en su lugar rellenar el campo `Signers`: un array de pares clave/firma, uno por cada firmante que participa, ordenados por dirección. rippled sólo acepta la transacción si la suma de los pesos de las claves que firmaron correctamente alcanza el `SignerQuorum`. Esto permite exigir "2 de 3" administradores, dar más peso a unas claves que a otras, o delegar la operación diaria en claves de menor confianza sin exponer la master key.
+With a `SignerList` configured, any transaction can omit the usual single signature and instead populate the `Signers` field: an array of key/signature pairs, one for each participating signer, ordered by address. rippled only accepts the transaction if the sum of the weights of the keys that signed correctly reaches the `SignerQuorum`. This makes it possible to require "2 of 3" administrators, give more weight to some keys than others, or delegate day-to-day operations to lower-trust keys without exposing the master key.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nueva: [SignerListSet](/tx/SignerListSet), para crear, modificar o borrar la lista de firmantes de una cuenta.
-- Objeto nuevo: [SignerList](/objects/SignerList).
-- Campo `Signers` disponible en el common fields de cualquier transacción, como alternativa a la firma única.
+- New: [SignerListSet](/tx/SignerListSet), to create, modify, or delete an account's signer list.
+- New object: [SignerList](/objects/SignerList).
+- `Signers` field available in the common fields of any transaction, as an alternative to a single signature.
 
-## Estado y contexto
+## Status and context
 
-Fue uno de los primeros amendments de rippled y resuelve un problema básico de custodia: sin firma múltiple, cualquier operación (por ejemplo, la tesorería de un exchange) depende de una sola clave privada como punto único de fallo. MultiSign es el amendment precursor sobre el que se construyeron mejoras posteriores como `ExpandedSignerList` (subir el límite de 8 a 32 firmantes) y `MultiSignReserve` (eliminar la reserva por entrada de la lista), ambas ya retiradas por antigüedad igual que MultiSign.
+It was one of the first rippled amendments and solves a basic custody problem: without multi-signing, any operation (for example, an exchange's treasury) depends on a single private key as a single point of failure. MultiSign is the precursor amendment on which later improvements were built, such as `ExpandedSignerList` (raising the limit from 8 to 32 signers) and `MultiSignReserve` (removing the per-entry reserve for the list), both now retired due to age just like MultiSign.

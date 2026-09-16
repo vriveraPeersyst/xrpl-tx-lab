@@ -1,21 +1,21 @@
 ---
 title: NonFungibleTokensV1_1
-summary: Consolida y corrige el paquete original de tokens no fungibles (NFTokenMint, NFTokenBurn, ofertas) antes de su activación en mainnet.
+summary: Consolidates and fixes the original non-fungible token package (NFTokenMint, NFTokenBurn, offers) before its activation on mainnet.
 xrplDocs: https://xrpl.org/resources/known-amendments#nonfungibletokensv1_1
 introducedIn: 1.11.0
 ---
 
-## Qué cambia
+## What changes
 
-NonFungibleTokensV1_1 es la versión revisada del amendment original de NFTs (`NonFungibleTokensV1`, que nunca llegó a activarse en mainnet). Reemplazó por completo al amendment inicial: agrupa una serie de correcciones sobre el diseño de las `NFTokenPage` (las páginas de directorio donde se almacenan los NFTs de una cuenta, ordenadas por `NFTokenID`), sobre el cálculo de las reservas de owner asociadas a mantener NFTs, y sobre el comportamiento de quemado (`NFTokenBurn`) y de las ofertas (`NFTokenCreateOffer`, `NFTokenCancelOffer`, `NFTokenAcceptOffer`), incluyendo la gestión de brokered sales (venta intermediada, donde un tercero casa una oferta de compra con una de venta cobrando una comisión).
+NonFungibleTokensV1_1 is the revised version of the original NFT amendment (`NonFungibleTokensV1`, which never ended up activating on mainnet). It completely replaced the initial amendment: it bundles a series of fixes to the design of `NFTokenPage` (the directory pages where an account's NFTs are stored, sorted by `NFTokenID`), to the calculation of owner reserves associated with holding NFTs, and to the behavior of burning (`NFTokenBurn`) and offers (`NFTokenCreateOffer`, `NFTokenCancelOffer`, `NFTokenAcceptOffer`), including the handling of brokered sales (intermediated sale, where a third party matches a buy offer with a sell offer while charging a fee).
 
-En la práctica, es el amendment que define el conjunto de transacciones y el objeto `NFTokenPage` tal como existen hoy en el protocolo: al estar ya integrado como comportamiento base del código (el amendment original fue retirado y sustituido), el propio funcionamiento de mint, transferencia, quema y comercio de NFTs es la implementación de esta v1.1, y las mejoras posteriores (como `NFTokenMintOffer` o `fixNonFungibleTokensV1_2`) se construyen encima de ella.
+In practice, it is the amendment that defines the set of transactions and the `NFTokenPage` object as they exist in the protocol today: since it is already integrated as baseline code behavior (the original amendment was withdrawn and replaced), the very operation of minting, transferring, burning and trading NFTs is the implementation of this v1.1, and later improvements (such as `NFTokenMintOffer` or `fixNonFungibleTokensV1_2`) are built on top of it.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [NFTokenMint](/tx/NFTokenMint), [NFTokenBurn](/tx/NFTokenBurn), [NFTokenCreateOffer](/tx/NFTokenCreateOffer), [NFTokenCancelOffer](/tx/NFTokenCancelOffer) y [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): conjunto completo de transacciones para el ciclo de vida de un NFT.
-- Objetos: [NFTokenPage](/objects/NFTokenPage), la estructura de directorio enlazado que almacena los NFTs de una cuenta, y [NFTokenOffer](/objects/NFTokenOffer), las ofertas de compra o venta.
+- [NFTokenMint](/tx/NFTokenMint), [NFTokenBurn](/tx/NFTokenBurn), [NFTokenCreateOffer](/tx/NFTokenCreateOffer), [NFTokenCancelOffer](/tx/NFTokenCancelOffer) and [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): the complete set of transactions for an NFT's lifecycle.
+- Objects: [NFTokenPage](/objects/NFTokenPage), the linked directory structure that stores an account's NFTs, and [NFTokenOffer](/objects/NFTokenOffer), the buy or sell offers.
 
-## Estado y contexto
+## Status and context
 
-El primer intento de estandarizar NFTs en el protocolo (`NonFungibleTokensV1`) se detectó con problemas de diseño antes de su despliegue en mainnet y se sustituyó por esta versión revisada, que es la que finalmente se activó. Es la base sobre la que se apoyan todas las mejoras posteriores del ecosistema NFT de XRPL, incluyendo los distintos fixes numerados (`fixNFTokenRemint`, `fixNFTokenDirV1`, etc.) y amendments como [NFTokenMintOffer](/amendments/NFTokenMintOffer).
+The first attempt to standardize NFTs in the protocol (`NonFungibleTokensV1`) was found to have design issues before its mainnet deployment and was replaced by this revised version, which is the one that was ultimately activated. It is the foundation on which all subsequent improvements to the XRPL NFT ecosystem rest, including the various numbered fixes (`fixNFTokenRemint`, `fixNFTokenDirV1`, etc.) and amendments such as [NFTokenMintOffer](/amendments/NFTokenMintOffer).

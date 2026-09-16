@@ -1,20 +1,20 @@
 ---
 title: CryptoConditionsSuite
-summary: Amendment incompleto que iba a añadir más tipos de crypto-conditions a Escrow; el ID quedó reservado y no hace nada.
+summary: Incomplete amendment intended to add more crypto-condition types to Escrow; the ID was reserved and it does nothing.
 xrplDocs: https://xrpl.org/resources/known-amendments#cryptoconditionssuite
 introducedIn: 0.60.0
 ---
 
-## Qué cambia
+## What changes
 
-Nada útil. La intención era soportar en `EscrowCreate` y `EscrowFinish` el resto de tipos de condición de la especificación de crypto-conditions (PREFIX-SHA-256, THRESHOLD-SHA-256, RSA-SHA-256, ED25519-SHA-256), además del PREIMAGE-SHA-256 que ya admite [Escrow](/amendments/Escrow). Sin embargo, el amendment se incluyó en rippled 0.60.0 antes de terminar la implementación, así que el código bajo su ID hace prácticamente nada.
+Nothing useful. The intent was to support in `EscrowCreate` and `EscrowFinish` the remaining condition types from the crypto-conditions specification (PREFIX-SHA-256, THRESHOLD-SHA-256, RSA-SHA-256, ED25519-SHA-256), in addition to the PREIMAGE-SHA-256 already supported by [Escrow](/amendments/Escrow). However, the amendment was included in rippled 0.60.0 before the implementation was finished, so the code under its ID does practically nothing.
 
-Modificar ese código habría creado una divergencia con los nodos que ya llevaban la versión publicada, de modo que se decidió no tocarlo: si en el futuro se añaden más tipos de condición, tendrá que ser con un amendment nuevo y un ID distinto.
+Modifying that code would have created a divergence with nodes already running the published version, so it was decided not to touch it: if more condition types are added in the future, it will have to be with a new amendment and a different ID.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Ninguna. Las condiciones criptográficas siguen limitadas a PREIMAGE-SHA-256 en [EscrowCreate](/tx/EscrowCreate) y [EscrowFinish](/tx/EscrowFinish) sobre el objeto [Escrow](/objects/Escrow).
+- None. Cryptographic conditions remain limited to PREIMAGE-SHA-256 in [EscrowCreate](/tx/EscrowCreate) and [EscrowFinish](/tx/EscrowFinish), on top of the [Escrow](/objects/Escrow) object.
 
-## Estado y contexto
+## Status and context
 
-Es el ejemplo clásico de por qué un amendment debe estar terminado antes de publicarse: el ID de un amendment es el hash de su nombre, y el comportamiento que activa queda fijado en cuanto una versión de rippled lo distribuye. Está marcado como obsoleto en la documentación oficial y retirado en el código (`XRPL_RETIRE_FEATURE`). Véase también [CryptoConditions](/amendments/CryptoConditions).
+This is the classic example of why an amendment must be finished before it is published: an amendment's ID is the hash of its name, and the behavior it activates is fixed as soon as a rippled version distributes it. It is marked as deprecated in the official documentation and retired in the code (`XRPL_RETIRE_FEATURE`). See also [CryptoConditions](/amendments/CryptoConditions).

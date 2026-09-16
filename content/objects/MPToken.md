@@ -1,48 +1,48 @@
 ---
 title: MPToken
-summary: El saldo que una cuenta tiene de un Multi-Purpose Token concreto; el equivalente de RippleState pero para MPT.
+summary: The balance an account holds of a specific Multi-Purpose Token; the equivalent of RippleState but for MPT.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/mptoken
 createdBy: MPTokenAuthorize
 modifiedBy: MPTokenAuthorize, Payment, Clawback
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `MPToken` es el registro de que una cuenta tiene (o puede llegar a tener) unidades de un [MPTokenIssuance](/objects/MPTokenIssuance) concreto. A diferencia de una línea de confianza, no hace falta negociación bidireccional de límites: el titular simplemente "opta a entrar" (opt-in) creando este objeto, y desde ahí puede recibir el MPT si el emisor lo permite. Un objeto por cuenta y por emisión; nunca se comparte entre cuentas.
+An `MPToken` is the record that an account holds (or can come to hold) units of a specific [MPTokenIssuance](/objects/MPTokenIssuance). Unlike a trust line, it doesn't require bidirectional negotiation of limits: the holder simply "opts in" by creating this object, and from there can receive the MPT if the issuer allows it. One object per account and per issuance; it is never shared between accounts.
 
-Si la emisión tiene `lsfMPTRequireAuth`, el `MPToken` empieza sin `lsfMPTAuthorized` y no puede recibir fondos hasta que el emisor lo autorice explícitamente.
+If the issuance has `lsfMPTRequireAuth`, the `MPToken` starts without `lsfMPTAuthorized` and cannot receive funds until the issuer explicitly authorizes it.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [MPTokenAuthorize](/tx/MPTokenAuthorize) sin flag `tfMPTUnauthorize`, enviado por el futuro titular sobre su propia cuenta (nunca con `Holder`). Crea el objeto con `MPTAmount` a cero y suma 1 al `OwnerCount` del titular.
-- **Autorización**: si la emisión exige `lsfMPTRequireAuth`, el emisor envía [MPTokenAuthorize](/tx/MPTokenAuthorize) con `Holder` apuntando al titular, para marcar `lsfMPTAuthorized` en su `MPToken` sin crear uno nuevo.
-- **Movimiento de saldo**: [Payment](/tx/Payment) con `Amount` en MPT, o `Clawback` del emisor, ajustan `MPTAmount`. Si la emisión tiene `lsfMPTCanLock`, también puede quedar congelado (`lsfMPTLocked`) o parcialmente bloqueado vía `LockedAmount`.
-- **Borrado**: [MPTokenAuthorize](/tx/MPTokenAuthorize) con `tfMPTUnauthorize`, solo si `MPTAmount` y `LockedAmount` están a cero. Reduce el `OwnerCount` del titular en 1.
+- **Creation**: [MPTokenAuthorize](/tx/MPTokenAuthorize) without the `tfMPTUnauthorize` flag, sent by the future holder on their own account (never with `Holder`). Creates the object with `MPTAmount` at zero and adds 1 to the holder's `OwnerCount`.
+- **Authorization**: if the issuance requires `lsfMPTRequireAuth`, the issuer sends [MPTokenAuthorize](/tx/MPTokenAuthorize) with `Holder` pointing to the holder, to mark `lsfMPTAuthorized` on their `MPToken` without creating a new one.
+- **Balance movement**: [Payment](/tx/Payment) with `Amount` in MPT, or `Clawback` from the issuer, adjust `MPTAmount`. If the issuance has `lsfMPTCanLock`, it can also be frozen (`lsfMPTLocked`) or partially locked via `LockedAmount`.
+- **Deletion**: [MPTokenAuthorize](/tx/MPTokenAuthorize) with `tfMPTUnauthorize`, only if `MPTAmount` and `LockedAmount` are zero. Reduces the holder's `OwnerCount` by 1.
 
-## Campos clave
+## Key fields
 
-- **Account** — el titular del saldo.
-- **MPTokenIssuanceID** — identificador de 192 bits de la emisión a la que pertenece (`keylet::mptokenIssuance`).
-- **MPTAmount** — saldo actual, en las unidades mínimas definidas por `AssetScale` de la emisión.
-- **LockedAmount** — parte del saldo bloqueada (p. ej. por un `Escrow` de MPT o por el emisor), no disponible para gastar.
-- **ConfidentialBalanceInbox / ConfidentialBalanceSpending / ConfidentialBalanceVersion** — solo si la emisión soporta balances confidenciales: saldo cifrado pendiente de fusionar y saldo cifrado disponible para gastar.
+- **Account** — the holder of the balance.
+- **MPTokenIssuanceID** — 192-bit identifier of the issuance it belongs to (`keylet::mptokenIssuance`).
+- **MPTAmount** — current balance, in the minimum units defined by the issuance's `AssetScale`.
+- **LockedAmount** — part of the balance that is locked (e.g. by an MPT `Escrow` or by the issuer), unavailable to spend.
+- **ConfidentialBalanceInbox / ConfidentialBalanceSpending / ConfidentialBalanceVersion** — only if the issuance supports confidential balances: encrypted balance pending merge and encrypted balance available to spend.
 
 ## Flags
 
-- **lsfMPTLocked** — el saldo está congelado por completo; no se puede enviar ni recibir.
-- **lsfMPTAuthorized** — el emisor ha autorizado a este titular a operar (solo relevante si la emisión exige `lsfMPTRequireAuth`).
-- **lsfMPTAMM** — el titular de este `MPToken` es un pool de AMM.
+- **lsfMPTLocked** — the balance is fully frozen; it cannot be sent or received.
+- **lsfMPTAuthorized** — the issuer has authorized this holder to operate (only relevant if the issuance requires `lsfMPTRequireAuth`).
+- **lsfMPTAMM** — the holder of this `MPToken` is an AMM pool.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "mptoken"` lo devuelve para el titular. Con `ledger_entry`, `mptoken` acepta `mpt_issuance_id` y `account`:
+`account_objects` with `type: "mptoken"` returns it for the holder. With `ledger_entry`, `mptoken` accepts `mpt_issuance_id` and `account`:
 
 ```json
 { "method": "ledger_entry", "params": [{ "mptoken": { "mpt_issuance_id": "00000C8B1D9F0C3A5E7B9D1F3A5C7E9B1D3F5A7C9E1B3D5F", "account": "rfkE1aSy9G8Upk4JssnwBxhEv5p4mn2KTy" }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x0074 || MPTokenIssuanceID || AccountID_titular)` (`keylet::mptoken`, namespace `'t'`). Respuesta típica:
+The index is `SHA512Half(0x0074 || MPTokenIssuanceID || AccountID_holder)` (`keylet::mptoken`, namespace `'t'`). Typical response:
 
 ```json
 {
@@ -58,11 +58,11 @@ El índice es `SHA512Half(0x0074 || MPTokenIssuanceID || AccountID_titular)` (`k
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 1 unidad de reserva de propietario (0,2 XRP en testnet) del titular.
+Consumes 1 unit of owner reserve (0.2 XRP on testnet) from the holder.
 
-## Relacionado
+## Related
 
 - [MPTokenAuthorize](/tx/MPTokenAuthorize), [Payment](/tx/Payment), [Clawback](/tx/Clawback)
 - [MPTokenIssuance](/objects/MPTokenIssuance), [RippleState](/objects/RippleState)

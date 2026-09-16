@@ -1,76 +1,76 @@
 ---
 title: AMMDelete
-summary: Borra un AMM vacío (sin LP tokens) que no pudo eliminarse automáticamente en la última retirada.
+summary: Deletes an empty AMM (no LP tokens) that couldn't be automatically removed on the last withdrawal.
 category: amm
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/ammdelete
 xls: XLS-0030
 amendment: AMM
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-Cuando el último proveedor de liquidez retira su posición con [AMMWithdraw](/tx/AMMWithdraw) (o el emisor recupera todo con [AMMClawback](/tx/AMMClawback)), el propio transactor intenta borrar el [AMM](/objects/AMM): el objeto, la pseudocuenta [AccountRoot](/objects/AccountRoot) y todas las [trust lines](/objects/RippleState) que la pseudocuenta mantiene (una por cada cuenta que alguna vez tuvo LP tokens, más las de los activos). Ese borrado tiene un límite de 512 trust lines por transacción (`kMaxDeletableAmmTrustLines`), así que en fondos muy populares la retirada final termina con `tecINCOMPLETE` y el AMM queda en el ledger con `LPTokenBalance` a cero.
+When the last liquidity provider withdraws their position with [AMMWithdraw](/tx/AMMWithdraw) (or the issuer claws back everything with [AMMClawback](/tx/AMMClawback)), the transactor itself tries to delete the [AMM](/objects/AMM): the object, the pseudo-account [AccountRoot](/objects/AccountRoot), and all the [trust lines](/objects/RippleState) the pseudo-account maintains (one for every account that ever held LP tokens, plus the asset ones). That deletion has a limit of 512 trust lines per transaction (`kMaxDeletableAmmTrustLines`), so in very popular pools the final withdrawal ends up with `tecINCOMPLETE` and the AMM stays on the ledger with `LPTokenBalance` at zero.
 
-`AMMDelete` sirve para rematar ese trabajo. Cualquier cuenta puede enviarla: no hay dueño del AMM. Cada envío borra hasta 512 trust lines más; cuando no queda ninguna, elimina el objeto AMM y la pseudocuenta.
+`AMMDelete` is meant to finish that work. Any account can send it: there's no AMM owner. Each submission deletes up to 512 more trust lines; when none remain, it removes the AMM object and the pseudo-account.
 
-## Cuándo usarlo
+## When to use it
 
-- Después de un `AMMWithdraw` o `AMMClawback` que devolvió `tecINCOMPLETE`.
-- Limpiar un AMM vacío cuyas trust lines de LP tokens siguen ocupando reserva en las cuentas de los antiguos LP (al borrar la línea desde el lado de la pseudocuenta, la cuenta del LP recupera esa reserva).
-- Antes de volver a crear el par con [AMMCreate](/tx/AMMCreate): mientras el objeto exista, `AMMCreate` devuelve `tecDUPLICATE`, aunque se puede reactivar con [AMMDeposit](/tx/AMMDeposit) y `tfTwoAssetIfEmpty`.
+- After an `AMMWithdraw` or `AMMClawback` that returned `tecINCOMPLETE`.
+- Cleaning up an empty AMM whose LP token trust lines are still taking up reserve in former LPs' accounts (deleting the line from the pseudo-account's side gives the LP's account back that reserve).
+- Before recreating the pair with [AMMCreate](/tx/AMMCreate): while the object exists, `AMMCreate` returns `tecDUPLICATE`, though it can be reactivated with [AMMDeposit](/tx/AMMDeposit) and `tfTwoAssetIfEmpty`.
 
-## Cómo funciona por dentro
+## How it works inside
 
-`AMMDelete::checkExtraFeatures` exige [AMM](/amendments/AMM), y [MPTokensV2](/amendments/MPTokensV2) si algún activo es MPT.
+`AMMDelete::checkExtraFeatures` requires [AMM](/amendments/AMM), and [MPTokensV2](/amendments/MPTokensV2) if any asset is an MPT.
 
-`AMMDelete::preflight` no comprueba nada específico: devuelve `tesSUCCESS` (las validaciones comunes de `Transactor::preflight` siguen aplicando: firma, `Fee`, `Sequence`, flags universales).
+`AMMDelete::preflight` doesn't check anything specific: it returns `tesSUCCESS` (the common `Transactor::preflight` validations still apply: signature, `Fee`, `Sequence`, universal flags).
 
 `AMMDelete::preclaim`:
-- Busca el AMM por `Asset`/`Asset2`; si no existe → `terNO_AMM`.
-- Si `LPTokenBalance != 0` → `tecAMM_NOT_EMPTY`. No se puede borrar un fondo con liquidez: hay que retirarla antes.
+- Looks up the AMM by `Asset`/`Asset2`; if it doesn't exist → `terNO_AMM`.
+- If `LPTokenBalance != 0` → `tecAMM_NOT_EMPTY`. A pool with liquidity can't be deleted: it has to be withdrawn first.
 
-`AMMDelete::doApply` llama a `deleteAMMAccount` (`AMMHelpers.cpp`):
-1. `deleteAMMTrustLines` recorre el directorio de la pseudocuenta y borra hasta 512 trust lines. Si quedan más, devuelve `tecINCOMPLETE`; la transacción **se aplica igualmente** (es un código `tec`, así que consume `Fee` y `Sequence`) y el progreso queda guardado.
-2. Si todas las trust lines han desaparecido, `deleteAMMMPTokens` borra los MPToken de la pseudocuenta (solo relevante con MPT en el fondo).
-3. Desvincula el objeto AMM del directorio de la pseudocuenta, borra el directorio y elimina el objeto AMM y el `AccountRoot` de la pseudocuenta.
+`AMMDelete::doApply` calls `deleteAMMAccount` (`AMMHelpers.cpp`):
+1. `deleteAMMTrustLines` walks the pseudo-account's directory and deletes up to 512 trust lines. If more remain, it returns `tecINCOMPLETE`; the transaction **still applies** (it's a `tec` code, so it consumes `Fee` and `Sequence`) and the progress is saved.
+2. If all trust lines have disappeared, `deleteAMMMPTokens` deletes the pseudo-account's MPToken objects (only relevant when the pool holds MPT).
+3. Unlinks the AMM object from the pseudo-account's directory, deletes the directory, and removes the AMM object and the pseudo-account's `AccountRoot`.
 
-Fíjate en que `doApply` aplica el sandbox tanto con `tesSUCCESS` como con `tecINCOMPLETE`: en ambos casos el ledger cambia.
+Note that `doApply` applies the sandbox both with `tesSUCCESS` and with `tecINCOMPLETE`: in both cases the ledger changes.
 
-## Campos clave
+## Key fields
 
-- **Asset** / **Asset2** — El par que identifica el AMM, en el mismo formato que en `amm_info`: `{currency: "XRP"}` o `{currency, issuer}`. El orden no importa: `keylet::amm` lo canonicaliza.
+- **Asset** / **Asset2** — The pair identifying the AMM, in the same format as in `amm_info`: `{currency: "XRP"}` or `{currency, issuer}`. Order doesn't matter: `keylet::amm` canonicalizes it.
 
-No tiene flags propios.
+It has no flags of its own.
 
-## Errores habituales
+## Common errors
 
-- **tecAMM_NOT_EMPTY** — El fondo aún tiene LP tokens en circulación. Todos los LP deben retirar (o el emisor hacer clawback) antes.
-- **terNO_AMM** — No existe AMM para ese par: revisa `issuer` y `currency`, o es que ya se borró.
-- **tecINCOMPLETE** — Se borraron 512 trust lines pero quedan más. No es un error real: vuelve a enviar `AMMDelete` hasta obtener `tesSUCCESS`.
-- **temDISABLED** — Solo si el amendment AMM no estuviera activo; en testnet lo está.
+- **tecAMM_NOT_EMPTY** — The pool still has LP tokens in circulation. All LPs must withdraw (or the issuer must claw back) first.
+- **terNO_AMM** — No AMM exists for that pair: check `issuer` and `currency`, or it's already been deleted.
+- **tecINCOMPLETE** — 512 trust lines were deleted but more remain. Not a real error: keep sending `AMMDelete` until you get `tesSUCCESS`.
+- **temDISABLED** — Only if the AMM amendment weren't active; on testnet it is.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "AMMDelete",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "Asset": { "currency": "XRP" },
   "Asset2": { "currency": "USD", "issuer": "rZZZZ_EMISOR" }
 }
 ```
 
-## Pruébalo en testnet
+## Try it on testnet
 
-En condiciones normales es difícil ver `AMMDelete` en acción, porque un AMM de prueba con pocos LP se borra solo en la última retirada. Puedes probar los dos caminos:
+Under normal conditions it's hard to see `AMMDelete` in action, because a test AMM with few LPs deletes itself on the last withdrawal. You can test both paths:
 
-1. Con un AMM XRP/USD que aún tenga liquidez, envía el ejemplo y observa `tecAMM_NOT_EMPTY` en el resultado (la transacción se incluye en el ledger y cobra la `Fee`).
-2. Retira toda la liquidez con [AMMWithdraw](/tx/AMMWithdraw) y `tfWithdrawAll`. Consulta `amm_info`: si devuelve `actNotFound`, el AMM ya se borró en esa misma transacción y un `AMMDelete` posterior dará `terNO_AMM`.
-3. Si `amm_info` sigue mostrando el AMM con `lp_token.value` = 0 (ocurre cuando la pseudocuenta tenía más de 512 trust lines), envía `AMMDelete` tantas veces como haga falta. En los metadatos verás `DeletedNode` de tipo `RippleState` por cada trust line eliminada y, en el último envío, los `DeletedNode` de `AMM` y `AccountRoot`.
-4. Comprueba con `account_lines` en una cuenta de antiguo LP que su línea de LP tokens ha desaparecido y que su `OwnerCount` ha bajado.
+1. With an XRP/USD AMM that still has liquidity, send the example and observe `tecAMM_NOT_EMPTY` in the result (the transaction is included in the ledger and charges the `Fee`).
+2. Withdraw all the liquidity with [AMMWithdraw](/tx/AMMWithdraw) and `tfWithdrawAll`. Check `amm_info`: if it returns `actNotFound`, the AMM was already deleted in that same transaction, and a later `AMMDelete` will give `terNO_AMM`.
+3. If `amm_info` still shows the AMM with `lp_token.value` = 0 (happens when the pseudo-account had more than 512 trust lines), send `AMMDelete` as many times as needed. In the metadata you'll see a `DeletedNode` of type `RippleState` for each deleted trust line, and, on the final submission, the `DeletedNode` entries for `AMM` and `AccountRoot`.
+4. Check with `account_lines` on a former LP's account that its LP token line has disappeared and that its `OwnerCount` has dropped.
 
-## Relacionado
+## Related
 
 - [AMMWithdraw](/tx/AMMWithdraw), [AMMClawback](/tx/AMMClawback), [AMMCreate](/tx/AMMCreate), [AMMDeposit](/tx/AMMDeposit)
 - [AMM](/objects/AMM), [AccountRoot](/objects/AccountRoot), [RippleState](/objects/RippleState)

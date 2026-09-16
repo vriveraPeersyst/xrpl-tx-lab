@@ -1,79 +1,79 @@
 ---
 title: MPTokenIssuanceCreate
-summary: Crea una emisión de Multi-Purpose Token (MPT) con sus reglas fijas: escala, máximo, comisión de transferencia, metadatos y permisos.
+summary: Creates a Multi-Purpose Token (MPT) issuance with its fixed rules: scale, maximum, transfer fee, metadata and permissions.
 category: mpt
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/mptokenissuancecreate
 xls: XLS-0033
 amendment: MPTokensV1
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`MPTokenIssuanceCreate` da de alta un objeto [MPTokenIssuance](/objects/MPTokenIssuance) en el ledger. Es la "definición" de un token fungible de nueva generación: a diferencia de los IOU clásicos, no necesita trust lines ni moneda de tres letras. El identificador de la emisión (`MPTokenIssuanceID`, 48 hex) se deriva de tu `Sequence` y tu cuenta, así que es determinista.
+`MPTokenIssuanceCreate` registers an [MPTokenIssuance](/objects/MPTokenIssuance) object on the ledger. It is the "definition" of a new-generation fungible token: unlike classic IOUs, it doesn't need trust lines or a three-letter currency code. The issuance identifier (`MPTokenIssuanceID`, 48 hex) is derived from your `Sequence` and your account, so it's deterministic.
 
-En el momento de crearla fijas casi todo: `AssetScale`, `MaximumAmount`, `TransferFee`, metadatos y los flags de capacidad (¿se puede bloquear? ¿transferir? ¿hacer clawback?). En testnet, con solo [MPTokensV1](/amendments/MPTokensV1) activo, esos flags y campos son inmutables. El amendment [DynamicMPT](/amendments/DynamicMPT) (no activo en testnet) permitiría cambiarlos después con [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet) e introduce `ImmutableFlags`.
+At creation time you fix almost everything: `AssetScale`, `MaximumAmount`, `TransferFee`, metadata and the capability flags (can it be locked? transferred? clawed back?). On testnet, with only [MPTokensV1](/amendments/MPTokensV1) active, those flags and fields are immutable. The [DynamicMPT](/amendments/DynamicMPT) amendment (not active on testnet) would allow changing them later with [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet) and introduces `ImmutableFlags`.
 
-Los tenedores reciben unidades cuando les envías un [Payment](/tx/Payment) con `Amount` en formato MPT. Cada tenedor debe tener antes un objeto [MPToken](/objects/MPToken), creado con [MPTokenAuthorize](/tx/MPTokenAuthorize).
+Holders receive units when you send them a [Payment](/tx/Payment) with `Amount` in MPT format. Each holder must first have an [MPToken](/objects/MPToken) object, created with [MPTokenAuthorize](/tx/MPTokenAuthorize).
 
-## Cuándo usarlo
+## When to use it
 
-- Stablecoins, puntos de fidelidad, bonos o cualquier activo fungible que quieras controlar con reglas explícitas.
-- Tokens que requieren KYC: `tfMPTRequireAuth` obliga a que tú autorices a cada tenedor.
-- Activos con comisión por transferencia entre terceros (`TransferFee`).
+- Stablecoins, loyalty points, bonds, or any fungible asset you want to control with explicit rules.
+- Tokens that require KYC: `tfMPTRequireAuth` forces you to authorize each holder.
+- Assets with a fee on transfers between third parties (`TransferFee`).
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`MPTokenIssuanceCreate::checkExtraFeatures`** rechaza con `temDISABLED` lo que dependa de amendments no activos en testnet: `DomainID` (requiere `PermissionedDomains` + `SingleAssetVault`), `ImmutableFlags` (requiere `DynamicMPT`) y `tfMPTCanHoldConfidentialBalance` (requiere `ConfidentialTransfer`).
+**`MPTokenIssuanceCreate::checkExtraFeatures`** rejects with `temDISABLED` anything that depends on amendments not active on testnet: `DomainID` (requires `PermissionedDomains` + `SingleAssetVault`), `ImmutableFlags` (requires `DynamicMPT`) and `tfMPTCanHoldConfidentialBalance` (requires `ConfidentialTransfer`).
 
 **`MPTokenIssuanceCreate::preflight`**:
-- `ReferenceHolding` en la tx → `temMALFORMED` (es un campo interno que solo escribe el protocolo de vaults).
-- `ImmutableFlags` a 0 o con bits fuera de la máscara → `temINVALID_FLAG`.
-- `TransferFee` > 50000 → `temBAD_TRANSFER_FEE`; mayor que 0 sin `tfMPTCanTransfer` → `temMALFORMED`; mayor que 0 con `tfMPTCanHoldConfidentialBalance` → `temBAD_TRANSFER_FEE`.
-- `DomainID` a cero, o presente sin `tfMPTRequireAuth` → `temMALFORMED`.
-- `MPTokenMetadata` vacío o de más de 1024 bytes → `temMALFORMED`.
-- `MaximumAmount` igual a 0 o mayor que 2^63−1 → `temMALFORMED`.
+- `ReferenceHolding` in the tx → `temMALFORMED` (it's an internal field only written by the vault protocol).
+- `ImmutableFlags` set to 0 or with bits outside the mask → `temINVALID_FLAG`.
+- `TransferFee` > 50000 → `temBAD_TRANSFER_FEE`; greater than 0 without `tfMPTCanTransfer` → `temMALFORMED`; greater than 0 with `tfMPTCanHoldConfidentialBalance` → `temBAD_TRANSFER_FEE`.
+- `DomainID` set to zero, or present without `tfMPTRequireAuth` → `temMALFORMED`.
+- `MPTokenMetadata` empty or larger than 1024 bytes → `temMALFORMED`.
+- `MaximumAmount` equal to 0 or greater than 2^63−1 → `temMALFORMED`.
 
-**`MPTokenIssuanceCreate::doApply`** llama a `MPTokenIssuanceCreate::create`, que:
-1. Comprueba la reserva para un objeto más con tu saldo previo a la fee (`tecINSUFFICIENT_RESERVE`).
-2. Calcula el ID con `makeMptID(Sequence, Account)`.
-3. Inserta la emisión en tu directorio de propietario y crea el objeto con `Issuer`, `OutstandingAmount = 0`, `Sequence`, los flags de la tx (sin `tfUniversal`) y los campos opcionales que hayas dado.
-4. Sube tu `OwnerCount` en 1.
+**`MPTokenIssuanceCreate::doApply`** calls `MPTokenIssuanceCreate::create`, which:
+1. Checks the reserve for one more object against your balance before the fee (`tecINSUFFICIENT_RESERVE`).
+2. Computes the ID with `makeMptID(Sequence, Account)`.
+3. Inserts the issuance into your owner directory and creates the object with `Issuer`, `OutstandingAmount = 0`, `Sequence`, the tx flags (without `tfUniversal`) and any optional fields you provided.
+4. Increases your `OwnerCount` by 1.
 
-## Campos clave
+## Key fields
 
-- **AssetScale** — número de decimales para mostrar. El ledger guarda enteros; con `AssetScale: 2`, 100 unidades se muestran como 1,00.
-- **MaximumAmount** — tope de unidades en circulación (string decimal, máximo 9223372036854775807). Si lo omites, el máximo es ese mismo valor.
-- **TransferFee** — comisión al transferir entre dos tenedores que no son el emisor, en unidades de 0,001 % (100 = 0,1 %). Exige `tfMPTCanTransfer`.
-- **MPTokenMetadata** — hasta 1024 bytes en hex. XLS-89 propone un esquema JSON (nombre, ticker, icono...).
-- **DomainID** — restringe los tenedores a un dominio permisionado. No usable en testnet (`temDISABLED`).
-- **ImmutableFlags** — qué propiedades no podrán cambiarse nunca con `MPTokenIssuanceSet`. Solo con `DynamicMPT`.
+- **AssetScale** — number of decimal places to display. The ledger stores integers; with `AssetScale: 2`, 100 units are shown as 1.00.
+- **MaximumAmount** — cap on units in circulation (decimal string, maximum 9223372036854775807). If omitted, the maximum is that same value.
+- **TransferFee** — fee charged when transferring between two holders who aren't the issuer, in units of 0.001% (100 = 0.1%). Requires `tfMPTCanTransfer`.
+- **MPTokenMetadata** — up to 1024 bytes in hex. XLS-89 proposes a JSON schema (name, ticker, icon...).
+- **DomainID** — restricts holders to a permissioned domain. Not usable on testnet (`temDISABLED`).
+- **ImmutableFlags** — which properties can never be changed later with `MPTokenIssuanceSet`. Only with `DynamicMPT`.
 
 ## Flags
 
-- **tfMPTCanLock** (2) — el emisor podrá bloquear la emisión entera o a un tenedor con `MPTokenIssuanceSet`.
-- **tfMPTRequireAuth** (4) — los tenedores necesitan que el emisor los autorice antes de recibir fondos.
-- **tfMPTCanEscrow** (8) — el token puede depositarse en escrows.
-- **tfMPTCanTrade** (16) — el token puede negociarse en el DEX (todavía sin uso en el código de ofertas).
-- **tfMPTCanTransfer** (32) — los tenedores pueden enviarse el token entre sí. Sin él, solo se mueve entre emisor y tenedor.
-- **tfMPTCanClawback** (64) — el emisor puede recuperar unidades con [Clawback](/tx/Clawback).
-- **tfMPTCanHoldConfidentialBalance** (128) — saldos cifrados; requiere `ConfidentialTransfer`, no activo en testnet.
+- **tfMPTCanLock** (2) — the issuer will be able to lock the entire issuance or a single holder with `MPTokenIssuanceSet`.
+- **tfMPTRequireAuth** (4) — holders need the issuer to authorize them before receiving funds.
+- **tfMPTCanEscrow** (8) — the token can be deposited into escrows.
+- **tfMPTCanTrade** (16) — the token can be traded on the DEX (still unused in the offer code).
+- **tfMPTCanTransfer** (32) — holders can send the token to each other. Without it, it only moves between issuer and holder.
+- **tfMPTCanClawback** (64) — the issuer can claw back units with [Clawback](/tx/Clawback).
+- **tfMPTCanHoldConfidentialBalance** (128) — encrypted balances; requires `ConfidentialTransfer`, not active on testnet.
 
-Los flags se guardan en el objeto como `lsfMPT*` con los mismos valores.
+The flags are stored on the object as `lsfMPT*` with the same values.
 
-## Errores habituales
+## Common errors
 
-- **temMALFORMED** — `TransferFee` sin `tfMPTCanTransfer`, metadatos vacíos o demasiado largos, `MaximumAmount` 0.
-- **temBAD_TRANSFER_FEE** — comisión mayor que 50000.
-- **temDISABLED** — has usado `DomainID`, `ImmutableFlags` o el flag 128 en testnet.
-- **tecINSUFFICIENT_RESERVE** — no tienes 0,2 XRP libres para el nuevo objeto.
+- **temMALFORMED** — `TransferFee` without `tfMPTCanTransfer`, empty or too-long metadata, `MaximumAmount` of 0.
+- **temBAD_TRANSFER_FEE** — fee greater than 50000.
+- **temDISABLED** — you used `DomainID`, `ImmutableFlags` or flag 128 on testnet.
+- **tecINSUFFICIENT_RESERVE** — you don't have 0.2 XRP free for the new object.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "MPTokenIssuanceCreate",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "AssetScale": 2,
   "MaximumAmount": "100000000",
   "TransferFee": 100,
@@ -82,17 +82,17 @@ Los flags se guardan en el objeto como `lsfMPT*` con los mismos valores.
 }
 ```
 
-Los metadatos son `{"name":"Demo"}`. Suma `64` a `Flags` si quieres poder hacer clawback, o `4` para exigir autorización.
+The metadata is `{"name":"Demo"}`. Add `64` to `Flags` if you want to allow clawback, or `4` to require authorization.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Carga el ejemplo y envía. En el resultado busca `mpt_issuance_id` (el nodo lo añade a los metadatos) o el `CreatedNode` de tipo `MPTokenIssuance`.
-2. Consulta `account_objects` con `type: "mpt_issuance"`: verás la emisión con `OutstandingAmount: "0"`, `Flags: 32` y tus campos. `OwnerCount` ha subido en 1.
-3. Desde la otra cuenta, envía [MPTokenAuthorize](/tx/MPTokenAuthorize) con ese `MPTokenIssuanceID` para crear su `MPToken`.
-4. Desde tu cuenta, envía un [Payment](/tx/Payment) con `Amount: { "mpt_issuance_id": "…", "value": "1000" }` a la otra cuenta. `OutstandingAmount` pasa a 1000.
-5. Prueba a añadir `"DomainID"` o `Flags: 160`: el nodo responde `temDISABLED`.
+1. Load the example and send. In the result look for `mpt_issuance_id` (the node adds it to the metadata) or the `CreatedNode` of type `MPTokenIssuance`.
+2. Query `account_objects` with `type: "mpt_issuance"`: you'll see the issuance with `OutstandingAmount: "0"`, `Flags: 32` and your fields. `OwnerCount` has increased by 1.
+3. From the other account, send [MPTokenAuthorize](/tx/MPTokenAuthorize) with that `MPTokenIssuanceID` to create its `MPToken`.
+4. From your account, send a [Payment](/tx/Payment) with `Amount: { "mpt_issuance_id": "…", "value": "1000" }` to the other account. `OutstandingAmount` becomes 1000.
+5. Try adding `"DomainID"` or `Flags: 160`: the node responds `temDISABLED`.
 
-## Relacionado
+## Related
 
 - [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet), [MPTokenIssuanceDestroy](/tx/MPTokenIssuanceDestroy), [MPTokenAuthorize](/tx/MPTokenAuthorize), [Payment](/tx/Payment), [Clawback](/tx/Clawback)
 - [MPTokenIssuance](/objects/MPTokenIssuance), [MPToken](/objects/MPToken)

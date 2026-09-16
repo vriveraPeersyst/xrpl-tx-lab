@@ -1,63 +1,63 @@
 ---
 title: ConfidentialMPTMergeInbox
-summary: Consolida el saldo confidencial recibido en tu buzón (inbox) con tu saldo confidencial gastable.
+summary: Consolidates the confidential balance received in your inbox with your spendable confidential balance.
 category: confidencial
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/confidentialmptmergeinbox
 amendment: ConfidentialTransfer
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-Cuando conviertes saldo a confidencial con [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) o recibes un envío confidencial con [ConfidentialMPTSend](/tx/ConfidentialMPTSend), el importe cifrado no aterriza directamente en tu saldo utilizable: se acumula en un buzón (`ConfidentialBalanceInbox`), separado del saldo "gastable" (`ConfidentialBalanceSpending`). Esta separación evita que cada ingreso obligue a recalcular inmediatamente el estado cifrado completo de tu cuenta en la misma transacción que lo genera.
+When you convert a balance to confidential with [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) or receive a confidential transfer with [ConfidentialMPTSend](/tx/ConfidentialMPTSend), the encrypted amount doesn't land directly in your spendable balance: it accumulates in an inbox (`ConfidentialBalanceInbox`), separate from the "spendable" balance (`ConfidentialBalanceSpending`). This separation prevents every incoming transfer from forcing an immediate recalculation of your account's full encrypted state within the same transaction that generates it.
 
-`ConfidentialMPTMergeInbox` es la transacción que tú mismo envías para fusionar ese buzón con tu saldo gastable: suma criptográficamente ambos compromisos (sin revelar los importes) y vacía el buzón. Es una operación de mantenimiento que necesitas ejecutar de vez en cuando —o antes de cualquier envío que necesite disponer del saldo recién recibido.
+`ConfidentialMPTMergeInbox` is the transaction you send yourself to merge that inbox with your spendable balance: it cryptographically adds both commitments together (without revealing the amounts) and empties the inbox. It's a maintenance operation you need to run from time to time —or before any send that needs the recently received balance to be available.
 
-**Este tipo de transacción depende del amendment `ConfidentialTransfer`, que hoy no está activo en testnet.** Cualquier intento de enviarla falla mientras el amendment no esté activo.
+**This transaction type depends on the `ConfidentialTransfer` amendment, which is not currently active on testnet.** Any attempt to send it fails while the amendment isn't active.
 
-## Cuándo usarlo (cuando el amendment esté activo)
+## When to use it (once the amendment is active)
 
-- Después de recibir uno o varios `ConfidentialMPTSend`, antes de poder gastar ese saldo.
-- Después de convertir saldo público a confidencial con `ConfidentialMPTConvert`.
-- Como mantenimiento periódico, para no acumular entradas sin consolidar en el buzón.
+- After receiving one or more `ConfidentialMPTSend` transactions, before you can spend that balance.
+- After converting a public balance to confidential with `ConfidentialMPTConvert`.
+- As periodic maintenance, so unconsolidated entries don't pile up in the inbox.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`ConfidentialMPTMergeInbox::preflight`** solo valida forma: que `MPTokenIssuanceID` esté presente y bien formado (`temMALFORMED` si no).
+**`ConfidentialMPTMergeInbox::preflight`** only validates form: that `MPTokenIssuanceID` is present and well-formed (`temMALFORMED` if not).
 
-**`ConfidentialMPTMergeInbox::preclaim`** exige que la emisión permita saldo confidencial (`lsfMPTCanHoldConfidentialBalance`, `tecNO_PERMISSION` si no) y que tu `MPToken` para esa emisión exista (`tecOBJECT_NOT_FOUND` si no).
+**`ConfidentialMPTMergeInbox::preclaim`** requires that the issuance allow confidential balances (`lsfMPTCanHoldConfidentialBalance`, `tecNO_PERMISSION` if not) and that your `MPToken` for that issuance exists (`tecOBJECT_NOT_FOUND` if not).
 
-**`ConfidentialMPTMergeInbox::doApply`** suma el compromiso criptográfico de `ConfidentialBalanceInbox` al de `ConfidentialBalanceSpending`, deja el buzón a cero y actualiza tu clave de cifrado (`HolderEncryptionKey`) si aplica. La operación en sí no cambia el total en circulación de la emisión: solo reorganiza tu propio saldo cifrado.
+**`ConfidentialMPTMergeInbox::doApply`** adds the cryptographic commitment from `ConfidentialBalanceInbox` to that of `ConfidentialBalanceSpending`, zeroes out the inbox, and updates your encryption key (`HolderEncryptionKey`) if applicable. The operation itself doesn't change the issuance's total circulating supply: it only reorganizes your own encrypted balance.
 
-## Campos clave
+## Key fields
 
-- **MPTokenIssuanceID** — la emisión sobre la que fusionas tu buzón con tu saldo gastable. No hace falta indicar importes: la transacción opera sobre todo lo pendiente en el buzón.
+- **MPTokenIssuanceID** — the issuance whose inbox you're merging with your spendable balance. You don't need to indicate amounts: the transaction operates on everything pending in the inbox.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_PERMISSION** — la emisión no tiene habilitado el saldo confidencial.
-- **tecOBJECT_NOT_FOUND** — no tienes un `MPToken` para esa emisión.
-- **temMALFORMED** — falta o es inválido `MPTokenIssuanceID`.
+- **tecNO_PERMISSION** — the issuance doesn't have confidential balances enabled.
+- **tecOBJECT_NOT_FOUND** — you don't have an `MPToken` for that issuance.
+- **temMALFORMED** — `MPTokenIssuanceID` is missing or invalid.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-El amendment `ConfidentialTransfer` no está activo hoy en testnet, así que cualquier envío de `ConfidentialMPTMergeInbox` desde el builder devolverá un error de tipo `temDISABLED`. El ejemplo de abajo es el mínimo necesario cuando el amendment se active; a diferencia de otras transacciones confidenciales, no requiere generar pruebas criptográficas externas.
+The `ConfidentialTransfer` amendment isn't active on testnet today, so any submission of `ConfidentialMPTMergeInbox` from the builder will return a `temDISABLED` error. The example below is the minimum needed once the amendment is activated; unlike other confidential transactions, it doesn't require generating external cryptographic proofs.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "ConfidentialMPTMergeInbox",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "MPTokenIssuanceID": "000000000000000000000000000000000000000000000000"
 }
 ```
 
-Fusionaría tu buzón confidencial con tu saldo gastable de esa emisión; hoy falla con `temDISABLED`.
+Would merge your confidential inbox with your spendable balance for that issuance; today it fails with `temDISABLED`.
 
-## Relacionado
+## Related
 
-- [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) — origina entradas en el buzón.
-- [ConfidentialMPTSend](/tx/ConfidentialMPTSend) — también deposita en el buzón del destinatario.
-- [ConfidentialMPTConvertBack](/tx/ConfidentialMPTConvertBack) — consume el saldo gastable para volver a público.
+- [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) — generates entries in the inbox.
+- [ConfidentialMPTSend](/tx/ConfidentialMPTSend) — also deposits into the recipient's inbox.
+- [ConfidentialMPTConvertBack](/tx/ConfidentialMPTConvertBack) — consumes the spendable balance to convert back to public.
 - Amendments: [ConfidentialTransfer](/amendments/ConfidentialTransfer).

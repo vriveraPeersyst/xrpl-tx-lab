@@ -1,21 +1,21 @@
 ---
 title: FlowSortStrands
-summary: Mejora el orden en que el motor Flow evalúa los distintos strands (rutas) de un pago con paths para obtener mejores resultados de forma más eficiente.
+summary: Improves the order in which the Flow engine evaluates the different strands (routes) of a payment with paths to obtain better results more efficiently.
 xrplDocs: https://xrpl.org/resources/known-amendments#flowsortstrands
 ---
 
-## Qué cambia
+## What changes
 
-Cuando un [Payment](/tx/Payment) especifica varios `Paths` posibles, el motor [Flow](/amendments/Flow) descompone cada uno en un strand (una secuencia concreta de order books y trustlines) y los evalúa para decidir cuánto puede entregar cada uno al mejor precio. El orden en que Flow procesa esos strands importa: procesarlos en un orden subóptimo puede hacer que se agote liquidez barata en un strand secundario antes de aprovecharla desde el strand principal, o forzar a Flow a repetir iteraciones para converger al mismo resultado.
+When a [Payment](/tx/Payment) specifies several possible `Paths`, the [Flow](/amendments/Flow) engine decomposes each one into a strand (a concrete sequence of order books and trustlines) and evaluates them to decide how much each one can deliver at the best price. The order in which Flow processes those strands matters: processing them in a suboptimal order can cause cheap liquidity in a secondary strand to be exhausted before it can be used from the main strand, or force Flow to repeat iterations to converge on the same result.
 
-FlowSortStrands cambia el criterio de ordenación con el que Flow decide en qué secuencia probar los strands, priorizando aquellos con mejor calidad de precio estimada primero. Esto reduce el número de iteraciones necesarias para que el cálculo converja y hace más probable que el resultado final sea el óptimo (la mayor cantidad entregada al mejor precio agregado posible), en lugar de depender del orden en que el remitente listó los paths.
+FlowSortStrands changes the sorting criterion Flow uses to decide in what sequence to try the strands, prioritizing those with the best estimated price quality first. This reduces the number of iterations needed for the calculation to converge and makes it more likely that the final result is optimal (the largest amount delivered at the best possible aggregate price), rather than depending on the order in which the sender listed the paths.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [Payment](/tx/Payment): pagos con múltiples `Paths` se benefician de una evaluación más eficiente y con mejores resultados.
-- [OfferCreate](/tx/OfferCreate): el cruce de una oferta contra varios niveles de precio del libro también pasa por el mismo ordenamiento de strands.
-- No introduce objetos ni campos nuevos; es un cambio en el algoritmo interno de [Flow](/amendments/Flow).
+- [Payment](/tx/Payment): payments with multiple `Paths` benefit from a more efficient evaluation with better results.
+- [OfferCreate](/tx/OfferCreate): crossing an offer against several price levels of the book also goes through the same strand ordering.
+- It introduces no new objects or fields; it is a change to [Flow](/amendments/Flow)'s internal algorithm.
 
-## Estado y contexto
+## Status and context
 
-Es una optimización de rendimiento y calidad de resultado sobre Flow, no un cambio de comportamiento visible para quien construye una transacción: los campos de entrada y salida de `Payment` no cambian, pero la cantidad realmente entregada o el coste efectivo de un pago con paths puede variar ligeramente respecto al comportamiento previo, siempre a favor del remitente. Junto con [FlowCross](/amendments/FlowCross), termina de consolidar el motor Flow como sustituto completo del motor de paths original.
+This is a performance and result-quality optimization on top of Flow, not a change in behavior visible to whoever builds a transaction: the input and output fields of `Payment` do not change, but the amount actually delivered or the effective cost of a payment with paths may vary slightly compared to previous behavior, always in the sender's favor. Together with [FlowCross](/amendments/FlowCross), it completes the consolidation of the Flow engine as a full replacement for the original path engine.

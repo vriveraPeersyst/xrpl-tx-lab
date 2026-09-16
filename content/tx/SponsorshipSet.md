@@ -1,73 +1,73 @@
 ---
 title: SponsorshipSet
-summary: Una cuenta se ofrece a pagar la fee o la reserva de otra cuenta, creando un objeto Sponsorship.
+summary: An account offers to pay another account's fee or reserve, creating a Sponsorship object.
 category: permisos
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/sponsorshipset
 amendment: Sponsor
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-`SponsorshipSet` crea, ajusta o borra un objeto `Sponsorship`: una relación en la que una cuenta (el patrocinador, quien envía la transacción) se compromete a cubrir la fee de las transacciones de otra cuenta, su owner reserve, o ambas cosas, hasta un límite (`MaxFee`) y un número de objetos patrocinados (`RemainingOwnerCountDelta`). Es la pieza que permite, por ejemplo, que una aplicación pague en nombre de sus usuarios sin que estos necesiten tener XRP propio para operar.
+`SponsorshipSet` creates, adjusts or deletes a `Sponsorship` object: a relationship in which one account (the sponsor, who sends the transaction) commits to covering another account's transaction fees, its owner reserve, or both, up to a limit (`MaxFee`) and a number of sponsored objects (`RemainingOwnerCountDelta`). It's the piece that allows, for example, an application to pay on behalf of its users without those users needing their own XRP to operate.
 
-**Este tipo de transacción depende del amendment `Sponsor`, que hoy no está activo en testnet.** Cualquier intento de enviarla falla con `temDISABLED` (o el equivalente) hasta que se active.
+**This transaction type depends on the `Sponsor` amendment, which is not active on testnet today.** Any attempt to send it fails with `temDISABLED` (or the equivalent) until it's activated.
 
-## Cuándo usarlo (cuando el amendment esté activo)
+## When to use it (once the amendment is active)
 
-- Una aplicación patrocina las fees de sus usuarios nuevos para que puedan operar sin comprar XRP primero.
-- Un servicio cubre la owner reserve de objetos que crea en nombre de un usuario (por ejemplo, un `TrustSet` inicial).
-- Retirar o reducir un patrocinio existente ajustando `FeeAmountDelta` o usando `tfDeleteObject`.
+- An application sponsors its new users' fees so they can operate without buying XRP first.
+- A service covers the owner reserve of objects it creates on a user's behalf (for example, an initial `TrustSet`).
+- Withdrawing or reducing an existing sponsorship by adjusting `FeeAmountDelta` or using `tfDeleteObject`.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`SponsorshipSet::preflight`** valida montos no negativos ni con formato inválido (`temBAD_AMOUNT`), rechaza combinaciones de flags contradictorias como fijar y limpiar `RequireSignForFee` a la vez, y exige que no te patrocines a ti mismo (`temREDUNDANT`).
+**`SponsorshipSet::preflight`** validates that amounts aren't negative or malformed (`temBAD_AMOUNT`), rejects contradictory flag combinations such as setting and clearing `RequireSignForFee` at the same time, and requires that you don't sponsor yourself (`temREDUNDANT`).
 
-**`SponsorshipSet::preclaim`** comprueba que la cuenta patrocinada existe (`tecNO_DST` si no), que no superas los límites del sistema de patrocinios (`tecLIMIT_EXCEEDED`) y, si estás modificando un patrocinio existente, que te pertenece (`tecNO_PERMISSION` si no) y que no es una pseudo-cuenta la involucrada (`tecPSEUDO_ACCOUNT`).
+**`SponsorshipSet::preclaim`** checks that the sponsored account exists (`tecNO_DST` if not), that you don't exceed the sponsorship system's limits (`tecLIMIT_EXCEEDED`) and, if you're modifying an existing sponsorship, that it belongs to you (`tecNO_PERMISSION` if not) and that the account involved isn't a pseudo-account (`tecPSEUDO_ACCOUNT`).
 
-**`SponsorshipSet::doApply`**, vía `createSponsorship`, crea el objeto `Sponsorship` la primera vez (con reserva de propietario, `tecDIR_FULL` si el directorio está lleno) o ajusta `FeeAmount` y `RemainingOwnerCount` según los deltas indicados; si el saldo del patrocinador no cubre el compromiso, `tecUNFUNDED`. Con `tfDeleteObject`, elimina el patrocinio.
+**`SponsorshipSet::doApply`**, via `createSponsorship`, creates the `Sponsorship` object the first time (with an owner reserve, `tecDIR_FULL` if the directory is full) or adjusts `FeeAmount` and `RemainingOwnerCount` according to the given deltas; if the sponsor's balance doesn't cover the commitment, `tecUNFUNDED`. With `tfDeleteObject`, it removes the sponsorship.
 
-## Campos clave
+## Key fields
 
-- **Sponsee** — la cuenta patrocinada.
-- **CounterpartySponsor** — para relaciones en las que ambas partes deben confirmar el patrocinio.
-- **FeeAmountDelta** — cuánto añade o quita esta transacción al presupuesto de fees patrocinado (en drops).
-- **MaxFee** — techo total de fee que el patrocinador está dispuesto a cubrir.
-- **RemainingOwnerCountDelta** — cuántos objetos adicionales (reserva) se comprometen a cubrir.
+- **Sponsee** — the sponsored account.
+- **CounterpartySponsor** — for relationships where both parties must confirm the sponsorship.
+- **FeeAmountDelta** — how much this transaction adds to or removes from the sponsored fee budget (in drops).
+- **MaxFee** — total fee ceiling the sponsor is willing to cover.
+- **RemainingOwnerCountDelta** — how many additional objects (reserve) it commits to covering.
 
 ## Flags
 
-- **tfDeleteObject** — elimina el objeto `Sponsorship` existente en lugar de crearlo o modificarlo.
-- **tfSponsorshipSetRequireSignForFee** / **tfSponsorshipClearRequireSignForFee** — exige (o deja de exigir) que el patrocinado firme para consumir el patrocinio de fee.
-- **tfSponsorshipSetRequireSignForReserve** / **tfSponsorshipClearRequireSignForReserve** — lo mismo para el patrocinio de reserva.
+- **tfDeleteObject** — removes the existing `Sponsorship` object instead of creating or modifying it.
+- **tfSponsorshipSetRequireSignForFee** / **tfSponsorshipClearRequireSignForFee** — requires (or stops requiring) that the sponsored account sign to consume the fee sponsorship.
+- **tfSponsorshipSetRequireSignForReserve** / **tfSponsorshipClearRequireSignForReserve** — the same for the reserve sponsorship.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment `Sponsor` no está activo (el caso actual en testnet).
-- **temREDUNDANT** — intentas patrocinarte a ti mismo.
-- **tecNO_DST** — la cuenta `Sponsee` no existe.
-- **tecUNFUNDED** — tu saldo no cubre el compromiso que estás asumiendo.
-- **tecLIMIT_EXCEEDED** — superas el número máximo de patrocinios permitidos.
-- **tecNO_PERMISSION** — intentas modificar un patrocinio que no es tuyo.
+- **temDISABLED** — the `Sponsor` amendment isn't active (the current case on testnet).
+- **temREDUNDANT** — you're trying to sponsor yourself.
+- **tecNO_DST** — the `Sponsee` account doesn't exist.
+- **tecUNFUNDED** — your balance doesn't cover the commitment you're taking on.
+- **tecLIMIT_EXCEEDED** — you exceed the maximum number of allowed sponsorships.
+- **tecNO_PERMISSION** — you're trying to modify a sponsorship that isn't yours.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-Como el amendment `Sponsor` no está activo hoy en testnet, cualquier `SponsorshipSet` que envíes desde el builder devolverá un error de tipo `temDISABLED`. Puedes comprobarlo con el ejemplo de abajo; cuando la red active el amendment, el mismo flujo creará el objeto `Sponsorship` y podrás consultarlo con `account_objects`.
+Since the `Sponsor` amendment isn't active on testnet today, any `SponsorshipSet` you send from the builder will return a `temDISABLED`-type error. You can verify this with the example below; once the network activates the amendment, the same flow will create the `Sponsorship` object and you'll be able to query it with `account_objects`.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "SponsorshipSet",
-  "Account": "rXXXX_TU_CUENTA",
-  "Sponsor": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Sponsor": "rYYYY_OTHER_ACCOUNT",
   "Flags": 65536
 }
 ```
 
-Intentaría crear un patrocinio hacia `rYYYY_OTRA_CUENTA`; falla con `temDISABLED` mientras el amendment no esté activo.
+This would attempt to create a sponsorship toward `rYYYY_OTHER_ACCOUNT`; it fails with `temDISABLED` while the amendment isn't active.
 
-## Relacionado
+## Related
 
-- [SponsorshipTransfer](/tx/SponsorshipTransfer) — transfiere un patrocinio existente a otra cuenta.
+- [SponsorshipTransfer](/tx/SponsorshipTransfer) — transfers an existing sponsorship to another account.
 - Amendments: [Sponsor](/amendments/Sponsor).

@@ -1,21 +1,21 @@
 ---
 title: Flow
-summary: Sustituye el motor de pagos antiguo por "Flow", el motor moderno que calcula rutas y ejecuta pagos y cruces de ofertas en XRPL.
+summary: Replaces the old payment engine with "Flow", the modern engine that computes routes and executes payments and offer crossing on XRPL.
 xrplDocs: https://xrpl.org/resources/known-amendments#flow
 ---
 
-## Qué cambia
+## What changes
 
-Flow reemplaza por completo el motor de pagos original de rippled (conocido como "payment engine" o motor de paths clásico) por una implementación nueva pensada para ser más predecible, más fácil de razonar y más eficiente. El motor antiguo calculaba paths de forma bastante opaca y tenía casos límite conocidos con resultados difíciles de explicar (cantidades entregadas mayores o menores de lo esperado, paths que fallaban sin motivo claro). Flow reescribe ese cálculo como una composición de "strands": cada strand es una secuencia de pasos (order book, trustline) que el pago puede atravesar, y el motor combina varios strands en paralelo para maximizar la cantidad entregada al mismo coste, similar a un algoritmo de flujo máximo en un grafo.
+Flow completely replaces rippled's original payment engine (known as the "payment engine" or classic path engine) with a new implementation designed to be more predictable, easier to reason about, and more efficient. The old engine calculated paths in a fairly opaque way and had known edge cases with hard-to-explain results (delivered amounts larger or smaller than expected, paths that failed for no clear reason). Flow rewrites that calculation as a composition of "strands": each strand is a sequence of steps (order book, trustline) that the payment can traverse, and the engine combines several strands in parallel to maximize the amount delivered at the same cost, similar to a maximum-flow algorithm on a graph.
 
-El resultado es el mismo tipo de operación que antes —enviar un pago que puede atravesar varios order books y trustlines, o convertir una moneda en otra sobre la marcha— pero calculado de forma más rigurosa, con mejor manejo de `SendMax`, `DeliverMin` y de los flags de parcialidad de [Payment](/tx/Payment).
+The result is the same kind of operation as before — sending a payment that can traverse multiple order books and trustlines, or converting one currency into another on the fly — but calculated more rigorously, with better handling of `SendMax`, `DeliverMin`, and the partial-payment flags of [Payment](/tx/Payment).
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [Payment](/tx/Payment): todo pago con paths (cross-currency o que atraviesa varios saltos) se calcula ahora mediante Flow en lugar del motor antiguo.
-- [OfferCreate](/tx/OfferCreate): el cruce de ofertas al crear una oferta nueva reutiliza la misma maquinaria de Flow para determinar cuánto se cruza contra el libro de órdenes.
-- Objetos [Offer](/objects/Offer) y [RippleState](/objects/RippleState) (trustlines), que son los nodos que Flow recorre al construir strands.
+- [Payment](/tx/Payment): any payment with paths (cross-currency or spanning multiple hops) is now calculated via Flow instead of the old engine.
+- [OfferCreate](/tx/OfferCreate): offer crossing when creating a new offer reuses the same Flow machinery to determine how much is crossed against the order book.
+- [Offer](/objects/Offer) and [RippleState](/objects/RippleState) (trustlines) objects, which are the nodes that Flow traverses when building strands.
 
-## Estado y contexto
+## Status and context
 
-Antes de Flow, rippled usaba el llamado "legacy path engine", con una lógica acumulada desde los primeros años de Ripple que era difícil de mantener y de auditar. Flow se diseñó explícitamente para reemplazarlo con un algoritmo más formal y testeable, y se convirtió en la base de todas las mejoras posteriores del DEX de XRPL: [FlowCross](/amendments/FlowCross) y [FlowSortStrands](/amendments/FlowSortStrands) son extensiones directas suyas, y funcionalidades como el AMM o [PermissionedDEX](/amendments/PermissionedDEX) dan por hecho que el motor de ejecución es Flow. Es, junto con el propio libro de órdenes, el núcleo del DEX nativo de XRPL.
+Before Flow, rippled used the so-called "legacy path engine", with logic accumulated since Ripple's earliest years that was difficult to maintain and audit. Flow was explicitly designed to replace it with a more formal, testable algorithm, and it became the foundation for all later improvements to the XRPL DEX: [FlowCross](/amendments/FlowCross) and [FlowSortStrands](/amendments/FlowSortStrands) are direct extensions of it, and features such as the AMM or [PermissionedDEX](/amendments/PermissionedDEX) assume that the execution engine is Flow. Along with the order book itself, it is the core of XRPL's native DEX.

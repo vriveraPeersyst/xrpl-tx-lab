@@ -1,61 +1,61 @@
 ---
 title: AccountRoot
-summary: Es la cuenta en sí: su saldo en XRP, su secuencia, sus ajustes y el contador de objetos que posee.
+summary: This is the account itself: its XRP balance, its sequence, its settings, and the count of objects it owns.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/accountroot
 createdBy: Payment
 modifiedBy: AccountSet, SetRegularKey, AccountDelete, Payment
 reserve: 0
 ---
 
-## Qué representa
+## What it represents
 
-Un `AccountRoot` es la ficha de una cuenta del XRPL. Cada dirección `r...` que existe en el ledger tiene exactamente un objeto de este tipo, y casi todas las transacciones lo tocan: cobran la comisión de `Balance`, incrementan `Sequence` y actualizan `PreviousTxnID`. Si buscas "la cuenta" en el ledger, es esto.
+An `AccountRoot` is an XRPL account's record. Every `r...` address that exists in the ledger has exactly one object of this type, and almost every transaction touches it: it charges the fee from `Balance`, increments `Sequence`, and updates `PreviousTxnID`. If you're looking for "the account" in the ledger, this is it.
 
-Piensa en él como la cabecera de una carpeta. El resto de lo que la cuenta posee ([Offer](/objects/Offer), [Escrow](/objects/Escrow), [RippleState](/objects/RippleState), etc.) cuelga de su directorio de propietario, un [DirectoryNode](/objects/DirectoryNode) cuya clave se deriva de la dirección.
+Think of it as the header of a folder. Everything else the account owns ([Offer](/objects/Offer), [Escrow](/objects/Escrow), [RippleState](/objects/RippleState), etc.) hangs off its owner directory, a [DirectoryNode](/objects/DirectoryNode) whose key is derived from the address.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: no hay una transacción "crear cuenta". Se crea cuando un [Payment](/tx/Payment) en XRP entrega a una dirección que no existe una cantidad igual o superior a la reserva base (1 XRP en testnet). `Payment::doApply` fabrica el `AccountRoot` con `Sequence` igual al índice del ledger en que nace. También pueden crearla [CheckCash](/tx/CheckCash) al cobrar XRP, [EscrowFinish](/tx/EscrowFinish) y [PaymentChannelClaim](/tx/PaymentChannelClaim) hacia un destino borrado, y [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit) vía puente.
-- **Modificación**: [AccountSet](/tx/AccountSet) cambia flags, `Domain`, `EmailHash`, `TransferRate`, `TickSize`, `NFTokenMinter`; [SetRegularKey](/tx/SetRegularKey) fija `RegularKey`; [TicketCreate](/tx/TicketCreate) mueve `TicketCount`; [NFTokenMint](/tx/NFTokenMint) y [NFTokenBurn](/tx/NFTokenBurn) actualizan los contadores de NFT. Cualquier transacción que cree o borre un objeto propio ajusta `OwnerCount`.
-- **Borrado**: solo con [AccountDelete](/tx/AccountDelete), y solo si `Sequence + 256` es menor o igual que el ledger actual, `OwnerCount` es 0 (salvo objetos que se borran en cascada) y la cuenta no está vinculada a un AMM, Vault o LoanBroker. El XRP restante menos la comisión va al destino.
+- **Creation**: there is no "create account" transaction. It is created when a [Payment](/tx/Payment) in XRP delivers to a nonexistent address an amount equal to or greater than the base reserve (1 XRP on testnet). `Payment::doApply` builds the `AccountRoot` with `Sequence` equal to the index of the ledger in which it is born. It can also be created by [CheckCash](/tx/CheckCash) when cashing XRP, [EscrowFinish](/tx/EscrowFinish) and [PaymentChannelClaim](/tx/PaymentChannelClaim) toward a deleted destination, and [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit) via a bridge.
+- **Modification**: [AccountSet](/tx/AccountSet) changes flags, `Domain`, `EmailHash`, `TransferRate`, `TickSize`, `NFTokenMinter`; [SetRegularKey](/tx/SetRegularKey) sets `RegularKey`; [TicketCreate](/tx/TicketCreate) moves `TicketCount`; [NFTokenMint](/tx/NFTokenMint) and [NFTokenBurn](/tx/NFTokenBurn) update the NFT counters. Any transaction that creates or deletes an owned object adjusts `OwnerCount`.
+- **Deletion**: only with [AccountDelete](/tx/AccountDelete), and only if `Sequence + 256` is less than or equal to the current ledger, `OwnerCount` is 0 (except for objects that are deleted in cascade), and the account is not linked to an AMM, Vault, or LoanBroker. The remaining XRP minus the fee goes to the destination.
 
-## Campos clave
+## Key fields
 
-- **Balance** — XRP en drops. Nunca puede bajar de la reserva (`ReserveBase + OwnerCount × ReserveIncrement`) por una transacción que la cuenta emite, salvo la propia comisión.
-- **Sequence** — número de la próxima transacción que la cuenta puede enviar. Empieza en el índice del ledger de creación, no en 1.
-- **OwnerCount** — objetos que cuentan para la reserva. Es el multiplicador de la reserva incremental (0,2 XRP en testnet).
-- **AccountTxnID** — hash de la última transacción; solo existe si activaste `asfAccountTxnID` para encadenar envíos.
-- **RegularKey** — clave alternativa para firmar. Con `lsfDisableMaster` es la única forma de firmar sin [SignerList](/objects/SignerList).
-- **TransferRate** — comisión al transferir tokens emitidos, en milmillonésimas (1 000 000 000 = 0 %; 1 020 000 000 = 2 %).
-- **TickSize** — decimales significativos para las ofertas sobre tokens de este emisor (3-15).
-- **MintedNFTokens / BurnedNFTokens / FirstNFTokenSequence** — contadores del emisor de NFT; `NFTokenMinter` autoriza a otra cuenta a acuñar en su nombre.
-- **SponsoredOwnerCount / SponsoringOwnerCount / SponsoringAccountCount** — contabilidad de reservas patrocinadas por [Sponsorship](/objects/Sponsorship). Si la reserva la paga otro, tu `OwnerCount` sube pero también `SponsoredOwnerCount`, y la reserva efectiva descuenta esa parte.
-- **AMMID / VaultID / LoanBrokerID** — marcan que la cuenta es una pseudocuenta creada por el protocolo para un [AMM](/objects/AMM), un [Vault](/objects/Vault) o un [LoanBroker](/objects/LoanBroker). Nadie tiene sus claves.
+- **Balance** — XRP in drops. It can never drop below the reserve (`ReserveBase + OwnerCount × ReserveIncrement`) due to a transaction the account sends, except for the fee itself.
+- **Sequence** — the number of the next transaction the account can send. It starts at the ledger index of creation, not at 1.
+- **OwnerCount** — objects that count toward the reserve. It is the multiplier for the incremental reserve (0.2 XRP on testnet).
+- **AccountTxnID** — hash of the last transaction; it only exists if you enabled `asfAccountTxnID` to chain submissions.
+- **RegularKey** — alternate signing key. With `lsfDisableMaster`, it's the only way to sign without a [SignerList](/objects/SignerList).
+- **TransferRate** — fee charged when transferring issued tokens, in billionths (1,000,000,000 = 0%; 1,020,000,000 = 2%).
+- **TickSize** — significant decimal places for offers on this issuer's tokens (3-15).
+- **MintedNFTokens / BurnedNFTokens / FirstNFTokenSequence** — counters for the NFT issuer; `NFTokenMinter` authorizes another account to mint on its behalf.
+- **SponsoredOwnerCount / SponsoringOwnerCount / SponsoringAccountCount** — accounting for reserves sponsored via [Sponsorship](/objects/Sponsorship). If someone else pays the reserve, your `OwnerCount` goes up but so does `SponsoredOwnerCount`, and the effective reserve deducts that portion.
+- **AMMID / VaultID / LoanBrokerID** — mark that the account is a pseudo-account created by the protocol for an [AMM](/objects/AMM), a [Vault](/objects/Vault), or a [LoanBroker](/objects/LoanBroker). No one holds its keys.
 
 ## Flags
 
-- **lsfPasswordSpent** — la única transacción gratuita de la cuenta (histórica) ya se usó.
-- **lsfRequireDestTag** — rechaza pagos entrantes sin `DestinationTag`.
-- **lsfRequireAuth** — los que quieran tener tokens tuyos necesitan que autorices su línea de confianza.
-- **lsfDisallowXRP** — consejo para clientes: no envíes XRP aquí. El protocolo no lo impone.
-- **lsfDisableMaster** — la clave maestra ya no firma.
-- **lsfNoFreeze** — renuncia irrevocable a congelar líneas de confianza.
-- **lsfGlobalFreeze** — todos los tokens que emites quedan congelados.
-- **lsfDefaultRipple** — permite rippling por defecto en tus líneas de confianza (imprescindible para emisores).
-- **lsfDepositAuth** — solo reciben fondos quienes tengan [DepositPreauth](/objects/DepositPreauth) o credenciales válidas.
-- **lsfDisallowIncomingNFTokenOffer / Check / PayChan / Trustline** — rechaza en `preclaim` la creación de esos objetos con la cuenta como destino.
-- **lsfAllowTrustLineClawback** — habilita [Clawback](/tx/Clawback); incompatible con `lsfNoFreeze`.
-- **lsfAllowTrustLineLocking** — permite escrows de tokens emitidos por esta cuenta ([TokenEscrow](/amendments/TokenEscrow)).
+- **lsfPasswordSpent** — the account's single free transaction (historical) has already been used.
+- **lsfRequireDestTag** — rejects incoming payments without a `DestinationTag`.
+- **lsfRequireAuth** — anyone who wants to hold your tokens needs you to authorize their trust line.
+- **lsfDisallowXRP** — advisory for clients: don't send XRP here. The protocol does not enforce it.
+- **lsfDisableMaster** — the master key no longer signs.
+- **lsfNoFreeze** — an irrevocable renunciation of the ability to freeze trust lines.
+- **lsfGlobalFreeze** — all tokens you issue are frozen.
+- **lsfDefaultRipple** — enables rippling by default on your trust lines (essential for issuers).
+- **lsfDepositAuth** — only accounts with [DepositPreauth](/objects/DepositPreauth) or valid credentials can receive funds.
+- **lsfDisallowIncomingNFTokenOffer / Check / PayChan / Trustline** — rejects, at `preclaim`, the creation of those objects with the account as destination.
+- **lsfAllowTrustLineClawback** — enables [Clawback](/tx/Clawback); incompatible with `lsfNoFreeze`.
+- **lsfAllowTrustLineLocking** — allows escrows of tokens issued by this account ([TokenEscrow](/amendments/TokenEscrow)).
 
-## Cómo consultarlo
+## How to query it
 
-`account_info` es la vía normal. Con `ledger_entry` usa `account_root`:
+`account_info` is the normal way. With `ledger_entry`, use `account_root`:
 
 ```json
 { "method": "ledger_entry", "params": [{ "account_root": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "ledger_index": "validated" }] }
 ```
 
-La clave es `SHA512Half(0x0061 || AccountID)` (`keylet::account`). Respuesta típica:
+The key is `SHA512Half(0x0061 || AccountID)` (`keylet::account`). Typical response:
 
 ```json
 {
@@ -73,9 +73,9 @@ La clave es `SHA512Half(0x0061 || AccountID)` (`keylet::account`). Respuesta tí
 }
 ```
 
-`account_objects` no devuelve el `AccountRoot` (no es un objeto "poseído"), pero sí todo lo que cuelga de él.
+`account_objects` does not return the `AccountRoot` itself (it is not an "owned" object), but it does return everything that hangs off it.
 
-## Relacionado
+## Related
 
 - [Payment](/tx/Payment), [AccountSet](/tx/AccountSet), [SetRegularKey](/tx/SetRegularKey), [AccountDelete](/tx/AccountDelete)
 - [DirectoryNode](/objects/DirectoryNode), [SignerList](/objects/SignerList), [FeeSettings](/objects/FeeSettings)

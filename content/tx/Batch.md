@@ -1,83 +1,83 @@
 ---
 title: Batch
-summary: Empaqueta de 2 a 8 transacciones en una sola, con cuatro modos de atomicidad y firmas de varias cuentas.
+summary: Packages 2 to 8 transactions into one, with four atomicity modes and multi-account signatures.
 category: batch
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/batch
 xls: XLS-0056
 amendment: Batch
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-`Batch` es un "sobre" que contiene varias transacciones internas (`RawTransactions`) y define cómo se aplican en conjunto. La transacción externa la firma tu cuenta como siempre; las internas van sin firma, con `Fee: "0"` y el flag `tfInnerBatchTxn`. Si las internas pertenecen a otras cuentas, esas cuentas firman el lote entero mediante `BatchSigners`, de modo que dos partes pueden hacer un intercambio en el que nadie tiene que confiar en el otro.
+`Batch` is an "envelope" that contains several inner transactions (`RawTransactions`) and defines how they are applied together. The outer transaction is signed by your account as usual; the inner ones go unsigned, with `Fee: "0"` and the `tfInnerBatchTxn` flag. If the inner transactions belong to other accounts, those accounts sign the whole batch via `BatchSigners`, so that two parties can perform an exchange in which neither has to trust the other.
 
-Un flag obligatorio (exactamente uno) fija el modo:
+A mandatory flag (exactly one) sets the mode:
 
-- `tfAllOrNothing` (65536): o se aplican todas o ninguna.
-- `tfOnlyOne` (131072): se aplica la primera que tenga éxito y se para.
-- `tfUntilFailure` (262144): se aplican en orden hasta la primera que falle.
-- `tfIndependent` (524288): se intentan todas, cada una por su cuenta.
+- `tfAllOrNothing` (65536): either all are applied or none.
+- `tfOnlyOne` (131072): the first one that succeeds is applied, and it stops there.
+- `tfUntilFailure` (262144): they are applied in order until the first one fails.
+- `tfIndependent` (524288): all are attempted, each on its own.
 
-El lote en sí no crea objetos del ledger: los efectos son los de sus transacciones internas.
+The batch itself does not create any ledger objects: the effects are those of its inner transactions.
 
-## Cuándo usarlo
+## When to use it
 
-- Intercambios atómicos entre dos cuentas (por ejemplo, un NFT por XRP) sin intermediarios.
-- Crear una cuenta y configurarla en el mismo ledger: [Payment](/tx/Payment) de fondos + [TrustSet](/tx/TrustSet) + [AccountSet](/tx/AccountSet).
-- Varios pagos de nómina que deben llegar todos o ninguno.
-- Reintentos ordenados con `tfUntilFailure` o alternativas con `tfOnlyOne`.
+- Atomic exchanges between two accounts (for example, an NFT for XRP) without intermediaries.
+- Creating an account and configuring it in the same ledger: [Payment](/tx/Payment) of funds + [TrustSet](/tx/TrustSet) + [AccountSet](/tx/AccountSet).
+- Several payroll payments that must all land or none at all.
+- Ordered retries with `tfUntilFailure` or alternatives with `tfOnlyOne`.
 
-## Cómo funciona por dentro
+## How it works inside
 
-Antes de llegar al transactor, la propia deserialización (`STTx`) limita `RawTransactions` a `kMaxBatchTxCount` (8) y prohíbe anidar un `Batch` dentro de otro.
+Before reaching the transactor, deserialization itself (`STTx`) limits `RawTransactions` to `kMaxBatchTxCount` (8) and forbids nesting a `Batch` inside another.
 
-`Batch::preflight` valida el sobre y cada transacción interna:
+`Batch::preflight` validates the envelope and each inner transaction:
 
-- Debe haber exactamente uno de los cuatro flags de modo (`temINVALID_FLAG`, comprobado con `popcount`).
-- Al menos 2 transacciones internas (`temARRAY_EMPTY` si hay 0 o 1) y como máximo `kMaxBatchSigners` (24) entradas en `BatchSigners` (`temARRAY_TOO_LARGE`).
-- Cada interna: hash único (`temREDUNDANT`), tipo no prohibido (los de Vault y Lending están en `kDisabledTxTypes` y dan `temINVALID_INNER_BATCH`), flag `tfInnerBatchTxn` presente (`temINVALID_FLAG`), sin `TxnSignature` (`temBAD_SIGNATURE`), sin `Signers` (`temBAD_SIGNER`), `SigningPubKey` vacío (`temBAD_REGKEY`), `Fee` exactamente 0 XRP (`temBAD_FEE`), y debe pasar su propio `preflight` en modo `TapBatch` (si no, `temINVALID_INNER_BATCH`).
-- Cada interna lleva `Sequence` o `TicketSequence`, pero no ambos (`temSEQ_AND_TICKET`). En los modos `tfAllOrNothing` y `tfUntilFailure`, dos internas de la misma cuenta no pueden repetir secuencia o ticket (`temREDUNDANT`).
+- There must be exactly one of the four mode flags (`temINVALID_FLAG`, checked with `popcount`).
+- At least 2 inner transactions (`temARRAY_EMPTY` if there are 0 or 1) and at most `kMaxBatchSigners` (24) entries in `BatchSigners` (`temARRAY_TOO_LARGE`).
+- Each inner transaction: unique hash (`temREDUNDANT`), a type that isn't forbidden (Vault and Lending types are in `kDisabledTxTypes` and give `temINVALID_INNER_BATCH`), the `tfInnerBatchTxn` flag present (`temINVALID_FLAG`), no `TxnSignature` (`temBAD_SIGNATURE`), no `Signers` (`temBAD_SIGNER`), empty `SigningPubKey` (`temBAD_REGKEY`), `Fee` exactly 0 XRP (`temBAD_FEE`), and it must pass its own `preflight` in `TapBatch` mode (otherwise `temINVALID_INNER_BATCH`).
+- Each inner transaction carries `Sequence` or `TicketSequence`, but not both (`temSEQ_AND_TICKET`). In `tfAllOrNothing` and `tfUntilFailure` modes, two inner transactions from the same account cannot repeat a sequence or ticket (`temREDUNDANT`).
 
-`Batch::preflightSigValidated` calcula qué cuentas deben firmar el lote: el iniciador de cada interna (o su delegado) y, si existe, su `Counterparty` o `Sponsor`, excluyendo siempre la cuenta externa. `BatchSigners` debe contener exactamente esas cuentas, ordenadas de forma estrictamente ascendente y sin repetir; cualquier desviación es `temBAD_SIGNER`. Después `Batch::checkBatchSign` verifica la firma de cada `BatchSigner` (firma simple o multifirma anidada) sobre el conjunto de hashes internos.
+`Batch::preflightSigValidated` computes which accounts must sign the batch: the initiator of each inner transaction (or its delegate) and, if present, its `Counterparty` or `Sponsor`, always excluding the outer account. `BatchSigners` must contain exactly those accounts, sorted in strictly ascending order and without duplicates; any deviation is `temBAD_SIGNER`. Then `Batch::checkBatchSign` verifies the signature of each `BatchSigner` (single signature or nested multisign) over the set of inner hashes.
 
-La fee la calcula `Batch::calculateBaseFeeImpl`: fee base × 2 por el sobre, más la suma de las fees base de cada interna, más una fee base por cada firma de `BatchSigners` (contando las firmas anidadas de una multifirma). Con base de 10 drops, un lote de dos pagos de una sola cuenta cuesta 40 drops. `Batch::preclaim` solo responde `tecINSUFF_FEE` si ese cálculo desborda.
+The fee is computed by `Batch::calculateBaseFeeImpl`: base fee × 2 for the envelope, plus the sum of the base fees of each inner transaction, plus one base fee for each `BatchSigners` signature (counting the nested signatures of a multisign). With a base of 10 drops, a batch of two payments from a single account costs 40 drops. `Batch::preclaim` only returns `tecINSUFF_FEE` if that calculation overflows.
 
-`Batch::doApply` devuelve `tesSUCCESS` sin tocar nada: la lógica de aplicación vive en `applyBatchTransactions` (`src/libxrpl/tx/apply.cpp`). Solo si el sobre se aplica con `tesSUCCESS` se ejecutan las internas, una a una, cada una en una vista propia que se vuelca a la del lote si termina en `tes` o `tec`. Con `tfAllOrNothing`, el primer resultado distinto de `tesSUCCESS` (incluido un `tec`) descarta todo; con `tfUntilFailure` se para ahí pero se conserva lo anterior; con `tfOnlyOne` se para tras el primer `tesSUCCESS`; con `tfIndependent` se sigue siempre. Cada interna aparece en el ledger como una transacción propia con `ParentBatchID` apuntando al sobre.
+`Batch::doApply` returns `tesSUCCESS` without touching anything: the application logic lives in `applyBatchTransactions` (`src/libxrpl/tx/apply.cpp`). Only if the envelope applies with `tesSUCCESS` are the inner transactions executed, one by one, each in its own view that is merged into the batch's view if it ends in `tes` or `tec`. With `tfAllOrNothing`, the first result other than `tesSUCCESS` (including a `tec`) discards everything; with `tfUntilFailure` it stops there but keeps what came before; with `tfOnlyOne` it stops after the first `tesSUCCESS`; with `tfIndependent` it always continues. Each inner transaction appears on the ledger as its own transaction with `ParentBatchID` pointing to the envelope.
 
-Dos matices de amendments: el sobre no puede llevar `spfSponsorReserve` y las internas no pueden tener fee patrocinada (`temINVALID_FLAG`), y [BatchV1_1](/amendments/BatchV1_1) (no activo en testnet) introduce correcciones en el tratamiento de las transacciones internas (lo consulta, por ejemplo, `Payment::preclaim`). `Batch` no es delegable.
+Two amendment-related nuances: the envelope cannot carry `spfSponsorReserve` and the inner transactions cannot have a sponsored fee (`temINVALID_FLAG`), and [BatchV1_1](/amendments/BatchV1_1) (not active on testnet) introduces corrections in how inner transactions are handled (consulted, for example, by `Payment::preclaim`). `Batch` is not delegable.
 
-## Campos clave
+## Key fields
 
-- **RawTransactions** — array de objetos `RawTransaction`, cada uno una transacción completa con `Flags` incluyendo `tfInnerBatchTxn` (1073741824), `Fee: "0"`, `SigningPubKey: ""` y su propio `Sequence` (o `TicketSequence`). Las secuencias de tu cuenta empiezan en la del sobre + 1.
-- **BatchSigners** — solo si hay internas de otras cuentas: array de `BatchSigner` con `Account`, `SigningPubKey` y `TxnSignature` (o `Signers` para multifirma), ordenado por cuenta.
-- **Flags** — exactamente un modo de los cuatro.
+- **RawTransactions** — array of `RawTransaction` objects, each a complete transaction with `Flags` including `tfInnerBatchTxn` (1073741824), `Fee: "0"`, `SigningPubKey: ""` and its own `Sequence` (or `TicketSequence`). Sequences for your account start at the envelope's + 1.
+- **BatchSigners** — only if there are inner transactions from other accounts: array of `BatchSigner` with `Account`, `SigningPubKey` and `TxnSignature` (or `Signers` for multisign), sorted by account.
+- **Flags** — exactly one of the four modes.
 
-## Errores habituales
+## Common errors
 
-- **temINVALID_FLAG** — falta el flag de modo, hay más de uno, o una interna no lleva `tfInnerBatchTxn`.
-- **temARRAY_EMPTY** — menos de dos transacciones internas.
-- **temBAD_FEE** — alguna interna tiene `Fee` distinto de `"0"`.
-- **temBAD_REGKEY / temBAD_SIGNATURE** — una interna lleva `SigningPubKey` no vacío o `TxnSignature`.
-- **temSEQ_AND_TICKET** — una interna sin `Sequence` (o con 0) y sin `TicketSequence`, o con ambos.
-- **temREDUNDANT** — dos internas idénticas, o la misma `Sequence` repetida en modos atómicos.
-- **temBAD_SIGNER** — `BatchSigners` no coincide exactamente con las cuentas requeridas o está desordenado.
-- **temINVALID_INNER_BATCH** — una interna no pasa su propio `preflight` o es de un tipo prohibido.
+- **temINVALID_FLAG** — the mode flag is missing, there's more than one, or an inner transaction doesn't carry `tfInnerBatchTxn`.
+- **temARRAY_EMPTY** — fewer than two inner transactions.
+- **temBAD_FEE** — an inner transaction has a `Fee` other than `"0"`.
+- **temBAD_REGKEY / temBAD_SIGNATURE** — an inner transaction has a non-empty `SigningPubKey` or a `TxnSignature`.
+- **temSEQ_AND_TICKET** — an inner transaction without `Sequence` (or with 0) and without `TicketSequence`, or with both.
+- **temREDUNDANT** — two identical inner transactions, or the same `Sequence` repeated in atomic modes.
+- **temBAD_SIGNER** — `BatchSigners` doesn't exactly match the required accounts or is out of order.
+- **temINVALID_INNER_BATCH** — an inner transaction fails its own `preflight` or is of a forbidden type.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "Batch",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "Flags": 65536,
   "RawTransactions": [
     {
       "RawTransaction": {
         "TransactionType": "Payment",
         "Flags": 1073741824,
-        "Account": "rXXXX_TU_CUENTA",
-        "Destination": "rYYYY_OTRA_CUENTA",
+        "Account": "rXXXX_YOUR_ACCOUNT",
+        "Destination": "rYYYY_OTHER_ACCOUNT",
         "Amount": "1000000",
         "Sequence": 12346,
         "Fee": "0",
@@ -88,7 +88,7 @@ Dos matices de amendments: el sobre no puede llevar `spfSponsorReserve` y las in
       "RawTransaction": {
         "TransactionType": "Payment",
         "Flags": 1073741824,
-        "Account": "rXXXX_TU_CUENTA",
+        "Account": "rXXXX_YOUR_ACCOUNT",
         "Destination": "rZZZZ_EMISOR",
         "Amount": "1000000",
         "Sequence": 12347,
@@ -100,19 +100,19 @@ Dos matices de amendments: el sobre no puede llevar `spfSponsorReserve` y las in
 }
 ```
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Consulta `account_info` y anota tu `Sequence` (llámalo S). El builder rellena el sobre con S y las internas con S+1 y S+2.
-2. Envía el ejemplo con `Flags: 65536` (`tfAllOrNothing`). Observa que la fee calculada es 40 drops: 20 por el sobre y 10 por cada pago interno.
-3. Busca el sobre con `tx`: su metadata solo refleja el cobro de la fee y el avance de `Sequence`. Busca cada interna por su propio hash (o consulta `account_tx`): verás las dos como transacciones separadas con `ParentBatchID`.
-4. Consulta `account_info` de los dos destinos: cada uno ha recibido 1 XRP.
-5. Repite el lote cambiando el segundo `Amount` por una cifra superior a tu saldo. Con `tfAllOrNothing` ninguno de los dos pagos se aplica (el sobre sigue en `tesSUCCESS` y cobra su fee). Cambia a `tfUntilFailure` (262144): el primero sí se aplica y el segundo no.
-6. Quita el flag de modo o pon `Fee: "10"` en una interna para ver `temINVALID_FLAG` y `temBAD_FEE` antes de llegar al ledger.
+1. Query `account_info` and note your `Sequence` (call it S). The builder fills the envelope with S and the inner transactions with S+1 and S+2.
+2. Send the example with `Flags: 65536` (`tfAllOrNothing`). Notice that the computed fee is 40 drops: 20 for the envelope and 10 for each inner payment.
+3. Look up the envelope with `tx`: its metadata only reflects the fee charge and the `Sequence` advance. Look up each inner transaction by its own hash (or query `account_tx`): you'll see the two as separate transactions with `ParentBatchID`.
+4. Query `account_info` for both destinations: each has received 1 XRP.
+5. Repeat the batch changing the second `Amount` to a figure higher than your balance. With `tfAllOrNothing` neither payment applies (the envelope still ends in `tesSUCCESS` and charges its fee). Switch to `tfUntilFailure` (262144): the first one does apply and the second one doesn't.
+6. Remove the mode flag or set `Fee: "10"` on an inner transaction to see `temINVALID_FLAG` and `temBAD_FEE` before it reaches the ledger.
 
-## Relacionado
+## Related
 
-- [Payment](/tx/Payment), [TrustSet](/tx/TrustSet), [AccountSet](/tx/AccountSet) — internas habituales.
-- [TicketCreate](/tx/TicketCreate) — las internas pueden usar `TicketSequence`.
-- [SignerListSet](/tx/SignerListSet) — un `BatchSigner` puede ser una multifirma.
-- [BatchV1_1](/amendments/BatchV1_1) — correcciones pendientes de activar en testnet.
-- [DelegateSet](/tx/DelegateSet) — una interna delegada la firma el delegado en `BatchSigners`.
+- [Payment](/tx/Payment), [TrustSet](/tx/TrustSet), [AccountSet](/tx/AccountSet) — common inner transactions.
+- [TicketCreate](/tx/TicketCreate) — inner transactions can use `TicketSequence`.
+- [SignerListSet](/tx/SignerListSet) — a `BatchSigner` can be a multisign.
+- [BatchV1_1](/amendments/BatchV1_1) — pending corrections not yet active on testnet.
+- [DelegateSet](/tx/DelegateSet) — a delegated inner transaction is signed by the delegate in `BatchSigners`.

@@ -1,49 +1,49 @@
 ---
 title: LoanBroker
-summary: Un gestor de préstamos que pide capital prestado de un Vault y lo coloca en préstamos individuales a prestatarios.
+summary: A loan manager that borrows capital from a Vault and places it into individual loans to borrowers.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/loanbroker
 createdBy: LoanBrokerSet
 modifiedBy: LoanBrokerSet, LoanBrokerCoverDeposit, LoanBrokerCoverWithdraw, LoanBrokerCoverClawback, LoanSet, LoanDelete
 reserve: 2
 ---
 
-## Qué representa
+## What it represents
 
-Un `LoanBroker` es el intermediario entre un [Vault](/objects/Vault) (que agrupa el capital de los depositantes) y los prestatarios individuales. El broker toma prestado del vault hasta `DebtMaximum`, y por cada préstamo que concede aparece un [Loan](/objects/Loan) enlazado a él. El broker también mantiene su propio "cover": una reserva de capital propio (`CoverAvailable`) que absorbe primero las pérdidas por impago, antes de que estas lleguen a golpear a los depositantes del vault. `CoverRateMinimum` y `CoverRateLiquidation` marcan los umbrales de esa cobertura frente a `DebtTotal`.
+A `LoanBroker` is the intermediary between a [Vault](/objects/Vault) (which pools depositors' capital) and individual borrowers. The broker borrows from the vault up to `DebtMaximum`, and for each loan it grants a [Loan](/objects/Loan) linked to it appears. The broker also maintains its own "cover": a reserve of its own capital (`CoverAvailable`) that absorbs default losses first, before they reach the vault's depositors. `CoverRateMinimum` and `CoverRateLiquidation` mark the thresholds of that coverage relative to `DebtTotal`.
 
-Es la pieza central del sistema de préstamos: agrupa políticas comunes a todos sus préstamos (comisiones, tipos de interés) para no tener que repetirlas en cada `Loan`.
+It is the central piece of the lending system: it groups policies common to all its loans (fees, interest rates) so they don't have to be repeated in every `Loan`.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [LoanBrokerSet](/tx/LoanBrokerSet) sin `LoanBrokerID` previo. Se ancla a un `VaultID` existente y fija las comisiones (`ManagementFeeRate`) y umbrales de cobertura.
-- **Actualización**: el mismo [LoanBrokerSet](/tx/LoanBrokerSet), pasando el `LoanBrokerID`, para ajustar parámetros que no afecten a préstamos ya abiertos.
-- **Cobertura**: [LoanBrokerCoverDeposit](/tx/LoanBrokerCoverDeposit) añade capital propio a `CoverAvailable`; [LoanBrokerCoverWithdraw](/tx/LoanBrokerCoverWithdraw) lo retira si sobra por encima del mínimo; [LoanBrokerCoverClawback](/tx/LoanBrokerCoverClawback) lo consume para cubrir un impago.
-- **Préstamos**: cada [LoanSet](/tx/LoanSet) que use este broker incrementa `DebtTotal` y `OwnerCount`; cada [LoanDelete](/tx/LoanDelete) los reduce.
-- **Borrado**: [LoanBrokerDelete](/tx/LoanBrokerDelete), solo si no le queda ningún `Loan` abierto ni deuda con el vault.
+- **Creation**: [LoanBrokerSet](/tx/LoanBrokerSet) without a prior `LoanBrokerID`. It is anchored to an existing `VaultID` and sets the fees (`ManagementFeeRate`) and coverage thresholds.
+- **Update**: the same [LoanBrokerSet](/tx/LoanBrokerSet), passing the `LoanBrokerID`, to adjust parameters that do not affect already-open loans.
+- **Coverage**: [LoanBrokerCoverDeposit](/tx/LoanBrokerCoverDeposit) adds the broker's own capital to `CoverAvailable`; [LoanBrokerCoverWithdraw](/tx/LoanBrokerCoverWithdraw) withdraws it if there is a surplus above the minimum; [LoanBrokerCoverClawback](/tx/LoanBrokerCoverClawback) consumes it to cover a default.
+- **Loans**: every [LoanSet](/tx/LoanSet) that uses this broker increases `DebtTotal` and `OwnerCount`; every [LoanDelete](/tx/LoanDelete) reduces them.
+- **Deletion**: [LoanBrokerDelete](/tx/LoanBrokerDelete), only if it has no open `Loan` left and no debt to the vault.
 
-## Campos clave
+## Key fields
 
-- **VaultID / VaultNode** — el vault del que el broker toma prestado el capital, y su enlace de directorio.
-- **Owner / Account** — el dueño del broker, quien paga la reserva y recibe la comisión de gestión.
-- **LoanSequence** — contador interno para numerar los `Loan` que cuelgan de este broker (junto con `LoanBrokerID` forma la clave de cada préstamo).
-- **DebtTotal / DebtMaximum** — deuda actual del broker con el vault y el tope que puede alcanzar.
-- **CoverAvailable / CoverRateMinimum / CoverRateLiquidation** — capital propio de respaldo y los umbrales que disparan avisos o liquidación si `CoverAvailable` cae demasiado respecto a `DebtTotal`.
-- **ManagementFeeRate** — comisión que cobra el broker sobre los pagos de los préstamos, antes de que el resto vaya al vault.
-- **Data** — bytes libres para metadatos del broker (nombre, URI, etc., según convención de la aplicación).
+- **VaultID / VaultNode** — the vault the broker borrows capital from, and its directory link.
+- **Owner / Account** — the broker's owner, who pays the reserve and receives the management fee.
+- **LoanSequence** — internal counter used to number the `Loan`s that belong to this broker (together with `LoanBrokerID` it forms each loan's key).
+- **DebtTotal / DebtMaximum** — the broker's current debt to the vault and the cap it can reach.
+- **CoverAvailable / CoverRateMinimum / CoverRateLiquidation** — the broker's own backing capital and the thresholds that trigger warnings or liquidation if `CoverAvailable` falls too low relative to `DebtTotal`.
+- **ManagementFeeRate** — the fee the broker charges on loan payments, before the remainder goes to the vault.
+- **Data** — free-form bytes for broker metadata (name, URI, etc., per application convention).
 
 ## Flags
 
-No tiene flags `lsf*` propios.
+It has no `lsf*` flags of its own.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "loan_broker"` lo devuelve para su `Owner`. Con `ledger_entry`, `loan_broker` acepta `owner` y `seq` (la `Sequence` de la `LoanBrokerSet` que lo creó):
+`account_objects` with `type: "loan_broker"` returns it for its `Owner`. With `ledger_entry`, `loan_broker` accepts `owner` and `seq` (the `Sequence` of the `LoanBrokerSet` that created it):
 
 ```json
 { "method": "ledger_entry", "params": [{ "loan_broker": { "owner": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "seq": 20790200 }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x006C || AccountID_owner || Sequence)` (`keylet::loanBroker`, namespace `'l'`). Respuesta típica:
+The index is `SHA512Half(0x006C || AccountID_owner || Sequence)` (`keylet::loanBroker`, namespace `'l'`). Typical response:
 
 ```json
 {
@@ -63,11 +63,11 @@ El índice es `SHA512Half(0x006C || AccountID_owner || Sequence)` (`keylet::loan
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 2 unidades de reserva de propietario (0,4 XRP en testnet) al crearse.
+Consumes 2 units of owner reserve (0.4 XRP on testnet) when created.
 
-## Relacionado
+## Related
 
 - [LoanBrokerSet](/tx/LoanBrokerSet), [LoanBrokerDelete](/tx/LoanBrokerDelete), [LoanBrokerCoverDeposit](/tx/LoanBrokerCoverDeposit), [LoanBrokerCoverWithdraw](/tx/LoanBrokerCoverWithdraw), [LoanBrokerCoverClawback](/tx/LoanBrokerCoverClawback)
 - [Vault](/objects/Vault), [Loan](/objects/Loan)

@@ -1,23 +1,23 @@
 ---
 title: DynamicNFT
-summary: Permite marcar un NFToken como mutable en el momento de acuñarlo y actualizar después su URI con una nueva transacción.
+summary: Allows marking an NFToken as mutable at the moment it is minted and later updating its URI with a new transaction.
 xls: XLS-0046
 xlsUrl: https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0046-dynamic-NFT
 xrplDocs: https://xrpl.org/resources/known-amendments#dynamicnft
 ---
 
-## Qué cambia
+## What changes
 
-Antes de este amendment, la `URI` de un NFToken quedaba fijada para siempre en el momento de acuñarlo. DynamicNFT añade el flag `tfMutable` a [NFTokenMint](/tx/NFTokenMint): cuando lo activas, `NFTokenMint::getFlagsMask` amplía la máscara de flags permitidos (`tfNFTokenMintMask` en vez de la máscara sin mutable) y el token nace con `nft::kFlagMutable` (`0x0010`) puesto en el identificador del NFT.
+Before this amendment, the `URI` of an NFToken was fixed forever at the moment it was minted. DynamicNFT adds the `tfMutable` flag to [NFTokenMint](/tx/NFTokenMint): when you enable it, `NFTokenMint::getFlagsMask` extends the allowed flag mask (`tfNFTokenMintMask` instead of the mask without mutable) and the token is born with `nft::kFlagMutable` (`0x0010`) set in the NFT identifier.
 
-Solo los tokens acuñados con ese flag pueden actualizarse después con la nueva transacción [NFTokenModify](/tx/NFTokenModify), que también introduce este amendment. En `preclaim`, `NFTokenModify` comprueba que el flag `kFlagMutable` esté presente en el `NFTokenID` (si no, falla con `tecNO_PERMISSION`) y que quien firma sea el emisor o el `NFTokenMinter` autorizado por el emisor; el propietario actual del NFT no tiene por qué ser quien lo modifica. La transacción reemplaza el campo `URI` almacenado en el `NFTokenPage` correspondiente sin tocar ningún otro dato del token.
+Only tokens minted with that flag can later be updated with the new [NFTokenModify](/tx/NFTokenModify) transaction, which this amendment also introduces. In `preclaim`, `NFTokenModify` checks that the `kFlagMutable` flag is present in the `NFTokenID` (otherwise it fails with `tecNO_PERMISSION`) and that the signer is the issuer or the `NFTokenMinter` authorized by the issuer; the current owner of the NFT does not necessarily need to be the one modifying it. The transaction replaces the `URI` field stored in the corresponding `NFTokenPage` without touching any other data of the token.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [NFTokenMint](/tx/NFTokenMint): nuevo flag `tfMutable` en la máscara de flags permitidos.
-- Nueva: [NFTokenModify](/tx/NFTokenModify), delegable, que actualiza la `URI`.
-- Objeto [NFToken](/objects/NFToken) (dentro de [NFTokenPage](/objects/NFTokenPage)): el identificador codifica el flag de mutabilidad y la `URI` deja de ser inmutable para los tokens que lo llevan.
+- [NFTokenMint](/tx/NFTokenMint): new `tfMutable` flag in the allowed flag mask.
+- New: [NFTokenModify](/tx/NFTokenModify), delegable, which updates the `URI`.
+- Object [NFToken](/objects/NFToken) (inside [NFTokenPage](/objects/NFTokenPage)): the identifier encodes the mutability flag, and the `URI` stops being immutable for tokens that carry it.
 
-## Estado y contexto
+## Status and context
 
-Los NFT de la XRPL representan a menudo activos cuyos metadatos cambian con el tiempo: el estado de un coleccionable evolutivo, un certificado que se actualiza, un ticket que pasa de "válido" a "usado". Sin este amendment, cualquier cambio de metadatos obligaba a quemar el NFT y acuñar uno nuevo, rompiendo su identidad y su historial. DynamicNFT resuelve esto de forma explícita y opcional: la mutabilidad se declara al acuñar, así que un comprador siempre sabe si el token que adquiere puede cambiar de contenido más adelante.
+NFTs on the XRPL often represent assets whose metadata changes over time: the state of an evolving collectible, a certificate that gets updated, a ticket that goes from "valid" to "used". Without this amendment, any metadata change required burning the NFT and minting a new one, breaking its identity and history. DynamicNFT solves this explicitly and optionally: mutability is declared at mint time, so a buyer always knows whether the token they are acquiring can change its content later.

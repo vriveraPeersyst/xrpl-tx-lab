@@ -1,23 +1,23 @@
 ---
 title: CheckCashMakesTrustLine
-summary: CheckCash crea automáticamente la trust line necesaria al cobrar un cheque de un token emitido, sin TrustSet previo.
+summary: CheckCash automatically creates the trust line needed to cash a check for an issued token, without a prior TrustSet.
 xrplDocs: https://xrpl.org/resources/known-amendments#checkcashmakestrustline
 introducedIn: 1.8.0
 ---
 
-## Qué cambia
+## What changes
 
-Cuando cobras un [Check](/objects/Check) de un token emitido y todavía no tienes una trust line con el emisor, `CheckCash` la crea por ti con límite 0, igual que hace `OfferCreate` cuando compras un token en el DEX. Antes, el cobro fallaba con `tecNO_LINE` y tenías que enviar un `TrustSet` aparte.
+When you cash a [Check](/objects/Check) for an issued token and you don't yet have a trust line with the issuer, `CheckCash` creates one for you with a limit of 0, just as `OfferCreate` does when you buy a token on the DEX. Previously, cashing the check failed with `tecNO_LINE` and you had to send a separate `TrustSet`.
 
-La trust line automática cuenta como objeto propio del destinatario, así que debes cubrir el owner reserve adicional; si no, `CheckCash` falla con `tecNO_LINE_INSUF_RESERVE`. Los cheques en XRP no se ven afectados.
+The automatic trust line counts as an object owned by the recipient, so you must cover the additional owner reserve; otherwise `CheckCash` fails with `tecNO_LINE_INSUF_RESERVE`. Checks in XRP are not affected.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Modificada: [CheckCash](/tx/CheckCash).
-- Objetos: puede crear una [RippleState](/objects/RippleState) al liquidar un [Check](/objects/Check).
+- Modified: [CheckCash](/tx/CheckCash).
+- Objects: can create a [RippleState](/objects/RippleState) when settling a [Check](/objects/Check).
 
-## Estado y contexto
+## Status and context
 
-Los cheques se pensaron como una forma de "pago diferido" en la que el receptor decide cuándo cobrar. Obligar a preparar una trust line antes de cobrar rompía esa idea, sobre todo para usuarios que reciben un token por primera vez. Este cambio alinea `CheckCash` con el comportamiento del DEX: aceptar un activo implica consentimiento para tener la línea. Sigue sin ser posible forzar a nadie a recibir un token que no quiere, porque el cobro lo inicia siempre el destinatario.
+Checks were designed as a form of "deferred payment" in which the recipient decides when to cash it. Requiring a trust line to be set up before cashing it broke that idea, especially for users receiving a token for the first time. This change aligns `CheckCash` with DEX behavior: accepting an asset implies consent to hold the line. It remains impossible to force anyone to receive a token they don't want, because cashing is always initiated by the recipient.
 
-Este amendment está retirado en rippled: su comportamiento forma parte del protocolo base y ya no se puede desactivar.
+This amendment is retired in rippled: its behavior is part of the base protocol and can no longer be disabled.

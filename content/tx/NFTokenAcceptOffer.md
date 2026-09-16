@@ -1,107 +1,107 @@
 ---
 title: NFTokenAcceptOffer
-summary: Ejecuta una oferta de NFT: acepta una venta, acepta una compra, o casa una compra con una venta como intermediario cobrando comisión.
+summary: Executes an NFT offer: accepts a sale, accepts a purchase, or matches a purchase with a sale as a broker collecting a fee.
 category: nft
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/nftokenacceptoffer
 xls: XLS-0020
 amendment: NonFungibleTokensV1_1
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`NFTokenAcceptOffer` consume uno o dos objetos [NFTokenOffer](/objects/NFTokenOffer), mueve el pago y transfiere el token de la [NFTokenPage](/objects/NFTokenPage) del vendedor a la del comprador. Tiene tres modos:
+`NFTokenAcceptOffer` consumes one or two [NFTokenOffer](/objects/NFTokenOffer) objects, moves the payment, and transfers the token from the seller's [NFTokenPage](/objects/NFTokenPage) to the buyer's. It has three modes:
 
-- **Aceptar una venta** (`NFTokenSellOffer`): tú eres el comprador; pagas el `Amount` de la oferta y recibes el NFT.
-- **Aceptar una compra** (`NFTokenBuyOffer`): tú posees el NFT; recibes el `Amount` del ofertante y le entregas el token.
-- **Modo intermediario** (ambos campos): tú no eres ni comprador ni vendedor. Casas una compra con una venta del mismo token, y puedes quedarte la diferencia (o parte) con `NFTokenBrokerFee`.
+- **Accept a sale** (`NFTokenSellOffer`): you are the buyer; you pay the offer's `Amount` and receive the NFT.
+- **Accept a purchase** (`NFTokenBuyOffer`): you own the NFT; you receive the bidder's `Amount` and hand over the token.
+- **Broker mode** (both fields): you are neither buyer nor seller. You match a purchase with a sale of the same token, and you can keep the difference (or part of it) via `NFTokenBrokerFee`.
 
-Si el NFT tiene `TransferFee`, el emisor cobra automáticamente su porcentaje del importe, salvo que él mismo sea el comprador o el vendedor.
+If the NFT has a `TransferFee`, the issuer automatically collects their percentage of the amount, unless they are themselves the buyer or seller.
 
-## Cuándo usarlo
+## When to use it
 
-- Comprar un NFT que está a la venta.
-- Aceptar la puja de otra cuenta por tu NFT.
-- Operar un marketplace: los usuarios publican ofertas y tu cuenta las casa cobrando comisión.
+- Buying an NFT that's for sale.
+- Accepting another account's bid on your NFT.
+- Running a marketplace: users post offers and your account matches them while collecting a fee.
 
-## Cómo funciona por dentro
+## How it works inside
 
 **`NFTokenAcceptOffer::preflight`**:
-- Sin `NFTokenBuyOffer` ni `NFTokenSellOffer` → `temMALFORMED`.
-- `NFTokenBrokerFee` exige que estén los dos campos y que sea mayor que 0; si no → `temMALFORMED`.
+- Neither `NFTokenBuyOffer` nor `NFTokenSellOffer` present → `temMALFORMED`.
+- `NFTokenBrokerFee` requires both fields to be present and to be greater than 0; if not → `temMALFORMED`.
 
-**`NFTokenAcceptOffer::preclaim`** carga cada oferta (`tecOBJECT_NOT_FOUND` si el ID es cero o no existe; `temBAD_OFFER` si su `Amount` es negativo). Con [fixCleanup3_1_3](/amendments/fixCleanup3_1_3) activo (sí en testnet), una oferta caducada no se rechaza aquí: se borra en `doApply` y la tx termina en `tecEXPIRED`. Luego:
+**`NFTokenAcceptOffer::preclaim`** loads each offer (`tecOBJECT_NOT_FOUND` if the ID is zero or doesn't exist; `temBAD_OFFER` if its `Amount` is negative). With [fixCleanup3_1_3](/amendments/fixCleanup3_1_3) active (yes on testnet), an expired offer is not rejected here: it's deleted in `doApply` and the tx ends in `tecEXPIRED`. Then:
 
-En modo intermediario:
-- Ambas ofertas deben referirse al mismo `NFTokenID` y a la misma moneda → `tecNFTOKEN_BUY_SELL_MISMATCH`.
-- Comprador y vendedor no pueden ser la misma cuenta → `tecCANT_ACCEPT_OWN_NFTOKEN_OFFER`.
-- El precio de venta no puede superar la puja → `tecINSUFFICIENT_PAYMENT`.
-- Si cualquiera de las ofertas tiene `Destination`, debe ser tu cuenta → `tecNO_PERMISSION`.
-- `NFTokenBrokerFee` debe estar en la misma moneda, ser menor que la puja, y la puja menos la comisión debe cubrir el precio de venta → `tecINSUFFICIENT_PAYMENT`.
+In broker mode:
+- Both offers must refer to the same `NFTokenID` and the same currency → `tecNFTOKEN_BUY_SELL_MISMATCH`.
+- Buyer and seller can't be the same account → `tecCANT_ACCEPT_OWN_NFTOKEN_OFFER`.
+- The sale price can't exceed the bid → `tecINSUFFICIENT_PAYMENT`.
+- If either offer has a `Destination`, it must be your account → `tecNO_PERMISSION`.
+- `NFTokenBrokerFee` must be in the same currency, be less than the bid, and the bid minus the fee must cover the sale price → `tecINSUFFICIENT_PAYMENT`.
 
-Para la oferta de compra: debe tener `lsfSellNFToken` apagado (`tecNFTOKEN_OFFER_TYPE_MISMATCH`), no ser tuya, y si no hay venta, el token debe estar en tus páginas y el `Destination` (si lo hay) ser tú (`tecNO_PERMISSION`). El ofertante debe tener fondos por el `Amount` completo → `tecINSUFFICIENT_FUNDS`.
+For the buy offer: it must have `lsfSellNFToken` off (`tecNFTOKEN_OFFER_TYPE_MISMATCH`), not be yours, and if there's no sale offer, the token must be in your pages and the `Destination` (if any) must be you (`tecNO_PERMISSION`). The bidder must have funds for the full `Amount` → `tecINSUFFICIENT_FUNDS`.
 
-Para la oferta de venta: debe tener `lsfSellNFToken` (`tecNFTOKEN_OFFER_TYPE_MISMATCH`), no ser tuya, y el vendedor debe seguir teniendo el token (`tecNO_PERMISSION`). Si no hay compra, tú debes tener fondos por el `Amount` → `tecINSUFFICIENT_FUNDS`.
+For the sell offer: it must have `lsfSellNFToken` (`tecNFTOKEN_OFFER_TYPE_MISMATCH`), not be yours, and the seller must still own the token (`tecNO_PERMISSION`). If there's no buy offer, you must have funds for the `Amount` → `tecINSUFFICIENT_FUNDS`.
 
-Con [fixEnforceNFTokenTrustlineV2](/amendments/fixEnforceNFTokenTrustlineV2) (activo en testnet), si el pago es en token emitido: comprador, vendedor y, si hay `TransferFee`, el emisor del NFT necesitan trust lines autorizadas cuando el emisor de la moneda exige `RequireAuth` (`tecNO_LINE`, `tecNO_AUTH`), y ninguna puede estar en deep freeze (`tecFROZEN`).
+With [fixEnforceNFTokenTrustlineV2](/amendments/fixEnforceNFTokenTrustlineV2) active (yes on testnet), if the payment is in an issued token: buyer, seller, and, if there's a `TransferFee`, the NFT's issuer need authorized trust lines when the currency issuer requires `RequireAuth` (`tecNO_LINE`, `tecNO_AUTH`), and none of them can be in deep freeze (`tecFROZEN`).
 
 **`NFTokenAcceptOffer::doApply`**:
-1. Borra las ofertas caducadas (→ `tecEXPIRED`) y después las ofertas aceptadas, liberando la reserva de sus dueños.
-2. En modo intermediario paga primero `NFTokenBrokerFee` del comprador a tu cuenta, luego el `TransferFee` del comprador al emisor sobre el resto, y por último el remanente al vendedor.
-3. En los otros modos (`acceptOffer`) paga el `TransferFee` al emisor y el resto al vendedor. Con `Amount` 0 no hay pago.
-4. `transferNFToken` quita el token de las páginas del vendedor y lo inserta en las del comprador. Si el comprador necesita una página nueva y no cubre la reserva → `tecINSUFFICIENT_RESERVE`.
+1. Deletes expired offers (→ `tecEXPIRED`) and then the accepted offers, releasing their owners' reserve.
+2. In broker mode, first pays `NFTokenBrokerFee` from the buyer to your account, then the buyer's `TransferFee` to the issuer on the remainder, and finally the remaining amount to the seller.
+3. In the other modes (`acceptOffer`) it pays the `TransferFee` to the issuer and the rest to the seller. With `Amount` 0 there's no payment.
+4. `transferNFToken` removes the token from the seller's pages and inserts it into the buyer's. If the buyer needs a new page and can't cover the reserve → `tecINSUFFICIENT_RESERVE`.
 
-Cada pago (`pay`) usa `accountSend` y comprueba que ni origen ni destino queden con saldo negativo (`tecINSUFFICIENT_FUNDS`).
+Each payment (`pay`) uses `accountSend` and checks that neither the source nor destination ends up with a negative balance (`tecINSUFFICIENT_FUNDS`).
 
-## Campos clave
+## Key fields
 
-- **NFTokenSellOffer** — `LedgerIndex` de la oferta de venta (de `nft_sell_offers`).
-- **NFTokenBuyOffer** — `LedgerIndex` de la oferta de compra (de `nft_buy_offers`).
-- **NFTokenBrokerFee** — solo en modo intermediario. Se descuenta de la puja antes de calcular el `TransferFee` del emisor. Importe en la misma moneda que las ofertas.
+- **NFTokenSellOffer** — `LedgerIndex` of the sell offer (from `nft_sell_offers`).
+- **NFTokenBuyOffer** — `LedgerIndex` of the buy offer (from `nft_buy_offers`).
+- **NFTokenBrokerFee** — only in broker mode. It's deducted from the bid before calculating the issuer's `TransferFee`. Amount in the same currency as the offers.
 
-## Errores habituales
+## Common errors
 
-- **tecOBJECT_NOT_FOUND** — el ID de la oferta no existe o ya fue consumido o cancelado.
-- **tecNFTOKEN_OFFER_TYPE_MISMATCH** — has puesto una oferta de venta en `NFTokenBuyOffer` o viceversa.
-- **tecCANT_ACCEPT_OWN_NFTOKEN_OFFER** — intentas aceptar tu propia oferta.
-- **tecINSUFFICIENT_FUNDS** — quien paga no tiene saldo suficiente (en compras, el ofertante; en ventas, tú).
-- **tecINSUFFICIENT_PAYMENT** — en modo intermediario, la puja no cubre el precio más la comisión.
-- **tecNO_PERMISSION** — la oferta tiene un `Destination` que no eres tú, o el vendedor ya no tiene el token.
-- **tecEXPIRED** — la oferta caducó; la tx la borra y cobra fee.
-- **tecNFTOKEN_BUY_SELL_MISMATCH** — las dos ofertas no hablan del mismo token o de la misma moneda.
+- **tecOBJECT_NOT_FOUND** — the offer ID doesn't exist or has already been consumed or canceled.
+- **tecNFTOKEN_OFFER_TYPE_MISMATCH** — you put a sell offer in `NFTokenBuyOffer` or vice versa.
+- **tecCANT_ACCEPT_OWN_NFTOKEN_OFFER** — you're trying to accept your own offer.
+- **tecINSUFFICIENT_FUNDS** — whoever pays doesn't have enough balance (in purchases, the bidder; in sales, you).
+- **tecINSUFFICIENT_PAYMENT** — in broker mode, the bid doesn't cover the price plus the fee.
+- **tecNO_PERMISSION** — the offer has a `Destination` that isn't you, or the seller no longer holds the token.
+- **tecEXPIRED** — the offer expired; the tx deletes it and charges a fee.
+- **tecNFTOKEN_BUY_SELL_MISMATCH** — the two offers don't refer to the same token or the same currency.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "NFTokenAcceptOffer",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "NFTokenSellOffer": "0000000000000000000000000000000000000000000000000000000000000000"
 }
 ```
 
-Modo intermediario:
+Broker mode:
 
 ```json
 {
   "TransactionType": "NFTokenAcceptOffer",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "NFTokenSellOffer": "…",
   "NFTokenBuyOffer": "…",
   "NFTokenBrokerFee": "100000"
 }
 ```
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Desde la otra cuenta de demostración, acuña un NFT (`Flags: 8`) y crea una oferta de venta por `"1000000"` con [NFTokenCreateOffer](/tx/NFTokenCreateOffer).
-2. Consulta `nft_sell_offers` con el `NFTokenID` y copia el `nft_offer_index`.
-3. Con tu cuenta, carga el ejemplo, pega el índice en `NFTokenSellOffer` y envía.
-4. `account_nfts` de tu cuenta muestra ahora el token; `account_info` de la otra cuenta ha ganado 1 XRP menos su fee y ha recuperado la reserva de la oferta.
-5. Acuña otro NFT con `TransferFee: 5000` (5 %), véndelo entre dos cuentas que no sean el emisor y comprueba en los `AffectedNodes` cómo el emisor recibe el 5 %.
-6. Para ver `tecEXPIRED`, crea una oferta con `Expiration` a un minuto vista, espera y acéptala: la tx cobra fee, borra la oferta y no transfiere nada.
+1. From the other demo account, mint an NFT (`Flags: 8`) and create a sell offer for `"1000000"` with [NFTokenCreateOffer](/tx/NFTokenCreateOffer).
+2. Query `nft_sell_offers` with the `NFTokenID` and copy the `nft_offer_index`.
+3. With your account, load the example, paste the index into `NFTokenSellOffer`, and submit.
+4. `account_nfts` for your account now shows the token; `account_info` for the other account has lost 1 XRP minus its fee and recovered the offer's reserve.
+5. Mint another NFT with `TransferFee: 5000` (5%), sell it between two accounts that aren't the issuer, and check the `AffectedNodes` to see how the issuer receives the 5%.
+6. To see `tecEXPIRED`, create an offer with `Expiration` set a minute out, wait, and accept it: the tx charges a fee, deletes the offer, and transfers nothing.
 
-## Relacionado
+## Related
 
 - [NFTokenCreateOffer](/tx/NFTokenCreateOffer), [NFTokenCancelOffer](/tx/NFTokenCancelOffer), [NFTokenMint](/tx/NFTokenMint)
 - [NFTokenOffer](/objects/NFTokenOffer), [NFTokenPage](/objects/NFTokenPage)

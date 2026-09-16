@@ -1,52 +1,52 @@
 ---
 title: Loan
-summary: Un préstamo individual entre un prestatario y un LoanBroker, con calendario de pagos, intereses y comisiones.
+summary: An individual loan between a borrower and a LoanBroker, with a payment schedule, interest, and fees.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/loan
 createdBy: LoanSet
 modifiedBy: LoanSet, LoanManage, LoanPay
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `Loan` registra la deuda de un `Borrower` frente a un [LoanBroker](/objects/LoanBroker): cuánto debe (`TotalValueOutstanding`, `PrincipalOutstanding`), cuándo toca el próximo pago (`NextPaymentDueDate`) y qué tipos de interés y comisiones se le aplican en cada situación (al día, tarde, en el pago final, o por amortización anticipada). El broker es quien fija estas condiciones al crearlo; el prestatario solo puede pagar o dejar de pagar.
+A `Loan` records a `Borrower`'s debt to a [LoanBroker](/objects/LoanBroker): how much is owed (`TotalValueOutstanding`, `PrincipalOutstanding`), when the next payment is due (`NextPaymentDueDate`), and what interest rates and fees apply in each situation (current, late, at final settlement, or for early overpayment). The broker sets these terms when creating it; the borrower can only pay or fail to pay.
 
-El objeto lleva la contabilidad completa del préstamo: capital pendiente, comisión de gestión acumulada (`ManagementFeeOutstanding`) y el estado de mora se refleja en sus flags, no en un campo de texto.
+The object keeps the full accounting of the loan: outstanding principal, accrued management fee (`ManagementFeeOutstanding`), and the delinquency status is reflected in its flags, not in a text field.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [LoanSet](/tx/LoanSet) por parte del broker (o con su autorización), sin `LoanBrokerID`+`LoanSequence` previos. Fija `StartDate`, `PaymentInterval`, `PeriodicPayment` y los tipos de interés y comisiones. Incrementa `DebtTotal` del `LoanBroker` y `OwnerCount` del prestatario.
-- **Pago**: [LoanPay](/tx/LoanPay), normalmente el prestatario, cubre el `PeriodicPayment` (o más, generando `lsfLoanOverpayment`). Actualiza `PreviousPaymentDueDate`/`NextPaymentDueDate` y reduce `PrincipalOutstanding`.
-- **Gestión**: [LoanManage](/tx/LoanManage), reservado al broker, marca impago (`lsfLoanDefault`) o deterioro (`lsfLoanImpaired`) cuando se supera `GracePeriod` sin pago, lo que puede disparar el consumo del `CoverAvailable` del broker.
-- **Cierre**: [LoanDelete](/tx/LoanDelete), solo cuando el saldo queda a cero (pagado por completo o liquidado tras impago). Borra el objeto y reduce `DebtTotal` del broker.
+- **Creation**: [LoanSet](/tx/LoanSet) by the broker (or with their authorization), without a prior `LoanBrokerID`+`LoanSequence`. Sets `StartDate`, `PaymentInterval`, `PeriodicPayment`, and the interest rates and fees. Increases the `LoanBroker`'s `DebtTotal` and the borrower's `OwnerCount`.
+- **Payment**: [LoanPay](/tx/LoanPay), normally by the borrower, covers the `PeriodicPayment` (or more, generating `lsfLoanOverpayment`). Updates `PreviousPaymentDueDate`/`NextPaymentDueDate` and reduces `PrincipalOutstanding`.
+- **Management**: [LoanManage](/tx/LoanManage), reserved to the broker, marks default (`lsfLoanDefault`) or impairment (`lsfLoanImpaired`) when `GracePeriod` is exceeded without payment, which can trigger consumption of the broker's `CoverAvailable`.
+- **Closure**: [LoanDelete](/tx/LoanDelete), only when the balance reaches zero (fully paid off or liquidated after default). Deletes the object and reduces the broker's `DebtTotal`.
 
-## Campos clave
+## Key fields
 
-- **Borrower** — quien debe pagar; no es necesariamente el `Owner` que paga la reserva del objeto (ese es el broker/propietario).
-- **LoanBrokerID / LoanBrokerNode** — el broker al que pertenece este préstamo, y su enlace de directorio.
-- **StartDate / PaymentInterval** — cuándo empieza el calendario de pagos y cada cuánto vence una cuota, en segundos desde el Ripple Epoch.
-- **PeriodicPayment** — importe de cada cuota regular.
-- **PrincipalOutstanding / TotalValueOutstanding** — capital pendiente y deuda total pendiente (capital más intereses/comisiones acumulados).
-- **InterestRate / LateInterestRate / CloseInterestRate / OverpaymentInterestRate** — tipos aplicados según el préstamo esté al día, en mora, en su liquidación final, o ante un pago anticipado mayor al debido.
-- **LoanOriginationFee / LoanServiceFee / LatePaymentFee / ClosePaymentFee / OverpaymentFee** — comisiones fijas asociadas a cada evento del ciclo de vida del préstamo.
-- **GracePeriod** — margen tras `NextPaymentDueDate` antes de que un impago dispare `lsfLoanDefault`.
-- **PaymentRemaining** — cuotas que quedan por pagar en el calendario original.
+- **Borrower** — who must pay; not necessarily the `Owner` who pays the object's reserve (that is the broker/owner).
+- **LoanBrokerID / LoanBrokerNode** — the broker this loan belongs to, and its directory link.
+- **StartDate / PaymentInterval** — when the payment schedule starts and how often an installment is due, in seconds since the Ripple Epoch.
+- **PeriodicPayment** — amount of each regular installment.
+- **PrincipalOutstanding / TotalValueOutstanding** — outstanding principal and total outstanding debt (principal plus accrued interest/fees).
+- **InterestRate / LateInterestRate / CloseInterestRate / OverpaymentInterestRate** — rates applied depending on whether the loan is current, in default, at its final settlement, or facing an early payment larger than owed.
+- **LoanOriginationFee / LoanServiceFee / LatePaymentFee / ClosePaymentFee / OverpaymentFee** — fixed fees associated with each event in the loan's lifecycle.
+- **GracePeriod** — margin after `NextPaymentDueDate` before a missed payment triggers `lsfLoanDefault`.
+- **PaymentRemaining** — installments remaining in the original schedule.
 
 ## Flags
 
-- **lsfLoanDefault** — el prestatario no pagó dentro del `GracePeriod`; el broker puede empezar a liquidar el `CoverAvailable`.
-- **lsfLoanImpaired** — el broker considera el préstamo deteriorado (riesgo alto de impago) aunque técnicamente no haya vencido un pago.
-- **lsfLoanOverpayment** — el último pago superó el `PeriodicPayment` esperado, aplicando `OverpaymentInterestRate`/`OverpaymentFee`.
+- **lsfLoanDefault** — the borrower did not pay within the `GracePeriod`; the broker can begin liquidating the `CoverAvailable`.
+- **lsfLoanImpaired** — the broker considers the loan impaired (high risk of default) even though a payment has not technically come due yet.
+- **lsfLoanOverpayment** — the last payment exceeded the expected `PeriodicPayment`, applying `OverpaymentInterestRate`/`OverpaymentFee`.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "loan"` lo devuelve para el `Owner` (el broker). Con `ledger_entry`, `loan` acepta `loan_broker_id` y `loan_seq`:
+`account_objects` with `type: "loan"` returns it for the `Owner` (the broker). With `ledger_entry`, `loan` accepts `loan_broker_id` and `loan_seq`:
 
 ```json
 { "method": "ledger_entry", "params": [{ "loan": { "loan_broker_id": "5A7C9E1B3D5F7A9C1E3B5D7F9A1C3E5B7D9F1A3C5E7B9D1F3A5C7E9B1D3F5A7C", "loan_seq": 1 }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x004C || LoanBrokerID || LoanSequence)` (`keylet::loan`, namespace `'L'`). Respuesta típica:
+The index is `SHA512Half(0x004C || LoanBrokerID || LoanSequence)` (`keylet::loan`, namespace `'L'`). Typical response:
 
 ```json
 {
@@ -63,11 +63,11 @@ El índice es `SHA512Half(0x004C || LoanBrokerID || LoanSequence)` (`keylet::loa
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 1 unidad de reserva de propietario (0,2 XRP en testnet) del prestatario.
+Consumes 1 unit of owner reserve (0.2 XRP on testnet) from the borrower.
 
-## Relacionado
+## Related
 
 - [LoanSet](/tx/LoanSet), [LoanPay](/tx/LoanPay), [LoanManage](/tx/LoanManage), [LoanDelete](/tx/LoanDelete)
 - [LoanBroker](/objects/LoanBroker), [Vault](/objects/Vault)

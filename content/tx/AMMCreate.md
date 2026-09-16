@@ -1,79 +1,79 @@
 ---
 title: AMMCreate
-summary: Crea un creador de mercado automático (AMM) para un par de activos, deposita la liquidez inicial y te entrega los LP tokens.
+summary: Creates an automated market maker (AMM) for a pair of assets, deposits the initial liquidity, and gives you the LP tokens.
 category: amm
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/ammcreate
 xls: XLS-0030
 amendment: AMM
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-Un AMM (*Automated Market Maker*) es un fondo de liquidez con dos activos que cotiza automáticamente según la fórmula de producto constante: cualquiera puede cambiar un activo por el otro contra el fondo, y el precio se mueve según la proporción de reservas. Los proveedores de liquidez (LP) depositan ambos activos y reciben a cambio **LP tokens**, que representan su parte del fondo y les dan derecho a las comisiones de trading.
+An AMM (*Automated Market Maker*) is a liquidity pool holding two assets that prices trades automatically according to the constant-product formula: anyone can swap one asset for the other against the pool, and the price moves according to the ratio of the reserves. Liquidity providers (LPs) deposit both assets and receive **LP tokens** in exchange, which represent their share of the pool and entitle them to trading fees.
 
-`AMMCreate` es la transacción que arranca uno de estos fondos. Crea tres cosas en el ledger: un objeto [AMM](/objects/AMM) que guarda el estado (activos, `LPTokenBalance`, `TradingFee`, `VoteSlots` y `AuctionSlot`), una **pseudocuenta** [AccountRoot](/objects/AccountRoot) con el campo `AMMID` que custodia los fondos, y las [trust lines](/objects/RippleState) (o MPToken) entre esa pseudocuenta y los emisores de los activos, marcadas con `lsfAMMNode`. Tu cuenta recibe los LP tokens iniciales, que son un IOU emitido por la pseudocuenta con un código de moneda derivado del par.
+`AMMCreate` is the transaction that spins up one of these pools. It creates three things on the ledger: an [AMM](/objects/AMM) object that holds the state (assets, `LPTokenBalance`, `TradingFee`, `VoteSlots`, and `AuctionSlot`), a **pseudo-account** [AccountRoot](/objects/AccountRoot) with an `AMMID` field that custodies the funds, and the [trust lines](/objects/RippleState) (or MPToken) between that pseudo-account and the asset issuers, flagged with `lsfAMMNode`. Your account receives the initial LP tokens, which are an IOU issued by the pseudo-account with a currency code derived from the pair.
 
-Solo puede existir un AMM por par de activos. El creador se convierte en el primer votante de comisión y ocupa el primer *auction slot* sin pagar nada.
+Only one AMM can exist per asset pair. The creator becomes the first fee voter and takes the first *auction slot* for free.
 
-## Cuándo usarlo
+## When to use it
 
-- Abrir un mercado para un token nuevo contra XRP (o contra otro token) sin necesidad de mantener órdenes en el libro.
-- Ganar comisiones de trading aportando liquidez pasiva a un par.
-- Dar profundidad a un par ilíquido para que los pagos con conversión encuentren liquidez (el motor de pagos usa el AMM junto con el libro de órdenes).
+- Opening a market for a new token against XRP (or against another token) without needing to maintain orders on the order book.
+- Earning trading fees by providing passive liquidity to a pair.
+- Giving depth to an illiquid pair so that cross-currency payments can find liquidity (the payment engine uses the AMM together with the order book).
 
-## Cómo funciona por dentro
+## How it works inside
 
-`AMMCreate::checkExtraFeatures` exige el amendment [AMM](/amendments/AMM), y si alguno de los dos importes es un MPT, además [MPTokensV2](/amendments/MPTokensV2) (no activo en testnet: hoy solo XRP e IOU).
+`AMMCreate::checkExtraFeatures` requires the [AMM](/amendments/AMM) amendment, and if either amount is an MPT, also [MPTokensV2](/amendments/MPTokensV2) (not active on testnet: today only XRP and IOU).
 
-`AMMCreate::preflight` (validación estática):
-- `Amount` y `Amount2` no pueden ser del mismo activo (`temBAD_AMM_TOKENS`).
-- Ambos importes deben ser estrictamente positivos (`temBAD_AMOUNT`).
-- `TradingFee` no puede superar `kTradingFeeThreshold` = 1000, es decir, el 1 % (`temBAD_FEE`).
+`AMMCreate::preflight` (static validation):
+- `Amount` and `Amount2` cannot be the same asset (`temBAD_AMM_TOKENS`).
+- Both amounts must be strictly positive (`temBAD_AMOUNT`).
+- `TradingFee` cannot exceed `kTradingFeeThreshold` = 1000, i.e. 1% (`temBAD_FEE`).
 
-`AMMCreate::calculateBaseFee` es especial: la comisión de la transacción **no es la base fee normal**, sino un *owner reserve* incremental (0,2 XRP en testnet). Es el precio de crear la pseudocuenta y se quema.
+`AMMCreate::calculateBaseFee` is special: the transaction fee **isn't the normal base fee**, but an incremental *owner reserve* (0.2 XRP on testnet). It's the price of creating the pseudo-account and it's burned.
 
-`AMMCreate::preclaim` (contra el ledger):
-- Si ya existe un objeto AMM para ese par → `tecDUPLICATE`.
-- Si algún emisor tiene `lsfRequireAuth` y tu trust line no está autorizada → `tecNO_AUTH` (vía `requireAuth`).
-- Si algún activo está congelado (global o individualmente) para tu cuenta → `tecFROZEN`.
-- Si el emisor de un IOU **no tiene `lsfDefaultRipple`** → `terNO_RIPPLE`. Es la causa más común de fallo con tokens de prueba: el emisor debe haber enviado `AccountSet` con `asfDefaultRipple`.
-- Debes tener XRP libre por encima de la reserva contando una trust line más (la de los LP tokens); si no, `tecINSUF_RESERVE_LINE`.
-- Si no tienes saldo suficiente de cualquiera de los dos activos → `tecUNFUNDED_AMM`.
-- No puedes usar LP tokens de otro AMM como activo (`tecAMM_INVALID_TOKENS`): se detecta porque el emisor tiene `AMMID`.
-- Con [SingleAssetVault](/amendments/SingleAssetVault) activo (no en testnet) tampoco se aceptan *shares* de vault (`tecWRONG_ASSET`).
-- Como [AMMClawback](/amendments/AMMClawback) está activo, se permite crear AMM con tokens cuyo emisor tenga `lsfAllowTrustLineClawback`; antes de ese amendment devolvía `tecNO_PERMISSION`.
+`AMMCreate::preclaim` (against the ledger):
+- If an AMM object already exists for that pair → `tecDUPLICATE`.
+- If any issuer has `lsfRequireAuth` and your trust line isn't authorized → `tecNO_AUTH` (via `requireAuth`).
+- If any asset is frozen (globally or individually) for your account → `tecFROZEN`.
+- If an IOU's issuer **doesn't have `lsfDefaultRipple`** → `terNO_RIPPLE`. This is the most common failure cause with test tokens: the issuer must have sent `AccountSet` with `asfDefaultRipple`.
+- You must have free XRP above the reserve, counting one more trust line (the LP tokens' one); if not, `tecINSUF_RESERVE_LINE`.
+- If you don't have enough balance of either asset → `tecUNFUNDED_AMM`.
+- You cannot use LP tokens from another AMM as an asset (`tecAMM_INVALID_TOKENS`): detected because the issuer has an `AMMID`.
+- With [SingleAssetVault](/amendments/SingleAssetVault) active (not on testnet), vault *shares* are also not accepted (`tecWRONG_ASSET`).
+- Since [AMMClawback](/amendments/AMMClawback) is active, creating an AMM with tokens whose issuer has `lsfAllowTrustLineClawback` is allowed; before that amendment it returned `tecNO_PERMISSION`.
 
-`AMMCreate::doApply` (efectos, en `applyCreate`):
-1. Crea la pseudocuenta con `createPseudoAccount`, ligada al AMM por `AMMID`.
-2. Calcula los LP tokens iniciales como `sqrt(Amount × Amount2)` (`ammLPTokens`, con redondeo hacia abajo desde [fixAMMv1_3](/amendments/fixAMMv1_3)).
-3. Crea el objeto AMM con `Asset`/`Asset2` ordenados canónicamente, y llama a `initializeFeeAuctionVote`: tu cuenta queda en `VoteSlots` con `TradingFee` y ocupa el `AuctionSlot`.
-4. Te envía los LP tokens y mueve `Amount` y `Amount2` de tu cuenta a la pseudocuenta con `WaiveTransferFee::Yes` (la comisión de transferencia del emisor no se aplica). Las trust lines de la pseudocuenta se crean con límite 0 y flag `lsfAMMNode`.
-5. Registra los dos libros de órdenes del par en `OrderBookDB` si no existían.
+`AMMCreate::doApply` (effects, in `applyCreate`):
+1. Creates the pseudo-account with `createPseudoAccount`, linked to the AMM via `AMMID`.
+2. Computes the initial LP tokens as `sqrt(Amount × Amount2)` (`ammLPTokens`, rounded down since [fixAMMv1_3](/amendments/fixAMMv1_3)).
+3. Creates the AMM object with `Asset`/`Asset2` ordered canonically, and calls `initializeFeeAuctionVote`: your account is placed in `VoteSlots` with `TradingFee` and takes the `AuctionSlot`.
+4. Sends you the LP tokens and moves `Amount` and `Amount2` from your account to the pseudo-account with `WaiveTransferFee::Yes` (the issuer's transfer fee doesn't apply). The pseudo-account's trust lines are created with limit 0 and flag `lsfAMMNode`.
+5. Registers the pair's two order books in `OrderBookDB` if they didn't already exist.
 
-## Campos clave
+## Key fields
 
-- **Amount** / **Amount2** — Depósito inicial de cada activo. La proporción entre ambos fija el precio de arranque del fondo: si depositas 10 XRP y 10 USD, el AMM cotiza 1 XRP = 1 USD hasta que alguien opere.
-- **TradingFee** — Comisión que cobra el fondo en cada operación, en unidades de 1/100.000. `500` = 0,5 %. Máximo `1000` (1 %). Es un campo obligatorio; puedes poner `0`.
-- **Fee** — Recuerda que debe cubrir el owner reserve incremental (200.000 drops en testnet), no los 10 drops habituales. El builder lo calcula por ti.
+- **Amount** / **Amount2** — Initial deposit of each asset. The ratio between them sets the pool's starting price: if you deposit 10 XRP and 10 USD, the AMM quotes 1 XRP = 1 USD until someone trades.
+- **TradingFee** — Fee the pool charges on each trade, in units of 1/100,000. `500` = 0.5%. Maximum `1000` (1%). It's a required field; you can set `0`.
+- **Fee** — Remember it must cover the incremental owner reserve (200,000 drops on testnet), not the usual 10 drops. The builder calculates it for you.
 
-## Errores habituales
+## Common errors
 
-- **terNO_RIPPLE** — El emisor del token no tiene `DefaultRipple` activado. Pídele que envíe `AccountSet` con `SetFlag: 8`.
-- **tecDUPLICATE** — Ya hay un AMM para ese par. Usa [AMMDeposit](/tx/AMMDeposit) en su lugar.
-- **tecUNFUNDED_AMM** — No tienes saldo suficiente de uno de los dos activos (para XRP se descuenta la reserva).
-- **tecINSUF_RESERVE_LINE** — Te falta XRP para la reserva de la trust line de LP tokens.
-- **temBAD_FEE** — `TradingFee` mayor que 1000.
-- **temBAD_AMM_TOKENS** — Los dos activos son el mismo.
-- **tecFROZEN** / **tecNO_AUTH** — Token congelado, o el emisor exige autorización y no la tienes.
-- **telINSUF_FEE_P** — `Fee` por debajo del owner reserve incremental.
+- **terNO_RIPPLE** — The token's issuer doesn't have `DefaultRipple` enabled. Ask them to send `AccountSet` with `SetFlag: 8`.
+- **tecDUPLICATE** — There's already an AMM for that pair. Use [AMMDeposit](/tx/AMMDeposit) instead.
+- **tecUNFUNDED_AMM** — You don't have enough balance of one of the two assets (for XRP the reserve is deducted).
+- **tecINSUF_RESERVE_LINE** — You're missing XRP for the reserve of the LP tokens' trust line.
+- **temBAD_FEE** — `TradingFee` greater than 1000.
+- **temBAD_AMM_TOKENS** — The two assets are the same.
+- **tecFROZEN** / **tecNO_AUTH** — Token frozen, or the issuer requires authorization and you don't have it.
+- **telINSUF_FEE_P** — `Fee` below the incremental owner reserve.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "AMMCreate",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "Amount": "10000000",
   "Amount2": {
     "currency": "USD",
@@ -84,18 +84,18 @@ Solo puede existir un AMM por par de activos. El creador se convierte en el prim
 }
 ```
 
-Crea un fondo XRP/USD con 10 XRP y 10 USD y una comisión del 0,5 %.
+Creates an XRP/USD pool with 10 XRP and 10 USD and a 0.5% fee.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Necesitas una trust line a `rZZZZ_EMISOR` para USD con saldo (el emisor debe tener `DefaultRipple`). Si aún no la tienes, envía primero un [TrustSet](/tx/TrustSet) y pide fondos al emisor de prueba.
-2. Comprueba que tienes al menos 10 XRP libres por encima de la reserva más 0,2 XRP para la comisión especial.
-3. Rellena el builder con el ejemplo y envíalo. Fíjate en que `Fee` se fija a 200000 drops.
-4. En los metadatos verás tres `CreatedNode`: `AMM`, `AccountRoot` (la pseudocuenta) y `RippleState` (trust lines de USD y de LP tokens).
-5. Llama a `amm_info` con `asset: {currency: "XRP"}` y `asset2: {currency: "USD", issuer: ...}`: verás `amount`, `amount2`, `lp_token` con tu saldo, `trading_fee: 500`, y tu cuenta en `vote_slots` y `auction_slot`.
-6. Con `account_lines` sobre tu cuenta aparece la línea de LP tokens (moneda hexadecimal que empieza por `03`).
+1. You need a trust line to `rZZZZ_EMISOR` for USD with a balance (the issuer must have `DefaultRipple`). If you don't have one yet, send a [TrustSet](/tx/TrustSet) first and request funds from the test issuer.
+2. Check that you have at least 10 free XRP above the reserve plus 0.2 XRP for the special fee.
+3. Fill in the builder with the example and send it. Notice that `Fee` is set to 200000 drops.
+4. In the metadata you'll see three `CreatedNode` entries: `AMM`, `AccountRoot` (the pseudo-account), and `RippleState` (USD and LP token trust lines).
+5. Call `amm_info` with `asset: {currency: "XRP"}` and `asset2: {currency: "USD", issuer: ...}`: you'll see `amount`, `amount2`, `lp_token` with your balance, `trading_fee: 500`, and your account in `vote_slots` and `auction_slot`.
+6. With `account_lines` on your account, the LP tokens line appears (hex currency starting with `03`).
 
-## Relacionado
+## Related
 
 - [AMMDeposit](/tx/AMMDeposit), [AMMWithdraw](/tx/AMMWithdraw), [AMMVote](/tx/AMMVote), [AMMBid](/tx/AMMBid), [AMMDelete](/tx/AMMDelete), [AMMClawback](/tx/AMMClawback)
 - [AMM](/objects/AMM), [AccountRoot](/objects/AccountRoot), [RippleState](/objects/RippleState)

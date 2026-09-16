@@ -1,43 +1,43 @@
 ---
 title: Ticket
-summary: Reserva un número de secuencia para usarlo más tarde, fuera de orden, en vez de gastar la Sequence normal de la cuenta.
+summary: Reserves a sequence number for later use, out of order, instead of spending the account's normal Sequence.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/ticket
 createdBy: TicketCreate
 modifiedBy: (ninguna; se consume al usarse en cualquier transacción)
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Normalmente cada transacción de una cuenta debe llevar la `Sequence` exacta, siguiente a la última usada, en orden estricto. Un `Ticket` rompe esa exigencia: reserva un número por adelantado que luego se puede gastar en cualquier momento, en cualquier orden respecto a las demás transacciones de la cuenta, simplemente poniendo `Sequence: 0` y `TicketSequence: <número del ticket>` en la transacción que lo usa.
+Normally every transaction from an account must carry the exact `Sequence`, the next one after the last used, in strict order. A `Ticket` breaks that requirement: it reserves a number in advance that can then be spent at any time, in any order relative to the account's other transactions, simply by setting `Sequence: 0` and `TicketSequence: <ticket number>` on the transaction that uses it.
 
-Es útil para flujos donde varias transacciones se preparan de antemano y se firman offline pero se envían en un orden que no se puede garantizar (multifirma con varios firmantes trabajando en paralelo, transacciones condicionadas a eventos externos), o simplemente para reservar un hueco de secuencia que se rellenará más adelante.
+This is useful for flows where several transactions are prepared in advance and signed offline but sent in an order that cannot be guaranteed (multi-signing with several signers working in parallel, transactions conditioned on external events), or simply to reserve a sequence slot that will be filled in later.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [TicketCreate](/tx/TicketCreate) puede crear varios de golpe (`TicketCount`), consumiendo `Sequence` normales consecutivas de la cuenta para numerarlos. Cada uno se convierte en un `Ticket` independiente.
-- **Consumo**: cualquier transacción posterior de la cuenta que use `TicketSequence` en vez de `Sequence` consume (borra) ese `Ticket` al aplicarse, sea cual sea el tipo de transacción — no hay una transacción "TicketUse" separada.
-- **Cancelación explícita**: no existe; para deshacerse de un ticket sin usarlo hay que gastarlo en una transacción trivial (p. ej. un `AccountSet` sin cambios) o dejarlo sin usar indefinidamente (sigue consumiendo reserva).
+- **Creation**: [TicketCreate](/tx/TicketCreate) can create several at once (`TicketCount`), consuming consecutive normal `Sequence` values from the account to number them. Each one becomes an independent `Ticket`.
+- **Consumption**: any later transaction from the account that uses `TicketSequence` instead of `Sequence` consumes (deletes) that `Ticket` when it is applied, regardless of the transaction type — there is no separate "TicketUse" transaction.
+- **Explicit cancellation**: does not exist; to get rid of a ticket without using it, it has to be spent on a trivial transaction (e.g. an `AccountSet` with no changes) or left unused indefinitely (it keeps consuming reserve).
 
-## Campos clave
+## Key fields
 
-- **Account** — dueño del ticket, quien paga su reserva.
-- **TicketSequence** — el número reservado; es lo que se referencia desde otra transacción en su campo `TicketSequence`, en lugar de `Sequence`.
-- **OwnerNode** — página del directorio de la cuenta donde está enlazado.
+- **Account** — owner of the ticket, who pays its reserve.
+- **TicketSequence** — the reserved number; this is what is referenced from another transaction in its `TicketSequence` field, instead of `Sequence`.
+- **OwnerNode** — the account's directory page where it is linked.
 
 ## Flags
 
-No tiene flags `lsf*`.
+It has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "ticket"` lo devuelve para la cuenta. Con `ledger_entry`, `ticket` acepta `account` y `ticket_seq`:
+`account_objects` with `type: "ticket"` returns it for the account. With `ledger_entry`, `ticket` accepts `account` and `ticket_seq`:
 
 ```json
 { "method": "ledger_entry", "params": [{ "ticket": { "account": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "ticket_seq": 20790114 }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x0054 || AccountID || TicketSequence)` (`keylet::ticket`, namespace `'T'`). Respuesta típica:
+The index is `SHA512Half(0x0054 || AccountID || TicketSequence)` (`keylet::ticket`, namespace `'T'`). Typical response:
 
 ```json
 {
@@ -52,11 +52,11 @@ El índice es `SHA512Half(0x0054 || AccountID || TicketSequence)` (`keylet::tick
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 1 unidad de reserva de propietario (0,2 XRP en testnet) por cada ticket vivo, hasta que se use o hasta que se borre la cuenta.
+Consumes 1 owner reserve unit (0.2 XRP on testnet) per live ticket, until it is used or until the account is deleted.
 
-## Relacionado
+## Related
 
 - [TicketCreate](/tx/TicketCreate)
 - [AccountRoot](/objects/AccountRoot), [SignerList](/objects/SignerList)

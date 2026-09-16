@@ -1,43 +1,43 @@
 ---
 title: PermissionedDomain
-summary: Define quién puede participar en un mercado o vault restringido, según qué credenciales acepta.
+summary: Defines who can participate in a restricted market or vault, based on which credentials it accepts.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/permissioneddomain
 createdBy: PermissionedDomainSet
 modifiedBy: PermissionedDomainSet
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `PermissionedDomain` es una lista blanca declarativa: en vez de listar cuentas concretas, lista qué [Credential](/objects/Credential) (emitidas por qué emisor) dan acceso. Cualquier cuenta que posea una credencial válida de las aceptadas puede operar dentro del dominio: colocar `Offer` con `DomainID`, participar en un [Vault](/objects/Vault) restringido, etc. El dueño del dominio no gestiona altas y bajas de cuentas una a una; solo decide qué credenciales confía, y delega la verificación de identidad en los emisores de esas credenciales.
+A `PermissionedDomain` is a declarative allowlist: instead of listing specific accounts, it lists which [Credential](/objects/Credential) (issued by which issuer) grant access. Any account holding a valid credential among those accepted can operate within the domain: place `Offer`s with `DomainID`, participate in a restricted [Vault](/objects/Vault), etc. The domain owner doesn't manage account admission one by one; they only decide which credentials to trust, delegating identity verification to the issuers of those credentials.
 
-Es la pieza base para mercados regulados sobre XRPL: por ejemplo, un RWA que solo puede operar entre cuentas KYC-verificadas por un emisor autorizado.
+It's the base building block for regulated markets on XRPL: for example, an RWA that can only trade between KYC-verified accounts authorized by an approved issuer.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [PermissionedDomainSet](/tx/PermissionedDomainSet) sin `DomainID` previo, por el `Owner`. Fija `AcceptedCredentials`, hasta 10 pares `Issuer`+`CredentialType`.
-- **Actualización**: el mismo [PermissionedDomainSet](/tx/PermissionedDomainSet), pasando `DomainID`, reemplaza la lista completa de `AcceptedCredentials`.
-- **Borrado**: [PermissionedDomainDelete](/tx/PermissionedDomainDelete), solo por el `Owner`. Falla si aún hay `Offer` u otros objetos activos que dependan de este dominio.
+- **Creation**: [PermissionedDomainSet](/tx/PermissionedDomainSet) without a prior `DomainID`, by the `Owner`. Sets `AcceptedCredentials`, up to 10 `Issuer`+`CredentialType` pairs.
+- **Update**: the same [PermissionedDomainSet](/tx/PermissionedDomainSet), passing `DomainID`, replaces the entire `AcceptedCredentials` list.
+- **Deletion**: [PermissionedDomainDelete](/tx/PermissionedDomainDelete), only by the `Owner`. Fails if there are still active `Offer`s or other objects depending on this domain.
 
-## Campos clave
+## Key fields
 
-- **Owner** — quien controla qué credenciales se aceptan y paga la reserva.
-- **AcceptedCredentials** — lista de `{Issuer, CredentialType}`; una cuenta cumple si tiene al menos una `Credential` aceptada y no caducada emitida por uno de esos emisores con ese tipo exacto.
-- **Sequence** — secuencia de la cuenta en el momento de la creación; junto con `Owner` forma el `DomainID`.
+- **Owner** — who controls which credentials are accepted and pays the reserve.
+- **AcceptedCredentials** — list of `{Issuer, CredentialType}`; an account qualifies if it holds at least one accepted, non-expired `Credential` issued by one of those issuers with that exact type.
+- **Sequence** — the account's sequence at the time of creation; together with `Owner` it forms the `DomainID`.
 
 ## Flags
 
-No tiene flags `lsf*`.
+Has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "permissioned_domain"` lo devuelve para el `Owner`. Con `ledger_entry`, `permissioned_domain` acepta `account` y `seq`, o directamente el `DomainID` como cadena hex:
+`account_objects` with `type: "permissioned_domain"` returns it for the `Owner`. With `ledger_entry`, `permissioned_domain` accepts `account` and `seq`, or the `DomainID` directly as a hex string:
 
 ```json
 { "method": "ledger_entry", "params": [{ "permissioned_domain": { "account": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "seq": 20790113 }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x006D || AccountID_owner || Sequence)` (`keylet::permissionedDomain`, namespace `'m'`). Respuesta típica:
+The index is `SHA512Half(0x006D || AccountID_owner || Sequence)` (`keylet::permissionedDomain`, namespace `'m'`). Typical response:
 
 ```json
 {
@@ -54,11 +54,11 @@ El índice es `SHA512Half(0x006D || AccountID_owner || Sequence)` (`keylet::perm
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 1 unidad de reserva de propietario (0,2 XRP en testnet) del dueño.
+Consumes 1 unit of owner reserve (0.2 XRP on testnet) from the owner.
 
-## Relacionado
+## Related
 
 - [PermissionedDomainSet](/tx/PermissionedDomainSet), [PermissionedDomainDelete](/tx/PermissionedDomainDelete)
 - [Credential](/objects/Credential), [Offer](/objects/Offer), [Vault](/objects/Vault), [MPTokenIssuance](/objects/MPTokenIssuance)

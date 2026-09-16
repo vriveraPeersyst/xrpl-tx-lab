@@ -1,22 +1,22 @@
 ---
 title: DID
-summary: Añade identificadores descentralizados (W3C DID) al ledger: cada cuenta puede publicar y actualizar un documento DID.
+summary: Adds decentralized identifiers (W3C DID) to the ledger - each account can publish and update a DID document.
 xls: XLS-0040
 xlsUrl: https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0040-decentralized-identity
 xrplDocs: https://xrpl.org/resources/known-amendments#did
 introducedIn: 2.0.0
 ---
 
-## Qué cambia
+## What changes
 
-Añade el objeto `DID`, uno como máximo por cuenta, que representa el identificador `did:xrpl:1:<dirección>`. `DIDSet` lo crea o actualiza con hasta tres campos opcionales en hexadecimal: `DIDDocument` (el documento DID embebido), `URI` (dónde encontrarlo fuera de cadena) y `Data` (atestaciones u otros datos). Al menos uno debe quedar con contenido; una `DIDSet` que dejaría el objeto vacío se rechaza con `tecEMPTY_DID`, comportamiento reforzado después por `fixEmptyDID`. `DIDDelete` elimina el objeto y libera su reserva.
+Adds the `DID` object, at most one per account, which represents the identifier `did:xrpl:1:<address>`. `DIDSet` creates or updates it with up to three optional hexadecimal fields: `DIDDocument` (the embedded DID document), `URI` (where to find it off-chain), and `Data` (attestations or other data). At least one must be left with content; a `DIDSet` that would leave the object empty is rejected with `tecEMPTY_DID`, a behavior later reinforced by `fixEmptyDID`. `DIDDelete` removes the object and frees its reserve.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nuevas: [DIDSet](/tx/DIDSet) y [DIDDelete](/tx/DIDDelete).
-- Nuevo objeto [DID](/objects/DID), que consume una unidad de owner reserve y aparece en el directorio de la cuenta.
-- Una cuenta con un DID no puede borrarse con [AccountDelete](/tx/AccountDelete) hasta eliminarlo.
+- New: [DIDSet](/tx/DIDSet) and [DIDDelete](/tx/DIDDelete).
+- New object [DID](/objects/DID), which consumes one unit of owner reserve and appears in the account's directory.
+- An account with a DID cannot be deleted with [AccountDelete](/tx/AccountDelete) until it is removed.
 
-## Estado y contexto
+## Status and context
 
-Los DID del W3C permiten identificar a una persona, organización o dispositivo sin depender de una autoridad central: el sujeto controla el identificador y las claves asociadas. Anclar el documento DID a una cuenta del XRPL da una raíz de confianza verificable para credenciales verificables y flujos de identidad. La XLS-40 se propuso como pieza de identidad de bajo nivel; [Credentials](/amendments/Credentials) llegó después para expresar afirmaciones concretas sobre una cuenta y vincularlas a la autorización de depósito.
+W3C DIDs make it possible to identify a person, organization, or device without relying on a central authority: the subject controls the identifier and its associated keys. Anchoring the DID document to an XRPL account gives a verifiable root of trust for verifiable credentials and identity flows. XLS-40 was proposed as a low-level identity building block; [Credentials](/amendments/Credentials) came later to express specific assertions about an account and link them to deposit authorization.

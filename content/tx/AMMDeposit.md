@@ -1,89 +1,89 @@
 ---
 title: AMMDeposit
-summary: Aporta liquidez a un AMM existente, con uno o los dos activos, y recibe LP tokens a cambio.
+summary: Adds liquidity to an existing AMM, with one or both assets, and receives LP tokens in exchange.
 category: amm
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/ammdeposit
 xls: XLS-0030
 amendment: AMM
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`AMMDeposit` añade fondos a un [AMM](/objects/AMM) ya creado y te entrega LP tokens proporcionales a lo que aportas. Puedes depositar los dos activos en la proporción actual del fondo (sin mover el precio) o solo uno de ellos (el fondo lo trata como una operación parcial y te da menos LP tokens, porque cambia la proporción).
+`AMMDeposit` adds funds to an already-created [AMM](/objects/AMM) and gives you LP tokens proportional to what you contribute. You can deposit both assets in the pool's current ratio (without moving the price) or only one of them (the pool treats it as a partial operation and gives you fewer LP tokens, because it changes the ratio).
 
-Modifica el objeto AMM (`LPTokenBalance`), las trust lines de la pseudocuenta y tu trust line de LP tokens (que se crea si no existe). Si el AMM está vacío (todos los LP retiraron), el depósito con `tfTwoAssetIfEmpty` lo reinicia como si fuera un `AMMCreate`: fija el nuevo `TradingFee` y te da el auction slot y el primer voto.
+It modifies the AMM object (`LPTokenBalance`), the pseudo-account's trust lines, and your LP token trust line (which is created if it doesn't exist). If the AMM is empty (all LPs withdrew), depositing with `tfTwoAssetIfEmpty` resets it as if it were an `AMMCreate`: it sets the new `TradingFee` and gives you the auction slot and the first vote.
 
-## Cuándo usarlo
+## When to use it
 
-- Unirte como proveedor de liquidez a un par que ya existe.
-- Rebalancear un fondo aportando solo el activo que escasea.
-- Reactivar un AMM vacío (tras retiradas totales) sin pagar el owner reserve de un nuevo `AMMCreate`.
+- Joining as a liquidity provider to a pair that already exists.
+- Rebalancing a pool by contributing only the asset that's scarce.
+- Reactivating an empty AMM (after full withdrawals) without paying the owner reserve of a new `AMMCreate`.
 
-## Cómo funciona por dentro
+## How it works inside
 
-`AMMDeposit::preflight` valida la **combinación de flags y campos**. Debe haber exactamente un flag de subtipo (`tfDepositSubTx`); si no, `temMALFORMED`. Cada subtipo exige unos campos y prohíbe otros:
+`AMMDeposit::preflight` validates the **combination of flags and fields**. There must be exactly one subtype flag (`tfDepositSubTx`); if not, `temMALFORMED`. Each subtype requires certain fields and forbids others:
 
-| Flag | Obligatorio | Opcional | Prohibido |
+| Flag | Required | Optional | Forbidden |
 |---|---|---|---|
-| `tfLPToken` | `LPTokenOut` | `Amount` **y** `Amount2` (mínimos, juntos o ninguno) | `EPrice`, `TradingFee` |
-| `tfSingleAsset` | `Amount` | `LPTokenOut` (mínimo) | `Amount2`, `EPrice`, `TradingFee` |
-| `tfTwoAsset` | `Amount`, `Amount2` | `LPTokenOut` (mínimo) | `EPrice`, `TradingFee` |
+| `tfLPToken` | `LPTokenOut` | `Amount` **and** `Amount2` (minimums, together or neither) | `EPrice`, `TradingFee` |
+| `tfSingleAsset` | `Amount` | `LPTokenOut` (minimum) | `Amount2`, `EPrice`, `TradingFee` |
+| `tfTwoAsset` | `Amount`, `Amount2` | `LPTokenOut` (minimum) | `EPrice`, `TradingFee` |
 | `tfOneAssetLPToken` | `Amount`, `LPTokenOut` | — | `Amount2`, `EPrice`, `TradingFee` |
 | `tfLimitLPToken` | `Amount`, `EPrice` | — | `LPTokenOut`, `Amount2`, `TradingFee` |
 | `tfTwoAssetIfEmpty` | `Amount`, `Amount2` | `TradingFee` | `EPrice`, `LPTokenOut` |
 
-Además: `Asset` ≠ `Asset2` y los importes deben pertenecer al par (`temBAD_AMM_TOKENS`), ser positivos (`temBAD_AMOUNT`; con `tfLimitLPToken` `Amount` puede ser 0) y `TradingFee` ≤ 1000 (`temBAD_FEE`).
+Also: `Asset` ≠ `Asset2` and the amounts must belong to the pair (`temBAD_AMM_TOKENS`), be positive (`temBAD_AMOUNT`; with `tfLimitLPToken` `Amount` can be 0), and `TradingFee` ≤ 1000 (`temBAD_FEE`).
 
 `AMMDeposit::preclaim`:
-- Busca el AMM por `Asset`/`Asset2`; si no existe → `terNO_AMM`.
-- Con `tfTwoAssetIfEmpty` el fondo debe estar vacío (`LPTokenBalance == 0`); si no, `tecAMM_NOT_EMPTY`. Con cualquier otro flag ocurre lo contrario: `tecAMM_EMPTY`.
-- Desde [fixCleanup3_3_0](/amendments/fixCleanup3_3_0) (activo) comprueba para **ambos** activos del par que estás autorizado (`requireAuth`, modo débil) y que no hay congelación (`checkDepositFreeze`), aunque solo deposites uno.
-- Comprueba saldo: para XRP usa `xrpLiquid` descontando una reserva extra si aún no tienes trust line de LP tokens (`tecINSUF_RESERVE_LINE` si el problema es la reserva, `tecUNFUNDED_AMM` si es el saldo); para IOU, `accountFunds` ≥ importe.
-- `LPTokenOut` debe ser el LP token de este AMM (`temBAD_AMM_TOKENS`).
-- Si aún no eres LP, necesitas XRP libre para una trust line más (`tecINSUF_RESERVE_LINE`).
+- Looks up the AMM by `Asset`/`Asset2`; if it doesn't exist → `terNO_AMM`.
+- With `tfTwoAssetIfEmpty` the pool must be empty (`LPTokenBalance == 0`); if not, `tecAMM_NOT_EMPTY`. With any other flag the opposite applies: `tecAMM_EMPTY`.
+- Since [fixCleanup3_3_0](/amendments/fixCleanup3_3_0) (active) it checks for **both** assets in the pair that you're authorized (`requireAuth`, weak mode) and that there's no freeze (`checkDepositFreeze`), even if you're only depositing one.
+- Checks balance: for XRP it uses `xrpLiquid` deducting an extra reserve if you don't yet have an LP token trust line (`tecINSUF_RESERVE_LINE` if the problem is the reserve, `tecUNFUNDED_AMM` if it's the balance); for IOU, `accountFunds` ≥ amount.
+- `LPTokenOut` must be this AMM's LP token (`temBAD_AMM_TOKENS`).
+- If you're not yet an LP, you need free XRP for one more trust line (`tecINSUF_RESERVE_LINE`).
 
-`AMMDeposit::applyGuts` despacha por subtipo a `equalDepositLimit`, `singleDepositTokens`, `singleDepositEPrice`, `singleDeposit`, `equalDepositTokens` o `equalDepositInEmptyState`. Todas acaban en `AMMDeposit::deposit`, que:
-1. Ajusta importes y LP tokens con `adjustAmountsByLPTokens` (con [fixAMMv1_3](/amendments/fixAMMv1_3) redondea LP tokens hacia abajo y activos hacia arriba, a favor del fondo).
-2. Si los LP tokens resultantes son 0 → `tecAMM_INVALID_TOKENS`; si no alcanzan los mínimos que pusiste → `tecAMM_FAILED`.
-3. Vuelve a comprobar saldo (`tecUNFUNDED_AMM`), mueve los activos a la pseudocuenta con `WaiveTransferFee::Yes` y te envía los LP tokens.
-4. Actualiza `LPTokenBalance`; si el fondo estaba vacío, `initializeFeeAuctionVote` te da el voto y el auction slot.
+`AMMDeposit::applyGuts` dispatches by subtype to `equalDepositLimit`, `singleDepositTokens`, `singleDepositEPrice`, `singleDeposit`, `equalDepositTokens`, or `equalDepositInEmptyState`. All of them end up in `AMMDeposit::deposit`, which:
+1. Adjusts amounts and LP tokens with `adjustAmountsByLPTokens` (with [fixAMMv1_3](/amendments/fixAMMv1_3) it rounds LP tokens down and assets up, in favor of the pool).
+2. If the resulting LP tokens are 0 → `tecAMM_INVALID_TOKENS`; if they don't reach the minimums you set → `tecAMM_FAILED`.
+3. Rechecks balance (`tecUNFUNDED_AMM`), moves the assets to the pseudo-account with `WaiveTransferFee::Yes`, and sends you the LP tokens.
+4. Updates `LPTokenBalance`; if the pool was empty, `initializeFeeAuctionVote` gives you the vote and the auction slot.
 
-La comisión efectiva (`tfee`) para depósitos de un solo activo es la del AMM, salvo que ostentes el auction slot (`getTradingFee` devuelve la descontada).
+The effective fee (`tfee`) for single-asset deposits is the AMM's, unless you hold the auction slot (`getTradingFee` returns the discounted one).
 
-## Campos clave
+## Key fields
 
-- **Asset** / **Asset2** — Identifican el AMM (`{currency, issuer}` o `{currency: "XRP"}`), sin importe.
-- **Amount** / **Amount2** — Lo que depositas. Con `tfLPToken` son **mínimos** que aceptas depositar, no importes exactos.
-- **LPTokenOut** — LP tokens que quieres recibir (`tfLPToken`, `tfOneAssetLPToken`) o mínimo aceptable (en `tfSingleAsset`/`tfTwoAsset`). Debe ser el token del AMM: `currency` hex `03…` e `issuer` la pseudocuenta.
-- **EPrice** — Precio efectivo máximo por LP token que aceptas pagar en un depósito de un activo (`tfLimitLPToken`).
-- **TradingFee** — Solo con `tfTwoAssetIfEmpty`: nueva comisión al reiniciar el fondo.
+- **Asset** / **Asset2** — Identify the AMM (`{currency, issuer}` or `{currency: "XRP"}`), with no amount.
+- **Amount** / **Amount2** — What you're depositing. With `tfLPToken` they are **minimums** you accept depositing, not exact amounts.
+- **LPTokenOut** — LP tokens you want to receive (`tfLPToken`, `tfOneAssetLPToken`) or the minimum acceptable (in `tfSingleAsset`/`tfTwoAsset`). Must be the AMM's token: `currency` hex `03…` and `issuer` the pseudo-account.
+- **EPrice** — Maximum effective price per LP token you accept paying in a single-asset deposit (`tfLimitLPToken`).
+- **TradingFee** — Only with `tfTwoAssetIfEmpty`: new fee when resetting the pool.
 
 ## Flags
 
-- **tfLPToken** (65536) — Depósito equilibrado pidiendo una cantidad exacta de LP tokens.
-- **tfSingleAsset** (524288) — Depósito de un solo activo por importe fijo.
-- **tfTwoAsset** (1048576) — Depósito de los dos activos con límites máximos; el fondo toma lo que mantenga la proporción.
-- **tfOneAssetLPToken** (2097152) — Un activo, pidiendo LP tokens exactos; `Amount` es el máximo a gastar.
-- **tfLimitLPToken** (4194304) — Un activo con precio efectivo límite `EPrice`.
-- **tfTwoAssetIfEmpty** (8388608) — Solo para reiniciar un AMM vacío.
+- **tfLPToken** (65536) — Balanced deposit requesting an exact amount of LP tokens.
+- **tfSingleAsset** (524288) — Single-asset deposit for a fixed amount.
+- **tfTwoAsset** (1048576) — Deposit of both assets with maximum limits; the pool takes whatever keeps the ratio.
+- **tfOneAssetLPToken** (2097152) — One asset, requesting exact LP tokens; `Amount` is the maximum to spend.
+- **tfLimitLPToken** (4194304) — One asset with an effective price limit `EPrice`.
+- **tfTwoAssetIfEmpty** (8388608) — Only for resetting an empty AMM.
 
-## Errores habituales
+## Common errors
 
-- **temMALFORMED** — Flags y campos no encajan (por ejemplo `tfSingleAsset` con `Amount2`, o ningún flag).
-- **terNO_AMM** — No hay AMM para ese par; créalo con [AMMCreate](/tx/AMMCreate).
-- **tecAMM_EMPTY** — El fondo está vacío; usa `tfTwoAssetIfEmpty`.
-- **tecUNFUNDED_AMM** — Saldo insuficiente del activo depositado.
-- **tecINSUF_RESERVE_LINE** — Falta XRP para la reserva de la trust line de LP tokens.
-- **tecAMM_FAILED** — No se cumplen tus mínimos (`LPTokenOut`, `Amount`/`Amount2` con `tfLPToken`, o `EPrice`).
-- **tecFROZEN** / **tecNO_AUTH** — Alguno de los dos activos está congelado o no estás autorizado.
+- **temMALFORMED** — Flags and fields don't match (for example `tfSingleAsset` with `Amount2`, or no flag at all).
+- **terNO_AMM** — No AMM exists for that pair; create one with [AMMCreate](/tx/AMMCreate).
+- **tecAMM_EMPTY** — The pool is empty; use `tfTwoAssetIfEmpty`.
+- **tecUNFUNDED_AMM** — Insufficient balance of the deposited asset.
+- **tecINSUF_RESERVE_LINE** — Missing XRP for the reserve of the LP token trust line.
+- **tecAMM_FAILED** — Your minimums aren't met (`LPTokenOut`, `Amount`/`Amount2` with `tfLPToken`, or `EPrice`).
+- **tecFROZEN** / **tecNO_AUTH** — Either asset is frozen or you're not authorized.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "AMMDeposit",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "Asset": { "currency": "XRP" },
   "Asset2": { "currency": "USD", "issuer": "rZZZZ_EMISOR" },
   "Amount": "1000000",
@@ -91,17 +91,17 @@ La comisión efectiva (`tfee`) para depósitos de un solo activo es la del AMM, 
 }
 ```
 
-Deposita 1 XRP como activo único en el fondo XRP/USD.
+Deposits 1 XRP as a single asset into the XRP/USD pool.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Asegúrate de que existe el AMM XRP/USD (`amm_info`); si no, créalo con [AMMCreate](/tx/AMMCreate).
-2. Ten una trust line a `rZZZZ_EMISOR` (aunque deposites XRP, `preclaim` comprueba autorización y congelación de los dos activos) y XRP libre para una trust line más.
-3. Envía el ejemplo con `Flags: 524288`. Anota el `lp_token.value` de `amm_info` antes y después: tu saldo de LP tokens sube y `amount` del fondo aumenta en 1 XRP.
-4. Prueba variantes: `Flags: 1048576` con `Amount` y `Amount2` para depositar equilibrado, o `Flags: 65536` con `LPTokenOut` y observa cuánto de cada activo se descuenta.
-5. Envía `tfSingleAsset` con `Amount2` incluido para ver `temMALFORMED`, o un `LPTokenOut` enorme con `tfSingleAsset` para provocar `tecAMM_FAILED`.
+1. Make sure the XRP/USD AMM exists (`amm_info`); if not, create it with [AMMCreate](/tx/AMMCreate).
+2. Have a trust line to `rZZZZ_EMISOR` (even if you deposit XRP, `preclaim` checks authorization and freeze on both assets) and free XRP for one more trust line.
+3. Send the example with `Flags: 524288`. Note the `lp_token.value` from `amm_info` before and after: your LP token balance goes up and the pool's `amount` increases by 1 XRP.
+4. Try variants: `Flags: 1048576` with `Amount` and `Amount2` for a balanced deposit, or `Flags: 65536` with `LPTokenOut` and observe how much of each asset gets deducted.
+5. Send `tfSingleAsset` with `Amount2` included to see `temMALFORMED`, or a huge `LPTokenOut` with `tfSingleAsset` to trigger `tecAMM_FAILED`.
 
-## Relacionado
+## Related
 
 - [AMMCreate](/tx/AMMCreate), [AMMWithdraw](/tx/AMMWithdraw), [AMMVote](/tx/AMMVote), [AMMBid](/tx/AMMBid)
 - [AMM](/objects/AMM), [RippleState](/objects/RippleState)

@@ -1,21 +1,21 @@
 ---
 title: LendingProtocolV1_1
-summary: Activa las transacciones concretas del protocolo de préstamos de XRPL, LoanBroker y Loan, sobre la base sentada por LendingProtocol y SingleAssetVault.
+summary: Activates the concrete transactions of the XRPL lending protocol, LoanBroker and Loan, on the foundation laid by LendingProtocol and SingleAssetVault.
 xrplDocs: https://xrpl.org/resources/known-amendments#lendingprotocolv1_1
 ---
 
-## Qué cambia
+## What changes
 
-Mientras que [LendingProtocol](/amendments/LendingProtocol) solo preparaba el terreno interno (redondeo e invariantes), LendingProtocolV1_1 es el amendment que realmente habilita las transacciones de préstamo. Con él, cualquier cuenta puede crear un `LoanBroker` sobre una [Vault](/objects/Vault) existente: el LoanBroker es la entidad que gestiona los préstamos concedidos con la liquidez de esa vault y necesita un colchón de capital propio, el "First Loss Capital", que su operador deposita y del que responde primero si un préstamo entra en impago.
+While [LendingProtocol](/amendments/LendingProtocol) only prepared the internal groundwork (rounding and invariants), LendingProtocolV1_1 is the amendment that actually enables the lending transactions. With it, any account can create a `LoanBroker` on top of an existing [Vault](/objects/Vault): the LoanBroker is the entity that manages loans granted using that vault's liquidity and needs its own capital buffer, the "First Loss Capital", which its operator deposits and which absorbs losses first if a loan defaults.
 
-Sobre un LoanBroker ya creado, la transacción `LoanSet` crea (o actualiza) un `Loan` concreto: un préstamo con su principal, condiciones de interés y calendario de repago contra la liquidez de la vault subyacente. `LoanDelete` cierra un préstamo saldado. El operador del broker gestiona su colchón de capital con `LoanBrokerCoverDeposit`, `LoanBrokerCoverWithdraw` y `LoanBrokerCoverClawback` (esta última permite al emisor del activo recuperar capital del colchón, igual que un [Clawback](/tx/Clawback) normal), y puede retirar el broker entero con `LoanBrokerDelete` cuando ya no tiene préstamos ni capital pendientes.
+On top of an already-created LoanBroker, the `LoanSet` transaction creates (or updates) a concrete `Loan`: a loan with its principal, interest terms, and repayment schedule against the underlying vault's liquidity. `LoanDelete` closes a loan that has been paid off. The broker's operator manages its capital buffer with `LoanBrokerCoverDeposit`, `LoanBrokerCoverWithdraw`, and `LoanBrokerCoverClawback` (the latter allows the asset's issuer to recover capital from the buffer, just like a regular [Clawback](/tx/Clawback)), and can withdraw the entire broker with `LoanBrokerDelete` once it has no outstanding loans or capital left.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nuevas: `LoanBrokerSet`, `LoanBrokerDelete`, `LoanBrokerCoverDeposit`, `LoanBrokerCoverWithdraw`, `LoanBrokerCoverClawback`, `LoanSet` y `LoanDelete`.
-- Objetos nuevos: `LoanBroker` y `Loan`.
-- Relacionadas: [VaultCreate](/tx/VaultCreate), [VaultDeposit](/tx/VaultDeposit) y [VaultWithdraw](/tx/VaultWithdraw), que proveen la liquidez que el LoanBroker presta; también puede usar [Credential](/objects/Credential) y [PermissionedDomains](/amendments/PermissionedDomains) para restringir quién puede pedir un préstamo.
+- New: `LoanBrokerSet`, `LoanBrokerDelete`, `LoanBrokerCoverDeposit`, `LoanBrokerCoverWithdraw`, `LoanBrokerCoverClawback`, `LoanSet`, and `LoanDelete`.
+- New objects: `LoanBroker` and `Loan`.
+- Related: [VaultCreate](/tx/VaultCreate), [VaultDeposit](/tx/VaultDeposit), and [VaultWithdraw](/tx/VaultWithdraw), which provide the liquidity the LoanBroker lends out; it can also use [Credential](/objects/Credential) and [PermissionedDomains](/amendments/PermissionedDomains) to restrict who can take out a loan.
 
-## Estado y contexto
+## Status and context
 
-Es la primera versión funcional del protocolo de préstamos nativo de XRPL: lleva a la capa base del ledger un mecanismo de crédito con colateral y gestión de impagos, algo hasta ahora reservado a protocolos de préstamo construidos sobre EVM o sidechains. `LendingProtocolV1_2`, aún en desarrollo, es la siguiente iteración prevista sobre este diseño.
+This is the first functional version of XRPL's native lending protocol: it brings a collateralized credit mechanism with default management down to the base ledger layer, something previously reserved for lending protocols built on EVM or sidechains. `LendingProtocolV1_2`, still under development, is the next planned iteration on this design.

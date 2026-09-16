@@ -1,27 +1,27 @@
 ---
 title: AMM
-summary: Añade creadores de mercado automáticos (XLS-30) integrados con el DEX, con LP tokens, votación de comisión y subasta de descuento.
+summary: Adds automated market makers (XLS-30) integrated with the DEX, with LP tokens, fee voting, and a discount auction.
 xls: XLS-0030
 xlsUrl: https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0030-automated-market-maker
 xrplDocs: https://xrpl.org/resources/known-amendments#amm
 introducedIn: 1.12.0
 ---
 
-## Qué cambia
+## What changes
 
-Introduce los *Automated Market Makers* en el ledger. Cada par de activos (XRP o tokens emitidos) puede tener como máximo una instancia de AMM, que vive en una cuenta especial (pseudocuenta) sin claves y que custodia el pool. Quien deposita liquidez recibe *LP tokens* proporcionales a su aportación; con ellos participa en las comisiones de intercambio, vota la comisión del pool (`TradingFee`) y puede pujar por el *auction slot*, que da derecho a operar con comisión reducida durante un tiempo limitado.
+Introduces *Automated Market Makers* on the ledger. Each asset pair (XRP or issued tokens) can have at most one AMM instance, which lives in a special account (pseudo-account) with no keys that custodies the pool. Whoever deposits liquidity receives *LP tokens* proportional to their contribution; with them they take part in the exchange fees, vote on the pool's fee (`TradingFee`), and can bid for the *auction slot*, which grants the right to trade at a reduced fee for a limited time.
 
-El motor de pagos y el cruce de ofertas pasan a combinar ofertas del libro de órdenes y AMMs para obtener el mejor tipo de cambio, sin que el usuario tenga que elegir. Además, algunas transacciones no pueden tener como destino la cuenta de un AMM (por ejemplo, no se le puede enviar un cheque porque nunca podría cobrarlo).
+The payment engine and offer crossing now combine order book offers and AMMs to obtain the best exchange rate, without the user having to choose. In addition, some transactions cannot target an AMM's account as destination (for example, a check cannot be sent to it because it could never be cashed).
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nuevas: [AMMCreate](/tx/AMMCreate), [AMMDeposit](/tx/AMMDeposit), [AMMWithdraw](/tx/AMMWithdraw), [AMMVote](/tx/AMMVote), [AMMBid](/tx/AMMBid) y [AMMDelete](/tx/AMMDelete).
-- Modificadas: [Payment](/tx/Payment) y [OfferCreate](/tx/OfferCreate) usan los pools como fuente de liquidez; [CheckCreate](/tx/CheckCreate), [EscrowCreate](/tx/EscrowCreate) y [PaymentChannelCreate](/tx/PaymentChannelCreate) rechazan la cuenta del AMM como destino.
-- Nuevo objeto [AMM](/objects/AMM) y nuevo campo `AMMID` en [AccountRoot](/objects/AccountRoot) que enlaza la pseudocuenta con su pool.
-- Los LP tokens son tokens emitidos normales, así que aparecen como [RippleState](/objects/RippleState).
+- New: [AMMCreate](/tx/AMMCreate), [AMMDeposit](/tx/AMMDeposit), [AMMWithdraw](/tx/AMMWithdraw), [AMMVote](/tx/AMMVote), [AMMBid](/tx/AMMBid), and [AMMDelete](/tx/AMMDelete).
+- Modified: [Payment](/tx/Payment) and [OfferCreate](/tx/OfferCreate) use the pools as a source of liquidity; [CheckCreate](/tx/CheckCreate), [EscrowCreate](/tx/EscrowCreate), and [PaymentChannelCreate](/tx/PaymentChannelCreate) reject the AMM account as destination.
+- New [AMM](/objects/AMM) object and new `AMMID` field on [AccountRoot](/objects/AccountRoot) linking the pseudo-account to its pool.
+- LP tokens are ordinary issued tokens, so they appear as [RippleState](/objects/RippleState).
 
-## Estado y contexto
+## Status and context
 
-El DEX original del XRPL solo tenía libro de órdenes, que exige creadores de mercado activos y deja pares con poca liquidez sin precio. La XLS-30 propuso un AMM de producto constante estilo Uniswap, pero integrado de forma nativa: el motor de pagos evalúa ofertas y AMM en cada paso y elige la mejor combinación. La subasta del *auction slot* y la votación de comisión son particularidades del diseño del XRPL pensadas para reducir la pérdida impermanente y devolver parte del arbitraje a los proveedores de liquidez.
+The original XRPL DEX only had an order book, which requires active market makers and leaves pairs with little liquidity without a price. XLS-30 proposed a Uniswap-style constant-product AMM, but integrated natively: the payment engine evaluates offers and AMM at each step and picks the best combination. The *auction slot* auction and fee voting are XRPL-specific design choices meant to reduce impermanent loss and return part of the arbitrage to liquidity providers.
 
-Tras su activación se descubrieron varios problemas de redondeo y de casos límite que se corrigieron con los amendments `fixAMMv1_1`, `fixAMMv1_2`, `fixAMMv1_3` y `fixAMMOverflowOffer`. La compatibilidad con tokens con clawback llegó después con [AMMClawback](/amendments/AMMClawback).
+After activation, several rounding and edge-case issues were discovered and fixed with the amendments `fixAMMv1_1`, `fixAMMv1_2`, `fixAMMv1_3`, and `fixAMMOverflowOffer`. Compatibility with clawback-enabled tokens came later with [AMMClawback](/amendments/AMMClawback).

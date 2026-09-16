@@ -1,22 +1,22 @@
 ---
 title: NFTokenMintOffer
-summary: Permite incluir una oferta de venta directamente en la transacción NFTokenMint, sin necesitar un NFTokenCreateOffer aparte.
+summary: Allows including a sell offer directly in the NFTokenMint transaction, without needing a separate NFTokenCreateOffer.
 xrplDocs: https://xrpl.org/resources/known-amendments#nftokenmintoffer
 introducedIn: 2.3.0
 ---
 
-## Qué cambia
+## What changes
 
-Antes de este amendment, acuñar un NFT y ponerlo en venta requería dos transacciones separadas: `NFTokenMint` para crear el token y, después, `NFTokenCreateOffer` para publicar una oferta de venta sobre él. Con NFTokenMintOffer activo, `NFTokenMint` acepta los campos opcionales `Amount`, `Destination` y `Expiration` en la misma transacción. Si `Amount` está presente, el transactor crea automáticamente una oferta de venta (`NFTokenOffer`) para el NFT recién acuñado, con el precio, el comprador restringido (`Destination`, opcional) y la caducidad (`Expiration`, opcional) indicados.
+Before this amendment, minting an NFT and putting it up for sale required two separate transactions: `NFTokenMint` to create the token and, afterward, `NFTokenCreateOffer` to publish a sell offer on it. With NFTokenMintOffer active, `NFTokenMint` accepts the optional fields `Amount`, `Destination` and `Expiration` in the same transaction. If `Amount` is present, the transactor automatically creates a sell offer (`NFTokenOffer`) for the newly minted NFT, with the specified price, the restricted buyer (`Destination`, optional), and the expiration (`Expiration`, optional).
 
-El código lo controla la función `hasOfferFields`, que detecta si la transacción trae `Amount`, `Destination` o `Expiration`: sin el amendment activo, cualquiera de esos campos en un `NFTokenMint` hace que la transacción se rechace en `preflight` (`checkExtraFeatures` devuelve `false`). Con el amendment, esos campos se procesan igual que en una `NFTokenCreateOffer` normal, incluyendo las mismas reglas de validación de precio y de tipo de emisión (XRP o token fungible).
+This is controlled in the code by the `hasOfferFields` function, which detects whether the transaction carries `Amount`, `Destination` or `Expiration`: without the amendment active, any of those fields in an `NFTokenMint` causes the transaction to be rejected in `preflight` (`checkExtraFeatures` returns `false`). With the amendment, those fields are processed just like in a normal `NFTokenCreateOffer`, including the same price validation and issuance type rules (XRP or fungible token).
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [NFTokenMint](/tx/NFTokenMint): admite los nuevos campos opcionales `Amount`, `Destination` y `Expiration`.
-- Objeto creado indirectamente: [NFTokenOffer](/objects/NFTokenOffer), la oferta de venta generada automáticamente al acuñar si se indica `Amount`.
-- Relacionado: [NFTokenCreateOffer](/tx/NFTokenCreateOffer), cuya función sigue existiendo para crear ofertas sobre NFTs ya acuñados o para añadir más ofertas después.
+- [NFTokenMint](/tx/NFTokenMint): supports the new optional fields `Amount`, `Destination` and `Expiration`.
+- Object created indirectly: [NFTokenOffer](/objects/NFTokenOffer), the sell offer automatically generated at mint time if `Amount` is specified.
+- Related: [NFTokenCreateOffer](/tx/NFTokenCreateOffer), whose function still exists for creating offers on already-minted NFTs or for adding further offers later.
 
-## Estado y contexto
+## Status and context
 
-El flujo habitual de "acuñar y listar a la venta" era el caso de uso más común para creadores de NFTs, y hacerlo en dos transacciones duplicaba el coste en comisiones y la complejidad de la aplicación cliente (había que esperar a la confirmación del mint antes de poder referenciar el `NFTokenID` en la oferta). NFTokenMintOffer colapsa ambos pasos en una sola transacción atómica, simplificando la experiencia de acuñación con venta inmediata sin cambiar las reglas de negocio de las ofertas en sí.
+The typical "mint and list for sale" flow was the most common use case for NFT creators, and doing it in two transactions doubled the fee cost and the complexity of the client application (it had to wait for the mint to be confirmed before it could reference the `NFTokenID` in the offer). NFTokenMintOffer collapses both steps into a single atomic transaction, simplifying the minting-with-immediate-sale experience without changing the business rules of offers themselves.

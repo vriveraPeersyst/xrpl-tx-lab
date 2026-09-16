@@ -1,46 +1,46 @@
 ---
 title: AMM
-summary: Un pool de liquidez automático entre dos activos, con su comisión de intercambio, las votaciones de los proveedores y la subasta del slot con descuento.
+summary: An automated liquidity pool between two assets, with its trading fee, provider votes, and the discounted auction slot.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/amm
 createdBy: AMMCreate
 modifiedBy: AMMDeposit, AMMWithdraw, AMMVote, AMMBid, AMMClawback, AMMDelete, Payment, OfferCreate
 reserve: 0
 ---
 
-## Qué representa
+## What it represents
 
-Un `AMM` es un creador de mercado automático: un pool con dos activos (XRP, tokens emitidos o MPT) que cualquiera puede usar para cambiar uno por otro a un precio fijado por la fórmula de producto constante. Quien aporta liquidez recibe *LP tokens*, un token emitido por la pseudocuenta del AMM que representa su participación.
+An `AMM` is an automated market maker: a pool with two assets (XRP, issued tokens, or MPTs) that anyone can use to swap one for the other at a price set by the constant product formula. Whoever provides liquidity receives *LP tokens*, a token issued by the AMM's pseudo-account that represents their share.
 
-El objeto `AMM` guarda la configuración y la gobernanza del pool. Los fondos no están en él, sino en la pseudocuenta: un [AccountRoot](/objects/AccountRoot) con el campo `AMMID` apuntando a este objeto, sin claves privadas, cuyos saldos viven en `Balance` (XRP), en líneas [RippleState](/objects/RippleState) con `lsfAMMNode` o en objetos [MPToken](/objects/MPToken) con `lsfMPTAMM`.
+The `AMM` object stores the pool's configuration and governance. The funds are not held in it, but in the pseudo-account: an [AccountRoot](/objects/AccountRoot) with the `AMMID` field pointing to this object, with no private keys, whose balances live in `Balance` (XRP), in [RippleState](/objects/RippleState) lines with `lsfAMMNode`, or in [MPToken](/objects/MPToken) objects with `lsfMPTAMM`.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [AMMCreate](/tx/AMMCreate) crea el objeto, la pseudocuenta (`createPseudoAccount` en `AMMCreate::doApply`) y el primer depósito. Esta transacción cobra como comisión el equivalente a un incremento de reserva de propietario (`AMMCreate::calculateBaseFee`), 0,2 XRP en testnet, en lugar de la comisión normal.
-- **Modificación**: [AMMDeposit](/tx/AMMDeposit) y [AMMWithdraw](/tx/AMMWithdraw) mueven `LPTokenBalance`; [AMMVote](/tx/AMMVote) actualiza `VoteSlots` y recalcula `TradingFee`; [AMMBid](/tx/AMMBid) cambia `AuctionSlot`; [AMMClawback](/tx/AMMClawback) permite a un emisor con clawback retirar su token del pool; cualquier [Payment](/tx/Payment) u [OfferCreate](/tx/OfferCreate) que cruce el pool cambia los saldos de la pseudocuenta, no este objeto.
-- **Borrado**: cuando la última retirada deja `LPTokenBalance` a cero, `AMMWithdraw` intenta borrar el AMM y su pseudocuenta. Si hay demasiadas líneas de confianza para limpiarlas en una sola transacción (`tecINCOMPLETE`), hay que rematar con [AMMDelete](/tx/AMMDelete).
+- **Creation**: [AMMCreate](/tx/AMMCreate) creates the object, the pseudo-account (`createPseudoAccount` in `AMMCreate::doApply`), and the first deposit. This transaction charges as its fee the equivalent of an owner reserve increment (`AMMCreate::calculateBaseFee`), 0.2 XRP on testnet, instead of the normal fee.
+- **Modification**: [AMMDeposit](/tx/AMMDeposit) and [AMMWithdraw](/tx/AMMWithdraw) move `LPTokenBalance`; [AMMVote](/tx/AMMVote) updates `VoteSlots` and recalculates `TradingFee`; [AMMBid](/tx/AMMBid) changes `AuctionSlot`; [AMMClawback](/tx/AMMClawback) lets an issuer with clawback enabled withdraw its token from the pool; any [Payment](/tx/Payment) or [OfferCreate](/tx/OfferCreate) that crosses the pool changes the pseudo-account's balances, not this object.
+- **Deletion**: when the last withdrawal leaves `LPTokenBalance` at zero, `AMMWithdraw` attempts to delete the AMM and its pseudo-account. If there are too many trust lines to clean up in a single transaction (`tecINCOMPLETE`), you need to finish the job with [AMMDelete](/tx/AMMDelete).
 
-## Campos clave
+## Key fields
 
-- **Account** — dirección de la pseudocuenta que custodia los activos y emite los LP tokens.
-- **Asset / Asset2** — los dos activos del pool, en orden canónico. Su hash determina la clave del objeto.
-- **LPTokenBalance** — total de LP tokens en circulación. La moneda es un código hex de 160 bits calculado a partir de los dos activos (`ammLPTCurrency`).
-- **TradingFee** — comisión en unidades de 1/100 000 (1000 = 1 %, máximo 1000). Es la media ponderada de `VoteSlots`.
-- **VoteSlots** — hasta 8 votos; cada uno guarda `Account`, `TradingFee` y `VoteWeight` (participación en LP tokens en el momento del voto).
-- **AuctionSlot** — quien ganó la subasta de 24 horas: `Account`, `Price` pagado en LP tokens, `Expiration`, `DiscountedFee` (una décima parte de `TradingFee`) y hasta 4 `AuthAccounts` que también disfrutan el descuento.
+- **Account** — address of the pseudo-account that holds the assets and issues the LP tokens.
+- **Asset / Asset2** — the pool's two assets, in canonical order. Their hash determines the object's key.
+- **LPTokenBalance** — total LP tokens in circulation. The currency is a 160-bit hex code computed from the two assets (`ammLPTCurrency`).
+- **TradingFee** — fee in units of 1/100,000 (1000 = 1%, maximum 1000). It is the weighted average of `VoteSlots`.
+- **VoteSlots** — up to 8 votes; each stores `Account`, `TradingFee`, and `VoteWeight` (share of LP tokens at the time of the vote).
+- **AuctionSlot** — who won the 24-hour auction: `Account`, `Price` paid in LP tokens, `Expiration`, `DiscountedFee` (one-tenth of `TradingFee`), and up to 4 `AuthAccounts` who also enjoy the discount.
 
 ## Flags
 
-No tiene flags `lsf*` propios.
+It has no `lsf*` flags of its own.
 
-## Cómo consultarlo
+## How to query it
 
-El comando dedicado es `amm_info` (con `asset` y `asset2`, o con `amm_account`). Con `ledger_entry` pasa el par de activos:
+The dedicated command is `amm_info` (with `asset` and `asset2`, or with `amm_account`). With `ledger_entry`, pass the asset pair:
 
 ```json
 { "method": "ledger_entry", "params": [{ "amm": { "asset": { "currency": "XRP" }, "asset2": { "currency": "USD", "issuer": "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq" } }, "ledger_index": "validated" }] }
 ```
 
-La clave es `SHA512Half(0x0041 || activo1 || activo2)` (`keylet::amm`). En `account_objects` de la pseudocuenta usa `type: "amm"`. Respuesta típica:
+The key is `SHA512Half(0x0041 || asset1 || asset2)` (`keylet::amm`). In `account_objects` of the pseudo-account, use `type: "amm"`. Typical response:
 
 ```json
 {
@@ -58,11 +58,11 @@ La clave es `SHA512Half(0x0041 || activo1 || activo2)` (`keylet::amm`). En `acco
 }
 ```
 
-## Reserva
+## Reserve
 
-El objeto pertenece a la pseudocuenta, no a ti, así que no suma a tu `OwnerCount`. Lo que pagas es la comisión especial de `AMMCreate` (un incremento de reserva, que se quema) y la reserva de tu línea de confianza de LP tokens.
+The object belongs to the pseudo-account, not to you, so it does not add to your `OwnerCount`. What you pay is `AMMCreate`'s special fee (a reserve increment, which is burned) and the reserve for your LP token trust line.
 
-## Relacionado
+## Related
 
 - [AMMCreate](/tx/AMMCreate), [AMMDeposit](/tx/AMMDeposit), [AMMWithdraw](/tx/AMMWithdraw), [AMMVote](/tx/AMMVote), [AMMBid](/tx/AMMBid), [AMMDelete](/tx/AMMDelete), [AMMClawback](/tx/AMMClawback)
 - [RippleState](/objects/RippleState), [MPToken](/objects/MPToken), [Offer](/objects/Offer)

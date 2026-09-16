@@ -1,20 +1,20 @@
 ---
 title: CryptoConditions
-summary: Amendment histórico que añadía crypto-conditions a los pagos suspendidos (SusPay); sin efecto propio desde que Escrow lo sustituyó.
+summary: Historical amendment that added crypto-conditions to suspended payments (SusPay); no effect of its own since Escrow replaced it.
 xrplDocs: https://xrpl.org/resources/known-amendments#cryptoconditions
 introducedIn: 0.50.0
 ---
 
-## Qué cambia
+## What changes
 
-Por sí solo, nada. CryptoConditions se diseñó como complemento del amendment `SusPay` (pagos suspendidos): añadía la posibilidad de bloquear un pago con una *crypto-condition* del Interledger Protocol (un hash PREIMAGE-SHA-256) y liberarlo presentando el *fulfillment*. `SusPay` nunca llegó a activarse y fue reemplazado por [Escrow](/amendments/Escrow), que ya incorporaba ese soporte de serie, así que este amendment quedó vacío de contenido.
+Nothing, on its own. CryptoConditions was designed as a complement to the `SusPay` amendment (suspended payments): it added the ability to lock a payment with an Interledger Protocol *crypto-condition* (a PREIMAGE-SHA-256 hash) and release it by presenting the *fulfillment*. `SusPay` never activated and was replaced by [Escrow](/amendments/Escrow), which already included that support out of the box, so this amendment ended up with no content of its own.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Ninguna de forma directa. La funcionalidad que describía vive hoy en los campos `Condition` de [EscrowCreate](/tx/EscrowCreate) y `Condition`/`Fulfillment` de [EscrowFinish](/tx/EscrowFinish), sobre el objeto [Escrow](/objects/Escrow).
+- None directly. The functionality it described now lives in the `Condition` field of [EscrowCreate](/tx/EscrowCreate) and the `Condition`/`Fulfillment` fields of [EscrowFinish](/tx/EscrowFinish), on top of the [Escrow](/objects/Escrow) object.
 
-## Estado y contexto
+## Status and context
 
-Entre 2016 y 2017 Ripple iteró varias veces el diseño de los pagos condicionados: primero `SusPay` (0.31.0), después CryptoConditions (0.50.0) para añadir las condiciones criptográficas de Interledger, y finalmente `Escrow` (0.60.0), que fusionó ambos en un único amendment con nombres de transacción definitivos. Como los IDs de amendment ya estaban publicados en software distribuido, no se podían modificar: se dejaron activos y se retiraron del código en versiones posteriores.
+Between 2016 and 2017, Ripple iterated several times on the design of conditional payments: first `SusPay` (0.31.0), then CryptoConditions (0.50.0) to add Interledger's cryptographic conditions, and finally `Escrow` (0.60.0), which merged both into a single amendment with final transaction names. Since the amendment IDs were already published in distributed software, they could not be changed: they were left active and removed from the code in later versions.
 
-Hoy aparece en la lista de amendments retirados de rippled (`XRPL_RETIRE_FEATURE`). Solo tiene interés histórico: si ves su ID en un ledger antiguo, ya sabes que no cambió ninguna regla. Su hermano [CryptoConditionsSuite](/amendments/CryptoConditionsSuite), que pretendía ampliar los tipos de condición, está en la misma situación.
+Today it appears in rippled's list of retired amendments (`XRPL_RETIRE_FEATURE`). It only has historical interest: if you see its ID in an old ledger, you now know it didn't change any rule. Its sibling [CryptoConditionsSuite](/amendments/CryptoConditionsSuite), which was meant to extend the condition types, is in the same situation.

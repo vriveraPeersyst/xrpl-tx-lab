@@ -1,43 +1,43 @@
 ---
 title: NegativeUNL
-summary: Objeto único que lista los validadores de la UNL que la red considera caídos, para no exigir su voto en el consenso.
+summary: Singleton object that lists the UNL validators the network considers down, so their vote is not required for consensus.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/negativeunl
 createdBy: sistema (UNLModify)
 modifiedBy: UNLModify
 reserve: 0
 ---
 
-## Qué representa
+## What it represents
 
-`NegativeUNL` es un *singleton*: solo existe un objeto de este tipo en todo el ledger. La red necesita que una super-mayoría de la UNL (lista de validadores de confianza) esté de acuerdo para validar un ledger; si varios validadores se caen a la vez, ese umbral se vuelve difícil de alcanzar y la red puede dejar de avanzar. La Negative UNL es el mecanismo para, tras observar que un validador lleva tiempo sin participar, excluirlo temporalmente del cálculo de la mayoría requerida sin tener que cambiar la lista de confianza (`UNL`) en sí.
+`NegativeUNL` is a *singleton*: only one object of this type exists in the entire ledger. The network needs a super-majority of the UNL (the trusted validator list) to agree in order to validate a ledger; if several validators go down at once, that threshold becomes hard to reach and the network can stall. The Negative UNL is the mechanism for temporarily excluding a validator from the required-majority calculation, once it has been observed to be unresponsive for a while, without having to change the trust list (`UNL`) itself.
 
-Un validador en la Negative UNL sigue siendo de confianza; solo no cuenta para el quorum mientras esté marcado como inactivo.
+A validator on the Negative UNL is still trusted; it simply doesn't count toward the quorum while marked as inactive.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: existe desde el génesis, normalmente vacío.
-- **Modificación**: el pseudo-transacción [UNLModify](/tx/UNLModify), emitido por los propios validadores mediante voto de consenso (nunca por un usuario), añade una clave a `ValidatorToDisable` cuando detectan inactividad sostenida de un validador, o la retira con `ValidatorToReEnable` cuando vuelve a participar. Ambos cambios solo se aplican en ledgers "flag" (múltiplos de 256).
-- **Borrado**: nunca se borra, aunque quede vacío.
+- **Creation**: exists since genesis, normally empty.
+- **Modification**: the pseudo-transaction [UNLModify](/tx/UNLModify), emitted by the validators themselves via consensus vote (never by a user), adds a key to `ValidatorToDisable` when they detect sustained inactivity from a validator, or removes it with `ValidatorToReEnable` once it starts participating again. Both changes only apply on flag ledgers (multiples of 256).
+- **Deletion**: never deleted, even when empty.
 
-## Campos clave
+## Key fields
 
-- **DisabledValidators** — lista de validadores actualmente excluidos del quorum, cada uno con su clave pública maestra y el índice de ledger en que fueron deshabilitados.
-- **ValidatorToDisable** — clave pública del validador que se propone deshabilitar en el próximo ledger flag (campo transitorio, presente solo mientras se procesa el cambio).
-- **ValidatorToReEnable** — clave pública del validador que se propone reactivar en el próximo ledger flag.
+- **DisabledValidators** — list of validators currently excluded from the quorum, each with its master public key and the ledger index at which they were disabled.
+- **ValidatorToDisable** — public key of the validator proposed to be disabled at the next flag ledger (transient field, present only while the change is being processed).
+- **ValidatorToReEnable** — public key of the validator proposed to be re-enabled at the next flag ledger.
 
 ## Flags
 
-No tiene flags `lsf*`.
+Has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-No pertenece a ninguna cuenta, así que no aparece en `account_objects`. Con `ledger_entry`, se pasa `"nunl": true`:
+It doesn't belong to any account, so it doesn't appear in `account_objects`. With `ledger_entry`, pass `"nunl": true`:
 
 ```json
 { "method": "ledger_entry", "params": [{ "nunl": true, "ledger_index": "validated" }] }
 ```
 
-El índice es fijo: `SHA512Half(0x004E)` (`keylet::negativeUNL`, namespace `'N'`). Respuesta típica (con la lista vacía, el caso normal en testnet):
+The index is fixed: `SHA512Half(0x004E)` (`keylet::negativeUNL`, namespace `'N'`). Typical response (with an empty list, the normal case on testnet):
 
 ```json
 {
@@ -49,9 +49,9 @@ El índice es fijo: `SHA512Half(0x004E)` (`keylet::negativeUNL`, namespace `'N'`
 }
 ```
 
-También puedes ver el estado actual con `server_info`/`consensus_info` en un `rippled` con acceso a métricas de validadores.
+You can also see the current state via `server_info`/`consensus_info` on a `rippled` with access to validator metrics.
 
-## Relacionado
+## Related
 
 - [UNLModify](/tx/UNLModify)
 - [Amendments](/objects/Amendments), [FeeSettings](/objects/FeeSettings)

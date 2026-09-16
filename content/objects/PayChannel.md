@@ -1,47 +1,47 @@
 ---
 title: PayChannel
-summary: Un canal de pago unidireccional de XRP: el emisor deposita un fondo y va autorizando pagos incrementales fuera de cadena mediante firmas.
+summary: A unidirectional XRP payment channel: the sender deposits funds and authorizes incremental off-chain payments via signatures.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/paychannel
 createdBy: PaymentChannelCreate
 modifiedBy: PaymentChannelFund, PaymentChannelClaim
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `PayChannel` permite pagos repetidos y de bajo importe (micropagos, streaming de contenido, tarificación por uso) sin publicar una transacción por cada uno. El emisor bloquea XRP en `Amount` y va firmando fuera de cadena "reclamaciones" (claims) por importes crecientes hasta `Balance`; el destinatario solo necesita publicar una transacción cuando quiere cobrar lo acumulado, presentando la firma más reciente. El resto del tiempo, el canal no genera tráfico en el ledger.
+A `PayChannel` enables repeated, low-value payments (micropayments, content streaming, usage-based billing) without publishing a transaction for each one. The sender locks XRP in `Amount` and signs off-chain "claims" for increasing amounts up to `Balance`; the recipient only needs to publish a transaction when they want to cash in the accumulated amount, presenting the most recent signature. The rest of the time, the channel generates no ledger traffic.
 
-Es más flexible que un [Escrow](/objects/Escrow) para pagos repetidos porque no hace falta crear un objeto nuevo por cada pago: es el mismo canal, solo se actualiza `Balance`.
+It's more flexible than an [Escrow](/objects/Escrow) for repeated payments because there's no need to create a new object for each payment: it's the same channel, only `Balance` gets updated.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [PaymentChannelCreate](/tx/PaymentChannelCreate). El emisor fija `Amount` (fondo total), `SettleDelay` (tiempo de gracia tras solicitar el cierre) y `PublicKey` (la clave que firmará las reclamaciones). `Balance` empieza a cero.
-- **Recarga**: [PaymentChannelFund](/tx/PaymentChannelFund), por el emisor, añade más XRP a `Amount` y opcionalmente extiende `Expiration`.
-- **Cobro**: [PaymentChannelClaim](/tx/PaymentChannelClaim), por el destinatario, presentando `Balance` y `Signature` firmados por `PublicKey`; solo puede reclamar hasta esa cifra acumulada, nunca más. También sirve para que el emisor inicie el cierre (con `tfClose`) tras `SettleDelay`, o para cancelarlo antes si el destinatario coopera.
-- **Cierre**: cuando el emisor pide cerrar y pasa `SettleDelay` sin que el destinatario reclame más, o cuando ambas partes acuerdan cerrarlo con `tfClose`, se borra el objeto y el sobrante de `Amount` vuelve al emisor.
+- **Creation**: [PaymentChannelCreate](/tx/PaymentChannelCreate). The sender sets `Amount` (total funding), `SettleDelay` (grace period after requesting closure), and `PublicKey` (the key that will sign the claims). `Balance` starts at zero.
+- **Top-up**: [PaymentChannelFund](/tx/PaymentChannelFund), by the sender, adds more XRP to `Amount` and optionally extends `Expiration`.
+- **Claim**: [PaymentChannelClaim](/tx/PaymentChannelClaim), by the recipient, presenting `Balance` and `Signature` signed by `PublicKey`; they can only claim up to that accumulated figure, never more. It's also used for the sender to initiate closure (with `tfClose`) after `SettleDelay`, or to cancel it earlier if the recipient cooperates.
+- **Closure**: when the sender requests closure and `SettleDelay` passes without the recipient claiming more, or when both parties agree to close it with `tfClose`, the object is deleted and the remainder of `Amount` returns to the sender.
 
-## Campos clave
+## Key fields
 
-- **Account / Destination** — quien financia el canal y quien puede cobrar de él.
-- **Amount** — fondo total depositado; el destinatario nunca puede cobrar más que esto.
-- **Balance** — lo ya reclamado (cobrado) hasta ahora; crece con cada `PaymentChannelClaim` exitoso, nunca decrece.
-- **PublicKey** — la clave que debe firmar cada reclamación fuera de cadena; normalmente distinta de la clave de firma de transacciones de `Account`.
-- **SettleDelay** — segundos que debe esperar el emisor tras pedir el cierre antes de poder recuperar el sobrante, dando tiempo al destinatario a presentar su última reclamación.
-- **Expiration / CancelAfter** — `Expiration` es mutable (se puede extender con `PaymentChannelFund`); `CancelAfter` es un límite fijo puesto en la creación que no se puede mover.
+- **Account / Destination** — who funds the channel and who can claim from it.
+- **Amount** — total funds deposited; the recipient can never claim more than this.
+- **Balance** — the amount already claimed so far; grows with each successful `PaymentChannelClaim`, never decreases.
+- **PublicKey** — the key that must sign each off-chain claim; usually different from `Account`'s transaction-signing key.
+- **SettleDelay** — seconds the sender must wait after requesting closure before being able to recover the remainder, giving the recipient time to present their latest claim.
+- **Expiration / CancelAfter** — `Expiration` is mutable (can be extended with `PaymentChannelFund`); `CancelAfter` is a fixed limit set at creation that cannot be moved.
 
 ## Flags
 
-No tiene flags `lsf*`.
+Has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "payment_channel"` lo devuelve para `Account`. Con `ledger_entry`, `payment_channel` solo acepta el ID del objeto directamente:
+`account_objects` with `type: "payment_channel"` returns it for `Account`. With `ledger_entry`, `payment_channel` only accepts the object ID directly:
 
 ```json
 { "method": "ledger_entry", "params": [{ "payment_channel": "96F76F27D8A327FC48753167EC04A46AA0E382E6916C40D14A423D5E9366F02", "ledger_index": "validated" }] }
 ```
 
-El ID es `SHA512Half(0x0078 || AccountID_emisor || AccountID_destino || Sequence)` (`keylet::payChannel`, namespace `'x'`), y se encuentra en los metadatos de la `PaymentChannelCreate`. Respuesta típica:
+The ID is `SHA512Half(0x0078 || AccountID_sender || AccountID_destination || Sequence)` (`keylet::payChannel`, namespace `'x'`), and is found in the `PaymentChannelCreate`'s metadata. Typical response:
 
 ```json
 {
@@ -60,11 +60,11 @@ El ID es `SHA512Half(0x0078 || AccountID_emisor || AccountID_destino || Sequence
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 1 unidad de reserva de propietario (0,2 XRP en testnet) del emisor mientras exista.
+Consumes 1 unit of owner reserve (0.2 XRP on testnet) from the sender while it exists.
 
-## Relacionado
+## Related
 
 - [PaymentChannelCreate](/tx/PaymentChannelCreate), [PaymentChannelFund](/tx/PaymentChannelFund), [PaymentChannelClaim](/tx/PaymentChannelClaim)
 - [Escrow](/objects/Escrow), [Check](/objects/Check)
