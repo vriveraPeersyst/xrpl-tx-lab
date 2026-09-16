@@ -19,6 +19,7 @@ const NAV = [
   ["results", "Results"],
   ["fields", "Fields"],
   ["permissions", "Permissions"],
+  ["libraries", "Libraries"],
   ["account", "Wallet"],
 ] as const;
 

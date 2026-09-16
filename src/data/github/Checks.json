@@ -1,0 +1,2988 @@
+{
+ "name": "Checks",
+ "fetchedAt": "2026-09-16T10:38:57.012Z",
+ "summary": {
+  "status": "in development",
+  "prs": 12,
+  "open": 8,
+  "merged": 3,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [
+   "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
+   "pratik/Add_checks_db_objects"
+  ],
+  "lastActivity": "2026-09-16T09:37:35Z",
+  "lastMerged": "2026-09-03T19:42:39Z",
+  "release": "0.90.0",
+  "totalComments": 407
+ },
+ "release": {
+  "version": "0.90.0",
+  "date": "2018-02-21T00:16:58Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/0.90.0",
+  "excerpt": "The `Checks` amendment, which allows users to create deferred payments that can be cancelled or cashed by their intended recipients."
+ },
+ "prs": [
+  {
+   "number": 8183,
+   "title": "feat: Tighten invariant checks so that a delete transaction only dele…",
+   "url": "https://github.com/XRPLF/rippled/pull/8183",
+   "state": "open",
+   "author": "a1q123456",
+   "createdAt": "2026-09-07T15:57:35Z",
+   "updatedAt": "2026-09-16T09:37:35Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-07T15:59:14Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8183?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#issuecomment-5573127708"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR tightens invariant checks for LoanDelete, LoanBrokerDelete, and VaultDelete so that a deleting transaction can only delete the ledger object specified in the transaction.\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/tighten-vault-and-loan-delete-invariant-checks",
+   "additions": 362,
+   "deletions": 32,
+   "changedFiles": 8,
+   "commits": 1,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-07T16:00:49Z",
+     "body": "This change adds new post-fixCleanup3_5_0 invariant checks to LoanBrokerInvariant, LoanInvariant, and VaultInvariant so that Loan/LoanBroker/Vault delete transactions can only remove the exact object named in the transaction and must not touch any other object of the same type. I traced through the control flow in all three files against the corresponding new unit tests (mismatched-ID deletion, deleting-while-modifying-another, and multi-delete scenarios) and the logic is consistent: deleted-object collections (deletedBroker_, deletedLoans_, deletedVault_) are kept distinct from the general touched-object collections (brokers_, loans_, beforeVault_/afterVault_), so the new checks correctly e"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-07T16:24:36Z",
+     "body": "### 🟡 Changes recommended\n\nThe new vault “deletion must not create or modify another vault” check is currently bypassed for malformed `ttVAULT_DELETE` cases due to control-flow ordering in `ValidVault::finalize`.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR tightens transaction invariant enforcement around deletion flows for Vaults, Loans, and Loan Brokers, ensuring that delete transactions only delete the specific ledger object identified in the transaction and do not delete (or touch) additional objects.\n\n**Changes:**\n- Added stricter `fixCleanup3_5_0`-gated invariant checks to "
+    },
+    {
+     "author": "tyalymov",
+     "state": "APPROVED",
+     "date": "2026-09-08T12:52:48Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-07T16:24:36Z",
+     "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
+     "body": "The new fixCleanup3_5_0 check for `deletedVault_` (\"vault deletion must not create or modify another vault\") is placed after the early return for `txnType == ttVAULT_DELETE`. As a result, a malformed `ttVAULT_DELETE` that both deletes a vault and also creates/modifies another vault will never hit the intended diagnostic and will instead be reported as \"vault deletion succeeded without deleting a vault\".\n\nMove the `deletedVault_` check above the `ttVAULT_DELETE` early-return so the stricter rule is enforced (and the correct diagnostic is emitted) for VaultDelete as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r3951388141"
+    }
+   ]
+  },
+  {
+   "number": 8137,
+   "title": "fix: Flaky online delete tests, and cover the health checks added in #5531",
+   "url": "https://github.com/XRPLF/rippled/pull/8137",
+   "state": "closed",
+   "author": "vlntb",
+   "createdAt": "2026-08-28T09:20:41Z",
+   "updatedAt": "2026-09-03T19:42:42Z",
+   "closedAt": "2026-09-03T19:42:39Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-28T09:22:51Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8137?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#issuecomment-5450790792"
+    },
+    {
+     "author": "vlntb",
+     "date": "2026-09-02T15:08:20Z",
+     "body": "/xrplf-ai-reviewer",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#issuecomment-5511747398"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n### Part 1: the flakiness\n\n`xrpl.app.LedgerMaster` and `xrpl.app.SHAMapStore` are flaky in CI. The visible\nsymptoms vary by build type:\n\n- **Debug:** the unit test worker aborts outright:\n  Assertion failed: ((\"xrpl::LedgerMaster::missingFromCompleteLedgerRange : invalid parameters\") && false),\n  function missingFromCompleteLedgerRange, file LedgerMaster.cpp, line 1595\n- **Release:** `UNREACHABLE` is a no-op, so execution continues and the run\nreports a large fan-out of downstream assertion failures instead\n(observed: `247 suites, 4728 cases, 117 failures`).\n\nBoth come from the same place. The failures are unrelated to any feature branch\nwork. They reproduce",
+   "merged": true,
+   "mergedAt": "2026-09-03T19:42:39Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:vlntb/online-delete-fix-followup",
+   "additions": 1193,
+   "deletions": 39,
+   "changedFiles": 2,
+   "commits": 21,
+   "reviewComments": 13,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-28T09:22:01Z",
+     "body": "This is a well-reasoned fix for genuine race conditions in two SHAMapStore-related test suites (LedgerMaster_test.cpp and SHAMapStore_test.cpp). The root cause — env.close() returning before the job queue has actually handed the ledger to SHAMapStore, causing rendezvous() to return immediately without doing meaningful work — is clearly diagnosed, and the fixes (draining the job queue first, replacing brittle exact-value/spin-loop assertions with range checks, and guarding missingFromCompleteLedgerRange against invalid ranges that would abort a Debug build) are sound and consistent across both files. The only notable nit is that the new `syncStore` helper is duplicated verbatim in both test f"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-28T09:25:21Z",
+     "body": "The changes add a `syncStore()` helper to drain the job queue before waiting on the SHAMapStore, and replace brittle exact-match/looping assertions with range checks and guards against triggering `missingFromCompleteLedgerRange`'s UNREACHABLE precondition. The logic is well-reasoned and the comments explain the underlying races clearly. The main gap is that the new helper calls `getJobQueue().rendezvous()` with no timeout, which can still hang the test job even though the very next line takes care to use a timed overload for the store — this partially defeats the PR's stated goal of preventing hangs. The helper is also duplicated verbatim across the two test files."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-28T11:50:10Z",
+     "body": "This is a solid, well-reasoned fix for flaky LedgerMaster and SHAMapStore tests: it drains the job queue before waiting on the SHAMapStore, replaces brittle exact-value assertions on lastRotated with range checks that tolerate legitimate ledger-coalescing timing, and guards the calls to missingFromCompleteLedgerRange so a desynced range reports a normal test failure instead of aborting the process via UNREACHABLE. No correctness issues were found in the changed lines; the one thing worth calling out is that the new syncStore() helper is duplicated verbatim (including its explanatory comments) across both test files."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-28T17:02:55Z",
+     "body": "This is a test-only change that fixes flaky LedgerMaster/SHAMapStore tests by draining the job queue before checking SHAMapStore state, tolerating timing-dependent values instead of assuming fixed ones, guarding missingFromCompleteLedgerRange calls against precondition violations, and adding new coverage for healthWait() branches via a custom log-capturing sink. I traced through the new helpers (syncStore, parkInHealthWait, parkMidRotation, StoreLogs) and the ordering of mode changes, ledger closes, job-queue drains, and rendezvous calls checks out internally consistent with the documented invariants (store's coalescing of newLedger_, healthWait's branch conditions, clearPrior's per-row slee"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T14:11:13Z",
+     "body": "## Pull request overview\n\nThis PR strengthens and de-flakes the online-delete / ledger-gap unit tests by ensuring tests synchronize with asynchronous SHAMapStore processing, and by adding targeted coverage for SHAMapStoreImp config validation and `healthWait()` behavior introduced alongside #5531.\n\n**Changes:**\n- Replace direct `SHAMapStore::rendezvous()` usage in tests with a `syncStore()` helper that first drains the `JobQueue`, avoiding timing-dependent false “idle” observations.\n- Add unit tests covering `[node_db]` online-delete configuration validation and multiple `SHAMapStoreImp::healthWait()` decision branches (mode/age/gap/building-ledger/circuit-breaker/stop).\n- Harden ledger-rang"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-01T19:58:57Z",
+     "body": "This is a careful, well-documented rewrite of the flaky LedgerMaster/SHAMapStore tests (replacing hard-coded expected `lastRotated` values and unguarded `missingFromCompleteLedgerRange` calls that could hit `UNREACHABLE` with timing-tolerant checks and a `syncStore()` helper that properly drains the job queue before rendezvous), plus substantial new coverage for `[node_db]` config validation and `healthWait()` branches. The added `StoreLogs`/`parkInHealthWait`/`parkMidRotation` helpers are thoroughly commented, and the synchronization patterns (sleep-based polling for a ledger to appear, then a fixed settle delay) mirror an existing convention already used by `testLedgerGaps()`, so they don'"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:18:58Z",
+     "body": "### 🟢 Approval recommended\n\nChanges are confined to test code, address concrete race/flakiness mechanisms with correct synchronization, and add targeted coverage for previously untested branches.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-02T09:48:13Z",
+     "body": "C++23 .contains() incompatible with C++20 build - see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-02T15:10:02Z",
+     "body": "Overall the diff is a solid, well-documented fix for the LedgerMaster/SHAMapStore test flakiness plus new coverage for healthWait() and [node_db] validation. I found one concrete issue worth fixing before merge: a likely type-signature mismatch in the new `failureMessage` call in SHAMapStore_test.cpp's testLedgerGaps, which passes raw `LedgerIndex` values where the existing call site in the same file always passes pre-stringified values (and the parallel fix added to LedgerMaster_test.cpp correctly does `to_string(...)` for the equivalent case)."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-02T15:20:48Z",
+     "body": "### 🟢 Approval recommended\n\nChanges are confined to tests, and the new synchronization/guarding logic directly addresses the observed flakiness while adding focused coverage for previously untested branches.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-09-02T16:11:32Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-02T18:21:26Z",
+     "body": "This PR is test-only (LedgerMaster_test.cpp, SHAMapStore_test.cpp) and is unusually well-documented — it fixes the flaky online-delete tests by properly draining the job queue before rendezvous, and adds solid new coverage for SHAMapStoreImp's node_db config validation and healthWait() branches. I did not find production-code correctness issues (none are in scope here). The one thing worth a second look is a self-documented lifetime fragility in the new storeConfigResult() helper: if a future edit makes the *last* call in testConfig() a rejected case instead of an accepted one, the global debug-log sink installed by that Env (which holds a reference to `this` Suite) is never cleaned up, sinc"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-02T18:33:50Z",
+     "body": "### 🟢 Approval recommended\n\nChanges are test-only, directly address known flakiness mechanisms, and add focused coverage for previously untested health/config validation branches.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-02T22:30:31Z",
+     "body": "This is a well-executed, test-only change that fixes the LedgerMaster/SHAMapStore flakiness (by properly draining the job queue before rendezvous, and by deriving expectations from observed state instead of hard-coded values that could desync and trip UNREACHABLE/assert in Debug builds) and adds solid new coverage for SHAMapStoreImp's [node_db] config validation and healthWait() branches. The new test harness (StoreLogs, parkInHealthWait, parkMidRotation) is unusually well-documented and the reasoning for each timing/ordering decision is spelled out in comments, which made it easy to verify correctness. I did not find any correctness, security, or resource-leak bugs in the added code. The on"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-02T22:34:52Z",
+     "body": "### 🟢 Approval recommended\n\nThe changes are confined to unit tests and determinism improvements, and the added synchronization/guards directly address the observed flakiness without introducing production behavior changes.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "vlntb",
+     "state": "COMMENTED",
+     "date": "2026-09-02T22:39:07Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-02T22:39:08Z",
+     "body": "This is a large, very carefully documented test-only change (LedgerMaster_test.cpp and SHAMapStore_test.cpp) that fixes flaky online-delete tests and adds coverage for healthWait()/[node_db] validation. The added code is heavily self-commented with explicit reasoning about races, timing, and underflow guards, and I did not find any correctness, security, or resource-management bugs in the new lines that I'm confident about. The main observation is incidental duplication of a helper function across the two files."
+    },
+    {
+     "author": "vlntb",
+     "state": "COMMENTED",
+     "date": "2026-09-02T22:39:56Z",
+     "body": ""
+    },
+    {
+     "author": "vlntb",
+     "state": "COMMENTED",
+     "date": "2026-09-02T22:41:12Z",
+     "body": ""
+    },
+    {
+     "author": "vlntb",
+     "state": "COMMENTED",
+     "date": "2026-09-02T22:42:45Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-02T22:47:14Z",
+     "body": "This PR is test-only (LedgerMaster_test.cpp, SHAMapStore_test.cpp) and is unusually well-reasoned/commented — it fixes job-queue/store synchronization races and adds solid new coverage for healthWait()/config validation. I couldn't find high-confidence correctness bugs in the new code; the two notes below are maintainability observations rather than blocking issues."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-02T22:49:03Z",
+     "body": "### 🔵 Needs a closer look\n\nThe new test coverage introduces intricate multi-threaded/state-machine coordination and log-driven synchronization that warrants a human review to confirm long-term test stability and brittleness characteristics.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-03T11:12:25Z",
+     "body": "This is a well-reasoned, heavily-documented PR: the SHAMapStoreImp.cpp fix correctly closes the working_/newLedger_ race (only clears working_ when nothing is queued, and waits on a predicate instead of a bare wait()), and the new test helpers/tests in LedgerMaster_test.cpp and SHAMapStore_test.cpp carefully avoid the previous UNREACHABLE-triggering range collapses. I didn't find any correctness or security bugs in the added lines that I'm confident about. The one thing worth a glance is that the syncStore() helper (and its full doc comment) is duplicated verbatim between the two test files, which is a minor maintenance risk if one copy is updated without the other."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T11:21:13Z",
+     "body": "### 🟢 Approval recommended\n\nThe concurrency fix is localized and directly addresses the described missed-notification scenario, and the PR adds substantial targeted test coverage to prevent regressions.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 3/3 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-03T13:56:05Z",
+     "body": "This is a large, unusually well-documented test-only change that fixes a real race in the SHAMapStore/LedgerMaster test helpers (the store dropping a notification while its worker thread is still starting, and rendezvous() reporting idle with work still queued) and adds substantial new coverage for healthWait()'s branches and [node_db] config validation. The added assertions consistently guard against the underflow/UNREACHABLE failure mode described in the MR (checking `first <= last` before calling missingFromCompleteLedgerRange), and the new test helpers (syncStore, initializeStore, parkInHealthWait, parkMidRotation, StoreLogs) are extensively commented explaining exactly why each step exi"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T14:05:42Z",
+     "body": "### 🔵 Needs a closer look\n\nThe changes introduce substantial new concurrency- and timing-sensitive test logic (threads, waits, log-driven synchronization) that warrants a careful human review for long-term stability and non-flakiness.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-03T14:44:25Z",
+     "body": "This PR is a well-documented, test-only change that fixes flaky online-delete tests and adds missing coverage for SHAMapStoreImp::healthWait() and [node_db] config validation. The synchronization workarounds (syncStore/initializeStore, parkInHealthWait, parkMidRotation) are carefully reasoned and cross-checked against production behavior with extensive comments explaining timing assumptions. The main actionable concern is that the syncStore()/initializeStore() helper pair — including their multi-paragraph doc comments describing a still-open production race (tracked as a follow-up to #5531/#8137) — is duplicated verbatim across LedgerMaster_test.cpp and SHAMapStore_test.cpp, creating a maint"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T14:50:51Z",
+     "body": "### 🟢 Approval recommended\n\nThe changes are confined to tests and appear to directly address the reported race/flakiness while adding targeted coverage for the new health-check and config-validation paths.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 2\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "vlntb",
+     "state": "COMMENTED",
+     "date": "2026-09-03T16:07:15Z",
+     "body": ""
+    },
+    {
+     "author": "vlntb",
+     "state": "COMMENTED",
+     "date": "2026-09-03T16:07:25Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-03T16:10:14Z",
+     "body": "This is a large, carefully-written test-only change (LedgerMaster_test.cpp and SHAMapStore_test.cpp) that fixes flaky online-delete tests and adds coverage for healthWait()/[node_db] validation. The synchronization logic (syncStore/initializeStore/parkInHealthWait/parkMidRotation) is thoroughly reasoned about in comments and the guard checks against calling missingFromCompleteLedgerRange() with an invalid (first > last) range look correct. I did not find high-confidence correctness/security bugs in the added lines. The main thing worth flagging is that the syncStore()/initializeStore() helpers (including their multi-paragraph doc comments) are duplicated verbatim across the two test files, w"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T16:20:51Z",
+     "body": "### 🟢 Approval recommended\n\nThe changes are confined to unit tests, address the reported flakiness with deterministic synchronization, and add focused coverage for the new health-check behavior without altering production logic.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2026-09-03T16:31:47Z",
+     "body": ""
+    },
+    {
+     "author": "g-ripple",
+     "state": "APPROVED",
+     "date": "2026-09-03T17:49:41Z",
+     "body": "Looks good to me"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-03T17:53:57Z",
+     "body": "This is a large, well-documented test-only change that fixes flaky LedgerMaster/SHAMapStore unit tests (replacing untimed store.rendezvous() with a timed syncStore()/initializeStore() helper that also tolerates timing-dependent lastRotated values) and adds substantial new coverage for SHAMapStoreImp::healthWait() and [node_db] config validation. The added helpers (syncStore, initializeStore, parkInHealthWait, parkMidRotation, StoreLogs) are carefully reasoned about races and are consistently applied across both test files. I went through the synchronization logic, the range-collapse guards around missingFromCompleteLedgerRange (the actual bug being worked around), and the custom Logs/Sink im"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-03T18:11:11Z",
+     "body": "This is a large, well-reasoned test-only change that fixes flakiness in LedgerMaster_test.cpp/SHAMapStore_test.cpp (by properly draining the job queue and store before asserting state, and guarding missingFromCompleteLedgerRange() calls against invalid/underflowed ranges that could abort a Debug build) and adds substantial new coverage for SHAMapStoreImp's [node_db] config validation and the healthWait() state machine (mode, staleness, gap position, disconnected, stop, and mid-rotation circuit-breaker paths). The new helper functions (syncStore, initializeStore, parkInHealthWait, parkMidRotation) and the custom StoreLogs sink are extensively commented, and I traced through the synchronizatio"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-02T09:48:12Z",
+     "path": "src/test/app/SHAMapStore_test.cpp",
+     "body": "C++23 .contains() not available in C++20 build - use .find() != std::string::npos:\n\n```suggestion\n                return (!severity || message.first == *severity) && message.second.find(text) != std::string::npos;\n```\n\n```suggestion\n                return (!severity || message.first == *severity) && message.second.find(text) != std::string::npos;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3912825877"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-09-02T15:43:23Z",
+     "path": "src/test/app/LedgerMaster_test.cpp",
+     "body": "The relaxed `lastRotated` checks do not stop the test, so the Debug abort can still happen.\n\n`LedgerMaster_test.cpp:161`/`:172` and `SHAMapStore_test.cpp:1235`/`:1243` both use non-fatal macros. `BEAST_EXPECT` and `BEAST_EXPECTS` record a failure and return the boolean - they do not leave the testcase. So if either check fails, the test carries on with a bad `lastRotated`.\n\nThat matters because `lastRotated` becomes `minSeq`:\n\n- `LedgerMaster_test.cpp:193` - `minSeq = lastRotated;`\n- `SHAMapStore_test.cpp:1473` - `minSeq = lastRotated;`\n\n`LedgerIndex` is `std::uint32_t`. With `lastRotated == 0` the loop body then calls:\n\n- `LedgerMaster_test.cpp:216` - `missingFromCompleteLedgerRange(minSeq ",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3915914099"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-09-02T15:45:25Z",
+     "path": "src/test/app/LedgerMaster_test.cpp",
+     "body": "`syncStore()` is copied verbatim into both files, including its 9-line comment. Both test files already say they are \"intentionally very similar\". Put it in a shared jtx helper.",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3915933585"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-09-02T15:50:13Z",
+     "path": "src/test/app/LedgerMaster_test.cpp",
+     "body": "Here and in other instances: The job-queue wait has no timeout. `getJobQueue().rendezvous()` can block forever. The `~AppBundle` already makes the same untimed call, so this is not a new class of hang, however.\n\nThe comment below this is contradictory, however, since `env.app().getSHAMapStore().rendezvous()` does support a timeout but the entire unit test job can still hang because of the job queue rendezvous method.\n\nEither add a timed overload to that job queue method (preferred) or drop that half of the comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3915980318"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-09-02T15:56:47Z",
+     "path": "src/test/app/SHAMapStore_test.cpp",
+     "body": "This comment names the wrong mechanism. The store parks in the gating `healthWait()` (SHAMapStoreImp.cpp:362). On Stopping it falls through to the top of `while (true)`, which sets `working_ = false` and notifies before returning. So the untimed `rendezvous()` would return.\n\nThis comment is accurate only for `testHealthWaitStopMidRotation`, where run() returns from case `HealthResult::Stopping: return;` at :400 with `working_` still set.\n\nMore specifically, `testHealthWaitStop` calls `parkInHealthWait` (`:1677`), which parks the store at the gating health check - the third operand of `readyToRotate` at `SHAMapStoreImp.cpp:361-362`. The store never enters the rotation body, because `readyToRo",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3916041076"
+    },
+    {
+     "author": "vlntb",
+     "date": "2026-09-02T22:39:07Z",
+     "path": "src/test/app/LedgerMaster_test.cpp",
+     "body": "Agreed on all of it, including that the if (minSeq + 1 <= maxSeq - 1) guard I added protects a different expression than the one that aborts: (minSeq + 1, maxSeq - 1) can't invert inside the loop at all, because after a rotation minSeq == lastRotated and the trigger pins maxSeq - minSeq to exactly deleteInterval. The abort comes from minSeq - 1 / minSeq - 2 wrapping when minSeq == 0, as you say.\n\nBoth preconditions are fatal now. So the underflow is unreachable rather than merely unlikely, and the collapse guard is belt and braces for test-model drift, exactly as you put it.",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3919326358"
+    },
+    {
+     "author": "vlntb",
+     "date": "2026-09-02T22:39:56Z",
+     "path": "src/test/app/LedgerMaster_test.cpp",
+     "body": "Agreed. Doing it as a follow-up rather than here: a new src/test/jtx/ header plus the ~30 call sites widens the diff well beyond the flakiness fix this PR is meant to be. The two copies are byte-for-byte identical today, comment included, so the move will be mechanical. I'll open it against develop once this lands.",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3919331449"
+    },
+    {
+     "author": "vlntb",
+     "date": "2026-09-02T22:41:12Z",
+     "path": "src/test/app/LedgerMaster_test.cpp",
+     "body": "Took the second option, and rather than dropping half the comment, made it state the limitation.",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3919338944"
+    },
+    {
+     "author": "vlntb",
+     "date": "2026-09-02T22:42:45Z",
+     "path": "src/test/app/SHAMapStore_test.cpp",
+     "body": "You're right, and it traces the way you describe: on this path healthWait() returning Stopping only makes readyToRotate false, so run() skips the rotation body, comes back to the top of its loop, clears working_ and notifies before returning on stop_. Comment replaced with that, and I took the optional suggestion too.",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3919349340"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-03T14:50:51Z",
+     "path": "src/test/app/LedgerMaster_test.cpp",
+     "body": "The `syncStore()` / `initializeStore()` helpers are duplicated here and in `src/test/app/SHAMapStore_test.cpp`, which makes future changes to the workaround logic easy to apply inconsistently across tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3925751489"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-03T14:50:51Z",
+     "path": "src/test/app/SHAMapStore_test.cpp",
+     "body": "The `syncStore()` / `initializeStore()` helpers are duplicated here and in `src/test/app/LedgerMaster_test.cpp`, which makes the timing/race workaround harder to maintain consistently.",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3925751561"
+    },
+    {
+     "author": "vlntb",
+     "date": "2026-09-03T16:07:15Z",
+     "path": "src/test/app/LedgerMaster_test.cpp",
+     "body": "Intentional. Sharing this means moving `syncStore()` into `src/test/jtx/` as well\n(~30 call sites), which is its own PR rather than part of a test-only flake fix. Both\ncopies carry the same comment, so they change or disappear together.",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3926363818"
+    },
+    {
+     "author": "vlntb",
+     "date": "2026-09-03T16:07:24Z",
+     "path": "src/test/app/SHAMapStore_test.cpp",
+     "body": "Intentional. Sharing this means moving `syncStore()` into `src/test/jtx/` as well\n(~30 call sites), which is its own PR rather than part of a test-only flake fix. Both\ncopies carry the same comment, so they change or disappear together.",
+     "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3926365141"
+    }
+   ]
+  },
+  {
+   "number": 7722,
+   "title": "fix: Add null SLE checks in directory callbacks",
+   "url": "https://github.com/XRPLF/rippled/pull/7722",
+   "state": "open",
+   "author": "BraedonKlock",
+   "createdAt": "2026-07-05T15:05:55Z",
+   "updatedAt": "2026-09-02T13:50:22Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "ximinez",
+     "date": "2026-07-06T23:56:40Z",
+     "body": "Hi @BraedonKlock. Thank you for your contributions! We really appreciate them. At this point, we ask that you hold off on submitting any more until we've had a chance to review the current batch. There is a not insignificant engineer overhead for each review, and it may take some time to get caught up. Too many PRs can make that harder. When we've gotten down to 3 open or fewer, feel free to create more!\n\nIn the meantime, you can open \"Draft\" PRs so that changes will be ready to go once we're ready for more. At that time, you'll be able to decide which ones are the best, and convert them to \"Ready to review\". Keep in mind that you will be responsible for keeping your PRs up to date with `dev",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#issuecomment-4898697914"
+    },
+    {
+     "author": "BraedonKlock",
+     "date": "2026-07-07T00:50:53Z",
+     "body": "Thank you @ximinez for the clarification! I really appreciate the feedback. I completely understand. I'll hold off on opening additional ready for review PRs until my open count is down to three or fewer. In the meantime, I'll continue working locally and use draft PRs if appropriate. Thanks again!",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#issuecomment-4898988702"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds null `SLE` checks in directory iteration callbacks for `NoRippleCheck` and `GatewayBalances`.\n\nThis prevents possible null pointer dereferences if directory iteration passes a null ledger entry to the callback.\n\nFixes #7510.\n\n### Context of Change\n\n`forEachItemAfter` in `NoRippleCheck` and `forEachItem` in `GatewayBalances` both receive `std::shared_ptr<SLE const>` values from directory iteration.\n\nThis change adds the missing checks before calling `getType()` in both affected callbacks:\n\n- `NoRippleCheck`: returns `false` when `ownedItem` is null\n- `GatewayBalances`: returns early when `sle` is null\n\n### API Impact\n\n- [ ] Public API: New feature (new m",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "BraedonKlock:fix-missing-null-sle-checks",
+   "additions": 15,
+   "deletions": 0,
+   "changedFiles": 2,
+   "commits": 4,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:17:00Z",
+     "body": "### 🟡 Changes recommended\n\nThe new null-check blocks introduce tab-based/misaligned indentation that deviates from surrounding formatting and is likely to fail style/format checks.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR hardens RPC account handlers against potential null `SLE` values passed through directory-iteration callbacks, preventing possible null dereferences in corrupted-ledger edge cases.\n\n**Changes:**\n- Add a null-guard in `NoRippleCheck`’s `forEachItemAfter` callback before calling `getType()`.\n- Add a null-guard in `GatewayBalances`’s `forEachItem` callback befor"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-02T13:33:35Z",
+     "body": "### 🟢 Approval recommended\n\nThe changes are small, localized, and align with existing null-check patterns used in similar directory-iteration callbacks.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 1\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-02T13:50:22Z",
+     "body": "### 🟢 Approval recommended\n\nThe changes are minimal, consistent with existing handler patterns, and directly prevent a confirmed null-dereference risk without altering normal behavior.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:16:59Z",
+     "path": "src/xrpld/rpc/handlers/account/GatewayBalances.cpp",
+     "body": "The added null-check introduces tab indentation and misaligned alignment within the lambda body. Reindent using spaces to match the surrounding style (and keep a blank line between the null guard and the type check).",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#discussion_r3908913473"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:17:00Z",
+     "path": "src/xrpld/rpc/handlers/account/NoRippleCheck.cpp",
+     "body": "The newly added null-check block uses tab indentation / misaligned braces compared to the surrounding space-indented style, and there’s a stray whitespace-only line after the lambda opens; this is likely to trip formatting/lint checks and reduces readability. Please reindent this block using spaces consistent with the rest of the file.",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#discussion_r3908913518"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-02T13:33:35Z",
+     "path": "src/xrpld/rpc/handlers/account/GatewayBalances.cpp",
+     "body": "Line is indented with a tab character, which breaks the file’s consistent 4-space indentation and introduces mixed whitespace.",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#discussion_r3914639979"
+    }
+   ]
+  },
+  {
+   "number": 6141,
+   "title": "Added conservative checks to objects being used without checking.",
+   "url": "https://github.com/XRPLF/rippled/pull/6141",
+   "state": "open",
+   "author": "pratikmankawde",
+   "createdAt": "2025-12-11T16:30:46Z",
+   "updatedAt": "2026-09-01T22:05:34Z",
+   "closedAt": null,
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "oleks-rip",
+     "date": "2026-02-24T15:28:40Z",
+     "body": "What you need to do is just get rid of 4 functions \n```\nexistsLedger()\nexistsTransaction()\ncheckoutLedger()\ncheckoutTransaction()\n```\nand replace them with their 1 line bodies.  Then logic that bothers you just stop existing, and every access to the pointers will be explicitly guarded",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-3952935238"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-02-24T15:54:55Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `16.66667%` with `10 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/rdb/backend/SQLiteDatabase.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_co",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-3953094676"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-01T16:14:43Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4171210133"
+    },
+    {
+     "author": "godexsoft",
+     "date": "2026-05-04T14:26:20Z",
+     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4371848999"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-06-01T17:22:56Z",
+     "body": "@pratikmankawde what's the status of this PR?",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4594906249"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-01T17:24:16Z",
+     "body": "> @pratikmankawde what's the status of this PR?\nThis one was on back burner for now. I'll pick it up again soon.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4594917055"
+    }
+   ],
+   "body": "## Context of the change: \n\nhttps://github.com/XRPLF/rippled/pull/6029# \n\nIn this PR, @oleks-rip made a fix to test the validity of txnDB (transaction database connection object) pointer before dereferencing it. In this case, the config suggested that txn tables are not being used and hence the txn DB connection object should be null. But it was still being dereferenced without confirming its validity. Config:\n\n[ledger_tx_tables]\nuse_tx_tables = 0\n\nThe pattern followed in this PR was to check the config, if the config suggests that db connection should be created, it must have been created and is valid. So, no explicit check on the actual db connection object is required. As per code review ",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:pratik/Add_checks_db_objects",
+   "additions": 52,
+   "deletions": 23,
+   "changedFiles": 5,
+   "commits": 6,
+   "reviewComments": 11,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-02-13T16:24:31Z",
+     "body": "## Pull request overview\n\nAdds defensive runtime checks to the SQLite relational database backend so that attempts to check out a DB session fail fast with a clear log + exception when the underlying DB handle is unavailable.\n\n**Changes:**\n- Documented that `checkoutLedger()` / `checkoutTransaction()` may throw when the DB is unavailable.\n- Added null checks for `lgrdb_` and `txdb_` before calling `checkoutDb()`, logging at `fatal` and throwing `std::runtime_error` on failure.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, mor"
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-02-24T15:24:36Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-04-29T19:20:26Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:03:17Z",
+     "body": "State divergence bugs: validation checks run after in-memory mutations. Move both checks before mutations to prevent DB/memory inconsistency—see inline."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:05:34Z",
+     "body": "### 🟡 Changes recommended\n\nThe new null-check throwing paths can leave in-memory and persistent reservation state out of sync, and the new inline header logic relies on missing direct includes (transitive include dependency).\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (2)\n\n**src/xrpld/overlay/detail/PeerReservationTable.cpp:119**\n* `erase` removes the reservation from `table_` before verifying `connection_` is set; if the new runtime check throws, in-memory state and DB state diverge. Validate (and `checkoutDb()`) before erasing so the method fails without side effects "
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-02-13T16:24:30Z",
+     "path": "src/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp",
+     "body": "The error message string is duplicated in both the log statement and the exception. Consider defining it once (e.g., as a `constexpr std::string_view`) and using that for both to avoid accidental drift between the logged and thrown messages.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2805030450"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-02-13T16:24:31Z",
+     "path": "src/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp",
+     "body": "The error message string is duplicated in both the log statement and the exception. Consider defining it once (e.g., as a `constexpr std::string_view`) and using that for both to avoid accidental drift between the logged and thrown messages.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2805030503"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-02-13T16:24:31Z",
+     "path": "src/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp",
+     "body": "The Doxygen @brief for `checkoutLedger()` still says `checkoutTransaction`, which is misleading (it describes the wrong function name). Please update the @brief line to match the actual function (`checkoutLedger`).",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2805030532"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-02-24T15:24:36Z",
+     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
+     "body": "Changes to `checkoutLedger / checkoutTransaction` are changing logic of the program.  As you can see every call to `checkoutLedger / checkoutTransaction` are guarded by `if (existsTransaction()) /  if (existsLedger())`. So in case that connection to db is not established  the program will continue. You change lead it to crash. Why?",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2847839255"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-04-29T19:17:02Z",
+     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
+     "body": "Nit: Now you're making changes here, perhaps you can also rename `txdb_` to `txDb_`, to match the `ledgerDb` variable name.l",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3163569271"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-04-29T19:20:09Z",
+     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
+     "body": "In which scenarios will `ledgerDb_` (or `txDb_`) be invalid?\n\nCan we check them only once on startup, allowing us to assume the databases are available, rather than having to check if they are available each time this function is called?",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3163587236"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-01T22:03:17Z",
+     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
+     "body": "Validation check runs after in-memory mutation risks state divergence. Move null check before `table_.insert()`:\n\n```suggestion\n    if (!connection_)\n    {\n        Throw<std::runtime_error>(\n            \"PeerReservationTable::insert_or_assign: database connection is not available\");\n    }\n    table_.insert(hint, reservation);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908830723"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-01T22:03:17Z",
+     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
+     "body": "Validation check runs after in-memory mutation risks state divergence. Move null check before `table_.erase()`:\n\n```suggestion\n        if (!connection_)\n        {\n            Throw<std::runtime_error>(\n                \"PeerReservationTable::erase: database connection is not available\");\n        }\n        table_.erase(it);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908830749"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:05:33Z",
+     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
+     "body": "`checkoutLedger()`/`checkoutTransaction()` now use `JLOG` and `Throw<std::runtime_error>` in this header, but `SQLiteDatabase.h` does not directly include the headers that define these (`<xrpl/basics/Log.h>`, `<xrpl/basics/contract.h>`, and `<stdexcept>` for `std::runtime_error`). This makes the header rely on transitive includes and can break compilation if include order changes.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908844943"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:05:34Z",
+     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
+     "body": "This file now throws `std::runtime_error` but does not include `<stdexcept>`, relying on transitive includes. Add the standard header explicitly to make the translation unit self-contained.\n\nThis issue also appears in the following locations of the same file:\n- line 92\n- line 115",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908844984"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:05:34Z",
+     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
+     "body": "These new `Throw<std::runtime_error>` paths change the public exception behavior of `PeerReservationTable::insert_or_assign`/`erase`, but the API documentation in `include/xrpl/core/PeerReservationTable.h` only mentions `soci::soci_error` (and `erase` documents no throws). Please update the header docs to reflect the new `std::runtime_error` throws.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908845019"
+    }
+   ]
+  },
+  {
+   "number": 6517,
+   "title": "feat: Integrate Permissioned Domain & Credential Checks for Lending Protocol",
+   "url": "https://github.com/XRPLF/rippled/pull/6517",
+   "state": "open",
+   "author": "a1q123456",
+   "createdAt": "2026-03-10T15:56:03Z",
+   "updatedAt": "2026-09-01T22:05:06Z",
+   "closedAt": null,
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-03-10T16:38:25Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.71795%` with `1 line` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 82.4%. Comparing base ([`8abe82e`](https://app.codecov.io/gh/XRPLF/rippled/commit/8abe82eefa2357777af075d252ea8613f2948ae6?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`7491a23`](https://app.codecov.io/gh/XRPLF/rippled/commit/7491a230800c89bed052c3bd7d615a4348431810?dropdo",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4032854707"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-31T08:01:21Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4160685163"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-05T11:41:59Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4631243913"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-10T23:21:16Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4675617860"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\nhttps://github.com/XRPLF/XRPL-Standards/pull/484\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [x] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [x] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support fo",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/adding-perimissioned-domain-to-lending",
+   "additions": 1070,
+   "deletions": 3,
+   "changedFiles": 18,
+   "commits": 32,
+   "reviewComments": 44,
+   "reviews": [
+    {
+     "author": "Tapanito",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-03-12T12:22:37Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-23T17:46:19Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-23T18:35:40Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-25T16:23:42Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-25T16:25:30Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-25T16:25:37Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-25T16:36:13Z",
+     "body": "Scanned through the diff\n\nOne confirmed copy-paste bug (`tfLoanSetMask` returned from `LoanBrokerSet::getFlagsMask`), a TOCTOU inconsistency between `preclaim`/`doApply` credential validators, a missing amendment guard in `doApply`, and two invariant coverage gaps — see inline comments.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Opus 4.6* · Prompt: V12"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-26T12:13:13Z",
+     "body": "Several correctness and security issues flagged inline: a reserve-burning usability gap (private broker without DomainID), a missing zero-value guard in the broker creation path, a potential divergence between `verifyValidDomain`/`validDomain` semantics, an invariant that passes on zero-valued DomainID, and a weak test assertion. See inline comments for details.\n\n*Review by Claude Opus 4.6* · Prompt: V12"
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-21T13:45:27Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-05T11:54:06Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:12:07Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:16:15Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:22:45Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:25:19Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:28:10Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:28:42Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:30:08Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:40:24Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:54:15Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-05T12:54:19Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:54:38Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:55:04Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-06T20:41:21Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-06T20:44:28Z",
+     "body": "All clear\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:05:05Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes core transaction validation/apply paths and invariants behind a new amendment, so it warrants final human review for protocol correctness and edge-case behavior.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR adds support for making LoanBrokers “private” by associating them with a Permissioned Domain (via `sfDomainID`) and enforcing borrower credential membership checks when creating new loans through that broker, gated by a new `LendingPermissionedDomain` amendment.\n\n**Changes:**\n- Introduces `sfDomainID` as an optional field on `LoanBroker` ledger entries and `LoanBrokerSet` transactions, including protocol-autogen wrappers and builder A"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:23:58Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "@a1q123456 please add a unit-test for this invariant.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923637464"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:25:39Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "While this flag cannot be set without the amendment, in the spirit of defensive programming, this code should only be executed when the amendment is enabled.\n\n```suggestion\n    if (ctx.view.rules().enabled(fixLendingProtocolV1_1) && brokerSle->isFlag(lsfLoanBrokerPrivate))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923646934"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:37:11Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "We shouldn't try to read `DomainID` without the amendment enabled, even if it's safe. This gives the impression that DomainID might be provided even with `LendingProtocol v1.0`. Please, move this variable to line ~:58.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923707101"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:38:59Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "This check should be moved higher up, before we determine whether the user is updating or creating a new LoanBroker.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923716208"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:39:21Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Please add a unit-test to ensure that pre v1.1  behaviour is preserved.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923718110"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:43:30Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "nit: In the rest of the file we comment the motivation behind a particular `if` block before the if-statement, not inside of it. This comment applies to all occurrences in the PR.\n\n Consider:\n\n```suggestion\n             // Cannot change private flag on existing broker\n            if (tx.isFlag(tfLoanBrokerPrivate))\n            {\n                return temINVALID;\n            }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923738989"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:45:23Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "I think we should be explicit here, only read these fields in the amendment is enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923748657"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T11:12:13Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "If somehow the preclaim of preflight checks fail, this code would allow setting a domainID to a public LoanBroker. \n\nI suggest the following:\n\n```suggestion\n        if (ctx_.view().rules().enabled(fixLendingProtocolV1_1))\n        {\n            if (tx.isFlag(tfLoanBrokerPrivate))\n            {\n                broker->setFlag(lsfLoanBrokerPrivate);\n                if (auto domainID = tx[~sfDomainID])\n                    broker->setFieldH256(sfDomainID, *domainID);\n            }\n        }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923893409"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T11:28:32Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "There might be an issue here. With the current logic, we would be updating the DomainID at every call to LoanBrokerSet. DomainID should only be updated when the DomainID field is provided in the transaction. If the `DomainID` is provided, and is empty, the `LoanBroker.DomainID` should be cleared.\n\nAlso, this logic should be amendment gated. I understand, that we perform amendment gating prior, but again the spirit of defensive programming.\n\n```suggestion\n        if (ctx_.view().rules().enabled(fixLendingProtocolV1_1) &&\n            broker->isFlag(lsfLoanBrokerPrivate))\n        {\n            if (auto const domainID = tx[~sfDomainID])\n            {\n                if (*domainID != beast::zero)",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923978354"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T11:38:18Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Let's amendment gate this. This should not run, under any circumstance if the amendment is disabled. Also, [as per our discussion ](https://github.com/XRPLF/XRPL-Standards/pull/484/changes#r2912419048) we should fail the transaction if DomainID is set, and the LoanBroker is not private.\n\n\n```suggestion\n        if (ctx.view.rules().enabled(fixLendingProtocolV1_1))\n        {\n            if (sleBroker->isFlag(lsfLoanBrokerPrivate) && domainID)\n                return tecNO_PERMISSION;\n        }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924028207"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T12:03:34Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "@ximinez, I'd like to draw your attention to this code here. The call to `validDomain` is correct, but the way expired credentials are deleted isn't great. Should we add a call to `verifyValidDomain` to delete expired credentials? \n\nEdit: I think so.. I don't see the design changing any time soon.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924153841"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T12:19:12Z",
+     "path": "src/test/app/LoanBroker_test.cpp",
+     "body": "Could you please add a test to ensure that a call to `LoanBrokerSet` to update an existing object, but without `domainID` does not affect the `domainID`? Also, vice versa, updating `domainID` does not affect any other fields.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924243262"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T12:20:12Z",
+     "path": "src/test/app/LoanBroker_test.cpp",
+     "body": "Could you also please add a test for the pre-amendment behaviour, that specifying `tfLoanBrokerPrivate` flag fails with `temINVALID_FLAG` ?",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924248411"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T12:21:22Z",
+     "path": "src/test/app/LoanBroker_test.cpp",
+     "body": "Also, could you please add a test showing that LoanBroker cannot create loans if they're not part of the permissioned domain.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924254921"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-23T17:46:19Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "Thanks, Vito! I've added the tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2976599383"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-23T18:35:40Z",
+     "path": "src/test/app/LoanBroker_test.cpp",
+     "body": "> Could you also please add a test for the pre-amendment behaviour, that specifying tfLoanBrokerPrivate flag fails with temINVALID_FLAG ?\n\nThis is already covered by the line 1856",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2976857169"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-25T16:23:42Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989468896"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-25T16:25:30Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Covered by the lines 1839 and 1842",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989481522"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-25T16:25:37Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989482436"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Copy-paste bug: `getFlagsMask` returns the wrong mask, allowing invalid `LoanSet` flags on `LoanBrokerSet` transactions.\n\n```suggestion\n        return tfLoanBrokerSetMask;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548105"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "TOCTOU inconsistency: `preclaim` validates credentials via `credentials::validDomain` but `doApply` uses `verifyValidDomain`. Semantic divergence between the two (e.g. expired/revoked credential handling) could allow a credential state that passes `preclaim` to behave differently in `doApply`. Use the same function in both paths, or document why the difference is intentional.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548115"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "`doApply` checks `lsfLoanBrokerPrivate` without an amendment guard, unlike `preclaim` which wraps the check with `rules().enabled(featureLendingProtocolV1_1)`. If the amendment is ever rolled back, a broker with this flag set could hit the private-broker path unexpectedly. Is the omission intentional?\n\n```suggestion\n    if (ctx_.view().rules().enabled(featureLendingProtocolV1_1) && brokerSle->isFlag(lsfLoanBrokerPrivate))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548117"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "Invariant only fires for modifications — a bug that creates a broker with `sfDomainID` but without `lsfLoanBrokerPrivate` may not be caught if `finalize` is not called for insertions. Verify the invariant framework invokes `finalize` on inserts as well as updates for `ltLOAN_BROKER` entries.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548123"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "Invariant only enforces one direction: `DomainID present → private flag set`. The reverse (`private flag set → DomainID present`) is not checked, so a private broker without a DomainID won't trigger a failure. Add the complementary check:\n\n```suggestion:0+7\n            JLOG(j.fatal()) << \"Invariant failed: DomainID is set on public Loan Broker\";\n            return false;\n        }\n\n        if (after->isFlag(lsfLoanBrokerPrivate) && !after->at(~sfDomainID))\n        {\n            JLOG(j.fatal()) << \"Invariant failed: private Loan Broker has no DomainID\";\n            return false;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548127"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Bug: This returns `tfLoanSetMask` (the mask for `LoanSet` transactions) instead of `tfLoanBrokerSetMask`...",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548130"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Design gap: private broker can be created without `DomainID`, but `LoanSet::preclaim` rejects loans against such brokers (`tecNO_AUTH`). Users can burn reserves creating a permanently unusable broker. Should `tfLoanBrokerPrivate` require `sfDomainID` to be present?\n\nConsider adding:\n```cpp\nif (tx.isFlag(tfLoanBrokerPrivate) && !domainID)\n    return temMALFORMED;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458045"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "No domain ownership check on `sfDomainID` — any account can attach any permissioned domain to their broker. Is this intentional? If not, verify `ctx.tx[sfAccount] == sleDomain->at(sfOwner)`.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458054"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Missing zero-value guard in creation path — modification path has `if (*domainID != beast::zero)` but creation path does not, risking a zero DomainID on-ledger if preflight is bypassed.\n\n```suggestion:0+1\n                if (*domainID != beast::zero)\n                    broker->setFieldH256(sfDomainID, *domainID);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458060"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "`doApply` uses `verifyValidDomain()` while `preclaim` uses `credentials::validDomain()`. If their semantics differ (e.g., revocation checks), a borrower whose credential is revoked after `preclaim` could still complete the operation. Confirm these are equivalent or document the intentional difference.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458068"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "Invariant misses zero-value `DomainID` — the optional evaluates true when present regardless of value, so `sfDomainID = 0` on a public broker would silently pass.\n\n```suggestion\n        if (after->at(~sfDomainID) && *after->at(~sfDomainID) != beast::zero && !after->isFlag(lsfLoanBrokerPrivate))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458075"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/test/app/Loan_test.cpp",
+     "body": "Weak assertion — test title says \"LoanPay works after credential revoked\" but only checks loan existence, not that the payment was applied. Add a `sfPaymentsMade` check after `loan::pay` to confirm payment state changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458082"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-26T16:31:04Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "doApply validates credentials for wrong account. preclaim (line 353) correctly calls credentials::validDomain(ctx.view, *domainID, borrower) using the computed borrower, but doApply (line 406) calls\n  verifyValidDomain(view, account_, *domainID, j_) using account_ (the tx submitter). When the broker owner submits on behalf of a counterparty borrower, account_ is the broker owner, not the borrower. This means the\n  credential check in doApply verifies the wrong party. Should be verifyValidDomain(view, borrower, *domainID, j_) where borrower is computed at line 384.\n\n\nAlso, please add a corresponding unit-test.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2996218951"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-26T16:38:19Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "Please add `featureLendingV1_1` amendment guard.\n\n\nSince invariants can fail with a `tec` code, they should equally be amendment gated.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2996259869"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:12:07Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "False positive. From the comment for `validDomain()`:\n```\n// Check if subject has any credential maching the given domain. If you call it\n// in preclaim and it returns tecEXPIRED, you should call verifyValidDomain in\n// doApply. This will ensure that expired credentials are deleted.\n```\nHowever, there is an issue with it, which I'm currently checking against different subject. Will fix it.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362534962"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:16:15Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "The case is fully covered. We've got a test for it in `Invariants_test.cpp`:\n```\ndoInvariantCheck(\n                {{\"DomainID is set on public Loan Broker\"}},\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362554268"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:22:45Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "It's allowed to have a private loan broker with the domain id not configured yet, as per the spec: https://github.com/XRPLF/XRPL-Standards/pull/484/changes",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362586629"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:25:19Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "This is allowed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362599280"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:28:09Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "> any account can attach any permissioned domain to their broker\n\nI don't think this is possible. The PermissionedDomainSet transactor manages adding or removing an account to/from a domain.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362612674"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:28:42Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "This is how the two functions are supposed to be used.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362615314"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:30:08Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "No, you're trying to loosen the restriction. We should not allow `sfDomainID` to present on the ledger entry if it does not have the `lsfLoanBrokerPrivate` flag.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362623072"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:40:24Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "`preflight` can't be bypassed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362677949"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:54:15Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "Good spot! Thanks, Vito! I've fixed it added unit test.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362750779"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:54:38Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "moved to LoanBrokerInvariant and added an amendment gate.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362752800"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:55:04Z",
+     "path": "src/test/app/Loan_test.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362755226"
+    }
+   ]
+  },
+  {
+   "number": 7803,
+   "title": "chore: Enable all clang-tidy checks",
+   "url": "https://github.com/XRPLF/rippled/pull/7803",
+   "state": "open",
+   "author": "mathbunnyru",
+   "createdAt": "2026-07-14T13:44:59Z",
+   "updatedAt": "2026-09-01T21:30:48Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-14T14:09:36Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7803?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 82.6%. Comparing base ([`ab3ff66`](https://app.codecov.io/gh/XRPLF/rippled/commit/ab3ff66cd9a4360c84849f40bc51f7f0d2c588a6?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`1256b7c`](https://app.codecov.io/gh/XRPLF/rippled/commit/1256b7c47682eadfb333bdf48b5cc98bafc490b7?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/7803#issuecomment-4970129604"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nWIP just to see how many problems are there\n\nResults:\n```\nUnique errors per check:\n22366 cppcoreguidelines-pro-bounds-avoid-unchecked-container-access\n19552 cppcoreguidelines-avoid-magic-numbers\n19337 modernize-use-trailing-return-type\n15047 readability-identifier-length\n1588 misc-non-private-member-variables-in-classes\n1563 readability-uppercase-literal-suffix\n 969 readability-named-parameter\n 887 performance-unnecessary-value-param\n 824 misc-override-with-different-visibility\n 719 bugprone-throwing-static-initialization\n 713 cppcoreguidelines-avoid-const-or-ref-data-members\n 703 misc-unused-parameters\n 664 misc-use-anonymous-namespace\n 634 misc-use-interna",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "mathbunnyru:all_checks",
+   "additions": 1,
+   "deletions": 55,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T21:30:47Z",
+     "body": "## Pull request overview\n\nThis PR updates the repository’s clang-tidy configuration to broaden the enabled check set, aiming to run essentially all clang-tidy checks by removing many previously documented exclusions.\n\n**Changes:**\n- Removes a large set of explicit clang-tidy check exclusions, leaving broad `bugprone-*`, `cppcoreguidelines-*`, `misc-*`, `modernize-*`, `performance-*`, and `readability-*` enabled.\n- Effectively turns on checks that were previously disabled due to noise/volume concerns.\n\n\n\n\n<details>\n<summary>Suppressed comments (1)</summary>\n\n**.clang-tidy:19**\n* The Checks list now enables several clang-tidy checks that are explicitly called out just below as currently too no"
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 7582,
+   "title": "Added type checks: if (!params[jss::channel_id].isString()) return rpcError(rpcINVALID_PARAMS); and similarly for signature.",
+   "url": "https://github.com/XRPLF/rippled/pull/7582",
+   "state": "open",
+   "author": "harshitgupta62",
+   "createdAt": "2026-06-21T11:46:09Z",
+   "updatedAt": "2026-09-01T21:13:47Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-21T11:46:18Z",
+     "body": "⚠️ This PR contains unsigned commits. To get your PR merged, please sign them. ⚠️\n\nIf only the most recent commit is unsigned, you can run:\n1. Amend the commit: `git commit --amend --no-edit -n -S`\n2. Overwrite the commit: `git push --force-with-lease`\n\nIf multiple commits are unsigned, you can run:\n1. Go into interactive rebase mode: `git rebase --interactive HEAD~<NUM_OF_COMMITS>`, where `NUM_OF_COMMITS` is the number of most recent commits that will be available to edit.\n2. Change \"pick\" to \"edit\" for the commits you need to sign, and then save and exit.\n3. For each commit, run: `git commit --amend --no-edit -n -S`\n4. Continue the rebase: `git rebase --continue`\n5. Overwrite the commit(s)",
+     "url": "https://github.com/XRPLF/rippled/pull/7582#issuecomment-4761837011"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nFixes #6765\n\nAdds `isString()` type validation checks before calling `asString()` \non the `channel_id` parameter in `ChannelAuthorize.cpp` and on both \n`channel_id` and `signature` parameters in `ChannelVerify.cpp`. \n\nPreviously, non-string inputs (e.g. integers, arrays) could be \nsilently coerced or cause unexpected behavior. Now, invalid types \nreturn `rpcINVALID_PARAMS` immediately, consistent with the existing \npattern used for the `amount` field in the same handlers.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "harshitgupta62:fix-channel-id-type-validation",
+   "additions": 10,
+   "deletions": 0,
+   "changedFiles": 2,
+   "commits": 2,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "mvadari",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-03T15:53:57Z",
+     "body": "Please update the API changelog"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T21:13:47Z",
+     "body": "## Pull request overview\n\nAdds JSON parameter type validation to the payment channel signing/verification RPC handlers to avoid `Json::Value::asString()` coercing non-string inputs (defense-in-depth for #6765).\n\n**Changes:**\n- Add `isString()` validation for `channel_id` before calling `asString()` in `ChannelAuthorize` and `ChannelVerify`.\n- Add `isString()` validation for `signature` before hex-decoding in `ChannelVerify`.\n\n### Reviewed changes\n\nCopilot reviewed 2 out of 2 changed files in this pull request and generated 2 comments.\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/rpc/handlers/ChannelVerify.cpp | Adds string type checks for `channel_id` and `signature` prior to p"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:13:46Z",
+     "path": "src/xrpld/rpc/handlers/ChannelVerify.cpp",
+     "body": "`rpcINVALID_PARAMS` does not appear to be a defined error identifier in this codebase (and is not used elsewhere in handlers); this will likely fail to compile and is inconsistent with the rest of the function which returns `rpcError(RpcInvalidParams)` for invalid parameters.\n\nThis issue also appears on line 71 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/7582#discussion_r3908494577"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:13:47Z",
+     "path": "src/xrpld/rpc/handlers/admin/signing/ChannelAuthorize.cpp",
+     "body": "`rpcINVALID_PARAMS` does not appear to be a defined error identifier in this codebase (and isn't used elsewhere in handlers), so this likely won’t compile; use the existing `RpcInvalidParams` error code for invalid parameter types.",
+     "url": "https://github.com/XRPLF/rippled/pull/7582#discussion_r3908494634"
+    }
+   ]
+  },
+  {
+   "number": 7029,
+   "title": "feat: Add invariant checks to ensure only fields that are expected to be modified are modified",
+   "url": "https://github.com/XRPLF/rippled/pull/7029",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-04-27T13:02:37Z",
+   "updatedAt": "2026-08-31T15:22:15Z",
+   "closedAt": null,
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-04-27T13:26:46Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `94.54545%` with `3 lines` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 81.9%. Comparing base ([`ff02269`](https://app.codecov.io/gh/XRPLF/rippled/commit/ff02269c0dd1707b38ae783fdf9ba05b07037af7?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`ca635c0`](https://app.codecov.io/gh/XRPLF/rippled/commit/ca635c09afdff8b88477e559d50e428c86f5e917?dropd",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4327339494"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-04-28T09:37:07Z",
+     "body": "@mvadari , since this is introducing a new failure case to a bunch of transactions, this might require a new amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4334054076"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-04-28T12:29:57Z",
+     "body": "> @mvadari , since this is introducing a new failure case to a bunch of transactions, this might require a new amendment.\n\nIt's amendment-gated by the not-yet-supported/released `InvariantsV1_1`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4335220630"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-29T19:39:20Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4346943466"
+    },
+    {
+     "author": "godexsoft",
+     "date": "2026-05-04T14:23:39Z",
+     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4371827180"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-06T15:40:51Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4389718237"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-05-06T15:44:53Z",
+     "body": "⚠️ **Review Error** — The automated review failed to complete. Please re-trigger with `/ai-review`.\n\nError: Failed to post review to GitHub after 3 attempts: Client error '422 Unprocessable Entity' for url 'https://api.github.com/repos/XRPLF/rippled/pulls/7029/reviews'\n\n*Review by Claude Opus 4.6 · Prompt: v15*",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4389747491"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-15T16:00:50Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4461315152"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-20T19:23:30Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4501852449"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-20T20:25:13Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4502359956"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-20T20:47:51Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4502510378"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-27T19:13:55Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4557863062"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-28T16:33:28Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4566194313"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-01T17:03:34Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4594761986"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-08T20:18:28Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4653136694"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-06-08T21:18:36Z",
+     "body": "> The `ledger_entries.macro` and `InnerObjectFormats` annotations need to be audited very carefully.\n> \n> We might not have unit-tests that are mutating some mutable fields, thus marking field that are technically mutable as immutable, would cause the invariant to fire.\n\nI did a couple of audits on this logic to ensure that it was good.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4653640359"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-06-09T10:01:04Z",
+     "body": "@mvadari given that this invariant iterates through all fields of each SLE, what are the performance implications of this PR?",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4658631953"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-10T23:21:17Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4675618035"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-12T14:09:59Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4692044032"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-27T02:11:38Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4814687882"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR updates `NoModifiedUnmodifiableFields` to be more general and handle all ledger entries. To make this better-documented, it also updates `ledger_entries.macro` (and `SOTemplate`) to take an optional `SOEConstant` parameter, which determines if the field is allowed to be updated or not.\n\nThis change is amendment-gated, with a fix amendment (this can be changed to a feature amendment if needed).\n\n### Context of Change\n\nImproving invariants\n\n### API Impact\n\nN/A",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:mvadari/constant-field-invariant",
+   "additions": 606,
+   "deletions": 353,
+   "changedFiles": 13,
+   "commits": 29,
+   "reviewComments": 49,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-04-27T13:06:41Z",
+     "body": "One annotation omitted — see inline comment.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-04-27T13:10:04Z",
+     "body": "## Pull request overview\n\nThis PR generalizes the `NoModifiedUnmodifiableFields` invariant to use ledger-entry `SOTemplate` metadata (via a new `SOEConstant` annotation) so invariant enforcement can be driven by ledger format definitions instead of hardcoded per-ledger-type checks.\n\n**Changes:**\n- Add `SOEConstant` metadata to `SOElement`/`SOTemplate` and annotate ledger-entry and inner-object format fields as constant vs mutable.\n- Update `NoModifiedUnmodifiableFields` to perform a template-driven “constant fields unchanged” check (gated by `featureInvariantsV1_1` for enforcement).\n- Extend/adjust invariant unit tests to cover template-based behavior and updated failure expectations.\n\n### R"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-04-27T13:34:18Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-04-27T13:37:07Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-04-27T13:40:42Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 8 out of 8 changed files in this pull request and generated 2 comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-04-27T13:44:48Z",
+     "body": "Two correctness issues flagged inline: a possible incorrect `soeNOTCONSTANT` annotation on `sfAssetScale` and an unconditional `XRPL_ASSERT` that can crash production if any ledger entry omits the new `SOEConstant` parameter.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-05-06T01:33:34Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-06T11:56:46Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-06T12:00:05Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-06T19:41:20Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-06T19:46:38Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-06T21:22:57Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-19T20:24:01Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-19T20:24:40Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-19T20:28:41Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T19:27:41Z",
+     "body": "Clean implementation — LGTM.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-20T19:27:47Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-20T20:04:24Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T20:42:47Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T20:50:48Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-20T21:05:03Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-20T21:10:43Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T21:20:45Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-21T18:55:21Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-29T10:53:40Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-29T10:57:49Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-29T10:59:04Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-29T11:03:13Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-29T11:12:05Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-29T12:26:56Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-29T12:30:00Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-29T12:31:48Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-29T12:33:28Z",
+     "body": "The `ledger_entries.macro` and `InnerObjectFormats` annotations need to be audited very carefully. \n\nWe might not have unit-tests that are mutating some mutable fields, thus marking field that are technically mutable as immutable, would cause the invariant to fire."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-29T12:37:34Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-29T12:39:17Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-29T12:39:52Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-29T12:41:41Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-29T12:47:43Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-29T13:46:14Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-29T13:50:05Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-29T14:11:54Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-29T14:12:18Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-05-29T14:12:30Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-08T20:24:10Z",
+     "body": "Two undocumented behaviour changes flagged inline — both are likely intentional but should be called out in the PR description.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-06-08T21:18:02Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-08T21:49:16Z",
+     "body": "Solid invariant improvements — nothing to flag.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-06-09T10:04:56Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-12T14:12:43Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-06-23T00:02:29Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-23T17:51:56Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-04-27T13:06:41Z",
+     "path": "src/libxrpl/protocol/InnerObjectFormats.cpp",
+     "body": "Missing `soeCONSTANT` on `sfSigners` — `constant_` stays `soeCONSTANTINVALID`, triggering the assert in `hasConstantFieldChanged`:\n\n```suggestion\n         {sfSigners, soeOPTIONAL, soeCONSTANT}});\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3147490356"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-04-27T13:10:02Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "New includes <xrpl/protocol/InnerObjectFormats.h> and <xrpl/protocol/STArray.h> appear unused in this TU (the only references are in a comment). Either remove them to keep compile time/IWYU clean, or actually use them as part of the intended recursion logic.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3147511805"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-04-27T13:10:03Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "The comment says this check “Recurses into STObject and STArray fields using InnerObjectFormats”, but the implementation does not recurse (it only compares top-level fields). Please either implement the recursion or update the comment to avoid misleading future maintainers.\n```suggestion\n// have been modified between before and after by comparing the template's\n// top-level fields only. This check does not recurse into nested STObject\n// or STArray contents for non-constant parent fields.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3147511846"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-04-27T13:10:03Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "`bad` triggers a `j.fatal()` log even when `featureInvariantsV1_1` is disabled (`useTemplate == false`). That means nodes/tests can emit “Invariant failed” messages for behavior that is intentionally not enforced yet (and can also double-log when `badOld` is true). Consider skipping the template-based check entirely when the feature is disabled, or lowering/annotating the log level/message for the non-enforced path.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3147511889"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-04-27T13:10:03Z",
+     "path": "include/xrpl/protocol/SOTemplate.h",
+     "body": "`SOElement::constant_` defaults to `soeCONSTANTINVALID`, but the new invariant logic asserts that no template element has `soeCONSTANTINVALID`. If the intent is that the new SOEConstant parameter is optional, consider making the default explicit (e.g., default to `soeCONSTANT`), or handling `soeCONSTANTINVALID` deterministically (and gating assertions behind the feature) to avoid debug-vs-release behavioral differences.\n```suggestion\n    SOEConstant constant_ = soeCONSTANT;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3147511928"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-04-27T13:34:18Z",
+     "path": "include/xrpl/protocol/SOTemplate.h",
+     "body": "This is intentional, to ensure that each one is set. This class is also used by other types of objects, like transactions, where this doesn't matter.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3147664584"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-04-27T13:40:41Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "`hasConstantFieldChanged`’s header comment says it checks “constant (or unannotated)” fields and recurses into STObject/STArray via InnerObjectFormats, but the implementation neither recurses nor handles unannotated fields in Release builds (the `XRPL_ASSERT` compiles out and `soeCONSTANTINVALID` is silently treated like “not constant”). This makes the invariant’s behavior dependent on build type and can allow missed violations if any template element lacks a constant annotation. Consider either (1) treating `soeCONSTANTINVALID` as a defined policy (e.g., default to constant or not-constant) in non-assert logic, or (2) hard-failing/logging at runtime when a ledger-entry template element is m",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3147705918"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-04-27T13:40:42Z",
+     "path": "include/xrpl/protocol/SOTemplate.h",
+     "body": "`SOElement::constant_` defaults to `soeCONSTANTINVALID`, but several constructors still allow creating elements without providing a constant policy. Since the new invariant logic expects `constant()` to be meaningful, leaving this as “invalid” risks either debug-only asserts or Release builds silently skipping checks for those fields. Consider making the default explicit (e.g., default to `soeNOTCONSTANT`/`soeCONSTANT`) or restricting/removing the non-constant constructors for templates where `constant()` is consumed, so missing annotations can’t slip through.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3147705978"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-04-27T13:44:48Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "`XRPL_ASSERT` hard-crashes if any `SOElement` lacks the `SOEConstant` parameter (default is `soeCONSTANTINVALID`). This runs unconditionally — a new ledger type added without the annotation will crash production. Consider a non-fatal fallback (e.g. treat as `soeNOTCONSTANT`) or a compile-time check instead.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3147733534"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-05-06T01:11:26Z",
+     "path": "include/xrpl/protocol/SOTemplate.h",
+     "body": "This is friggin' brilliant. Two thoughts:\n1. Is `soeCONSTANTINVALID` really necessary? Could we have fields default to `soeCONSTANT` and simplify the macro file?\n\t* It might visually stand out more in code reviews as well if only \"non constant\" fields were tagged.\n\t* Since the field is only meaningful for ledger entries in invariants, there wouldn't be any harm having other fields (e.g. transactions) be marked as constant. \n\t* Defaulting to constant instead of non-constant would make it blindingly obvious if someone forgets to annotate a new object because no modifying transaction will succeed.\n3. Naming is Hard, but what do you think of renaming `soeNOTCONSTANT` to `soeVARIABLE` or `soeMUTA",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3192439155"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-05-06T01:21:22Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Can they, though? I would think that if an object is created without field `X` being set, it should stay unset forever. And the other way around, too.\n\nAre there any cases where we expect a constant optional field to be set or cleared? If so, maybe we need another option - `soeCONSTANTVALUE` or something. Depending on how deep this goes, maybe `soeCONSTANTVALUESETTABLE`, `soeCONSTANTVALUECLEARABLE`, `soeCONSTANTVALUEONLY`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3192466240"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-05-06T01:24:41Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Would it be possible to have a mutable parent field holding constant subfields?\n\nSpecifically, I'm thinking of SignerList.SignerEntries, which is mutable, but the SignerEntry inner object can't let the `Account` field change. That seems to require recursion. (Sorry.)",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3192476681"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-05-06T01:29:06Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "I think it would be safe to skip over the old method entirely if `enforce` is true. Then you could add a comment here explicitly stating that the old method can be removed when `featureInvariantsV1_1` is retired?",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3192486485"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-05-06T01:32:10Z",
+     "path": "src/test/app/Invariants_test.cpp",
+     "body": "Why is the second result changing to `tef` here and below? That should only happen if the invariant fails after the view is reset, which should wipe out the bad change made here. Right?",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3192492754"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-05-06T11:56:46Z",
+     "path": "include/xrpl/protocol/SOTemplate.h",
+     "body": "Ditto from me, though, it could be argued that having fields mutable my default, and made explicitly modifiable is more `C++`-like. I.e. a variable is mutable, unless a const qualifier is added.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3195208437"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-05-06T12:00:05Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "We have just this use-case in the SAV: https://github.com/XRPLF/rippled/pull/7077. Where a field is either set at creation or it is not, it can never be modified in any other way.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3195227513"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-06T19:41:20Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "I explored that at first but it got complicated quickly, so I left it out for now (we can revisit later)",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3197005901"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-19T20:24:01Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "This is intentional",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3269394242"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-19T20:24:40Z",
+     "path": "include/xrpl/protocol/SOTemplate.h",
+     "body": "Edited - renamed to `Mutable`/`Immutable`, and default is now `SoeImmutable`",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3269397752"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-19T20:28:41Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Should I ignore whether or not the field is optional, then, and just always assume? I've made that change for now",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3269420610"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-20T19:27:47Z",
+     "path": "src/test/app/Invariants_test.cpp",
+     "body": "The honest answer is they were failing and I didn't know why. I can investigate a little more.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3276609284"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-20T20:04:23Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "I added an `SoeImmutableSetOnce` field (e.g. `sfFirstNFTokenSequence`)",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3276826020"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-20T21:05:03Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Good call, done",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3277168381"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-20T21:10:42Z",
+     "path": "src/test/app/Invariants_test.cpp",
+     "body": "From Codex:\n\n> The invariant test helper calls `checkInvariants()` twice on the same dirty view, without doing the reset that production `Transactor::operator()` does after a `tecINVARIANT_FAILED`.\n> \n> So in real transaction flow:\n> \n> 1. Full tx effects fail invariants -> `tecINVARIANT_FAILED`.\n> 2. View is reset to fee-claim-only.\n> 3. Invariants are checked again.\n> 4. Only if the reset view still fails do we escalate to `tefINVARIANT_FAILED`.\n> \n> In the test helper, the bad mutation is still present on the second call, so a second invariant failure becomes `tefINVARIANT_FAILED`. That’s intentional-ish as coverage for escalation, but it is not a faithful simulation of reset behavior.\n> ",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3277199498"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-05-29T10:53:41Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Unrelated to your PR, but it gnaws at me. This is not a fix (nothing is broken, we're adding a new way to enforce immutability). This is also not a feature (we're adding new invariants).\n\nThough, on second thought, is it really not a feature?",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3323837236"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-05-29T10:57:49Z",
+     "path": "include/xrpl/protocol/detail/ledger_entries.macro",
+     "body": "Since the default is `soeMutable` do we need to explicitly state a field name as such?\n\nI.e. could we not instead just write:\n\n` {sfPreviousTxnID,        SoeRequired}`?",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3323862207"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-05-29T10:59:04Z",
+     "path": "include/xrpl/protocol/SOTemplate.h",
+     "body": "This is great, fail loud and hard if the setup is invalid!",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3323869047"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-05-29T11:03:13Z",
+     "path": "include/xrpl/protocol/SOTemplate.h",
+     "body": "Reading this method name, I'd expect to get a bool value.\n\nWhat about something like `getConstQualifier` ? \n\nOr alternatively having two accessors:\n\n\n```\nbool isConstant()\nbool isConstantSetOnce()\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3323887269"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-05-29T11:12:05Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "nit: Since we added the `Immutable` properties, perhaps this can be renamed to `NoModifiedImmutableFields` ?",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3323926417"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-05-29T12:26:57Z",
+     "path": "include/xrpl/protocol/detail/ledger_entries.macro",
+     "body": "In `OracleSet` transaction, `sfProvder` is a mutable field. It should be mutable here too.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324298067"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-05-29T12:30:00Z",
+     "path": "src/libxrpl/protocol/InnerObjectFormats.cpp",
+     "body": "Hmm, my LLM, flagged this as an error. \n\n```\n  NFTokens are write-once objects: once minted, the URI cannot change. This should be SoeImmutable. Same \"currently harmless due to missing recursion\" caveat applies, but the annotation is wrong.\n```\n\n@mvadari could you double check please?",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324313482"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-05-29T12:31:48Z",
+     "path": "src/libxrpl/protocol/InnerObjectFormats.cpp",
+     "body": "Inner-object annotations in InnerObjectFormats.cpp are not enforced and may mislead\n\n  The PR annotates all inner-object fields (e.g., sfAuctionSlot, sfVoteEntry, sfXChainClaimAttestationCollectionElement) with SoeImmutable/SoeMutable, but hasConstantFieldChanged has an explicit // TODO(future): recurse into STObject and STArray fields comment. The annotations are currently decorative, but several of them are semantically wrong\n  (e.g., sfAuctionSlot.sfExpiration, sfAuctionSlot.sfDiscountedFee, sfVoteEntry.sfTradingFee are all SoeImmutable but change when votes are updated). Either:\n  - Defer annotating inner objects until recursion is implemented, or\n  - Add a prominent block comment in Inn",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324323639"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-29T12:37:34Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "I'm not opposed to adding it as a feature amendment, but yeah it's in a bit of a gray area. I think it could be arguably a fix amendment since this is technically a defense-in-depth improvement, and there's no actual feature here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324352260"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-29T12:39:17Z",
+     "path": "src/libxrpl/protocol/InnerObjectFormats.cpp",
+     "body": "I'll remove them.\n\nIt's honestly a little confusing to determine when an inner field is mutable or not, because if the whole entry in the list is removed, then the entry itself was not mutated. (this is where the trickiness in the implementation came and why I pulled it out for now)",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324361984"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-29T12:39:52Z",
+     "path": "src/libxrpl/protocol/InnerObjectFormats.cpp",
+     "body": "Don't forget about Dynamic NFTs 😉",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324365049"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-05-29T12:41:41Z",
+     "path": "src/libxrpl/protocol/InnerObjectFormats.cpp",
+     "body": "That doesn't answer my question, is it or is it not mutable?",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324374357"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-29T12:47:43Z",
+     "path": "include/xrpl/protocol/detail/ledger_entries.macro",
+     "body": "I think it's cleaner to read/reason about this file when mutability is also explicitly stated",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324405381"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-29T13:46:14Z",
+     "path": "src/libxrpl/protocol/InnerObjectFormats.cpp",
+     "body": "They are mutable via the Dynamic NFT amendment, which is live.\n\nBut also, this is a moot point, since I'm rolling back the inner object format mutabilities.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324725035"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-29T13:50:05Z",
+     "path": "include/xrpl/protocol/SOTemplate.h",
+     "body": "I renamed to `mutability`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324746745"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-29T14:11:54Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Seems reasonable, done",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324877275"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-29T14:12:18Z",
+     "path": "include/xrpl/protocol/detail/ledger_entries.macro",
+     "body": "It's `soeOptional` in `OracleSet` because it's only set on create, not update: https://github.com/XRPLF/rippled/blob/develop/src/libxrpl/tx/transactors/oracle/OracleSet.cpp#L286",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324879801"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-05-29T14:12:30Z",
+     "path": "src/libxrpl/protocol/InnerObjectFormats.cpp",
+     "body": "Done",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3324881033"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-06-08T20:24:11Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "First-time enforcement of `sfLoanSequence` immutability in the fallback path — worth a note. The old `sfSequence` check was dead code since `ltLOAN` has no such field, so `sfLoanSequence` was never actually enforced here before this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3376122992"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-06-08T21:18:02Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "@Tapanito thoughts?",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3376422658"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-06-09T10:04:56Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Good catch!",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3379730289"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-06-22T23:39:48Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "What do you think about creating these as `std::optional`? So you don't need the separate `*Present` flags?\n\n```\n// It'll probably be easier with a helper\nauto getField = [](STObject const& obj, auto const& sf)\n\t-> std::optional<STBase const*>\n{\n\tauto const* field = obj.peekAfPField(sf);\n\tif (field == nullptr || field->getSType() == STI_NOTPRESENT)\n\t\treturn std::nullopt;\n\treturn field;\n};\n\nauto const bField = getField(before, sf);\nauto const aField = getField(after, sf);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3456108306"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-06-22T23:41:49Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Any examples, or is this future-proofing?",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3456114035"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-06-22T23:44:50Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Suggestion: Add a comment\n```\n// If the template was used, the field-by-field check is redundant, so skip it.\ncontinue;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3456125672"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-06-22T23:53:26Z",
+     "path": "src/test/app/Invariants_test.cpp",
+     "body": "You could initialize `oracleKeylet` with bogus values\n```\nKeylet oracleKeylet{ltAny, beast::kZero};\n```\n(Edit: Because I was confused at first, and having a clearly bogus value will avoid that.)",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3456151692"
+    }
+   ]
+  },
+  {
+   "number": 7977,
+   "title": "fix: Tighten destination checks on vault withdrawal",
+   "url": "https://github.com/XRPLF/rippled/pull/7977",
+   "state": "closed",
+   "author": "tyalymov",
+   "createdAt": "2026-08-07T17:42:24Z",
+   "updatedAt": "2026-08-26T11:01:17Z",
+   "closedAt": "2026-08-24T13:45:34Z",
+   "labels": [
+    "Ready to merge",
+    "feature: LP1.1"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-07T18:18:45Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7977?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5220583811"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-12T17:47:28Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5270410914"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-13T12:56:45Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5280707271"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-18T18:38:06Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5332480415"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-19T15:18:36Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5344181807"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-20T16:37:16Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5358864495"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-20T17:20:01Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5359321166"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-08-20T19:08:00Z",
+     "body": "@Tapanito @a1q123456 this needs one of you to approve the most recent commit(s) before it can be merged.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5360476328"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-21T13:13:00Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5370228565"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-21T17:05:55Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5372908872"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-21T17:43:01Z",
+     "body": "@a1q123456 \n\nCould you please re-review after conflict resolution?",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5373272921"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nTwo additions to the destination checks in `VaultWithdraw`, both gated behind\n`fixCleanup3_4_0`. A withdrawal out of a private vault to a third party now\nrequires both the submitter and the destination to be members of the vault's\npermissioned domain. A withdrawal to a pseudo-account is refused with\n`tecPSEUDO_ACCOUNT` instead of a misleading `tecNO_PERMISSION`.\n\n### Context of Change\n\n**Permissioned domain.** A private vault restricts who may take part in it, but\n`VaultWithdraw` only ever checked that the destination was allowed to hold the\nunderlying asset, through `requireAuth`. There was no domain check anywhere in\nthe withdrawal path, so a participant c",
+   "merged": true,
+   "mergedAt": "2026-08-24T13:45:33Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:tialymov/FN-69-withdraw_destination_domain_check",
+   "additions": 418,
+   "deletions": 20,
+   "changedFiles": 6,
+   "commits": 19,
+   "reviewComments": 6,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-07T17:44:13Z",
+     "body": "The change adds a permissioned-domain check to VaultWithdraw::preclaim, gated behind fixCleanup3_4_0, mirroring VaultDeposit's existing domain check. The logic is sound: it correctly skips the check for self-withdrawals and for payouts to the asset issuer (with the exemption bypassing both parties' domain checks, as explicitly justified in the MR description for the frozen-asset-return case), reads the domain from the share issuance for consistency with VaultDeposit, and returns tecNO_AUTH when a private vault has no domain configured. The new test covers destination inside/outside the domain, the issuer, the vault owner, self-withdrawal (implicit and explicit), a submitter who lost domain a"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-07T17:52:20Z",
+     "body": "Solid, well-scoped change: adds a permissioned-domain check to VaultWithdraw on the way out, gated behind fixCleanup3_4_0, mirroring the existing VaultDeposit check. The self-withdrawal and issuer-recipient exemptions are implemented consistently with the description, and the new test covers the described matrix (domain member, non-member, issuer, owner, self, and a submitter who lost domain access) plus a public-vault control case. Only one edge case caught my eye and is called out below for confirmation rather than as a confirmed bug; everything else in the diff looks correct."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-10T11:38:25Z",
+     "body": "The change adds a permissioned-domain check to VaultWithdraw for private vaults, mirroring VaultDeposit's existing check and gated behind fixCleanup3_4_0. The logic (skip check for self-withdrawal and for issuer-as-destination, error on missing domain, validate both submitter and destination) is coherent and matches the description, and is well covered by the new test cases (domain member, outsider, issuer, vault owner, self-withdrawal, and a submitter who lost domain access). I did not find clear correctness or security bugs in the diff."
+    },
+    {
+     "author": "Tapanito",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-11T13:09:33Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-12T12:23:49Z",
+     "body": "The change adds a domain-membership check to VaultWithdraw for private vaults, gated by fixCleanup3_4_0, mirroring the existing VaultDeposit logic. The exemptions for self-withdrawal and issuer-as-destination are correctly implemented in the guard condition (dstAcct != account && dstAcct != vaultAsset.getIssuer()), and both exemptions apply symmetrically as described. The new test covers the described cases (domain member, non-member, issuer, owner, self, and post-revocation submitter) and the expected Ter codes line up with the intended semantics for both the amendment-on and amendment-off runs. I did not find a concrete correctness or security bug in the added code; the one deliberate desi"
+    },
+    {
+     "author": "a1q123456",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-12T13:54:26Z",
+     "body": "Left a suggestion."
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-08-12T14:18:01Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-12T14:19:36Z",
+     "body": "Well-scoped, carefully reasoned change: a shared checkVaultDomain helper now enforces permissioned-domain membership for private-vault withdrawals to third parties (skipping self-withdrawals and the asset issuer, as explicitly justified), and pseudo-account destinations are now rejected with the more accurate tecPSEUDO_ACCOUNT ahead of the domain check. I traced the guard conditions (dstAcct != account, dstAcct != vaultAsset.getIssuer(), SuppressExpired::No vs Yes) against the description and the added tests and found them internally consistent: self-withdrawal and issuer-destination both correctly bypass the new domain checks entirely (for both submitter and destination), matching the state"
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-08-12T14:34:17Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-12T14:36:11Z",
+     "body": "Well-scoped change adding a shared checkVaultDomain helper used by both VaultDeposit and VaultWithdraw, plus a pseudo-account destination check in VaultWithdraw, all gated behind fixCleanup3_4_0. The logic (self-withdrawal exemption, issuer exemption, expired-credential handling that differs between deposit/withdraw, and check ordering relative to the pseudo-account check) matches the PR description and is backed by thorough new tests covering the domain and pseudo-account edge cases. I did not find any high-confidence correctness or security issues in the added code."
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-08-12T15:39:19Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-13T12:59:48Z",
+     "body": "The change adds a domain-membership check and a pseudo-account check to VaultWithdraw's preclaim, both gated behind fixCleanup3_4_0, and factors the shared domain-check logic into a new checkVaultDomain helper reused by VaultDeposit. The refactor of VaultDeposit is a faithful behavior-preserving extraction, and the pseudo-account check correctly precedes the domain check as described. The logic for the two explicitly documented exemptions (self-withdrawal, and destination-is-issuer skipping both parties) matches the implementation. One asymmetry versus VaultDeposit's owner exemption is worth a second look from the author."
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-08-14T11:21:18Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-17T12:55:54Z",
+     "body": "## Pull request overview\n\nThis PR tightens `VaultWithdraw` destination validation when `fixCleanup3_4_0` is enabled, aligning withdrawal behavior with private-vault permissioned-domain rules and improving the returned error for pseudo-account destinations.\n\n**Changes:**\n- Add permissioned-domain membership checks (submitter + destination) for third-party withdrawals from private vaults, with exemptions for self-withdrawals and withdrawals to the asset issuer.\n- Reject pseudo-account destinations early with `tecPSEUDO_ACCOUNT` (post-fix), instead of surfacing `tecNO_PERMISSION`.\n- Factor domain-validation logic into a shared `checkVaultDomain` helper and add targeted unit tests for both behav"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-19T14:33:27Z",
+     "body": "This is a well-scoped, carefully reasoned change that adds a permissioned-domain check and a pseudo-account destination check to VaultWithdraw, sharing a new checkVaultDomain helper with VaultDeposit. I traced through the added preclaim logic (pseudo-account check placement, the self/issuer exemptions, and the SuppressExpired semantics for both callers) and it matches the stated intent and is exercised by the accompanying tests, which cover the domain-membership matrix (member/outsider/issuer/owner-as-destination, self-withdrawal, expired-credential submitter, domain-cleared vault, and public-vault non-effect) as well as the pseudo-account case for both public and private vaults. I did not f"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-19T14:33:28Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-19T16:07:25Z",
+     "body": "This is a clean, well-scoped change that adds domain checks to VaultWithdraw and fixes a misleading tec code for pseudo-account destinations, both correctly gated behind fixCleanup3_4_0. The `checkVaultDomain` helper is a good extraction that keeps VaultDeposit and VaultWithdraw consistent, and the self/issuer exemptions are exercised by thorough tests. I only have one open question about the issuer exemption's scope — everything else looks solid."
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-08-20T14:49:52Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-20T17:21:42Z",
+     "body": "This MR adds a shared checkVaultDomain helper and uses it to (1) require both submitter and destination to be permissioned-domain members when a private vault withdrawal goes to a third party, and (2) reject withdrawals to pseudo-accounts with tecPSEUDO_ACCOUNT instead of a misleading tecNO_PERMISSION. I traced the new preclaim logic in VaultWithdraw.cpp and VaultHelpers.cpp against the stated design (self-withdrawal exempt, issuer-as-destination exempt for both parties, expired credentials not suppressed on withdrawal since there's no doApply cleanup step, pseudo-account check placed ahead of the domain check) and it matches correctly — the gating conditions (fix340Enabled, lsfVaultPrivate,"
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-08-21T08:34:42Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-21T17:07:29Z",
+     "body": "This is a well-scoped, carefully implemented change to VaultWithdraw's destination checks, gated entirely behind fixCleanup3_4_0 and backed by a new shared checkVaultDomain helper that VaultDeposit now also uses. I traced through the new domain-check block's self/issuer exemptions, the checkVaultDomain refactor (verifying the tecEXPIRED suppression logic is behaviorally equivalent to the original inline code in VaultDeposit), the pseudo-account check placement (ahead of requireAuth/domain checks, so it preempts the misleading tecNO_PERMISSION), and the accompanying tests. Everything lines up with the stated intent and I did not find a correctness, security, or consistency issue in the change"
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-08-24T11:33:36Z",
+     "body": "previous concerns have been addressed and the merge looks solid."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Tapanito",
+     "date": "2026-08-11T13:08:41Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "This code is nearly identical to the logic in VaultDeposit. Please consider adding a helper, so that the Vault PD logic can be reused.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3758211426"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-08-12T13:50:05Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "It doesn't feel to be too difficult to have a test case asserting that the sleIssuance does not have a domain id gets rejected for `tecNO_AUTH`. Maybe we can modify the domain id before we call env() with this transaction.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3766997937"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-12T14:18:01Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3767230959"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-12T14:34:17Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3767365488"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-17T12:55:53Z",
+     "path": "include/xrpl/ledger/helpers/VaultHelpers.h",
+     "body": "The header comment implies that a vault with no domain set has “no authorized participants at all” and that “every subject fails with tecNO_AUTH”. That’s not generally true at the vault level because callers can (and do) exempt certain roles (e.g., VaultDeposit bypasses the check for the vault owner). Consider rewording to describe the helper’s behavior more precisely: for any subject the caller chooses to check, absence of sfDomainID yields tecNO_AUTH.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3796522079"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-19T14:33:28Z",
+     "path": "include/xrpl/ledger/helpers/VaultHelpers.h",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3813927230"
+    }
+   ]
+  },
+  {
+   "number": 7411,
+   "title": "perf: Optimize MPT freeze checks to reduce redundant state reads",
+   "url": "https://github.com/XRPLF/rippled/pull/7411",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2026-06-05T10:54:49Z",
+   "updatedAt": "2026-08-17T21:42:54Z",
+   "closedAt": "2026-08-17T21:42:53Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-06-05T11:21:45Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7411?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#issuecomment-4631063100"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T12:11:48Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#issuecomment-4809454656"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-06T23:26:24Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#issuecomment-4898527120"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-07T22:29:49Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#issuecomment-5222833815"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-11T18:24:16Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#issuecomment-5257178263"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-13T01:28:58Z",
+     "body": "> It might be worth checking the other places that can call the overload `isFrozen` when sleIssuance is already there. For example, MPTInvariant and EscrowCreate. Do we want to optimize those in this PR as well?\n\nAdded SLE based freeze checks to MPTInvariant, EscrowCreate, and EscrowFinish.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#issuecomment-5274826040"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-13T19:23:53Z",
+     "body": "> It might be worth checking the other places that can call the overload `isFrozen` when sleIssuance is already there. For example, MPTInvariant and EscrowCreate. Do we want to optimize those in this PR as well?\n\nTo add to this list, here are other places where isFrozen() is invoked for an MPT-sle:\n- [VaultDeposit transaction preclaim](https://github.com/XRPLF/rippled/blob/028ccea7a14178d6795705a851c7d6f6a3d17bbe/src/libxrpl/tx/transactors/vault/VaultDeposit.cpp#L138) reads VaultShare-MPT\n- [EscrowFinish preclaim](https://github.com/XRPLF/rippled/blob/028ccea7a14178d6795705a851c7d6f6a3d17bbe/src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp#L189) checks freeze status of underlying MPT asset",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#issuecomment-5285377068"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-13T21:35:27Z",
+     "body": "> > It might be worth checking the other places that can call the overload `isFrozen` when sleIssuance is already there. For example, MPTInvariant and EscrowCreate. Do we want to optimize those in this PR as well?\n> \n> To add to this list, here are other places where isFrozen() is invoked for an MPT-sle:\n> \n> * [VaultDeposit transaction preclaim](https://github.com/XRPLF/rippled/blob/028ccea7a14178d6795705a851c7d6f6a3d17bbe/src/libxrpl/tx/transactors/vault/VaultDeposit.cpp#L138) reads VaultShare-MPT\n> * [EscrowFinish preclaim](https://github.com/XRPLF/rippled/blob/028ccea7a14178d6795705a851c7d6f6a3d17bbe/src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp#L189) checks freeze status of underly",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#issuecomment-5286657560"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nOptimize MPT freeze checks with existing token SLEs\n\nAvoid redundant MPToken lookups in MPT freeze checks when callers already\nhave the holder MPToken SLE. Add SLE-based isFrozen(), isGlobalFrozen(),\nand isIndividualFrozen() overloads, and reuse the loaded issuance SLE when\nchecking vault pseudo-account freeze state.\n\nThis reduces repeated state reads on mixed MPT/IOU payment paths while\npreserving the existing MPTIssue fallback behavior.\n\n### API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that",
+   "merged": true,
+   "mergedAt": "2026-08-17T21:42:53Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:gregtatcam/mpt/optimize-freeze-checks",
+   "additions": 216,
+   "deletions": 26,
+   "changedFiles": 10,
+   "commits": 14,
+   "reviewComments": 33,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-05T10:56:28Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-05T17:53:47Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-06T23:29:24Z",
+     "body": "Looks good.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-11T18:25:35Z",
+     "body": "This is a straightforward, behavior-preserving refactor that adds SLE-based overloads of isFrozen/isGlobalFrozen/isIndividualFrozen/isVaultPseudoAccountFrozen so callers that already hold the MPToken/MPTokenIssuance SLE can skip a redundant ledger read. I traced each new overload against its original MPTIssue-based counterpart and each call site (AMMHelpers.cpp, TokenHelpers.cpp) and the logic is equivalent: the new isFrozen(SLE const&) reuses the already-read holder MPToken for isIndividualFrozen, reads the issuance once and reuses it for both isGlobalFrozen and isVaultPseudoAccountFrozen, and falls back to the MPTIssue-based vault check when the issuance SLE is absent (matching the pre-exi"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-11T22:41:34Z",
+     "body": "Solid refactor that threads already-loaded MPToken/MPTokenIssuance SLEs through the freeze-check helpers to avoid duplicate ledger reads, with the MPTIssue-based overloads preserved as fallbacks and existing behavior appearing equivalent at both call sites (AMMHelpers.cpp, TokenHelpers.cpp). The main concern is the new `isFrozen(view, account, SLE const& mptSle, depth)` overload, which trusts that the caller-supplied `mptSle` actually belongs to `account` without asserting the relationship, unlike the type-only asserts elsewhere in the diff."
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-12T19:08:07Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-12T19:52:41Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-12T20:14:26Z",
+     "body": "It might be worth checking the other places that can call the overload `isFrozen` when sleIssuance is already there.  For example, MPTInvariant and EscrowCreate. Do we want to optimize those in this PR as well?"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-12T23:34:40Z",
+     "body": "Syntax error at line 7467 - see inline."
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-13T00:17:33Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-13T00:18:26Z",
+     "body": "This is a well-structured refactor that adds SLE-based overloads of isGlobalFrozen/isIndividualFrozen/isFrozen/isVaultPseudoAccountFrozen to avoid redundant MPToken/MPTokenIssuance reads on hot paths (AMM and generic MPT accountHolds). I traced the new isFrozen(SLE) path against the original MPTIssue-based isFrozen: the global-frozen check, individual-frozen check, and the vault-pseudo-account fallback (including the case where the issuance no longer exists, exercised by the new AMMMPT_test) all preserve the original semantics. The vault freeze precondition logic was cleanly factored out into checkVaultPseudoAccountFrozenPreconditions and reused by both overloads without behavior changes. No"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-13T00:18:27Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-13T01:31:30Z",
+     "body": "This is a well-executed, correctness-preserving refactor. The new SLE-based isFrozen/isGlobalFrozen/isIndividualFrozen overloads and the isVaultPseudoAccountFrozen(SLE) overload mirror the semantics of their existing ReadView-based counterparts (short-circuiting global -> individual -> vault-pseudo-account checks), and every call site that switches to passing an already-loaded issuance/MPToken SLE (AMMHelpers, TokenHelpers, MPTInvariant, EscrowCreate/Finish) does so with a SLE of the correct type for that call, avoiding redundant ledger reads without changing outcomes. The isAnyFrozen optimization correctly hoists the single issuance read out of the per-account loop while preserving the null"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-13T01:31:31Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-13T18:11:25Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-13T18:16:56Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-13T18:18:49Z",
+     "body": "Well-structured perf refactor that adds SLE-based overloads for isFrozen/isGlobalFrozen/isIndividualFrozen/isVaultPseudoAccountFrozen and threads already-loaded MPToken/MPTokenIssuance SLEs through the various freeze-check call sites (AMMHelpers, TokenHelpers, MPTInvariant, EscrowCreate/Finish) to avoid redundant ledger reads. I traced the ltMPTOKEN and ltMPTOKEN_ISSUANCE branches of the new isFrozen(SLE) overload, the isAnyFrozen refactor, and the isVaultPseudoAccountFrozen split against the original logic and found the behavior preserved in all cases, including the null-issuance edge case (issuance destroyed while a zero-balance holder MPToken still exists), which is explicitly covered by "
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-13T18:18:50Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-13T19:11:00Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-13T22:33:56Z",
+     "body": "This is a well-structured performance refactor that adds SLE-based overloads of isFrozen/isGlobalFrozen/isIndividualFrozen/isVaultPseudoAccountFrozen to avoid redundant MPToken/MPTokenIssuance ledger reads, while preserving the existing MPTIssue-based fallback paths. I traced the new isFrozen(SLE) dispatch for both ltMPTOKEN and ltMPTOKEN_ISSUANCE branches, the isAnyFrozen optimization that hoists the single issuance read, and all call-site updates (AMMHelpers, TokenHelpers, MPTInvariant, EscrowCreate/EscrowFinish) against the original MPTIssue-based semantics — the logic is equivalent in all cases I could verify, including the null-issuance fallback path exercised by the new AMMMPT_test dan"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-13T22:33:57Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "APPROVED",
+     "date": "2026-08-13T22:37:11Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-14T16:45:04Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-14T18:10:52Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-14T19:34:58Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-14T19:58:41Z",
+     "body": "This is a well-executed refactor that adds SLE-based overloads of isFrozen/isGlobalFrozen/isIndividualFrozen/isVaultPseudoAccountFrozen to avoid redundant MPToken/MPTokenIssuance reads. I traced each call site (AMMHelpers, TokenHelpers, MPTInvariant, EscrowCreate, EscrowFinish) and confirmed the SLE passed in each case matches the account/issuance being checked, and that the short-circuit semantics (global -> individual -> vault) and null-issuance fallback behavior are preserved relative to the original MPTIssue-based implementations. The new test (testDanglingAMMMPTokenFreezeCheck) specifically covers the case where the issuance has been destroyed but a zero-balance MPToken row remains, whi"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-14T19:58:42Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-08-14T20:13:51Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-14T21:09:24Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-14T23:40:05Z",
+     "body": "This is a well-executed performance refactor that adds SLE-based overloads for isFrozen/isGlobalFrozen/isIndividualFrozen/isVaultPseudoAccountFrozen and updates call sites to pass already-loaded MPToken/MPTokenIssuance SLEs instead of re-reading them. I traced the new isFrozen(SLE) dispatch logic (both the ltMPTOKEN and ltMPTOKEN_ISSUANCE branches), the refactored isVaultPseudoAccountFrozen split (preconditions helper + per-issuance helper + two public overloads), and the isAnyFrozen optimization, and the semantics match the original view-based implementations, including the dangling-issuance edge case covered by the new AMMMPT_test. All call-site updates (AMMHelpers, TokenHelpers, MPTInvari"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-08-15T14:29:24Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-17T12:56:40Z",
+     "body": "## Pull request overview\n\nOptimizes MPToken (MPT) freeze checking by reusing already-loaded ledger entries (SLEs) to reduce redundant state reads across transaction and ledger helper paths, and adds a regression test for a dangling-issuance edge case encountered with empty AMMs.\n\n**Changes:**\n- Add SLE-based overloads for MPT freeze checks (global/individual/isFrozen) and an SLE-based overload for vault pseudo-account freeze checks.\n- Update call sites (escrow preclaim, invariants, AMM/accountHolds) to pass existing SLEs instead of re-reading from the view.\n- Add a regression test covering a “dangling AMM MPToken with deleted issuance” scenario.\n\n### Reviewed changes\n\nCopilot reviewed 10 out"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-17T14:04:36Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-17T14:08:13Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-17T14:14:33Z",
+     "body": "This is a well-structured performance refactor that adds SLE-based overloads for isFrozen/isGlobalFrozen/isIndividualFrozen/isVaultPseudoAccountFrozen to avoid redundant ledger reads. I traced each new overload against its original counterpart (isFrozen(SLE) for both ltMPTOKEN and ltMPTOKEN_ISSUANCE, the split isVaultPseudoAccountFrozen precondition/issuance helpers, and the isAnyFrozen issuance-reuse path) and every call site that now passes an already-loaded SLE (AMMHelpers, TokenHelpers, MPTInvariant, EscrowCreate, EscrowFinish) passes an SLE for the correct account/issuance context matching the assertions in the new functions. Control flow, short-circuiting, and fallback-to-missing-issua"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-08-17T17:45:07Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ckeshava",
+     "date": "2026-08-12T17:21:31Z",
+     "path": "include/xrpl/ledger/helpers/MPTokenHelpers.h",
+     "body": "This method declaration needs to be moved above this doc-string. The doc-string pertains to `isIndividualFrozen` method.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3768703554"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-12T18:06:01Z",
+     "path": "include/xrpl/ledger/helpers/MPTokenHelpers.h",
+     "body": "The doxygen is for the other function next to this",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3769059331"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-12T18:09:01Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "nit: issuanceSle",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3769083910"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-12T18:32:58Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "Do we need this function?\nWe can just call sle.isFlag(lsfMPTLocked) in the caller place.\nAnd the caller's assertion is stronger than this assertion.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3769272316"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-12T19:07:05Z",
+     "path": "include/xrpl/ledger/helpers/MPTokenHelpers.h",
+     "body": "Can we add doc for the isFrozen related functions?",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3769513635"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-12T19:08:57Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "Why do we need a custom set up with a higher fee? This test should work irrespective of the transaction-ref-fee value.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3769528698"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-12T19:34:11Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "```suggestion\nBEAST_EXPECT(!isFrozen(*env.current(), amm.ammAccount(), *ammToken))\n```\n\nSince the test seeks to check the freeze behavior, I felt this assertion is more direct. Let me know if my understanding is correct.\n\n(However, since the issuanceSle is non-existent, only the Individual-Freeze check will be exercised here, not the Global-Freeze and the vaultPseudoAccount-FreezeCheck.)",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3769715872"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-12T19:35:59Z",
+     "path": "src/libxrpl/ledger/View.cpp",
+     "body": "nit: the message should be updated to the new function name",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3769728262"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-12T19:43:27Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "what is the relationship between `account` and `issuanceSle` at this juncture? As per my understanding, `issuanceSle` points to either the Vault-Share-MPT (or) the Vault-underlying-MPT-asset. `account` could refer to the holder of either of these assets, am I correct?",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3769775661"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-12T19:45:17Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "On a non-debug build, these asserts are not triggered, am I correct? In such deployments, we would run the risk of running the flag-bit comparison on a incompatible ledger-entry-type.\n\nShould we consider moving to a run-time check (or) is it common knowledge for everybody to run a Debug build ?",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3769787569"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-12T20:11:38Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "Should we refactor isAnyFrozen to read the issuanceSle first as well?",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3769972880"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-12T22:51:37Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "Removed",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3770935177"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-12T23:17:36Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "It is defensive boilerplate inherited from testAutoDelete().  Changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3771079155"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-12T23:34:40Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "Missing semicolon and wrong indentation—compiler error:\n\n```suggestion\n        BEAST_EXPECT(!isFrozen(*env.current(), amm.ammAccount(), *ammToken));\n```\n\n```suggestion\n        BEAST_EXPECT(!isFrozen(*env.current(), amm.ammAccount(), *ammToken));\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3771156379"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-12T23:51:28Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "When `issuanceSle` is present, it isn't restricted to vault-share or vault-underlying MPTs — it's whatever issuance `mptSle` belongs to. If that issuance isn't a vault share, `isVaultPseudoAccountFrozen` walks the issuer, sees no `sfVaultID`, and returns false. If it is a vault share, we recurse into the underlying with `isAnyFrozen({issuer, account}, underlying, depth+1)` — where the pair {issuer, account} means \"consider the share frozen for account if the vault pseudo-account or account is frozen for the underlying.\" So account isn't tied to being \"the holder of the underlying\"; it's carried through so both parties are checked at deeper levels.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3771228168"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-12T23:56:46Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "There is no realistic risk of the flag-bit comparison running on an incompatible LE type in Release, because `view.read` won't hand you one. The assert is documenting a precondition that the read path already enforces; it isn't the enforcement itself.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3771255646"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-13T00:18:27Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3771352343"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-13T01:31:31Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3771679562"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-13T18:11:25Z",
+     "path": "src/libxrpl/ledger/View.cpp",
+     "body": "@gregtatcam This still needs to be updated",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3777941732"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-13T18:16:50Z",
+     "path": "src/libxrpl/ledger/View.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3777981714"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-13T18:18:50Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3777996133"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-13T19:11:00Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "ok this makes sense. I was a bit thrown off because in this method call : `isAnyFrozen({issuer, account}, underlying, depth+1) `, `issuer` refers to the Issuer of Vault-Share-MPTs, which is the Vault account itself. I have come to understand that `account` refers to an arbitrary caller-supplied input.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3778352097"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-13T22:33:57Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3779611955"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-14T16:45:04Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "Is this equivalent? The behavior seems changed.\nWhen issuanceSle is null, the old code called isVaultPseudoAccountFrozen",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3785621065"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-14T18:10:52Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "It is equivalent. But it's not obvious because of `if (depth >= kMaxAssetCheckDepth)` check in `checkVaultPseudoAccountFrozenPreconditions()`, which could return `true` (though it's unreachable). I can make this change:\n\n   if (!issuanceSle)\n   {\n        return std::ranges::any_of(accounts, [&](auto const& account) {\n            return isVaultPseudoAccountFrozen(view, account, mptIssue, depth);\n        });\n    }\n\nWhich is going to make it clearly equivalent at the expense of reading issuance SLE for each account. Another option is to make this change:\n\n    if (!issuanceSle)\n        return view.rules().enabled(featureSingleAssetVault) && depth >= kMaxAssetCheckDepth;\n\nOr keep as is and add so",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3786156566"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-14T19:34:58Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "I think it is better to keep it explicit, \n\n```\nif (!issuanceSle)\n{\n    return std::ranges::any_of(accounts, [&](auto const& account) {\n        return isVaultPseudoAccountFrozen(view, account, mptIssue, depth);\n    });\n}\n\nreturn std::ranges::any_of(accounts, [&](auto const& account) {\n    return isVaultPseudoAccountFrozen(view, account, *issuanceSle, depth);\n});\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3786638442"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-14T19:58:42Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3786773141"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-14T21:09:24Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "we should add an assert here to verify the mptoken belongs to the account.\n`XRPL_ASSERT(sle[sfAccount] == account, ... )`\n\nIn case someone will pass in an unrelated mpt in the future.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3787177131"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-17T12:56:40Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "In the ltMPTOKEN SLE overload, if the issuance SLE is missing you currently call isVaultPseudoAccountFrozen(view, account, MPTIssue{mptID}, depth), which re-reads the (missing) issuance SLE again. Since the missing-issuance case can only be \"not frozen\" here (global freeze is impossible, individual freeze already checked), return false directly to avoid the redundant read (this matches the intended perf goal and the new dangling-issuance test case).",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3796527183"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-17T12:56:40Z",
+     "path": "include/xrpl/ledger/helpers/MPTokenHelpers.h",
+     "body": "This doc block says the SLE overload \"takes an already-loaded MPToken ledger entry and skips the individual-lock lookup\", but the overload also accepts an ltMPTOKEN_ISSUANCE SLE and (in that case) it still reads the holder row for the individual-lock check. Clarifying this here will help callers choose the right overload and avoid incorrect assumptions.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3796527211"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-17T12:56:40Z",
+     "path": "include/xrpl/ledger/View.h",
+     "body": "PR description marks no Public API / libxrpl impact, but this change adds a new overload in an installed public header (include/xrpl/...). Downstream consumers will see this as an API surface change; the PR metadata should reflect that (and any associated versioning/release notes expectations).",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3796527245"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-17T14:04:36Z",
+     "path": "src/libxrpl/ledger/helpers/MPTokenHelpers.cpp",
+     "body": "No, it would not be equivalent because isVaultPseudoAccountFrozen calls checkVaultPseudoAccountFrozenPreconditions, which might return different result depending on depth. Besides, missing issuanceSle is an edge case, with small performance impact. And last but not least, the code as written is more clear.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3796887868"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-17T14:08:13Z",
+     "path": "include/xrpl/ledger/View.h",
+     "body": "Updated PR description.",
+     "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3796896501"
+    }
+   ]
+  },
+  {
+   "number": 7856,
+   "title": "ci: Pre-commit clang-tidy checks for the build directory at the top level",
+   "url": "https://github.com/XRPLF/rippled/pull/7856",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2026-07-23T19:45:44Z",
+   "updatedAt": "2026-07-23T20:33:51Z",
+   "closedAt": "2026-07-23T20:33:41Z",
+   "labels": [
+    "Trivial"
+   ],
+   "comments": [
+    {
+     "author": "mvadari",
+     "date": "2026-07-23T20:33:41Z",
+     "body": "> This doesn't make sense - `git rev-parse --show-toplevel` returns the repo root if it's run from anywhere in the repo. I checked, and I wasn't able to reproduce. cwd is there to make sure we're indeed in the repo when calling `git`\n\nHuh, I'm not able to replicate either, but I was definitely having the issue. Will close the PR for now and revisit if I encounter the issue again.",
+     "url": "https://github.com/XRPLF/rippled/pull/7856#issuecomment-5063135142"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR fixes the clang-tidy pre-commit check to look for the build folders at the top level, not in `bin/pre-commit`.\n\n### Context of Change\n\nPreviously:\n```\nclang-tidy (enable with: TIDY=1)..............................................Failed\n- hook id: clang-tidy\n- exit code: 1\n\nfind_build_dir: candidate:  /Users/mvadari/Documents/rippled-all/copilot/bin/pre-commit/.build  <--- log line added by me\nfind_build_dir: candidate:  /Users/mvadari/Documents/rippled-all/copilot/bin/pre-commit/build  <--- log line added by me\nclang-tidy check failed: no build directory with compile_commands.json found (looked for .build/ and build/)\n```\n\n### API Impact\n\nN/A",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "mvadari:mvadari/fix-precom-ctidy",
+   "additions": 0,
+   "deletions": 1,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "mathbunnyru",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-23T20:02:40Z",
+     "body": "This doesn't make sense - `git rev-parse --show-toplevel` returns the repo root if it's run from anywhere in the repo.\nI checked, and I wasn't able to reproduce.\ncwd is there to make sure we're indeed in the repo when calling `git`"
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 7822,
+   "title": "feat: Add invariant checks and invariant check tests for LoanAccept",
+   "url": "https://github.com/XRPLF/rippled/pull/7822",
+   "state": "open",
+   "author": "a1q123456",
+   "createdAt": "2026-07-17T00:01:10Z",
+   "updatedAt": "2026-07-17T00:20:03Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [],
+   "body": "## High Level Overview of Change\n\nThis PR adds invariant checks and invariant check tests for LoanAccept with all related fields, flags, and a `LoanAccept` transactor that does nothing.\n\n\n\n### Context of Change\n\nThis PR defines what invariant checks should be performed before the actual development starts to ensure everything will work properly.\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer pr",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "a1q123456/split-loan-set-and-loan-accept-temp",
+   "head": "XRPLF:a1q123456/split-loan-set-and-loan-accept",
+   "additions": 935,
+   "deletions": 14,
+   "changedFiles": 5,
+   "commits": 1,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-17T00:06:18Z",
+     "body": "Ship it\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-17T00:20:03Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-07-17T00:20:03Z",
+     "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
+     "body": "🟠 **Severity: HIGH**\n\nWhen `isPendingLoan` is true and the vault balance is unchanged, `maybeVaultDeltaAssets` is `nullopt` but the guard no longer returns early. The subsequent dereference on line 1140 (`*maybeVaultDeltaAssets`) and line 1149 (`maybeVaultDeltaAssets->delta`) is undefined behavior—crashing the node or potentially corrupting memory. Compare with `ttLOAN_DELETE` at line 1560 which correctly uses `value_or()`.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Follow the safe-access pattern already used at lines 1227-1229 and 1559-1561 in this file: after the existing early-return guard, add a `value_or()` call to safely unwrap `maybeVaultDel",
+     "url": "https://github.com/XRPLF/rippled/pull/7822#discussion_r3599577775"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-07-17T00:20:03Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "⚪ **Severity: LOW**\n\nThe Borrower authorization check reads from `after` (post-modification state) instead of `before` (pre-modification state). A buggy or malicious transactor that overwrites `sfBorrower` to match the submitter during execution would bypass this invariant, defeating its purpose as a last-line-of-defense authorization check.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Change `after->getAccountID(sfBorrower)` to `before->getAccountID(sfBorrower)` on line 132. The invariant check should read the `sfBorrower` field from the pre-modification state (`before`) rather than the post-modification state (`after`). This ensures that even if a b",
+     "url": "https://github.com/XRPLF/rippled/pull/7822#discussion_r3599577780"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": [
+  "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
+  "pratik/Add_checks_db_objects"
+ ]
+}

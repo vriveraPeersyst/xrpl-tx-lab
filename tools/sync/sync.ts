@@ -36,6 +36,10 @@ const after: Record<string, any> = Object.fromEntries(netIds().map((id) => [id, 
 // 2+3. Source per version (tag or develop) and extraction
 run("pnpm exec tsx tools/extract/all.ts --update");
 
+// 3b. Client libraries and GitHub development status (both tolerate failures).
+try { run("pnpm exec tsx tools/extract/libraries.ts"); } catch (e) { log("libraries failed:", e instanceof Error ? e.message : e); }
+if (!process.env.SYNC_NO_GITHUB) { try { run("pnpm exec tsx tools/extract/github.ts"); } catch (e) { log("github failed:", e instanceof Error ? e.message : e); } }
+
 // 4. Lint + generation of what is missing
 function lint(): any {
   const r = spawnSync("pnpm", ["exec", "tsx", "tools/lint/coverage.ts", "--json"], { cwd: ROOT, encoding: "utf8" });

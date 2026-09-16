@@ -1,7 +1,8 @@
 import NLink from "@/components/NLink";
 import { notFound } from "next/navigation";
 import { getNet, availableNetworkIds, featureIdToName } from "@/lib/protocol";
-import { readDoc } from "@/lib/content";
+import { readDoc, readGithub } from "@/lib/content";
+import { DevStatus } from "@/components/DevStatus";
 import { Markdown } from "@/components/Markdown";
 import { amendmentState } from "@/components/protocol";
 
@@ -47,6 +48,8 @@ export default async function AmendmentPage({ params }: { params: Promise<{ net:
         <div className="card"><div className="text-xs uppercase text-muted">{d.network.label} voting</div><div className="text-sm">{s ? (s.enabled ? "active" : s.count !== undefined ? `${s.count} of ${s.validations ?? "?"} validators (${pct ?? "?"}%), threshold ${s.threshold}` : "no voting data") : `does not exist on ${d.network.label}`}</div>{s?.majority ? <div className="text-xs text-muted">majority since {new Date((s.majority + 946684800) * 1000).toLocaleString("en-US")}</div> : null}{s?.vetoed ? <div className="text-xs text-danger">vetoed by this node</div> : null}</div>
         <div className="card"><div className="text-xs uppercase text-muted">Affects</div><div className="flex flex-wrap gap-1">{txs.map((t) => <NLink key={t.name} href={`/tx/${t.name}`} className="tag">{t.name}</NLink>)}{txs.length === 0 && <span className="text-xs text-muted">no transactor queries it directly</span>}</div></div>
       </section>
+
+      <DevStatus gh={readGithub(name)} />
 
       {doc ? <section className="max-w-3xl"><Markdown>{doc.body}</Markdown></section> : <section className="card text-sm text-muted">Documentation not written yet.</section>}
 

@@ -1,0 +1,2099 @@
+{
+ "name": "AMMClawback",
+ "fetchedAt": "2026-09-16T10:37:02.257Z",
+ "summary": {
+  "status": "merged",
+  "prs": 6,
+  "open": 0,
+  "merged": 4,
+  "issues": 4,
+  "proposals": 2,
+  "branches": [],
+  "lastActivity": "2026-09-08T17:44:27Z",
+  "lastMerged": "2026-09-02T21:20:05Z",
+  "release": "2.3.0",
+  "totalComments": 278
+ },
+ "release": {
+  "version": "2.3.0",
+  "date": "2024-11-26T00:17:49Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.3.0",
+  "excerpt": "AMMClawback"
+ },
+ "prs": [
+  {
+   "number": 7796,
+   "title": "fix: Reinforce the priority of AMMClawback in case of insufficient reserves",
+   "url": "https://github.com/XRPLF/rippled/pull/7796",
+   "state": "closed",
+   "author": "ckeshava",
+   "createdAt": "2026-07-13T15:41:56Z",
+   "updatedAt": "2026-09-02T21:24:37Z",
+   "closedAt": "2026-09-02T21:20:05Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-13T16:22:54Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7796?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-4960158434"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-07-13T16:30:53Z",
+     "body": "@gregtatcam @yinyiqian1  Please review this PR and advise on the next steps.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-4960232684"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-07-13T17:51:43Z",
+     "body": "> @gregtatcam @yinyiqian1 Please review this PR and advise on the next steps.\n\n@ckeshava I don't think this should be \"fixed\" by failing the transaction — the current outcome is correct; it's the intent that reads unclearly.\nAMMClawback is a compliance recovery that deliberately works without holder cooperation: it already withdraws with IgnoreFreeze/IgnoreAuth and recreates deleted MPTokens. Gating the paired-asset return on the holder's reserve reintroduces the holder veto the design intentionally strips out — a holder could block clawback indefinitely by deleting the paired trustline and keeping spendable XRP below one incremental reserve. tecINSUFFICIENT_RESERVE here is a regression, not",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-4960957330"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-23T19:25:38Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-5062470277"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-10T19:13:38Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-5244798023"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-10T22:18:38Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-5246672100"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-11T15:27:09Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-5255217890"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-26T14:14:42Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-5426625496"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-28T03:19:59Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-5447981365"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-02T18:52:26Z",
+     "body": "Thanks @gregtatcam. Addressed in b9d3495fd0:\n\n- PR description now names `fixCleanup3_4_0` instead of the old `fixAMMClawbackReserve1`, and the Summary no longer says the check used the issuer's balance *instead of* the holder's.\n- Reworded the header comment on the IOU `testClawbackBypassesReserve`: it now says the holder's reserve is compared against `max(issuer pre-fee, holder current)` XRP, matching the `else` branch.\n- The IOU success path now asserts the EUR trustline exists and `env.balance(alice, eur) > eur(0)` before the `ownerCount == 3` check, mirroring the MPT sibling.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-5514700068"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-02T18:53:24Z",
+     "body": "thanks for the thorough reviews @gregtatcam  @yinyiqian1",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-5514711880"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-02T19:05:31Z",
+     "body": "The LedgerMaster tests have passed in one of the configurations, but they fail in the ubuntu-clang-release configuration. I believe they will pass upon a re-run, however I do not see the permissions to re-run that test, unless I push a no-op commit.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#issuecomment-5514861325"
+    }
+   ],
+   "body": "## Summary\n\n`AMMClawback` reuses `AMMWithdraw`'s helpers to return the paired asset to the holder. When the paired asset's trustline or MPToken has to be auto-created, the holder's owner reserve was checked against `max(issuer pre-fee balance, holder current balance)` — the issuer's balance leaks into the comparison because `sfAccount` on an `AMMClawback` is the issuer. As a result the clawback failed with `tecINSUFFICIENT_RESERVE` whenever neither the issuer nor the holder could cover the extra owner reserve, even though clawback is a compliance operation that should not be blocked by a reserve requirement. A holder could also deliberately veto a clawback by deleting the paired trustline/MP",
+   "merged": true,
+   "mergedAt": "2026-09-02T21:20:05Z",
+   "draft": false,
+   "base": "develop",
+   "head": "ckeshava:ammclawback-fixes",
+   "additions": 198,
+   "deletions": 0,
+   "changedFiles": 6,
+   "commits": 22,
+   "reviewComments": 58,
+   "reviews": [
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-23T18:51:29Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-23T18:53:40Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-23T19:00:36Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-10T18:35:23Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-10T18:35:33Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-10T18:37:00Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-10T19:14:11Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-10T19:14:17Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-17T21:49:26Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T19:27:49Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-26T15:58:19Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T01:02:43Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:24Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:26Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:28Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:29Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:31Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:32Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:34Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:35Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:37Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:38Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:40Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:41Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:43Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:15:44Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:19:35Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:36:43Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-09-01T19:28:36Z",
+     "body": "Nice work! The PR looks good to me.\n\nI just left some minor comments which are non-blocking.\nAlso we might need to use a new amendment in the future because we can not make it in 3.4.0 release."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T19:39:10Z",
+     "body": "## Pull request overview\n\nThis PR updates the AMM clawback path to bypass the recipient owner-reserve check when a paired trustline/MPToken needs to be auto-created, preventing low-XRP balances (issuer/holder) from blocking AMMClawback while keeping AMMWithdraw’s reserve enforcement intact.\n\n**Changes:**\n- Introduces `ReserveHandling` and threads it through `AMMWithdraw` helper(s) so callers can choose whether to enforce the recipient reserve check on auto-create.\n- Updates `AMMClawback` to invoke `AMMWithdraw` helpers with `ReserveHandling::IgnoreReserve`.\n- Adds unit tests for both IOU-paired and MPT-paired AMM clawback behavior across the amendment-gated vs legacy paths.\n\n### Reviewed cha"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2026-09-02T08:35:24Z",
+     "body": "Approving. A few small nits for you to consider, nothing blocking:\n\nThe PR description still talks about a new `fixAMMClawbackReserve1` amendment. The actual gate is `fixCleanup3_4_0` — worth updating so it matches the code.\n\nThe comment in `testClawbackBypassesReserve` (the IOU test) says the legacy path “used the issuer’s XRP”. That’s not quite right — the check is `max(issuer pre-fee, holder current)` against the holder’s reserve. The `else` branch in the same test already describes this correctly.\n\nSame IOU test, success path only asserts `ownerCount == 3`. The MPT sibling also checks that the paired holding exists and the holder actually received the asset. Would be good to do the same "
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-02T18:51:59Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-02T18:52:00Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-02T18:52:02Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-02T18:52:04Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-02T18:52:06Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-02T18:52:13Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-02T18:52:15Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-02T18:52:16Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-09-02T19:05:09Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-02T19:21:16Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes consensus-critical transaction processing behavior (reserve enforcement semantics) and should receive final human review despite being amendment-gated and tested.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 6/6 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-23T18:51:29Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "I think we'll need to use amendment name Cleanup3_4_0 to batch the small fixes in the next release.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3640591123"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-23T18:53:40Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "we can add this condition in the for loop",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3640606659"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-23T19:00:36Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "The intention is to bypass reserve check only for ammClawback.\n\nBut the current code will be applied to ammWithdraw as well.\nWhen fixAMMClawbackReserve1 is enabled, and authHandling == AuthHandling::IgnoreAuth, the reserve check is bypassed for withdraw as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3640653974"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-10T18:35:23Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "@yinyiqian1  here is the control test case for AMMWithdraw transaction. This change does not affect that transaction.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3752322316"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-10T18:35:33Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "Hello @yinyiqian1 ,\nA regular AMMWithdraw can't reach this bypass: the AMMWithdraw transactor always passes AuthHandling::ZeroIfUnauthorized into the static withdraw path (AMMWithdraw.cpp:504, :815), and the only callers passing IgnoreAuth here are in AMMClawback.cpp.\n\nAs the code stands today, this code does not change the behavior of AMMWithdraw transaction. Here is the Control test case: https://github.com/XRPLF/rippled/pull/7796/changes#r3752322316",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3752323463"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-10T18:37:00Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "If you still feel it is better to introduce a separate check, I can introduce a new parameter that is only used by AMMClawback to differentiate it from AMMWithdraw.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3752333672"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-10T19:14:11Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "thanks. I have updated the code here: [44d2420](https://github.com/XRPLF/rippled/pull/7796/commits/44d2420653e92551c5d0d0a9be66f514157fda69)",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3752602021"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-10T19:14:17Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "thanks. I have updated the code here: [44d2420](https://github.com/XRPLF/rippled/pull/7796/commits/44d2420653e92551c5d0d0a9be66f514157fda69)",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3752602602"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-17T21:49:26Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "This still needs an explicit guard. The current implementation relies on the fact that AMMWithdraw doesn't use IgnoreAuth. This is fragile because the AuthHandling type isn't the real underlying logic, we should explicitly check whether the action is a clawback. Otherwise, any future change that introduces IgnoreAuth into AMMWithdraw could cause the issue.\n\nIn other words, we shouldn't rely on AuthHandling to tell whether a flow is for AMMClawback or AMMWithdraw.\n\nWe can introduce a parameter, `enum class ReserveHandling : bool { EnforceReserve, IgnoreReserve };`\nand use IgnoreReserve in the caller place from AMMClawback",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3799067276"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T19:27:49Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "Addressed in cff8469c33: introduced `ReserveHandling` and pass `IgnoreReserve` only from AMMClawback, instead of inferring clawback from `AuthHandling::IgnoreAuth`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3816087570"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-20T17:33:48Z",
+     "path": "include/xrpl/ledger/helpers/TokenHelpers.h",
+     "body": "nit: during AMMWithdraw or AMMClawback",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3823889854"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-20T17:52:04Z",
+     "path": "include/xrpl/tx/transactors/dex/AMMWithdraw.h",
+     "body": "nit: can we add this parameter in the doxygen? Would you mind adding FreezeHandling and AuthHandling as well? (equalWithdrawTokens's doxygen needs update as well)",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3824028140"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-20T19:16:36Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "Can we simplify the comment?\nWe can just say:\n// Intentionally ignore the reserve check for AMMClawback, so the holder can not avoid clawback by deleting trustline/MPToken and keep a low spendable balance. The AMMClawback should have a higher priority than the reserve check.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3824620825"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T14:44:46Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "There's no need to check fixAMMv1_2, it is already live: https://livenet.xrpl.org/amendments",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3863937910"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T15:32:20Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "paired EUR returns to holder, not issuer",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3864319971"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T15:32:45Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "fixAMMv1_2 is already alive, so we can remove it here",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3864322806"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T15:33:48Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "we use `IgnoreReserve` instead of `IgnoreAuth`",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3864329700"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T15:36:11Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "It is more readable to use > btc(0)",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3864345754"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T15:44:59Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "asfDefaultRipple is not needed",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3864403086"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T15:51:42Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "this variable is only used once, we can instead:\n// Reserve for the USD trustline and LP token trustline.\n    env.fund(env.current()->fees().accountReserve(2, 1) + baseFee * 5, alice);\n    env.close();",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3864450169"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T15:55:13Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Let's add a reserve check here as well.\nTo verify alice's reserve is not enough",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3864476060"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T15:55:30Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "this comment is not needed",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3864478225"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T15:56:15Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "The comments seem to be too large in the test case. Would you mind simplifying them?\nWe can specify the reasons and clarification in the beginning.\nAnd then in each step, leave the short necessary comments:\n\nsomething like (just example):\n\n```\nvoid\ntestClawbackBypassesReserve(FeatureBitset features)\n{\n    // Clawback must not fail the holder-side reserve check: a holder could\n    // otherwise veto it by omitting the paired trustline. AMMWithdraw still\n    // enforces the check. Pre-fixCleanup3_4_0 the clawback path used the\n    // issuer's XRP, so a low-XRP issuer was blocked.\n    testcase(\"test clawback bypasses recipient reserve\");\n    using namespace jtx;\n\n    Env env(*this, features);\n  ",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3864483849"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T15:56:55Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Would you mind simplifying the comments for this test case as well?",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3864488672"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-26T15:58:14Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Could you rename it to `testClawbackBypassesReserve` to be consistent?",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3864498492"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T01:02:43Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "oops copied this over from the IOU tests",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3877057025"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:24Z",
+     "path": "include/xrpl/ledger/helpers/TokenHelpers.h",
+     "body": "Addressed in 11a8509d5b: reworded to \"during AMMWithdraw or AMMClawback\".",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882160757"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:26Z",
+     "path": "include/xrpl/tx/transactors/dex/AMMWithdraw.h",
+     "body": "Addressed in 11a8509d5b: added `freezeHandling`, `authHandling` and `reserveHandling` to the doxygen of both `withdraw()` and `equalWithdrawTokens()`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882160909"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:27Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "Addressed in 11a8509d5b: replaced with your suggested wording.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882161097"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:29Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Addressed in 11a8509d5b: removed. Confirmed `fixAMMv1_2` is set in every feature set this suite runs with, so the guard was dead code.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882161282"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:31Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "Addressed in 11a8509d5b: removed here as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882161462"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:32Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "Addressed in 11a8509d5b: corrected, the paired EUR returns to alice.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882161738"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:34Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Addressed in 11a8509d5b: the comment no longer refers to `AuthHandling`; the bypass is keyed to `ReserveHandling::IgnoreReserve`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882161931"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:35Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Addressed in 11a8509d5b: changed to `> btc(0)`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882162088"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:37Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Addressed in 11a8509d5b: inlined `holderReserve` into the `env.fund()` call, in both tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882162283"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:38Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Addressed in 11a8509d5b: added `BEAST_EXPECT(env.balance(alice) < STAmount(env.current()->fees().accountReserve(3, 1)));`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882162445"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:40Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Addressed in 11a8509d5b: removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882162611"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:41Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "Addressed in 11a8509d5b: moved the rationale into a short block at the top and left brief step comments, along the lines of your example.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882162766"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:43Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Addressed in 11a8509d5b: simplified the same way; the MPT test now refers back to the IOU case instead of repeating the rationale.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882162936"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:15:44Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Addressed in 11a8509d5b: renamed to `testClawbackBypassesReserve`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882163146"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:19:34Z",
+     "path": "include/xrpl/tx/transactors/dex/AMMWithdraw.h",
+     "body": "thanks for noting this, this slipped my mind",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882188082"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:36:43Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Removed in 89a944e601.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3882309088"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-09-01T19:12:04Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "nit: this can be deleted as well",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3907506070"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-09-01T19:15:21Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "nit: `env.close();` can be deleted because amm.deposit function calls this already",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3907532719"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-09-01T19:15:38Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "nit: env.close(); can be deleted because withdrawAll calls it already",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3907535167"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-09-01T19:16:24Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "nit: env.close(); can be removed because amm.deposit already calls it",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3907541319"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-09-01T19:16:47Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "nit: env.close(); can be removed because amm.withdraw calls it already",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3907544699"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T19:39:09Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "This test gates the new behavior on fixCleanup3_4_0, but the PR description says the reserve-bypass behavior is gated by a new fixAMMClawbackReserve1 amendment. The gate in the test should match the amendment that actually controls the behavior.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3907732482"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T19:39:09Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "This test gates the new behavior on fixCleanup3_4_0, but the PR description says the reserve-bypass behavior is gated by a new fixAMMClawbackReserve1 amendment. The gate in the test should match the amendment that actually controls the behavior.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3907732547"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T19:39:10Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "The comment says the reserve check is ignored for AMMClawback, but the behavior is actually gated (and the wording has a minor grammar issue). Updating the comment to reflect the fixCleanup3_4_0 gate avoids misleading future readers.\n\nThis issue also appears on line 690 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3907732609"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-02T18:51:59Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "Addressed in b9d3495fd0: removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3917552647"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-02T18:52:00Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "Addressed in b9d3495fd0: removed, `amm.deposit()` closes the ledger itself.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3917552864"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-02T18:52:02Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "Addressed in b9d3495fd0: removed, `amm.withdraw()` closes the ledger itself.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3917553109"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-02T18:52:04Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Addressed in b9d3495fd0: removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3917553336"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-02T18:52:06Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Addressed in b9d3495fd0: removed, `withdrawAll()` closes the ledger itself.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3917553632"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-02T18:52:13Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "The `fixCleanup3_4_0` gate is on the line directly below this comment, so the comment is not claiming the bypass is unconditional. This wording was requested verbatim in an earlier review (https://github.com/XRPLF/rippled/pull/7796#discussion_r3824620825), so I would rather leave it as-is. Line 690 is part of this same comment block, not a second occurrence.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3917554652"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-02T18:52:15Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "The test gate is correct: the behavior is gated on `fixCleanup3_4_0`. The PR description was stale and has been updated.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3917554903"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-02T18:52:16Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "The test gate is correct: the behavior is gated on `fixCleanup3_4_0`. The PR description was stale and has been updated.",
+     "url": "https://github.com/XRPLF/rippled/pull/7796#discussion_r3917555111"
+    }
+   ]
+  },
+  {
+   "number": 7373,
+   "title": "fix: AMMClawback exact LP token boundary",
+   "url": "https://github.com/XRPLF/rippled/pull/7373",
+   "state": "closed",
+   "author": "PeterChen13579",
+   "createdAt": "2026-05-31T22:39:35Z",
+   "updatedAt": "2026-08-26T15:15:45Z",
+   "closedAt": "2026-08-26T13:54:37Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-31T22:59:49Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7373?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7373#issuecomment-4588487402"
+    }
+   ],
+   "body": "## High Level Overview of Change\nFixes an AMMClawback boundary case where a requested clawback amount maps to exactly all of the holder’s LP tokens.\n\n\n\n### Context of Change\nPreviously, AMMClawback::equalWithdrawMatchingOneAmount() only took the full-clawback path when `lpTokensWithdraw > holdLPtokens` If the computed LP token amount was exactly equal to the holder’s LP token balance, the code fell through to the partial-withdraw path, which could fail with `tecAMM_BALANCE` in last-holder rounding scenarios.\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)",
+   "merged": true,
+   "mergedAt": "2026-08-26T13:54:37Z",
+   "draft": false,
+   "base": "develop",
+   "head": "PeterChen13579:Fix-AMMClawback-exact-LP-token-boundary",
+   "additions": 70,
+   "deletions": 5,
+   "changedFiles": 2,
+   "commits": 3,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-06-08T18:09:18Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2026-08-17T12:14:18Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "Kassaking7",
+     "state": "APPROVED",
+     "date": "2026-08-24T18:27:36Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-25T16:40:42Z",
+     "body": "## Pull request overview\n\nThis PR fixes an AMMClawback boundary case where the computed LP token withdrawal amount exactly equals the holder’s LP token balance, ensuring the code takes the withdraw-all path (when `fixCleanup3_4_0` is enabled) instead of falling through to partial-withdraw logic that can fail in last-holder rounding scenarios.\n\n**Changes:**\n- Update `AMMClawback::equalWithdrawMatchingOneAmount()` to treat `lpTokensWithdraw == holdLPtokens` as withdraw-all when `fixCleanup3_4_0` is enabled.\n- Add a regression unit test covering the “exact LP token equality” boundary and asserting the differing pre-/post-`fixCleanup3_4_0` behavior.\n\n### Reviewed changes\n\nCopilot reviewed 2 out "
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "gregtatcam",
+     "date": "2026-06-08T18:09:18Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMClawback.cpp",
+     "body": "This is consensus breaking change and must be an amendment gated. The unit-test has to include pre/post amendment verification.",
+     "url": "https://github.com/XRPLF/rippled/pull/7373#discussion_r3375375365"
+    }
+   ]
+  },
+  {
+   "number": 6946,
+   "title": "fix: Change AMMClawback return code to tecNO_PERMISSION",
+   "url": "https://github.com/XRPLF/rippled/pull/6946",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2026-04-14T20:54:47Z",
+   "updatedAt": "2026-04-17T14:46:26Z",
+   "closedAt": "2026-04-17T14:45:23Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-04-14T21:14:25Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6946?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 81.6%. Comparing base ([`6a0ce46`](https://app.codecov.io/gh/XRPLF/rippled/commit/6a0ce46755367823394358c174f50890f807f653?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`a903cab`](https://app.codecov.io/gh/XRPLF/rippled/commit/a903cab4c8698fe4b944a963c73c89a5b4c02a02?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/6946#issuecomment-4247193230"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nChange AMMClawback return code to tecNO_PERMISSION on AllowTrustLineClawback and NoFreeze check.\n\n### Context of Change\n\nChange tesSUCCESS to tecNO_PERMISSION.\n\n## Test Plan\n\nExtend AMMClawback unit-test with featureMPTokensV2 disabled.",
+   "merged": true,
+   "mergedAt": "2026-04-17T14:45:23Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:gregtatcam/mpt/ammclawback-fix",
+   "additions": 20,
+   "deletions": 14,
+   "changedFiles": 2,
+   "commits": 2,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-04-14T20:55:52Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-04-14T20:59:35Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-04-14T21:39:59Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-04-14T23:20:58Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-04-15T11:23:09Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-04-15T11:30:45Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mvadari",
+     "date": "2026-04-14T20:59:35Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "Should this be in the for loop below? Should we have such tests for all the AMM/DEX tests files?",
+     "url": "https://github.com/XRPLF/rippled/pull/6946#discussion_r3082487479"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-04-15T11:23:08Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "I don't think so. It doesn't need testing with other amendments disabled.\n\nThe following tests would have to be extended to test for featureMPTokenV2 disabled: AMM, AMMExtended, Check, Flow, Offer, Path. It's a lot of tests and might significantly increase the overall unit-tests execution time. It still might be worth doing. It'll be a lot of changes in these tests so it's worth having another PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/6946#discussion_r3086057026"
+    }
+   ]
+  },
+  {
+   "number": 5496,
+   "title": "Support AMMClawback for MPT",
+   "url": "https://github.com/XRPLF/rippled/pull/5496",
+   "state": "closed",
+   "author": "yinyiqian1",
+   "createdAt": "2025-06-13T16:54:10Z",
+   "updatedAt": "2026-02-06T16:41:26Z",
+   "closedAt": "2025-06-13T16:54:35Z",
+   "labels": [],
+   "comments": [],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "yinyiqian1:ammclawbackmpt",
+   "additions": 25835,
+   "deletions": 6256,
+   "changedFiles": 174,
+   "commits": 15,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 5142,
+   "title": "Add AMMClawback Transaction (XLS-0073d)",
+   "url": "https://github.com/XRPLF/rippled/pull/5142",
+   "state": "closed",
+   "author": "yinyiqian1",
+   "createdAt": "2024-09-19T04:38:11Z",
+   "updatedAt": "2025-03-24T17:06:35Z",
+   "closedAt": "2024-11-04T20:27:57Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2024-09-19T05:25:27Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5142?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAll modified and coverable lines are covered by tests :white_check_mark:\n> Project coverage is 77.6%. Comparing base [(`d6dbf0e`)](https://app.codecov.io/gh/XRPLF/rippled/commit/d6dbf0e0a626aeca8def163a89f58af19dd50b50?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`25f9ba6`)](https://app.codecov.io/gh/XRPLF/rippled/commit/25f9ba6c7577dee5a2068a9a4a4179dbc0d1eaf0?dropdown=coverage&el=desc&utm_medium=referral&",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#issuecomment-2360005882"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-09-19T15:53:49Z",
+     "body": "Note: The PR title is wrong, it should be XLS-73d",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#issuecomment-2361401890"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-19T16:42:24Z",
+     "body": "> Note: The PR title is wrong, it should be XLS-73d\nJust corrected it. Thank you.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#issuecomment-2361558982"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-11-04T18:35:02Z",
+     "body": "@yinyiqian1 Are we happy with the commit message being just\n```\nAdd AMMClawback Transaction (XLS-0073d) (#5142)\n```\n?\n\nIf not, please suggest the details you'd like to include.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#issuecomment-2455433159"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-11-04T18:54:00Z",
+     "body": "> @yinyiqian1 Are we happy with the commit message being just\n> \n> ```\n> Add AMMClawback Transaction (XLS-0073d) (#5142)\n> ```\n> \n> ?\n> \n> If not, please suggest the details you'd like to include.\n\n@ximinez  I think it's fine that we keep the current message",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#issuecomment-2455467288"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\nSpec link: https://github.com/XRPLF/XRPL-Standards/discussions/212\n\nThis PR includes:\n1. Allow AMMCreate for clawback-enabled tokens\n    changes are in `AMMCreate` and `AMM_test`\n2. AMMDeposit prohibits depositing if either of the paired tokens is frozen\n    changes are in `AMMDeposit` and `AMM_test` \n3. Added AMMClawback transaction.\n    mainly in `AMMClawback` and `AMMClawback_test`\n\n___________________________________________________________________________\nSome refactor happens because I want to call some functions from AMMWithdraw.\n**1. Refactor of `withdraw`:**\n- Added static `withdraw` function to return the `amountWithdrawActu",
+   "merged": true,
+   "mergedAt": "2024-11-04T20:27:57Z",
+   "draft": false,
+   "base": "develop",
+   "head": "yinyiqian1:amm-clawback",
+   "additions": 2840,
+   "deletions": 147,
+   "changedFiles": 20,
+   "commits": 16,
+   "reviewComments": 84,
+   "reviews": [
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-09-25T20:07:42Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-25T20:23:16Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-25T20:51:38Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-09-25T21:31:05Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-25T22:08:31Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-09-25T22:11:01Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-09-25T22:14:04Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-09-25T22:34:12Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-26T00:48:15Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-26T00:53:35Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-09-26T00:58:44Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-26T01:21:48Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-09-26T11:46:21Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-09-26T15:53:32Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-26T16:53:30Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-26T17:22:32Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-09-26T17:36:16Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-09-26T18:31:51Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-26T19:28:46Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-26T21:11:58Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-26T21:52:28Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-09-26T22:01:04Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-09-26T22:36:16Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-09-26T22:39:33Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "CHANGES_REQUESTED",
+     "date": "2024-09-30T10:33:03Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-09-30T19:27:38Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T01:15:32Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T01:17:26Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T01:31:05Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T01:31:11Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T01:31:20Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T01:33:49Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T01:34:29Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T01:38:55Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T01:39:20Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-10-01T12:22:58Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T15:28:45Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T15:35:54Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T15:46:09Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-10-01T15:55:57Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T17:11:26Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-01T17:33:37Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2024-10-02T00:24:09Z",
+     "body": "👍 LGTM"
+    },
+    {
+     "author": "dangell7",
+     "state": "CHANGES_REQUESTED",
+     "date": "2024-10-02T10:10:34Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-02T16:50:36Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2024-10-02T16:54:19Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-02T16:58:19Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-10-02T17:57:53Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-02T18:10:31Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2024-10-02T18:57:17Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-02T21:10:26Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-02T21:10:39Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-02T21:10:57Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "APPROVED",
+     "date": "2024-10-02T21:24:44Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-10-14T12:31:45Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-10-14T19:11:01Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-14T19:29:12Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-14T19:30:58Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-14T19:31:40Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-10-14T19:31:49Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-10-29T18:42:15Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T16:23:15Z",
+     "path": "include/xrpl/protocol/jss.h",
+     "body": "This is no longer used.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775539921"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T16:24:00Z",
+     "path": "include/xrpl/protocol/SField.h",
+     "body": "This is no longer used.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775540898"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T16:26:15Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "Use temBAD_AMOUN and temBAD_ISSUER instead.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775543828"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T16:27:26Z",
+     "path": "src/libxrpl/protocol/TER.cpp",
+     "body": "Consider using temBAD_AMOUNT and temBAD_ISSUER instead.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775545980"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T16:44:09Z",
+     "path": "src/xrpld/app/tx/detail/AMMDeposit.cpp",
+     "body": "`Asset` and `Asset2` are required fields so there is no need to get them as optional and check if the optional is seated. And don't need the temp variables since they only used once. Just call `checkAsset(ctx.tx[sfAsset])`. Since the lambda basically returns `bool` can return `bool` from lambda and simplify\n\n    if (!checkAsset(ctx.tx[sfAsset]) || !checkAsset(ctx.tx[sfAsset])\n        return tecFROZEN;",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775604190"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T16:44:25Z",
+     "path": "src/xrpld/app/tx/detail/AMMDeposit.cpp",
+     "body": "Do we need to check if also individually frozen?",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775604787"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T16:54:56Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "`holder`, `sleHolder` are not used. `issuer` is only used once and can be used directly without the temp var.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775618381"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T16:58:20Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "Need to check if `sleIssuer` is not null and return `terNO_ACCOUNT`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775622572"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T17:01:07Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "Consider using just one `if` instead of nested `if`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775626000"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T19:53:16Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "It's somewhat difficult to see pre/post amendment code when the whole function is moved to a library. Besides, why keep `equalWithdrawTokens()` here but move `withdraw()` to a library? I'd rather keep `withdraw()` in this module and make a few changes. So consider the following changes. Make the following signature (see below). Note that `STTx` is not used so I removed it. Journal should be last. And I suggest adding `enum WithdrawAll {Yes, No}`. You don't need to return both amounts since you can call `withdraw` and `equalWithdrawTokens` from Clawback with the account set to the issuer and then send the second amount from the issuer to the holder if needed. Or can add another account2 field",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775916365"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T19:55:32Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.cpp",
+     "body": "I think I'd rather keep the deletion code here or make another static function in this module rather than in a library.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775918729"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T20:02:53Z",
+     "path": "src/test/jtx/impl/AMM.cpp",
+     "body": "Does it make sense to also add `clawback` to `jtx::AMM` class? It'll make it simpler to call since most of the arguments can be pre-populated. Can also add `ClawbackArg` as is done in other cases.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775927502"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-25T20:23:16Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "There's a temBAD_AMOUNT already defined for non-positive amount errors.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775948595"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-25T20:51:38Z",
+     "path": "src/xrpld/app/tx/detail/AMMDeposit.cpp",
+     "body": "`isFrozen` checks both global and individual freeze",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1775978201"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T21:31:05Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "That's what I mean, don't need to define new ones.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1776015883"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-25T22:08:31Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "Then the request's error message for this one will be inaccurate: `Can only send positive amounts.`\nBut I intended to return error message as `Malformed: Amount does not match Asset.`\ntemBAD_AMOUNT is only for positive amount check. \nI think defining this new error will benefit if in the future, we need to check if `asset` matches with `amount` again.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1776045872"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T22:11:01Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "could just use `temMALFORMED` then.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1776047776"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-25T22:14:04Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "But I'm fine if you feel strongly about using new codes.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1776049841"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-09-25T22:34:12Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "Why not change the error message? IIRC that's not considered a breaking change.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1776064897"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-26T00:48:15Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "can we keep withdrawAll as bool? Otherwise, it is kind of verbose to use\n`WithdrawAll withdrawAll = ctx_.tx[sfFlags] & (tfWithdrawAll | tfOneAssetWithdrawAll) ? WithdrawAll::Yes : WithdrawAll::No;`\ninstead of `bool withdrawAll = ctx_.tx[sfFlags] & (tfWithdrawAll | tfOneAssetWithdrawAll)`",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1776149800"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-26T00:53:35Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "> Why not change the error message? IIRC that's not considered a breaking change.\n\nthe temBAD_AMOUNT is used in other places to check positive amounts. So here I need a new error type. That's why I created a new error type temBAD_ASSET_AMOUNT. The error message is bind to each error type.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1776153545"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-26T00:58:44Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "It's just more clear when you call this function with enum as opposed to true/false. Perhaps you can add a helper function, which takes the flags and returns enum to make it less verbose?",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1776157268"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-26T01:21:48Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "Also, in `withdraw` function, it checks the `lpTokens` hold by the `account`.\n`auto const lpTokens = ammLPHolds(view, ammSle, account, journal);` \nIf we pass `issuer` as `account`, then it gets the issuer's lptokens, which will affect the following logic which uses this `lpTokens` variable. For example, if the issuer does not hold any lptokens, we possibly will return tecAMM_INVALID_TOKENS as `lpTokensWithdrawActual > lpTokens`.\n\nSo if we still want to send to two separate accounts directly in the withdraw function, we have to switch amount and amount2 from ammclawback when passing into this function. \nFor example, if the amm pool consists of A and B. The issuer wants to claw A.\naccount is s",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1776170976"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-26T11:46:21Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "Good point. What if the `withdrawAll` is extended: `enum WithdrawAll {Yes, TransferToIssuer, TransferAllToIssuer, No}`? Anything but `No` means withdrawAll. If `TransferToIssuer` is set then `amount` is transferred to the issuer and if `TransferAllToIssuer` is set then `amount2` is transferred to the issuer. The issuer account doesn't have to be included since it's included in the amounts.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1776898537"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-09-26T15:53:32Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "It's also thrown in the escrow code if the asset isn't XRP.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777359568"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-26T16:53:30Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "Yeah, we can make this change",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777446173"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-26T17:22:32Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "@gregtatcam\nmaybe we can rename `WithdrawAll` to `WithdrawOption`?\n`enum WithdrawOption {Yes, TransferToIssuer, TransferAllToIssuer, No}`\n\nI have another concern,\nSince withdraw is used in many places, is it better to keep its function as simple as possible? And clawback change is on top of this layer by using its return value.\nOf course, by adding logics directly into the withdraw function is another option and makes less code change in caller functions. But this will make `withdraw` more complicated. And make it check the `WithdrawOption` each time. What do you think?",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777479827"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-26T17:36:16Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "Renaming sounds good to me.\n\nWe either have a common function or have two separate functions. The latter is not an option. Since the common function has to work for both use-cases, it does become more complicated one way or another. To mitigate this complexity in AMMWithdraw, we are adding a private non-static `withdraw`, which is going to hide most of the changes from the callers. I'm ok with returning amounts, again given the overload, if you feel strongly about it. Though I would argue that transferring to the holder and then to the issuer is not ideal either.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777499089"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-26T18:08:28Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Please use `shared_ptr` or add a callback to the lambda:\n\n    auto setupAMM = [&](Env& Env, std::function<void(AMM& amm)> cb)",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777541482"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-26T18:21:37Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "Similarly should test holder/holder.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777557270"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-26T18:30:07Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "Typo? \"The assets are issued by different issuer\". It's XRP/USD.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777566980"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-26T19:28:46Z",
+     "path": "src/test/jtx/impl/AMM.cpp",
+     "body": "asset and asset2 can be pre-populated. But the other values need to be passed in.\nBut there's some test case which need to pass in the wrong asset purposely.\nThe ammclawback does not have multiple situations like ammwithdraw which needs different combinations of parameters. So can we keep it simple as a helper function?",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777633614"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-26T21:11:58Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "If we continue use `WithdrawOption`, we have to separate it from `WithdrawAll`. \n`enum WithdrawOption {BothToAccount, AmountToIssuer, BothToIssuer}` is to control if sending to issuer. `enum WithdrawAll {Yes, No}` is to control if withdraw all.\nBecause the following situations will be a 6 combinations of the usage:\n1. withdraw all to account\n2. not withdraw all to account\n3. withdraw all + token A to issuer + token B to account\n4. not withdraw all + token A to issuer + token B to account\n5. withdraw all  + token A and B to issuer\n6. not withdraw all + token A and B to issuer\n\nThis will make the function taking another parameter. And all the callers need to be very clear about which flow it's",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777738737"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-26T21:52:28Z",
+     "path": "src/libxrpl/protocol/TER.cpp",
+     "body": "can I keep this temBAD_ASSET_ISSUER? because it stands for issuer does not match asset.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777771164"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-09-26T22:01:04Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.cpp",
+     "body": "since `deleteAMMAccount` is in AMMUtils, I think `deleteAMMAccountIfEmpty` is just doing one more step by checking if the lptokenBalance is 0. So it looks like a helper function. Can we keep it in utils?",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777777194"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-26T22:36:16Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "Sounds good. But let's have a simplified private overload for other AMMWithdraw functions to call.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777802182"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-26T22:39:33Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.cpp",
+     "body": "It's updating the view, which with a few exceptions is done in the transactors or View.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1777805241"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-09-30T10:08:24Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "There are no tests when the asset/s are frozen. We should have tests where the asset was first globally/individually frozen and then clawed back.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1780803654"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-09-30T10:11:29Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "nit (Optional): It would be great if we could make these agnostic. I use them in another PR, and other PR's to this point have used temMALFORMED/BAD_AMOUNT. I think its a valuable addition. In general the error is (the tx issuer does not match the ledger entry issuer).",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1780807683"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-09-30T10:15:29Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "refactor (optional): I believe this function could be refactored/removed. The statement (lpTokensWithdraw > holdLPtokens) is the same as (!clawAmount). So you could handle this all in applyGuts without another function.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1780813611"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-09-30T10:24:30Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "I think there will be an issue here if the trustline is frozen. Wont the AMM return 0? Add tests for global and line freeze to confirm.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1780824738"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-30T13:38:37Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "This include is no longer required.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1781153100"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-30T13:39:02Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "This include is no longer required.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1781153947"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-30T13:49:25Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "Don't need to pass in the account. It's always `account_` when used by `AMMWithdraw` functions.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1781172570"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-09-30T13:53:40Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "Does it make sense to have a private overload with fewer arguments similar to `witthdraw`? While it only called once, it'll add clarity to what is called by `AMMWithdraw` internally and what is used as a library call.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1781181655"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T01:15:31Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "Yes. Added in the recent commit. And also passing in FreezeHandling type because AMMClawback needs to set it to fhIGNORE_FREEZE",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782000053"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T01:17:26Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "Yes. Changed to fhIGNORE_FREEZE in recent commit. And also made related changes and added unit tests for global and individual freeze.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782000864"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T01:31:05Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "removed",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782007506"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T01:31:11Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "removed",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782007567"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T01:31:20Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "removed",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782007636"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T01:33:49Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782009100"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T01:34:29Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "added in the recent commit",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782009405"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T01:38:55Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782011419"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T01:39:20Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782011586"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-10-01T12:07:24Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "Should check amount2Withdraw has value.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782650608"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-10-01T12:15:04Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "I agree. Don't need this function. Can call equalWithdrawTokens `if (!clawAmount || lpTokensWithdraw > holdLPTokens)`, otherwise call `withdraw()`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782660621"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-10-01T12:21:35Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "Consider moving `ammSle` to after `veiw` to make consistent with other functions.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1782669430"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T15:28:45Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "then the code will have to declare lpTokensWithdraw and amount2Withdraw in a common place.\nAnd we will have another `if (clawAmount)` to calculate these values.\n```\n    STAmount lpTokensWithdraw;\n    Number amount2Withdraw;\n    if (clawAmount)\n    {\n        auto frac = Number{*clawAmount} / amountBalance;\n        amount2Withdraw = amount2Balance * frac;\n        lpTokensWithdraw = toSTAmount(lptAMMBalance.issue(), lptAMMBalance * frac);\n    }\n    if (!clawAmount || lpTokensWithdraw > holdLPTokens)\n           // withdraw all\n    else\n           // withdraw\n\n```\nI prefer to keep the code logic together instead of declaring some variable which can only have value if `if (clawAmount)` is true. An",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1783082550"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T15:35:54Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "I'll add `if (!amount2Withdraw) return tecINTERNAL;`. because it should have value, otherwise, it's an internal error. What do you think?",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1783092997"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T15:46:09Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.h",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1783107450"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-10-01T15:55:57Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "This is just a simple check with no need for the temp variables:\n \n    if (!clawAmount || (lptAMMBalance * *clawAmount / amountBalance) > holdLPTokens)\n\nIf you decide to keep the function then makes sense to pass in `holdLPTokens` since it's already fetched.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1783121509"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T17:11:25Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "make sense, I updated to pass in holdLPTokens",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1783218348"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-01T17:33:37Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "in escrow code, if it's using `temBAD_AMOUNT`, the error message will be `\"Can only send positive amounts.\"`. It does not match with that the asset isn't XRP. I think in escrow, it should just use `temMalformed` or define more accurate error type. Maybe we should enrich our error code to return more accurate error messages. Because these errors can be used in the future.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1783243625"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-10-02T09:41:18Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "nit: This should be `tecAMM_EMPTY` as thats whats returned in withdrawal/deposit and tecINTERNAL is a bad error for a client to see imo.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1784157298"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-10-02T09:42:41Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "note: imo going forward lets try not to make new error codes that will only every be used one time. We do have a finite number of error codes.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1784161583"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-10-02T09:46:54Z",
+     "path": "src/test/jtx/impl/AMM.cpp",
+     "body": "fyi: You actually don't need to do this. You can include the flags in the tx with `txflags`\n\n```\nenv(amm::ammClawback(gw, alice, USD, EUR, USD(1000), std::nullopt),\n    txflags(tfClawTwoAssets),\n    ter(tesSUCCESS));\nenv.close();\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1784176817"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-02T16:50:36Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "`tecAMM_EMPTY` is used when the whole AMM's lptoken balance is zero. But `holdLPTokens` is the holder's lptoken share in the amm pool.\nIf we need some accurate error for the client, we need to define a new one to indicate that the holder does not hold any shares in the AMM pool.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1784896973"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-10-02T16:54:18Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "Sorry `tecAMM_BALANCE` is what I meant.\n\nhttps://github.com/XRPLF/rippled/blob/bf4a7b6ce8bffd0e098831d95d056e70a433ccce/src/xrpld/app/tx/detail/AMMWithdraw.cpp#L262",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1784902105"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-02T16:58:19Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "I can change both of the `temBAD_ASSET_AMOUNT`  and `temBAD_ASSET_ISSUER` to `temMALFORMED`. In the beginning, I wanted to provide the accurate error message to the client so that the client knows what was wrong with the request.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1784907511"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-10-02T17:57:53Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "Why not just change the error message, so that it makes sense both in Escrow and here, instead of needing a new error code? I believe changing the error message isn't considered a breaking change/needing an amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1784982565"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-02T18:10:31Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "I can change the message for `temBAD_AMOUNT` to \"bad amount provided\". What do you think?",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1785014111"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-10-02T18:57:17Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "`Malformed: Bad amount.` would keep it in line with the others.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1785089302"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-02T21:10:25Z",
+     "path": "src/test/jtx/impl/AMM.cpp",
+     "body": "thank you for sharing. I updated it in the recent commit",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1785254205"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-02T21:10:39Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "updated in the recent commit",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1785254421"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-02T21:10:57Z",
+     "path": "src/xrpld/app/tx/detail/AMMClawback.cpp",
+     "body": "updated in the recent commit to `temMALFORMED`",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1785254711"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-10-14T12:30:48Z",
+     "path": "src/xrpld/app/tx/detail/AMMDeposit.cpp",
+     "body": "Don't need these comments.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1799416669"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-10-14T12:31:37Z",
+     "path": "src/xrpld/app/tx/detail/AMMDeposit.cpp",
+     "body": "Should add a unit-test to check for this updated condition.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1799417696"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-10-14T19:10:04Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Shouldn't we keep the original test with XRP and null USD?",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1799968149"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-10-14T19:10:16Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "You commented out most of the tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1799968288"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-14T19:29:12Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "accidentally changed it. just updated it back",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1799983626"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-14T19:30:58Z",
+     "path": "src/xrpld/app/tx/detail/AMMDeposit.cpp",
+     "body": "just updated. (yesterday it's not ready yet)",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1799984987"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-14T19:31:40Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "updated. Now it's ready for review. Sorry for the confusion. Next time I'll create another branch from this amm-clawback for review when it's ready",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1799985545"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-10-14T19:31:49Z",
+     "path": "src/xrpld/app/tx/detail/AMMDeposit.cpp",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1799985658"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-10-29T18:42:15Z",
+     "path": "include/xrpl/protocol/Feature.h",
+     "body": "should be incremented to 81 after new amendment is merged into develop branch",
+     "url": "https://github.com/XRPLF/rippled/pull/5142#discussion_r1821367137"
+    }
+   ]
+  },
+  {
+   "number": 5181,
+   "title": "fix AMMClawback vote behavior to default NO",
+   "url": "https://github.com/XRPLF/rippled/pull/5181",
+   "state": "closed",
+   "author": "yinyiqian1",
+   "createdAt": "2024-11-06T21:39:38Z",
+   "updatedAt": "2025-03-24T17:06:32Z",
+   "closedAt": "2024-11-06T22:12:03Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2024-11-06T21:58:12Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5181?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAll modified and coverable lines are covered by tests :white_check_mark:\n> Project coverage is 77.7%. Comparing base [(`c5c0e70`)](https://app.codecov.io/gh/XRPLF/rippled/commit/c5c0e70e23d8f0ae06147e8cad9050f5bacc207c?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`ab77a92`)](https://app.codecov.io/gh/XRPLF/rippled/commit/ab77a920961b2f8a608f4b24dad35e5983c48c12?dropdown=coverage&el=desc&utm_medium=referral&",
+     "url": "https://github.com/XRPLF/rippled/pull/5181#issuecomment-2460865148"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-11-06T22:08:44Z",
+     "body": "This was rolled into #5103 so is no longer needed as a separate PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/5181#issuecomment-2460880548"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "yinyiqian1:fixvote",
+   "additions": 1,
+   "deletions": 1,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [
+  {
+   "number": 7148,
+   "title": "AMMClawback doesn't revoke auction slot on LP token clawback",
+   "url": "https://github.com/XRPLF/rippled/issues/7148",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-05-13T19:21:25Z",
+   "updatedAt": "2026-05-13T19:21:25Z",
+   "closedAt": null,
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 0,
+   "body": "**Severity**: LOW\n\n**Feature**: AMM\n\n##### AMMClawback doesn't revoke auction slot on LP token clawback\n\n**Severity**: LOW\n\nWhen an issuer claws back LP tokens from a holder who owns the AMM auction slot, the auction slot is not revoked. The clawed-back holder retains the discounted trading fee privilege (and auth accounts list) for up to 24 hours after their LP tokens are clawed back. This means a user whose tokens have been clawed back still receives preferential treatment on the AMM.\n\n**Root cause**: AMMClawback::applyGuts (lines 100-223) calls AMMWithdraw functions to withdraw and burn LP tokens, but never checks or updates the auction slot. The auction slot's sfAccount field continues t"
+  },
+  {
+   "number": 7142,
+   "title": "AMMClawback preclaim missing holder LP token balance check",
+   "url": "https://github.com/XRPLF/rippled/issues/7142",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-05-13T17:05:23Z",
+   "updatedAt": "2026-05-13T19:13:28Z",
+   "closedAt": null,
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 0,
+   "body": "**Severity**: LOW\n\n**Feature**: Clawback (cross-cutting)\n\n##### AMMClawback preclaim missing holder LP token balance check\n\n**Severity**: LOW\n\nAMMClawback::preclaim() verifies the AMM exists, the issuer has clawback flags, and the holder account exists, but does NOT check if the holder has any LP tokens in the AMM. The LP token balance check only happens in applyGuts(), returning tecAMM\\_BALANCE. Fee is charged but no clawback occurs.\n\n**Root cause**: AMMClawback::preclaim() at lines 70-98 checks AMM existence and clawback flags but omits an ammLPHolds check.\n\nsrc/libxrpl/tx/transactors/dex/AMMClawback.cpp:70-98\n\n**Exploit scenario**: 1. Issuer submits AMMClawback targeting a holder with no "
+  },
+  {
+   "number": 6922,
+   "title": "AMMClawback preclaim returns tesSUCCESS instead of tecNO_PERMISSION for unauthorized clawback",
+   "url": "https://github.com/XRPLF/rippled/issues/6922",
+   "state": "closed",
+   "author": "hgandhi-rx",
+   "createdAt": "2026-04-12T23:19:57Z",
+   "updatedAt": "2026-04-27T15:24:42Z",
+   "closedAt": "2026-04-17T14:45:32Z",
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 1,
+   "body": "## Summary\n\nAMMClawback preclaim returns tesSUCCESS instead of tecNO_PERMISSION for unauthorized clawback.\n\n## Details\n\nIn AMMClawback::preclaim, when featureMPTokensV2 is NOT enabled, if the issuer does NOT have the AllowTrustLineClawback flag set or HAS the NoFreeze flag set, the function returns tesSUCCESS instead of tecNO_PERMISSION. The comment on line 104-105 explicitly says 'return no permission' but the code returns success. This causes the transaction to proceed through doApply, which performs the actual clawback by: (1) withdrawing the holder's LP token position from the AMM pool, (2) transferring the withdrawn assets from the holder to the issuer via directSendNoFee. The original "
+  },
+  {
+   "number": 6333,
+   "title": "[XLS-73] Incorrect error in AMMClawback: temINVALID_FLAG returned instead of temMALFORMED",
+   "url": "https://github.com/XRPLF/rippled/issues/6333",
+   "state": "open",
+   "author": "HugoDowsers",
+   "createdAt": "2026-02-05T21:11:41Z",
+   "updatedAt": "2026-02-25T04:13:01Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": 3,
+   "body": "**Issue Description**\n\nWhile validating an AMMClawback transaction, if a transaction contains both an incorrect asset issuer (Asset.issuer) and an invalid usage of the tfClawTwoAssets flag, the system returns temINVALID_FLAG instead of temMALFORMED.\n\nXLS-73 specifies that failing the tfClawTwoAssets validation (when the second asset is not issued by the sender) should return tecNO_PERMISSION rather than temINVALID_FLAG.\n\nhttps://github.com/XRPLF/rippled/blob/0a626d95f435f603b89ba5bf95fe201c71088e7a/src/xrpld/app/tx/detail/AMMClawback.cpp#L48\nhttps://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0073-amm-clawback\n\n**Steps to Reproduce**\n\n- Submit an AMMClawback transaction where the Account"
+  }
+ ],
+ "proposals": [
+  {
+   "number": 492,
+   "title": "update error code for AMMClawback",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/492",
+   "state": "open",
+   "isPr": true,
+   "author": "yinyiqian1",
+   "createdAt": "2026-03-06T19:31:26Z",
+   "updatedAt": "2026-09-08T17:44:27Z",
+   "comments": 0,
+   "labels": []
+  },
+  {
+   "number": 233,
+   "title": "XLS-0073d AMMClawback",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/233",
+   "state": "closed",
+   "isPr": true,
+   "author": "yinyiqian1",
+   "createdAt": "2024-10-01T19:28:58Z",
+   "updatedAt": "2026-04-02T00:32:50Z",
+   "comments": 0,
+   "labels": []
+  }
+ ],
+ "branches": []
+}

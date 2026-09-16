@@ -63,3 +63,36 @@ export function readSyncLog(): { at: string; testnet?: string; networks?: Record
   const file = path.join(process.cwd(), "src/data/sync-log.json");
   return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : [];
 }
+
+export interface GithubComment { author?: string; date: string; body: string; url?: string; path?: string }
+export interface GithubPr { number: number; title: string; url: string; state: string; author?: string; createdAt: string; updatedAt: string; closedAt?: string; labels: string[]; body: string; merged?: boolean; mergedAt?: string; draft?: boolean; base?: string; head?: string; additions?: number; deletions?: number; changedFiles?: number; commits?: number; comments?: GithubComment[]; reviews?: { author?: string; state: string; date?: string; body: string }[]; reviewCommentsList?: GithubComment[] }
+export interface GithubSummary { status: string; prs: number; open: number; merged: number; issues: number; proposals: number; branches: string[]; lastActivity?: string; lastMerged?: string; release?: string; totalComments: number }
+export interface GithubIssue { number: number; title: string; url: string; state: string; author?: string; createdAt: string; updatedAt: string; closedAt?: string; labels: string[]; comments: number; body: string }
+export interface GithubAmendment { name: string; fetchedAt: string; summary: GithubSummary; release: { version?: string; date?: string; url?: string; excerpt?: string }; prs: GithubPr[]; issues: GithubIssue[]; proposals: { number: number; title: string; url: string; state: string; isPr: boolean; author?: string; createdAt: string; updatedAt: string; comments: number; labels: string[] }[]; branches: string[] }
+
+export function readGithub(name: string): GithubAmendment | undefined {
+  const file = path.join(process.cwd(), "src/data/github", `${name}.json`);
+  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : undefined;
+}
+export function readGithubIndex(): { fetchedAt: string; amendments: Record<string, GithubSummary> } | undefined {
+  const file = path.join(process.cwd(), "src/data/github/index.json");
+  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : undefined;
+}
+
+export interface LibraryNet { txSupported: number; txTotal: number; missingTx: string[]; leSupported: number; leTotal: number; missingLe: string[]; fieldsSupported: number; fieldsTotal: number; missingFields: string[]; resultsSupported: number; resultsTotal: number; missingResults: string[]; supportedAmendments: string[]; unsupportedAmendments: { name: string; missing: string[] }[]; definitionsMatch?: boolean }
+export interface Library { id: string; name: string; language: string; repo: string; definitions: string; definitionsUrl: string; docs?: string; official: boolean; registry: { kind: string; id: string }; txTypes: string[]; extraTx: string[]; counts: { tx: number; le: number; fields: number; results: number }; version: { version?: string; date?: string; url?: string }; repoInfo?: { stars: number; openIssues: number; pushedAt: string; license?: string; description?: string; defaultBranch: string; archived: boolean }; lastCommit?: { sha: string; date: string; message: string }; perNetwork: Record<string, LibraryNet> }
+export function readLibraries(): { fetchedAt: string; libraries: Library[] } | undefined {
+  const file = path.join(process.cwd(), "src/data/libraries.json");
+  return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : undefined;
+}
+
+/** Human status derived from the GitHub summary (open follow-up PRs on a merged amendment are not "in development"). */
+export function devStatus(s?: GithubSummary): { label: string; cls: string } {
+  if (!s) return { label: "no data", cls: "bg-surface-2 text-muted" };
+  if (s.merged > 0 && s.open > 0) return { label: "merged · follow-ups open", cls: "bg-accent-soft text-accent-ink" };
+  if (s.merged > 0) return { label: "merged", cls: "bg-accent-soft text-accent-ink" };
+  if (s.open > 0) return { label: "in development", cls: "bg-[#dbf15e] text-black" };
+  if (s.prs > 0) return { label: "closed without merge", cls: "bg-[#fdece7] text-[#a22514]" };
+  if (s.proposals > 0) return { label: "proposal only", cls: "bg-[#edf4ff] text-[#0a4dc0]" };
+  return { label: "no GitHub trail found", cls: "bg-surface-2 text-muted" };
+}

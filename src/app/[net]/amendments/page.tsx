@@ -1,6 +1,6 @@
 import NLink from "@/components/NLink";
 import { getNet, featureIdToName } from "@/lib/protocol";
-import { readDoc } from "@/lib/content";
+import { readDoc, readGithubIndex, devStatus } from "@/lib/content";
 import { amendmentState } from "@/components/protocol";
 import type { SnapshotAmendment } from "@/lib/protocol";
 
@@ -14,7 +14,9 @@ export default async function AmendmentsIndex({ params }: { params: Promise<{ ne
   const voting = tn.filter((a) => !a.enabled);
   const sourceOnly = d.protocol.features.filter((f) => !f.retired && !tn.some((a) => a.name === f.name));
   const usedBy = (name: string) => d.protocol.transactions.filter((t) => t.amendment === name || t.transactor?.allFeatures.some((f) => featureIdToName(f) === name)).map((t) => t.name);
+  const ghIdx = readGithubIndex()?.amendments ?? {};
   const Row = ({ name }: { name: string }) => {
+    const g = ghIdx[name];
     const s: SnapshotAmendment | undefined = tn.find((a) => a.name === name);
     const f = d.protocol.features.find((x) => x.name === name);
     const doc = readDoc("amendments", name);
@@ -23,6 +25,7 @@ export default async function AmendmentsIndex({ params }: { params: Promise<{ ne
     return (
       <tr>
         <td><NLink href={`/amendments/${name}`} className="font-mono font-medium hover:underline">{name}</NLink></td>
+        <td className="text-xs">{g ? <><span className={`badge ${devStatus(g).cls}`}>{devStatus(g).label}</span><span className="block text-muted">{g.merged} merged · {g.open} open · {g.totalComments} comments{g.release ? ` · ${g.release}` : ""}</span></> : <span className="text-muted">—</span>}</td>
         <td><span className={`badge ${st.cls}`}>{st.label}</span>{s && !s.enabled && s.count !== undefined && <span className="ml-1 text-xs text-muted">{s.count}/{s.validations ?? "?"} votes (threshold {s.threshold})</span>}</td>
         <td className="whitespace-nowrap text-xs text-muted">{f ? `${f.supported ? "supported" : "not supported"} · default vote: ${f.defaultVote}` : "not in source"}</td>
         <td className="min-w-72 text-muted">{doc?.data.summary ?? ""}</td>
@@ -38,16 +41,16 @@ export default async function AmendmentsIndex({ params }: { params: Promise<{ ne
       </div>
       <section>
         <h2 className="mb-2 display-md">Voting or pending on {d.network.label} ({voting.length})</h2>
-        <table className="tbl"><thead><tr><th>Amendment</th><th>{d.network.label} status</th><th>Source</th><th>Summary</th><th>Transactions</th></tr></thead><tbody>{voting.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
+        <table className="tbl"><thead><tr><th>Amendment</th><th>{d.network.label} status</th><th>Development</th><th>Source</th><th>Summary</th><th>Transactions</th></tr></thead><tbody>{voting.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
       </section>
       <section>
         <h2 className="mb-2 display-md">Source code only, not yet on {d.network.label} ({sourceOnly.length})</h2>
         <p className="mb-2 text-sm text-muted">Proposals already on rippled&apos;s <code>{d.protocol.source.branch}</code> branch ({d.protocol.source.version}) but that the {d.network.label} binary ({d.snapshot.buildVersion}) doesn&apos;t know about yet.</p>
-        <table className="tbl"><thead><tr><th>Amendment</th><th>{d.network.label} status</th><th>Source</th><th>Summary</th><th>Transactions</th></tr></thead><tbody>{sourceOnly.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
+        <table className="tbl"><thead><tr><th>Amendment</th><th>{d.network.label} status</th><th>Development</th><th>Source</th><th>Summary</th><th>Transactions</th></tr></thead><tbody>{sourceOnly.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
       </section>
       <section>
         <h2 className="mb-2 display-md">Active on {d.network.label} ({enabled.length})</h2>
-        <table className="tbl"><thead><tr><th>Amendment</th><th>{d.network.label} status</th><th>Source</th><th>Summary</th><th>Transactions</th></tr></thead><tbody>{enabled.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
+        <table className="tbl"><thead><tr><th>Amendment</th><th>{d.network.label} status</th><th>Development</th><th>Source</th><th>Summary</th><th>Transactions</th></tr></thead><tbody>{enabled.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
       </section>
       <section>
         <h2 className="mb-2 display-md">Retired (merged into the base protocol)</h2>

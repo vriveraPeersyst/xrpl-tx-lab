@@ -55,3 +55,24 @@ pnpm sync                        # manual run (SYNC_NO_GIT=1 to skip committing)
 `content/GUIDE.md` defines the format of `content/tx/*.md`, `content/objects/*.md`,
 `content/amendments/*.md` and `content/flags.json`. The UI automatically generates tables of
 fields, flags, TER and amendments; the markdown provides the explanation.
+
+## Networks
+
+The lab supports several public test networks (`src/lib/networks.ts`): Testnet, Devnet, AMM Devnet,
+Lending Devnet and WASM Devnet. Every page lives under `/<network>/…` and the header switcher keeps
+the current path when changing network. Per network:
+
+- `src/data/networks/<id>/snapshot.json` — `server_info`, `feature`, `server_definitions` (`pnpm snapshot`).
+- `src/data/protocol/<ref>.json` — extracted from the rippled source matching that network's version
+  (`pnpm extract:all`: exact tag when it is public, otherwise `develop`; git worktrees under `vendor/refs`).
+- The coverage lint iterates every network; docs are shared by name.
+
+## Development status and libraries
+
+- `pnpm github` mines XRPLF/rippled (PRs, issues, reviews, comments, branches, releases) and
+  XRPLF/XRPL-Standards (XLS threads) for every amendment → `src/data/github/<Amendment>.json`,
+  rendered on each amendment page ("Development status") and in the amendments index. Needs `gh` auth.
+- `pnpm libraries` compares each client library's `definitions.json` (xrpl.js, xrpl-py, xrpl4j,
+  xrpl-go, xrpl-rust, xrpl-php) with every network → `/[net]/libraries`.
+
+Both run inside `pnpm sync` (daily) and tolerate failures.

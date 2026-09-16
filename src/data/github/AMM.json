@@ -1,0 +1,3105 @@
+{
+ "name": "AMM",
+ "fetchedAt": "2026-09-16T10:36:39.118Z",
+ "summary": {
+  "status": "in development",
+  "prs": 12,
+  "open": 7,
+  "merged": 5,
+  "issues": 0,
+  "proposals": 5,
+  "branches": [
+   "gregtatcam/retire/fixAMMv1_1"
+  ],
+  "lastActivity": "2026-09-08T18:15:59Z",
+  "lastMerged": "2026-08-24T13:50:52Z",
+  "release": "1.12.0",
+  "totalComments": 417
+ },
+ "release": {
+  "version": "1.12.0",
+  "date": "2023-09-06T21:51:33Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.12.0",
+  "excerpt": "`AMM`"
+ },
+ "prs": [
+  {
+   "number": 8129,
+   "title": "fix: Align CheckCash receive and AMM/Vault deposits with freeze and deep-freeze rules",
+   "url": "https://github.com/XRPLF/rippled/pull/8129",
+   "state": "open",
+   "author": "Kassaking7",
+   "createdAt": "2026-08-26T22:13:19Z",
+   "updatedAt": "2026-09-08T18:15:59Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-26T22:15:25Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8129?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8129#issuecomment-5431747023"
+    }
+   ],
+   "body": "## High Level Overview of Change\nThis change tightens IOU freeze handling on a few direct `accountSend` paths so they match Payment / XLS-77.\nRegular freeze only stops a holder from **sending**. They must still be able to **receive**, and they must still be able to return tokens to the issuer. Deep freeze on either side of a trust line blocks non-issuer sends and receives.\n`VaultWithdraw` and `AMMWithdraw` already follow that rule under `fixCleanup3_3_0` (`checkWithdrawFreeze`). Two gaps remained:\n1. **Deposits** (`AMMDeposit`, `VaultDeposit`, and the same helper used by `LoanBrokerCoverDeposit`) only checked issuer-side regular freeze. A holder who set deep freeze on their own side could st",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "Kassaking7:DEFI-836-837",
+   "additions": 192,
+   "deletions": 24,
+   "changedFiles": 10,
+   "commits": 3,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:05:08Z",
+     "body": "### 🟡 Changes recommended\n\nA `CheckCash` change appears to apply the new issuer-redemption freeze bypass to MPT amounts as well as IOUs, which likely exceeds the stated intent and could change MPT behavior unexpectedly.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR tightens IOU freeze/deep-freeze handling for direct `accountSend`-style paths (CheckCash and pseudo-account deposits) so they match the established Payment/XLS-77 semantics, with behavior gated by `fixCleanup3_4_0`.\n\n**Changes:**\n- Extend `VaultDeposit`, `AMMDeposit`, and `LoanBrokerCoverDeposit` preclaim checks to rejec"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:05:08Z",
+     "path": "src/libxrpl/tx/transactors/check/CheckCash.cpp",
+     "body": "`destIsIssuer` is currently true for MPT amounts as well as IOUs (it only checks `!value.native()`), which makes the new `FreezeHandling::IgnoreFreeze` path apply to locked/frozen MPT balances too. If the intent is only to allow IOU redemption to the issuer (as described in the comment/PR description), scope this to `Issue` amounts so MPT behavior is unchanged.",
+     "url": "https://github.com/XRPLF/rippled/pull/8129#discussion_r3908842326"
+    }
+   ]
+  },
+  {
+   "number": 7357,
+   "title": "refactor: Retire AMM amendment and AMMOverflowOffer fix.",
+   "url": "https://github.com/XRPLF/rippled/pull/7357",
+   "state": "open",
+   "author": "TimothyBanks",
+   "createdAt": "2026-05-29T15:26:09Z",
+   "updatedAt": "2026-09-03T23:01:20Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-29T15:52:30Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7357?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-4577191957"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-10T11:49:37Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-4669841810"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-10T20:05:32Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-4673988162"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-10T20:06:01Z",
+     "body": "@a1q123456 @pratikmankawde Please take another look.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-4673991799"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T12:11:42Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-4809454064"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T13:59:46Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-4810255279"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-01T16:41:39Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-4857822907"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-01T20:32:05Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-4859809596"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-13T11:15:06Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-4957351148"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-18T21:48:45Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-5334472362"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-20T20:17:48Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-5361187573"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-03T19:30:14Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-5531025665"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis change set retires the AMM amendment and AMMOverflowOffer fix. All tests were updated to work correctly against retirement.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "TimothyBanks:retire_amm_amendment",
+   "additions": 36,
+   "deletions": 182,
+   "changedFiles": 21,
+   "commits": 22,
+   "reviewComments": 21,
+   "reviews": [
+    {
+     "author": "a1q123456",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-06-02T12:11:04Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-03T19:11:09Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-03T19:12:32Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-10T19:38:30Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-22T14:07:37Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-22T14:14:06Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-22T14:14:37Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "DISMISSED",
+     "date": "2026-06-22T14:14:47Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-24T12:34:41Z",
+     "body": "## Pull request overview\n\nRetires the AMM amendment and the `AMMOverflowOffer` fix by moving them to the retired amendments list, removing runtime feature-gating, and updating AMM-related transaction definitions and tests accordingly.\n\n**Changes:**\n- Retire `AMM` and `AMMOverflowOffer` in `features.macro`, and remove associated feature checks throughout the AMM transaction and pathflow code.\n- Update AMM transaction definitions to have no required amendment (`uint256{}`) and adjust preflight feature checks to focus on MPT support only.\n- Update/trim unit tests that previously asserted AMM or `fixAMMOverflowOffer` “disabled” behavior.\n\n### Reviewed changes\n\nCopilot reviewed 25 out of 25 chang"
+    },
+    {
+     "author": "a1q123456",
+     "state": "DISMISSED",
+     "date": "2026-06-24T15:41:48Z",
+     "body": "lgtm"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T16:08:10Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-06-29T15:07:47Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-29T15:09:44Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-07-01T10:27:38Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-08-10T17:50:21Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-08-10T17:53:19Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-08-10T17:54:30Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-10T18:07:53Z",
+     "body": "Left a-few comments"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-08-18T21:30:35Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:02:45Z",
+     "body": "### 🔵 Needs a closer look\n\nIt removes `ammEnabled(Rules const&)` from a public installed header, which is an API/ABI breaking change for libxrpl consumers.\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**include/xrpl/protocol/AMMCore.h:76**\n* `ammEnabled(Rules const&)` was removed from the public `include/xrpl/protocol/AMMCore.h` header. Since this is part of libxrpl’s installed headers, deleting the declaration is an API/ABI breaking change for downstream consumers. Please keep the function declared (it can remain implemented as always-true now that AMM is retired).\n```\n/**\n * Get time slot of the auction slot.\n */\nstd::optional<std::uint8_t>\nammAuctionTimeSlot"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T19:40:51Z",
+     "body": "### 🔵 Needs a closer look\n\nIt removes `ammEnabled(Rules const&)` from a public libxrpl header, which is an ABI/API breaking change and should be retained as a compatibility wrapper.\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**include/xrpl/protocol/AMMCore.h:76**\n* `ammEnabled(Rules const&)` was removed from a public `include/xrpl` header, which is an ABI/API breaking change for libxrpl consumers. Since AMM is being retired (effectively always enabled), keep this symbol as a compatibility wrapper (e.g., inline and always returning `true`) rather than deleting it.\n```\nstd::optional<std::uint8_t>\nammAuctionTimeSlot(std::uint64_t current, STObject const& auction"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T21:52:16Z",
+     "body": "### 🟡 Changes recommended\n\nThe PR reintroduces a libxrpl public-header ABI/API break by removing `ammEnabled(Rules const&)`, and there is a test invariant assertion using the wrong expected LP token balance variable.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**include/xrpl/protocol/AMMCore.h:76**\n* `ammEnabled(Rules const&)` was removed from the public `include/xrpl` header, which is an ABI/API break for libxrpl consumers (and contradicts the prior decision to keep it for compatibility). Since AMM is retired, reintroduce this helper as an inline compatibility wrap"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-09-03T22:44:19Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T23:01:20Z",
+     "body": "### 🔵 Needs a closer look\n\nIt removes the previously-discussed public `ammEnabled(Rules const&)` API/symbol from installed headers/library, creating an ABI/API breaking change for libxrpl consumers.\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**include/xrpl/protocol/AMMCore.h:76**\n* Removing `ammEnabled(Rules const&)` from this installed public header is an ABI/API breaking change for libxrpl consumers (existing binaries may link against this symbol). Since AMM is now retired/always-on, consider keeping the function as a deprecated compatibility wrapper (e.g., always returning `true`) and ensure there is still an out-of-line definition in the library to preser"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T12:09:32Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "I think we can remove this for loop",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3341038747"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T12:11:00Z",
+     "path": "src/test/protocol/STTx_test.cpp",
+     "body": "I think this can be replaced with a different amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3341046981"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T19:11:09Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "There is another pending PR that is retiring the fixUniversalNumber amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3351195986"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T19:12:32Z",
+     "path": "src/test/protocol/STTx_test.cpp",
+     "body": "I don't follow the comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3351203959"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-10T19:38:29Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Removed",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3391030412"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-22T14:07:37Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "These variables are now un-used.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3452839137"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-22T14:14:06Z",
+     "path": "src/libxrpl/tx/paths/AMMLiquidity.cpp",
+     "body": "`rules` variable is unused now.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3452884763"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-22T14:14:37Z",
+     "path": "include/xrpl/tx/paths/AMMLiquidity.h",
+     "body": "`rules` is un-used.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3452888263"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-24T12:34:39Z",
+     "path": "src/libxrpl/tx/paths/AMMLiquidity.cpp",
+     "body": "`rules` is no longer used in `maxOffer`, so keeping it as a named parameter can trigger `-Wunused-parameter` (and the project can build with `-Werror`). Omit the parameter name (or mark it `[[maybe_unused]]`) to avoid warnings while keeping the ABI/signature unchanged.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3467092329"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-24T12:34:40Z",
+     "path": "src/libxrpl/tx/transactors/token/TrustSet.cpp",
+     "body": "The comment implies `sleDst` may be null, but the very next check now makes a null destination an unconditional error. Updating the comment and using `!sleDst` keeps the intent clear and avoids implying a nullable value is expected downstream (especially since `sleDst` is dereferenced immediately after).",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3467092367"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-24T12:34:40Z",
+     "path": "src/libxrpl/tx/paths/BookStep.cpp",
+     "body": "`offer.checkInvariant()` is implemented for both AMM offers and LOB offers (and can fail for reasons other than the AMM pool-product invariant). The thrown message currently hard-codes an AMM-specific invariant, which can mislead debugging if a different offer type fails its invariant check.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3467092400"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-24T12:34:40Z",
+     "path": "include/xrpl/protocol/AMMCore.h",
+     "body": "`include/xrpl/protocol/AMMCore.h` is part of the installed `include/xrpl` public headers. Removing `ammEnabled(Rules const&)` is an ABI/API breaking change for libxrpl consumers. If AMM is now always available due to retirement, consider keeping `ammEnabled` as an inline compatibility wrapper (always `true`) rather than deleting it outright.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3467092427"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T16:08:10Z",
+     "path": "include/xrpl/protocol/AMMCore.h",
+     "body": "Alright.  I am taking the ABI stability route and leaving it in.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3468551553"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-29T15:07:43Z",
+     "path": "src/libxrpl/protocol/AMMCore.cpp",
+     "body": "This function should be removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3492698199"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-29T15:09:37Z",
+     "path": "src/test/protocol/STTx_test.cpp",
+     "body": "No worries. I mixed this file with `Feature_test.cpp` and I was thinking instead of removing the check against `featureAMM`, we could replace it with another amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3492710773"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-08-10T17:50:21Z",
+     "path": "src/libxrpl/tx/paths/AMMLiquidity.cpp",
+     "body": "Looks like `maxAmount` function can be deleted now.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3751990620"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-08-10T17:53:19Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "`fail*` variables can be cleaned up now?",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3752013588"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-08-10T17:54:30Z",
+     "path": "src/libxrpl/tx/transactors/token/TrustSet.cpp",
+     "body": "Can `sleDst` be a `nullptr` still?",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3752021927"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-08-18T21:30:35Z",
+     "path": "src/libxrpl/tx/transactors/token/TrustSet.cpp",
+     "body": "sfLimitAmount is just an account and nothing upstream requires the account to exist on the ledger, so yes it can still be null.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3808074684"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-03T21:52:16Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "The invariant check uses `input.lpTokenBalance` even when `lpTokenBalance` is overridden via `lpTokenBalanceAlt` for `fixAMMv1_3`. This can make the assertion compare against a different value than the balances you just asserted with `expectBalances`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3929031101"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-09-03T22:44:19Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "This is pre-existing code, but I can make that change.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3929339505"
+    }
+   ]
+  },
+  {
+   "number": 7867,
+   "title": "fix: Preventing attacker to suppress AMM trading fees indefinitely and extract value from liquidity providers",
+   "url": "https://github.com/XRPLF/rippled/pull/7867",
+   "state": "open",
+   "author": "Kassaking7",
+   "createdAt": "2026-07-24T18:34:20Z",
+   "updatedAt": "2026-09-01T22:03:03Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-24T19:01:18Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7867?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `96.22642%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/7867?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/ledger/helpers/AMMHelpers.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7867?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_cont",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5073471336"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-11T15:00:22Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5254902669"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-11T18:31:45Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5257255926"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-12T00:02:24Z",
+     "body": "### AMM full-withdrawal can zero out a live pool's trading fee\n\n**What the code does.** `updateAMMVoteSlotsAndFee` recomputes the pool fee as a holdings-weighted average of the surviving voters, then **deletes `sfTradingFee`** whenever that average comes out to 0 — the `den == 0` → `else` branch in `AMMHelpers.cpp` (~918–921).\n\n**The bug.** `den == 0` does **not** mean the pool is empty. It means *no account that currently holds a vote slot still holds LP tokens*. The voter set and the LP set can be disjoint, because a deposit into an already-live pool grants LP tokens but **no vote slot** (`AMMDeposit.cpp:541` — `initializeFeeAuctionVote` only runs when `lptAMMBalance == 0`). The withdraw c",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5260295700"
+    }
+   ],
+   "body": "## High Level Overview of Change\nAn attacker will suppress AMM trading fees indefinitely and extract value from liquidity providers: Failure to invalidate vote slots and recompute the trading fee after a full LP withdrawal will cause persistent fee manipulation losses for liquidity providers as an attacker will perform a flash deposit, vote for a reduced fee, withdraw all liquidity, and leave a stale vote that continues to control the pool fee.\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "Kassaking7:DEFI-716",
+   "additions": 387,
+   "deletions": 0,
+   "changedFiles": 5,
+   "commits": 7,
+   "reviewComments": 9,
+   "reviews": [
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-11T19:30:41Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-08-13T15:10:34Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-18T16:25:42Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:25:06Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:03:02Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes core AMM ledger/transaction behavior in a security-sensitive area and should receive final human review despite strong targeted test coverage.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR addresses a fee-governance vulnerability in AMM pools where vote slots could persist after a liquidity provider fully withdraws (or is clawed back), allowing stale fee votes and auction-slot ownership to linger and suppress trading fees, harming remaining liquidity providers.\n\n**Changes:**\n- Introduces `updateAMMVoteSlotsAndFee` to prune vote slots for accounts that no longer hold LP tokens, recompute the trading fee (and discounted fee), and clear the "
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ckeshava",
+     "date": "2026-08-11T19:04:41Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Can you add another test that demonstrates the expected behavior in the case of partial withdrawal from `carol`? Suppose, carol withdraws 99% of her deposits from the AMM, then what is the expected behavior with respect to the Discounted-Slot and the TradingFees?",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3760906525"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-11T19:11:02Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "We need to test one more circumstance in this case: Suppose that a new account `zelda` outbids `carol`'s existing bid and ends up winning the auction slot. In this case, we need to ensure that:\n\n(1) `zelda`'s bid only needs to exceed the current auction-maximum, not `carol`'s bid because carol has withdrawn all her funds.\n\n(2) `carol` must not be re-compensated (assuming zelda outbids her within 24 hours of `carol`'s bid) due to the loss of her bid within 24 hours.\n\nPlease refer to this portion of the docs: \n\n<img width=\"822\" height=\"314\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/e97f8e0d-68f7-4b38-8408-9fb68022a864\" />",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3760950268"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-11T19:23:55Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "I believe this check is completely skipped in the case of AMMClawback transaction. this is because AMMClawback directly invokes the specific withdraw method like this: https://github.com/XRPLF/rippled/blob/26cc683ec143e8a5fcc6dd09c2c1fe25ac08b94c/src/libxrpl/tx/transactors/dex/AMMClawback.cpp#L226.\n\nIf this circumstance occurs due to the AMMClawback action of the Issuer, then also -- we need to ensure that the Holder does not have the preferred Auction-slot and the discounted fees.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3761036605"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-11T19:24:23Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "If I have misunderstood this case, please add a test that shows that the case of AMMClawback is also handled correctly.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3761039667"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-11T19:30:36Z",
+     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
+     "body": "Instead of re-writing this logic, can we refactor and make use of the existing code in AMMBid transactor? https://github.com/XRPLF/rippled/blob/26cc683ec143e8a5fcc6dd09c2c1fe25ac08b94c/src/libxrpl/tx/transactors/dex/AMMBid.cpp#L214\n\nIn my opinion, the `updateSlots` method needs to be updated to account for the present LPTokenBalance of bidder account.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3761081972"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-08-13T14:57:46Z",
+     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
+     "body": "`    STArray updatedVoteSlots(sfVoteSlots,  ammSle->getFieldArray(sfVoteSlots).size())`",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3776456050"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-08-13T15:00:47Z",
+     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
+     "body": "Number{0} - >kNumZero",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3776480342"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-18T16:25:42Z",
+     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
+     "body": "The number of the new vote slots might not be identical to the existing numbers. If this suggestion is accepted, then the array will need to be resized after the processing is completed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3805981676"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-08-19T16:25:05Z",
+     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
+     "body": "`updateAMMVoteSlotsAndFee` mirrors `AMMVote::applyVote (prune voters + weighted fee)`, not `AMMBid`. `updateSlot` is the bid-settlement path (new holder, expiration, burn LP) and isn’t appropriate on withdraw/clawback.\n\nAuction cleanup is narrower: if this withdrawing/clawed account is the current holder and now has 0 LP, we clear sfAccount to the zero account (same vacant path applyBid already takes when validOwner fails). We don’t change validOwner to check LP balance, because bidding burns LP and a holder can legitimately own the slot with 0 tokens.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3814815997"
+    }
+   ]
+  },
+  {
+   "number": 7044,
+   "title": "test: Add Vault+AMM integration coverage",
+   "url": "https://github.com/XRPLF/rippled/pull/7044",
+   "state": "open",
+   "author": "Tapanito",
+   "createdAt": "2026-04-29T09:47:27Z",
+   "updatedAt": "2026-09-01T21:47:07Z",
+   "closedAt": null,
+   "labels": [
+    "Trivial",
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-04-29T10:23:25Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7044?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 82.1%. Comparing base ([`93ac1aa`](https://app.codecov.io/gh/XRPLF/rippled/commit/93ac1aa7aa23f801b0840a87804a6d755c944623?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`8811e6c`](https://app.codecov.io/gh/XRPLF/rippled/commit/8811e6c091310cf0bfa2babffad930009f37b17f?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-4342828665"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-03T11:09:51Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-4366023425"
+    },
+    {
+     "author": "godexsoft",
+     "date": "2026-05-04T14:23:17Z",
+     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-4371824428"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-05-04T15:59:33Z",
+     "body": "⚠️ **Review Error** — The automated review failed to complete. Please re-trigger with `/ai-review`.\n\nError: Failed to post review to GitHub after 3 attempts: Server error '502 Bad Gateway' for url 'https://api.github.com/repos/XRPLF/rippled/pulls/7044/reviews'\n\n*Review by Claude Opus 4.6 · Prompt: v15*",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-4372516748"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-04T16:01:48Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-4372529879"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-19T17:55:14Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-4490535558"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-20T10:21:03Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-4497337147"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-20T20:25:16Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-4502360343"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-09T08:32:49Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-4657885419"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-27T02:11:40Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-4814687953"
+    }
+   ],
+   "body": "- AMM_test::testVaultSharesAMM: pair vault-share MPT with XRP, do a single-asset deposit of additional shares.\n- AMM_test::testLockedVaultMPTCashOut: lock the underlying MPT of a vault that backs an AMM and confirm the freeze cascades through isVaultPseudoAccountFrozen, blocking LP-token Payment (tecPATH_DRY) and AMM withdrawal (tecFROZEN).\n\n\n\n## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:tapanito/unit-tests",
+   "additions": 328,
+   "deletions": 0,
+   "changedFiles": 2,
+   "commits": 9,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-04-29T09:48:21Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-04-29T10:05:00Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "bthomee",
+     "state": "DISMISSED",
+     "date": "2026-04-29T17:58:39Z",
+     "body": "Great comments, it's very easy to follow what is being tested."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-04-29T18:00:45Z",
+     "body": "## Pull request overview\n\nAdds new unit tests to expand coverage for Vault + AMM interactions and post-deposit MPT flag mutation behavior.\n\n**Changes:**\n- Add `Vault_test::testMutateCanTransferAfterDeposit` to verify effects of toggling `lsfMPTCanTransfer`/`lsfMPTCanTrade` after deposits (including issuer-exempt and withdraw-to-issuer behavior).\n- Add `AMM_test::testVaultSharesAMM` to cover pairing vault-share MPT with XRP and performing a single-asset AMM deposit of additional shares.\n- Add `AMM_test::testLockedVaultMPTCashOut` to verify that locking a vault’s underlying MPT cascades to freeze vault-share MPT behavior, blocking LP-token transfers and AMM withdrawals.\n\n### Reviewed changes\n\n"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-19T13:56:56Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T10:21:58Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T10:23:22Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T10:33:47Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "DISMISSED",
+     "date": "2026-06-08T17:59:35Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-09T08:35:42Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T21:47:07Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 2 out of 2 changed files in this pull request and generated no new comments."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-04-29T18:00:44Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "The opening bullet claims that clearing lsfMPTCanTransfer “freezes every holder's funds in the vault until the issuer re-enables the flag”, but later in this same test (step 3b) a holder can still withdraw successfully by setting Destination=issuer (because `canTransfer` short-circuits when `to == issuer`). Please adjust the comment to reflect that CanTransfer blocks holder<->non-issuer vault I/O, but withdrawals to the issuer remain possible.",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#discussion_r3163119042"
+    }
+   ]
+  },
+  {
+   "number": 6605,
+   "title": "feat(clamm): implement XLS-99 Concentrated Liquidity AMM",
+   "url": "https://github.com/XRPLF/rippled/pull/6605",
+   "state": "open",
+   "author": "RomThpt",
+   "createdAt": "2026-03-20T13:56:47Z",
+   "updatedAt": "2026-09-01T21:33:16Z",
+   "closedAt": null,
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-26T00:44:27Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6605#issuecomment-4130769154"
+    },
+    {
+     "author": "godexsoft",
+     "date": "2026-05-04T14:24:53Z",
+     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -",
+     "url": "https://github.com/XRPLF/rippled/pull/6605#issuecomment-4371838750"
+    }
+   ],
+   "body": "## Summary\n\nImplement a Concentrated Liquidity Automated Market Maker (CLAMM) for the XRP Ledger, as specified in [XLS-99](https://github.com/XRPLF/XRPL-Standards/pull/498). Unlike XLS-30 which distributes liquidity uniformly, CLAMM allows LPs to concentrate capital within specific price ranges for up to 4000x capital efficiency improvement.\n\n### Ledger Entries (4 new)\n\n- **CLAMM** (`0x008A`): Pool state -- current tick, sqrt price, active liquidity, fee tier, auction slot\n- **CLAMMTick** (`0x008B`): Per-tick liquidity boundaries and fee growth tracking (sparse storage)\n- **CLAMMPosition** (`0x008C`): LP position linked to NFToken (XLS-20) -- tick range, liquidity, uncollected fees\n- **CLAMM",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "RomThpt:feature/clamm-xls99-squashed",
+   "additions": 15130,
+   "deletions": 46,
+   "changedFiles": 57,
+   "commits": 1,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T21:33:15Z",
+     "body": "## Pull request overview\n\nImplements a new Concentrated Liquidity AMM (CLAMM) feature (XLS-99) across the XRPL server stack: new ledger entry types/keylets, new transaction types/transactors, payment-engine routing integration, and RPC surfaces for querying/simulation, guarded by `featureCLAMM`.\n\n**Changes:**\n- Adds CLAMM ledger model primitives (pool, tick, position, tick bitmap) with new keylets/namespaces and supporting protocol helpers/constants.\n- Introduces core CLAMM transactions (create/deposit/withdraw/swap/collect fees/vote/bid/delete/clawback) plus a CLAMM invariant and NFT integration for position ownership/burn constraints.\n- Integrates CLAMM liquidity as a synthetic offer sourc"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:33:14Z",
+     "path": "src/xrpld/rpc/handlers/CLAMMInfo.cpp",
+     "body": "Pagination marker is set to the first item *after* the returned page (`lastNFTokenID = nftID` in the lookahead branch). Since the next request starts *after* the marker, that position is skipped and never returned. Also, the lookahead should only trigger after pool filtering so the marker reflects additional matching results.",
+     "url": "https://github.com/XRPLF/rippled/pull/6605#discussion_r3908631736"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:33:15Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "`fee_tier` is cast to `std::uint8_t` without bounds validation, so values >255 will truncate (e.g. 257 becomes 1) and values outside the supported tier set will compute an unintended pool key. Reject out-of-range tiers before casting.",
+     "url": "https://github.com/XRPLF/rippled/pull/6605#discussion_r3908631797"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:33:15Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "`word_position` is truncated to `std::int16_t` without range checking, so large inputs silently wrap and compute the wrong bitmap key. Validate the value fits in int16 before casting.",
+     "url": "https://github.com/XRPLF/rippled/pull/6605#discussion_r3908631854"
+    }
+   ]
+  },
+  {
+   "number": 7719,
+   "title": "fix: Validate AMM state changes in invariant default case",
+   "url": "https://github.com/XRPLF/rippled/pull/7719",
+   "state": "open",
+   "author": "BraedonKlock",
+   "createdAt": "2026-07-03T18:08:44Z",
+   "updatedAt": "2026-09-01T21:29:47Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "ximinez",
+     "date": "2026-07-06T23:56:27Z",
+     "body": "Hi @BraedonKlock. Thank you for your contributions! We really appreciate them. At this point, we ask that you hold off on submitting any more until we've had a chance to review the current batch. There is a not insignificant engineer overhead for each review, and it may take some time to get caught up. Too many PRs can make that harder. When we've gotten down to 3 open or fewer, feel free to create more!\n\nIn the meantime, you can open \"Draft\" PRs so that changes will be ready to go once we're ready for more. At that time, you'll be able to decide which ones are the best, and convert them to \"Ready to review\". Keep in mind that you will be responsible for keeping your PRs up to date with `dev",
+     "url": "https://github.com/XRPLF/rippled/pull/7719#issuecomment-4898696779"
+    },
+    {
+     "author": "BraedonKlock",
+     "date": "2026-07-07T00:50:21Z",
+     "body": "Thank you @ximinez  for the clarification! I really appreciate the feedback. I completely understand. I'll hold off on opening additional ready for review PRs until my open count is down to three or fewer. In the meantime, I'll continue working locally and use draft PRs if appropriate. Thanks again!",
+     "url": "https://github.com/XRPLF/rippled/pull/7719#issuecomment-4898986195"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds validation to the `ValidAMM::finalize` default case so unlisted transaction types no longer silently pass after modifying AMM-related state.\n\nFixes #7489.\n\n### Context of Change\n\n`ValidAMM::finalize` handles known AMM transaction types. Previously, any transaction type not listed in the switch statement would fall through the default case and eventually return `true`.\n\nThis change updates the default case to check whether `ammAccount_` or `ammPoolChanged_` is set. If AMM state was modified by an unexpected transaction type, the invariant logs an error and fails when AMM invariant enforcement is active.\n\n### API Impact\n\n- [ ] Public API: New feature (new",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "BraedonKlock:issue-7489-amm-invariant-default-case",
+   "additions": 8,
+   "deletions": 0,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "mvadari",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-03T15:59:25Z",
+     "body": ""
+    },
+    {
+     "author": "BraedonKlock",
+     "state": "COMMENTED",
+     "date": "2026-08-03T17:28:24Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-08-03T18:53:34Z",
+     "body": ""
+    },
+    {
+     "author": "BraedonKlock",
+     "state": "COMMENTED",
+     "date": "2026-08-03T19:08:32Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T21:29:46Z",
+     "body": "## Pull request overview\n\nUpdates the AMM invariant (`ValidAMM::finalize`) to detect and (when amendment-gated) reject unexpected AMM-related ledger state changes caused by transaction types not explicitly handled in the switch statement, closing the invariant gap described in #7489.\n\n**Changes:**\n- Adds an amendment gate (`fixCleanup3_4_0`) for enforcing failures on unexpected AMM state changes in the `default` switch case.\n- Logs an error (and conditionally fails the invariant) when an unlisted transaction type modifies AMM state (`ammAccount_` or `ammPoolChanged_`).\n\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" t"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mvadari",
+     "date": "2026-08-03T15:59:22Z",
+     "path": "src/libxrpl/tx/invariants/AMMInvariant.cpp",
+     "body": "This is a breaking change and therefore needs to be amendment-gated",
+     "url": "https://github.com/XRPLF/rippled/pull/7719#discussion_r3705615649"
+    },
+    {
+     "author": "BraedonKlock",
+     "date": "2026-08-03T17:28:24Z",
+     "path": "src/libxrpl/tx/invariants/AMMInvariant.cpp",
+     "body": "@mvadari Just to confirm, should this use the existing `fixAMMv1_3` enforcement through `enforce`, or should this be gated behind a different amendment?",
+     "url": "https://github.com/XRPLF/rippled/pull/7719#discussion_r3706305220"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-08-03T18:53:34Z",
+     "path": "src/libxrpl/tx/invariants/AMMInvariant.cpp",
+     "body": "It can't use an amendment that's already been in a release. The current open catchall amendment is `fixCleanup3_4_0`. You'll need to update your branch.",
+     "url": "https://github.com/XRPLF/rippled/pull/7719#discussion_r3706872554"
+    },
+    {
+     "author": "BraedonKlock",
+     "date": "2026-08-03T19:08:32Z",
+     "path": "src/libxrpl/tx/invariants/AMMInvariant.cpp",
+     "body": "Thanks, updated to gate the new default-case failure behind `fixCleanup3_4_0`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7719#discussion_r3706967320"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:29:46Z",
+     "path": "src/libxrpl/tx/invariants/AMMInvariant.cpp",
+     "body": "This new default-case invariant behavior isn’t covered by a unit test. There are already AMM invariant tests in `src/test/app/Invariants_test.cpp` (e.g., `testAMMDeleteInvariants`) that assert both enforcement behavior and logged messages, but nothing currently verifies that an unlisted TxType that modifies AMM-related entries triggers this log and (when `fixCleanup3_4_0` is enabled) fails the invariant.",
+     "url": "https://github.com/XRPLF/rippled/pull/7719#discussion_r3908608378"
+    }
+   ]
+  },
+  {
+   "number": 7877,
+   "title": "fix: Remove credentials pinned to Vault, LoanBroker, and AMM pseudo-accounts",
+   "url": "https://github.com/XRPLF/rippled/pull/7877",
+   "state": "closed",
+   "author": "tyalymov",
+   "createdAt": "2026-07-27T14:48:27Z",
+   "updatedAt": "2026-08-26T11:01:31Z",
+   "closedAt": "2026-08-24T13:50:52Z",
+   "labels": [
+    "Ready to merge",
+    "feature: LP1.1"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-27T15:19:57Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7877?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `96.96970%` with `1 line` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/7877?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/Transactor.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7877?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&u",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5093194187"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-30T13:19:32Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5131345631"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-03T09:52:59Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5164865708"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-04T16:14:49Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5181702840"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-04T16:14:49Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5181702849"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-10T12:23:42Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5240139833"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-17T21:44:11Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5320615856"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-18T17:52:04Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5331997125"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-18T18:38:04Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5332479970"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-19T15:17:49Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5344171990"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-20T16:33:44Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5358827089"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-20T17:18:11Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5359301789"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-08-20T19:07:11Z",
+     "body": "@mvadari @a1q123456 This still needs one of your approvals before it can be merged.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5360467844"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-21T13:12:58Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5370228253"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-21T16:52:05Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5372762789"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-21T16:54:43Z",
+     "body": "@a1q123456 \n@mvadari \n\nCould you please re-review after conflict resolution?",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#issuecomment-5372789719"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nA credential issued to a Vault, LoanBroker, or AMM pseudo-account can never be accepted or deleted by it, because pseudo-accounts can't sign transactions. The credential stays pinned in the pseudo-account's owner directory and blocks deletion of the owning object, locking up its owner reserve. Creating such a credential is now rejected on its own amendment; this change adds the cleanup for pins that predate that rejection.\n\n### Context of Change\n\n`VaultDelete` and `LoanBrokerDelete` require the pseudo-account's owner directory to be empty and fail with `tecHAS_OBLIGATIONS` when a stale credential is still linked there. AMM fails earlier and harder: a sole-LP",
+   "merged": true,
+   "mergedAt": "2026-08-24T13:50:52Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:FN-36-credential_pins_pseudo_account",
+   "additions": 416,
+   "deletions": 4,
+   "changedFiles": 12,
+   "commits": 13,
+   "reviewComments": 39,
+   "reviews": [
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-27T14:58:43Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-07-28T10:48:58Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-28T13:17:05Z",
+     "body": "Unbounded work / DoS vulnerability flagged inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-28T14:15:04Z",
+     "body": "Unbounded credential cleanup vulnerability allowing DoS - see inline."
+    },
+    {
+     "author": "Tapanito",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-29T08:38:31Z",
+     "body": "Nicely done, some minor comments."
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-07-29T10:52:45Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-07-29T11:19:23Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-07-29T12:47:47Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-07-29T12:47:48Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-07-29T12:47:49Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-07-29T12:47:51Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-07-29T12:47:52Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-07-29T12:47:53Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-07-29T12:47:54Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "DISMISSED",
+     "date": "2026-08-03T14:35:33Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-07T17:19:46Z",
+     "body": "Looks good except for a small issue."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-10T12:27:03Z",
+     "body": "Well-scoped, carefully-ordered change that adds bounded pseudo-account credential cleanup to VaultDelete/LoanBrokerDelete and folds it into AMM's existing bounded trustline walk, gated behind fixCleanup3_4_0 and correctly wired into the tec-partial-persistence path (Transactor::processPersistentChanges) and the MPT-issuance invariant so tecINCOMPLETE resumption works safely. Cleanup is placed before any other pseudo-account teardown in VaultDelete/LoanBrokerDelete, which correctly lets tec failures roll back cleanly and lets tecINCOMPLETE resume without having already torn down the owning object. Test coverage (pin blocks deletion pre-amendment, cleanup succeeds post-amendment, bounded overf"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-10T12:27:04Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-10T12:27:06Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-08-10T12:27:57Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-08-10T12:27:58Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-10T13:32:57Z",
+     "body": "Overall the change is a focused, well-gated fix (all behavior changes are behind fixCleanup3_4_0) with matching tests for Vault, LoanBroker, and AMM. I didn't find correctness/security bugs in the new credential-cleanup logic itself (deletePseudoAccountCredentials, the AMM trustline/owner-directory walk changes, and the Transactor persistence-type wiring all look consistent with the existing patterns for bounded cleanup + tecINCOMPLETE resumption). The one thing worth a second look is a new early-return branch in the MPT invariant check that can silently report an invariant violation without logging, unlike the sibling branch immediately below it."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-10T13:32:58Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-10T13:33:00Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-08-12T15:44:29Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-08-12T16:00:56Z",
+     "body": "lgtm"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-13T08:27:14Z",
+     "body": "The change bounds and gates a new pseudo-account credential cleanup path (deletePseudoAccountCredentials) behind fixCleanup3_4_0, wires it into VaultDelete/LoanBrokerDelete before destructive teardown, extends AMM's existing bounded owner-directory walk to also purge pinned credentials, updates the sole-LP check to ignore credential entries, and teaches Transactor::processPersistentChanges and the MPT issuance invariant about the new tecINCOMPLETE/ltCREDENTIAL interaction. I traced the ordering in both VaultDelete and LoanBrokerDelete (cleanup runs before the owner-directory-empty/obligations checks and before MPT issuance destruction), the AMM sole-LP skip, and the invariant's early-return "
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-13T20:07:32Z",
+     "body": "This change adds amendment-gated cleanup (fixCleanup3_4_0) that removes credentials pinned to Vault/LoanBroker/AMM pseudo-account owner directories before those objects are deleted, and makes AMM's sole-LP check ignore pinned credentials. The implementation follows existing patterns (cleanupOnAccountDelete, tecINCOMPLETE bounding via kMaxDeletableAmmTrustLines-style constants) consistently across VaultDelete, LoanBrokerDelete, and AMMHelpers, and the MPTInvariant/Transactor changes correctly account for the new tecINCOMPLETE persistence of ltCREDENTIAL. Tests cover the blocked-then-cleaned-up scenario and the multi-transaction bounded overflow case for both Vault and LoanBroker. No correctne"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-14T20:23:31Z",
+     "body": "## Pull request overview\n\nThis PR adds amendment-gated cleanup logic to remove credentials that were historically able to become “pinned” to Vault, LoanBroker, and AMM pseudo-accounts (which cannot sign to accept/delete them). The goal is to unblock deletion/withdrawal flows that were previously prevented by these stale owner-directory entries.\n\n**Changes:**\n- Add bounded, resumable (via `tecINCOMPLETE`) cleanup of credentials pinned to Vault and LoanBroker pseudo-accounts during delete operations.\n- Extend AMM deletion and sole-LP checks to tolerate and clean up pinned credential entries under the new amendment.\n- Add unit tests covering pinned-credential deletion behavior and bounded clean"
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-08-18T17:51:55Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-08-18T17:51:57Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-08-18T17:51:58Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-08-18T17:51:59Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-18T17:55:35Z",
+     "body": "This MR adds a bounded cleanup pass that removes credentials pinned to Vault/LoanBroker/AMM pseudo-accounts before those objects are deleted, gated behind the new fixCleanup3_4_0 amendment. I traced the control flow through CredentialHelpers.cpp, AMMHelpers.cpp, VaultDelete.cpp, LoanBrokerDelete.cpp, Transactor.cpp, and MPTInvariant.cpp: the credential cleanup runs strictly before any state-destroying step in VaultDelete/LoanBrokerDelete, so the MPTInvariant special-case for tecINCOMPLETE (which assumes the MPT issuance hasn't been touched yet) holds given that ordering. The AMM path folds credential cleanup into the existing bounded trustline walk and correctly skips credential entries in t"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-18T17:55:36Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-18T17:55:37Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-18T17:55:39Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-18T17:55:41Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-19T14:44:47Z",
+     "body": "Well-scoped change: gates credential cleanup for Vault/LoanBroker pseudo-accounts and AMM behind fixCleanup3_4_0, with bounded per-transaction cleanup and tecINCOMPLETE resumption, plus matching tests. The implementation is consistent across VaultDelete, LoanBrokerDelete, and AMMHelpers. One place worth double-checking: the MPTInvariant relaxation for tecINCOMPLETE is scoped only to ttVAULT_DELETE, but LoanBrokerDelete's credential cleanup can also return tecINCOMPLETE before any MPT-issuance-related work — if LoanBrokerDelete transactions also carry the DestroyMptIssuance privilege, they'd hit the same invariant-fatal path this fix was meant to avoid for Vault."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-19T14:44:49Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-08-19T16:52:29Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-20T13:41:31Z",
+     "body": "This MR adds bounded credential cleanup for Vault/LoanBroker pseudo-accounts and AMM, gated behind fixCleanup3_4_0. The logic (bounded walk via cleanupOnAccountDelete, tecINCOMPLETE persistence wiring in Transactor.cpp, MPT invariant carve-out, AMM sole-LP credential skip) is internally consistent and mirrors the existing AMM trustline-cleanup pattern. I did not find correctness or security bugs in the new logic itself. The one thing worth double-checking is a header-include asymmetry between the two nearly-identical Delete transactors."
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-08-20T14:50:51Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-20T17:20:26Z",
+     "body": "This is a well-scoped, carefully engineered change that adds bounded, resumable cleanup of credentials pinned to Vault/LoanBroker/AMM pseudo-accounts, gated behind a new amendment (fixCleanup3_4_0). I traced the control flow through VaultDelete, LoanBrokerDelete, deleteAMMTrustLines/isOnlyLiquidityProvider, the CredentialHelpers cleanup routine, the Transactor persistent-changes mapping for tecINCOMPLETE, and the MPTInvariant carve-out for VaultDelete. The bounding logic, amendment gating, and tec code propagation (tecINCOMPLETE resuming across transactions) all look internally consistent, and the ordering of credential cleanup relative to existing owner-directory/obligation checks in VaultD"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-21T16:55:12Z",
+     "body": "This MR adds a bounded cleanup pass that removes credentials pinned to Vault/LoanBroker/AMM pseudo-accounts, gated behind fixCleanup3_4_0, with tecINCOMPLETE-based resumption plumbed through Transactor::processPersistentChanges and a corresponding MPT invariant carve-out for VaultDelete. I traced the new code paths in CredentialHelpers, AMMHelpers, VaultDelete, LoanBrokerDelete, Transactor, and MPTInvariant against the diff: the credential cleanup is invoked before any other pseudo-account teardown work in both VaultDelete and LoanBrokerDelete (so a tecINCOMPLETE bail-out has no other side effects to worry about), the AMM changes correctly gate the old tecINTERNAL/hard-failure behavior behin"
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-08-24T11:30:04Z",
+     "body": "lgtm"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-07-27T14:58:43Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultDelete.cpp",
+     "body": "🟠 **Severity: HIGH**\n\nCredential cleanup is added for `VaultDelete` and `LoanBrokerDelete`, but **not** for `deleteAMMAccount` in `AMMHelpers.cpp`. AMM is also a pseudo-account type (created with `sfAMMID`). `deleteAMMTrustLines` treats any non-trustline/non-MPToken directory entry as `tecINTERNAL`, so pre-existing credentials pinned to an AMM pseudo-account before the amendment will permanently block AMM deletion even after the amendment activates.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add credential cleanup for the AMM pseudo-account in `deleteAMMAccount()` in `src/libxrpl/ledger/helpers/AMMHelpers.cpp`, similar to what was done for `VaultDe",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3658347189"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-07-28T10:48:57Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultDelete.cpp",
+     "body": "The bot is right that AMM was missed: part 1 rejects AMM pseudo-account subjects, so part 2 has to cover AMM deletion too, otherwise a credential pinned before the amendment would strand the AMM.\n\nWhere the bot is off is the mechanism. The failure doesn't start in `deleteAMMTrustLines`. With a credential on the AMM pseudo-account, a full withdrawal fails with `tecINTERNAL` earlier, in `isOnlyLiquidityProvider` (called from `verifyAndAdjustLPTokenBalance` on the sole-LP withdrawal path). It walks the AMM account's owner directory and returns `tecINTERNAL` on any entry that isn't `ltAMM`/`ltMPTOKEN`/`ltRIPPLE_STATE`, so the withdrawal never reaches `deleteAMMAccount`. The cleanup the bot sugge",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3664865823"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-28T13:17:05Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "DoS risk: unbounded deletion with no maxNodesToDelete limit. Unlike deleteAMMTrustLines (512 cap) and AccountDelete (1000 cap), an attacker can pin credentials to a pseudo-account and force one transaction to walk and delete an arbitrarily large directory. Add maxNodesToDelete parameter (e.g., 512), propagate tecINCOMPLETE to callers, and allow retryable cleanup instead of one-pass enumeration.\n\nExample pattern to follow:\n- VaultDelete, LoanBrokerDelete, deleteAMMAccount should treat tecINCOMPLETE as retryable, allowing multiple transactions to make cleanup progress\n- Mirror the implementation in deleteAMMTrustLines (512 limit, returns tecINCOMPLETE on partial progress)",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3665801545"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-28T14:15:04Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "Unbounded credential cleanup allows DoS: attacker can pre-load credentials before amendment activates, forcing unbounded work in one transaction. Add maxNodesToDelete bound and handle tecINCOMPLETE result like deleteAMMTrustLines:\n\n```suggestion\n// Define a bounding constant\nstatic constexpr std::size_t kMaxDeletablePseudoAccountCredentials = 100;\n\n// Modify function to accept and pass maxNodesToDelete parameter,\n// returning tecINCOMPLETE if unable to complete in one transaction\nTER\ndeletePseudoAccountCredentials(\n    ApplyView& view,\n    AccountID const& pseudoAcct,\n    std::size_t maxNodesToDelete,\n    beast::Journal j);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3666274610"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-07-29T08:26:45Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "While the method name suggests thta credentials are deleted for pseudoAccounts, in reality, any accountID can be passed. \n\nIt might be a good idea to check that the account passed is a pseudo-account.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3672343692"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-07-29T08:27:03Z",
+     "path": "include/xrpl/ledger/helpers/CredentialHelpers.h",
+     "body": "nit: Please use doxygen style comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3672345556"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-07-29T08:29:59Z",
+     "path": "include/xrpl/ledger/helpers/CredentialHelpers.h",
+     "body": "Since after this PR `CredentialCreate` would not allow creating credentials for a pseudo-account, this function, at least for now, will only be useful, until the amendment that introduced it, is retired. It would be great to document why this method is needed (in case there are any pseudo-accounts already locked up).",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3672366867"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-07-29T08:30:52Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Each amendment requires to be voted in. Since `Cleanup3_4_0` is not yet released, let's add the fix under it, rather than a new amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3672373568"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-07-29T08:37:04Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "Good catch, clanker!\n\n@tyalymov  once maxNodesToDelete is added, let's add a test analogous to the existing kMaxDeletableAmmTrustLines overflow tests (AMM_test.cpp:5214, :7192) that pins more than the cap's worth of credentials to a pseudo-account pre-amendment and verifies tecINCOMPLETE + eventual multi-transaction cleanup.\n- Codecov flags one uncovered line each in AMMHelpers.cpp, LoanBrokerDelete.cpp, and VaultDelete.cpp — all the !isTesSuccess(ter) early-return branches after calling deletePseudoAccountCredentials. Once the function can return tecINCOMPLETE (per the Must Fix above), these branches become reachable and should be covered by the new test.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3672418084"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-07-29T10:52:45Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "Thanks for catching this. I started implementing the bound and hit a snag I'd like to consult you on.\n\nThe plan was to delete up to N credentials per transaction and return `tecINCOMPLETE` so a follow-up transaction resumes the cleanup. That works for LoanBroker and AMM. For Vault it collides with `ValidMPTIssuances`: `VaultDelete` carries the `DestroyMptIssuance` privilege, and the invariant requires any applied `VaultDelete` to remove exactly one MPT issuance in the same transaction. An incremental `VaultDelete` that clears a batch of credentials and returns `tecINCOMPLETE` hasn't removed the share issuance yet, so it trips `tecINVARIANT_FAILED`.\n\nTwo directions I came up with:\n\n1. Relax t",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3673470087"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-07-29T11:19:23Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "The first direction sounds right, in the transactor we first attempt to delete the credentials. If we fail to do so because there are too many of them, then the user must submit the transaction again to delete the rest of the credentials and the account.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3673671735"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-07-29T12:47:47Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultDelete.cpp",
+     "body": "Fixed — AMM is covered now: `isOnlyLiquidityProvider` skips credential entries, and `deleteAMMTrustLines` removes them within its existing bounded walk. (The actual failure point turned out to be `isOnlyLiquidityProvider` during withdrawal rather than `deleteAMMTrustLines`, as noted above.)",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3674348086"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-07-29T12:47:48Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3674348226"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-07-29T12:47:49Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3674348334"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-07-29T12:47:51Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3674348474"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-07-29T12:47:52Z",
+     "path": "include/xrpl/ledger/helpers/CredentialHelpers.h",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3674348572"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-07-29T12:47:53Z",
+     "path": "include/xrpl/ledger/helpers/CredentialHelpers.h",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3674348706"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-07-29T12:47:54Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3674348839"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-08-03T14:35:22Z",
+     "path": "src/libxrpl/tx/transactors/credentials/CredentialCreate.cpp",
+     "body": "FYI this is included in 3.3 (was a later PR so didn't make it into the public rc), so perhaps wait to merge this PR until we merge 3.3 into develop",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3704880681"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-08-07T14:08:13Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerDelete.cpp",
+     "body": "I think you can either create a corrupt dir to forge an error, or just mark this line as // LCOV_EXCL_LINE",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3736327276"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-10T12:27:04Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3749445707"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-10T12:27:06Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3749445835"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-10T12:27:57Z",
+     "path": "src/libxrpl/tx/transactors/credentials/CredentialCreate.cpp",
+     "body": "Thanks for the flag. 3.3 is in develop now, and this PR no longer overlaps with it: I dropped the create-time rejection from here entirely and kept only the cleanup for credentials pinned before that rejection existed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3749451934"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-10T12:27:58Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerDelete.cpp",
+     "body": "Added a test that pins more credentials than the per-transaction bound, so this line is exercised for real (tecINCOMPLETE) rather than needing LCOV_EXCL_LINE.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3749452096"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-10T13:32:58Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3749946364"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-10T13:33:00Z",
+     "path": "src/libxrpl/ledger/helpers/CredentialHelpers.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3749946568"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-14T20:23:30Z",
+     "path": "include/xrpl/protocol/Protocol.h",
+     "body": "The comment for kMaxDeletablePseudoAccountCredentials says it limits the number of credentials deleted, but the code path uses cleanupOnAccountDelete which bounds the number of owner-directory entries visited (and skipped entries still count). This can result in fewer than N credentials being deleted per transaction when other entries (e.g., share issuance) are present; the comment should reflect the actual bound semantics.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3786935173"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-14T20:23:30Z",
+     "path": "include/xrpl/ledger/helpers/CredentialHelpers.h",
+     "body": "This docstring says \"Only credentials are removed, at most maxNodesToDelete of them\", but deletePseudoAccountCredentials passes maxNodesToDelete to cleanupOnAccountDelete where the bound applies to owner-directory entries visited (and skipped entries still count). The number of credentials deleted can therefore be less than maxNodesToDelete; please clarify the wording to match behavior.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3786935210"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-14T20:23:31Z",
+     "path": "src/libxrpl/tx/invariants/MPTInvariant.cpp",
+     "body": "This tecINCOMPLETE exception is currently gated only on DestroyMptIssuance privilege, so it will also apply to other transactions that carry that privilege (e.g., MPTokenIssuanceDestroy). Narrowing the condition to ttVAULT_DELETE avoids accidentally relaxing the invariant for unrelated tx types if they ever return tecINCOMPLETE under fixCleanup3_4_0.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3786935261"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-14T20:23:31Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "Adding ltCREDENTIAL to the tecINCOMPLETE persistent-change path will cause the reapply phase to delete credentials via removeExpiredCredentials(), which now handles non-expired credential deletions as well. The helper name and its error log message currently hard-code \"expired credential\", which becomes misleading for this new use case; consider introducing a more general helper/log message for credential deletions replayed from tecINCOMPLETE.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3786935291"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-18T17:51:55Z",
+     "path": "include/xrpl/protocol/Protocol.h",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3806564489"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-18T17:51:57Z",
+     "path": "include/xrpl/ledger/helpers/CredentialHelpers.h",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3806564604"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-18T17:51:58Z",
+     "path": "src/libxrpl/tx/invariants/MPTInvariant.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3806564728"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-18T17:51:59Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3806564833"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-18T17:55:36Z",
+     "path": "include/xrpl/protocol/Protocol.h",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3806589319"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-18T17:55:37Z",
+     "path": "include/xrpl/ledger/helpers/CredentialHelpers.h",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3806589465"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-18T17:55:39Z",
+     "path": "src/libxrpl/tx/invariants/MPTInvariant.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3806589643"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-18T17:55:41Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3806589836"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-19T14:44:49Z",
+     "path": "src/libxrpl/tx/invariants/MPTInvariant.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7877#discussion_r3814021142"
+    }
+   ]
+  },
+  {
+   "number": 7704,
+   "title": "fix: Prevent silent zero AMM clawbacks due to integer MPT rounding",
+   "url": "https://github.com/XRPLF/rippled/pull/7704",
+   "state": "closed",
+   "author": "bryanjiang1",
+   "createdAt": "2026-07-02T17:36:06Z",
+   "updatedAt": "2026-08-25T15:22:44Z",
+   "closedAt": "2026-08-10T22:16:24Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-07T02:27:50Z",
+     "body": "The fixAMMClawbackRounding amendment actually predates AMM support for MPT pools. When fixAMMClawbackRounding was originally introduced, the codebase only handled IOU pools. Therefore, the description \"regression introduced by fixAMMClawbackRounding\" is inaccurate.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#issuecomment-4899529661"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-07T14:59:47Z",
+     "body": "What if the pool is {1 btc, 111000 xrp}? (I haven’t tested this number, assume it can cause the clawback of 1btc rounded to 0).\nWe can no longer claw 1btc from the holder. We might need to change the rounding for clawback so that 1btc can always be clawed",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#issuecomment-4905211372"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-08-07T19:49:55Z",
+     "body": "@BryanJ1ang please take a look at the comments left by Copilot. At first glance they look like reasonable changes to make.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#issuecomment-5221384584"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-07T20:20:39Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7704?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#issuecomment-5221638431"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nFixes a rounding vulnerability in `AMMClawback` where clawing back a fractional amount of an integer-based Multi-Purpose Token (MPT) could silently result in zero tokens being recovered, while still burning the target's LP tokens.\n\n### Context of Change\nThe guard is gated behind the `fixCleanup3_4_0` amendment.\n\nMPTs are integer-denominated, so for integer MPT pools the proportional clawback math (`clawAmount / amountBalance`) can produce a fraction that floors `amountRounded` — or `amount2Rounded` — down to `0`. Unlike its sibling routine (`equalWithdrawTokens`), this function lacked a guard to check for a zero result. Consequently, the transaction would re",
+   "merged": true,
+   "mergedAt": "2026-08-10T22:16:24Z",
+   "draft": false,
+   "base": "develop",
+   "head": "bryanjiang1:brjiang-amm-clawback",
+   "additions": 156,
+   "deletions": 8,
+   "changedFiles": 2,
+   "commits": 11,
+   "reviewComments": 27,
+   "reviews": [
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-07T02:36:12Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-07T02:38:15Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-07-08T20:37:51Z",
+     "body": "The `amount2Rounded == 0` operand is never exercised. Only the MPT (`amountRounded`) side rounds to zero here; the XRP side is always large. An MPT/MPT pool where the other asset is the tiny integer that floors to zero would do it. \n\nAdd a dedicated case in the RoundsToZero setup that claws a slightly larger amount which rounds non-zero, run it across the same three-amendment matrix, and assert the outcome is identical with `fixCleanup3_3_0` on and off — same `tesSUCCESS`, same MPT clawed, same pool/LP/outstanding deltas. That is the only thing that actually proves the guard fires only in the zero-rounding case and regresses nothing adjacent to it. That is the only thing that actually proves"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-13T19:39:07Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-13T22:24:13Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2026-07-16T16:34:40Z",
+     "body": "-Dunity=ON fails to build"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-21T02:23:50Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-21T03:08:20Z",
+     "body": ""
+    },
+    {
+     "author": "bryanjiang1",
+     "state": "COMMENTED",
+     "date": "2026-07-22T15:57:09Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-22T18:05:06Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-28T23:39:44Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-08-06T17:22:06Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-07T19:43:00Z",
+     "body": "## Pull request overview\n\nThis PR addresses a rounding edge case in AMM clawbacks involving integer-denominated MPT assets, where proportional clawback math can round an extracted asset down to zero while still burning the target’s LP tokens. The change introduces a guard (behind an amendment) to fail the transaction when either rounded withdrawal amount becomes zero, and adds a targeted regression test to reproduce the silent-zero scenario.\n\n**Changes:**\n- Add a zero-rounded-amount guard in `AMMClawback::equalWithdrawMatchingOneAmount` to abort with `tecAMM_FAILED` when rounding would cause a one-sided withdrawal.\n- Add a new unit test covering the rounding-to-zero clawback scenario for MPT"
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-08-07T19:43:24Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-08-07T19:48:29Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-07T19:54:11Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-10T17:09:05Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 2 out of 2 changed files in this pull request and generated no new comments.\n\n\n\n\n<details>\n<summary>Suppressed comments (2)</summary>\n\n**src/test/app/AMMClawbackMPT_test.cpp:1962**\n* PR description/test plan says the new rounding-to-zero scenario is tested under three amendment combinations (including fixAMMClawbackRounding off), but run() only exercises fixCleanup3_4_0 on/off while always enabling fixAMMClawbackRounding via `all`. Either update the PR description/test plan to match what’s actually covered, or add the missing fixAMMClawbackRounding-off coverage with the correct expectations.\n```\n        FeatureBitset const all{jtx::testableAmendment"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-08-10T17:50:38Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-07T02:36:12Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMClawback.cpp",
+     "body": "We need to put this behind an amendment guard. Let's use Cleanup3_3_0 (from features.macro) for now: `if (rules.enabled(fixCleanup3_3_0))`\nIf we decide to include this PR in the next upcoming release, we can switch to a new amendment.\n\nWe need to do this because the change alters current behavior and will cause a ledger consensus issue otherwise.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3533202129"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-07T02:38:15Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "We need to test `if (features[fixCleanup3_3_0])` instead, before and after your fix.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3533207609"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-07-08T20:26:23Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Can be `const`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3547038100"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-13T19:38:05Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "fixAMMClawbackRounding is already active. So we do not need to consider it anymore.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3573603256"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-13T19:38:32Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "fixAMMClawbackRounding is already active. So we do not need to consider it anymore.\nWe should just test the fix amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3573605874"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-13T22:24:13Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "this is not needed. It can be deleted.\nThis is already covered in other test cases, for example:\n`testAMMClawbackAmount(all);`\n\nIt runs with `fixCleanup3_3_0` enabled (by default, it is included in `all`), and it is non-zero-rounding.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3574598265"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-07-16T16:28:20Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMClawback.cpp",
+     "body": "nit: // LCOV_EXCL_LINE on line 259 is now stale — the new test makes equalWithdrawMatchingOneAmount return a reachable tecAMM_FAILED, so that return result; is now executed.\nadding a comment here since line 259 is not visible.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3597208568"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:23:51Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "why do we still need this?\nEven with near-zero rounding, it isn't an exact zero rounding. Non-zero rounding is already covered by our existing unit tests.\nwe just need to add `testAMMClawbackAmount(all - fixCleanup3_3_0)` to cover\n\n(https://github.com/XRPLF/rippled/pull/7704#discussion_r3574598265)",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619002558"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:44:30Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "we can wrap the first case in a `{}`",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619066411"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:46:01Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "`env.close()` is not needed after `amm.deposit`.\nbecause it is already encapsulated in it.\n\nunder AMM.cpp: AMM::submit, it calls:\n```\nif (doClose_)\n        env_.close();\n```\n\nThe other existing code can be cleaned up as well",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619071183"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:50:01Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "nit: \nPost-fixCleanup3_3_0: Clawback fails because of BTC balance would round to zero. All balances must remain untouched.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619085856"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:51:11Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "nit: Pre-fixCleanup3_3_0: ...",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619089727"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:52:07Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "If we wrap the first case in `{}`, we can use `gw`",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619092875"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:52:28Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "If we wrap the first case in {}, we can use mptBtc.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619094045"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:52:36Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "If we wrap the first case in {}, we can use amm. And the other variable names can be adjusted",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619094418"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T03:05:37Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "nit: Pre-fixCleanup3_3_0: clawback fails because ETH(Asset2) balance would round to zero. All balances must remain untouched.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619147148"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T03:06:55Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "nit: Post-fixCleanup3_3_0:..",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619150828"
+    },
+    {
+     "author": "bryanjiang1",
+     "date": "2026-07-22T15:57:09Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "this case claws an amount that rounds to 1, one unit above the `== kZero ` guard. It proves the guard fires only at exact zero and doesn't affect the values adjacent to it. I believe previous existing tests only claw large amounts far from that boundary, so they don't cover this. This is the case @gregtatcam asked for.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3631762860"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-22T18:05:06Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "1 or a large number seems to be the same functionally in this case. They are just not zero. @gregtatcam \nIt doesn't matter if the value is far from 0 or close to 0.\n\nI think we can leave it out and add \ntestAMMClawbackAmount(all - fixCleanup3_3_0) to cover.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3632624385"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-28T23:39:44Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "^^^^\n@BryanJ1ang This still needs to be addressed",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3669923704"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-07T19:42:59Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMClawback.cpp",
+     "body": "The new zero-rounding guard is gated on fixCleanup3_4_0, but the PR description says it is gated on fixCleanup3_3_0. Please confirm which amendment should control this behavior and align the code (and tests/docs) accordingly; otherwise the fix may activate under the wrong feature flag.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738342660"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-07T19:42:59Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "`lptBefore` is never used here. This can trigger unused-variable warnings in some build configurations; either remove the binding or mark it `[[maybe_unused]]`.\n\nThis issue also appears in the following locations of the same file:\n- line 552\n- line 610\n- line 621",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738342722"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-07T19:42:59Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "In the pre-fix (fixCleanup3_4_0 disabled) branch, the test validates that BTC rounds to zero and LP is burned, but it doesn’t assert that the paired XRP side was actually withdrawn (the key part of the silent-loss scenario described in the PR). Adding an assertion that the XRP pool balance decreased would more directly prove the bug is reproduced.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738342753"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-07T19:43:00Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "The PR description/test plan says the new rounding-to-zero scenario is exercised under three amendment combinations (including fixAMMClawbackRounding off), but `run()` only calls the new test with fixCleanup3_4_0 on/off while always forcing fixAMMClawbackRounding on via `all`. Either update the test plan text or extend this test to cover the fixAMMClawbackRounding-off combination with appropriate expectations.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738342799"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-08-07T19:43:23Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMClawback.cpp",
+     "body": "@gregtatcam I see you approved, but has this been addressed?",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738344936"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-08-07T19:48:29Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "@BryanJ1ang Can you add `[[maybe_unused]]` to all the referenced locations? When C++ 26 is out we can then use `_` to skip the unused variable.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738374599"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-07T19:54:11Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "fixAMMClawbackRounding is already enabled, so there's no need to test it off.\n@BryanJ1ang  PR description can change:\n\n\"Before:\nWith fixAMMClawbackRounding enabled but fixCleanup3_4_0 disabled\"\n\nshould leave out fixAMMClawbackRounding here. It is not related to this amendment. The amendment already enabled, the issue is caused by introducing MPT into AMM",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738402227"
+    }
+   ]
+  },
+  {
+   "number": 6959,
+   "title": "fix: Allow OverrideFreeze to bypass individual/deep freeze on AMM trust lines",
+   "url": "https://github.com/XRPLF/rippled/pull/6959",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-04-16T19:08:08Z",
+   "updatedAt": "2026-08-25T15:22:43Z",
+   "closedAt": "2026-08-10T22:14:55Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-04-16T19:26:32Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6959?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#issuecomment-4262826664"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-04-16T19:31:01Z",
+     "body": "This needs an amendment",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#issuecomment-4262850242"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-04-16T19:53:30Z",
+     "body": "> This needs an amendment\n\nGot it. Shall I go with fixSecurity3_1_3?",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#issuecomment-4262980832"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-05-01T17:43:40Z",
+     "body": "/ai-review",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#issuecomment-4360723939"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-03T11:09:38Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#issuecomment-4366023068"
+    },
+    {
+     "author": "godexsoft",
+     "date": "2026-05-04T14:24:04Z",
+     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#issuecomment-4371830900"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-14T16:39:14Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#issuecomment-4452663556"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-06-11T22:41:13Z",
+     "body": "Since this affects freeze, I'd like @vvysokikh1's opinion on this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#issuecomment-4685709487"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-14T13:10:50Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#issuecomment-4969519636"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2026-07-14T15:24:25Z",
+     "body": "> Since this affects freeze, I'd like @vvysokikh1's opinion on this PR.\n\ni'm not that much familiar with amm freeze behavior, but can still review later if needed",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#issuecomment-4970908442"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-10T16:52:37Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#issuecomment-5243308956"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThe invariant check condition:\n``(!isAMMLine || globalFreeze) && hasPrivilege(tx, overrideFreeze)``\nevaluates to false when `isAMMLine=true `and `globalFreeze=false`. This means `AMMClawback` cannot override individual or deep freeze on AMM trust lines (between the AMM pseudo-account and the issuer). The `withdraw()` call succeeds because it uses `FreezeHandling::fhIGNORE_FREEZE`, but the invariant checker then rejects the transaction because it detects a balance change on a frozen AMM line without the override condition being met. This creates a contradiction where the issuer's freeze action prevents their own clawback from the AMM pool.\n\nWhen the issuer in",
+   "merged": true,
+   "mergedAt": "2026-08-10T22:14:55Z",
+   "draft": false,
+   "base": "develop",
+   "head": "Kassaking7:DEFI-643",
+   "additions": 222,
+   "deletions": 11,
+   "changedFiles": 3,
+   "commits": 11,
+   "reviewComments": 4,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-01T17:45:08Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "PeterChen13579",
+     "state": "DISMISSED",
+     "date": "2026-05-01T18:54:39Z",
+     "body": "Looks good on my side"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-05-15T15:47:55Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-05-15T15:50:59Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-06-10T17:17:55Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "DISMISSED",
+     "date": "2026-06-10T17:19:19Z",
+     "body": "looks good - can approve after new amendment name update"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-06-10T17:19:54Z",
+     "body": "looks good - can approve after new amendment name update"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-11T18:12:14Z",
+     "body": "## Pull request overview\n\nThis pull request fixes a consensus invariant edge case where `AMMClawback` transactions with `OverrideFreeze` privilege could still be rejected by `FreezeInvariant` when an AMM trust line was individually frozen (or deep-frozen), creating a freeze/clawback deadlock for AMM pools.\n\n**Changes:**\n- Gate a corrected `OverrideFreeze` invariant path behind `fixCleanup3_3_0`, so AMM trust lines no longer block freeze-privileged transactions under individual/deep freeze.\n- Add unit tests covering AMMClawback behavior when the AMM-issuer trust line is individually frozen, globally frozen, and deep-frozen (when enabled).\n- Extend the AMMClawback test matrix to run with `fixC"
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2026-08-03T15:27:24Z",
+     "body": ""
+    },
+    {
+     "author": "PeterChen13579",
+     "state": "APPROVED",
+     "date": "2026-08-10T16:56:22Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-08-10T19:30:22Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "shawnxie999",
+     "date": "2026-05-15T15:47:55Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "prob dont need to say \"regression\" here",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#discussion_r3249347179"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-05-15T15:50:59Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "could we also add global freeze test?",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#discussion_r3249362619"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-06-10T17:17:55Z",
+     "path": "src/libxrpl/tx/invariants/FreezeInvariant.cpp",
+     "body": "minor: probably should change the log to a more generic msg, like  `a frozen trustline for a freeze privileged transaction`",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#discussion_r3390175703"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2026-08-03T15:27:24Z",
+     "path": "src/libxrpl/tx/invariants/FreezeInvariant.cpp",
+     "body": "I think the naming of the variable is confusing for the next reader. I'd suggest not to merge the condition of overrideFreeze and the AMM into single variable, or maybe rename it.\n\nmy suggestion would be: \n```\n   bool const isAMMLine = change.line->isFlag(lsfAMMNode);\n   if ((fixOverrideFreeze || !isAMMLine || globalFreeze) && hasPrivilege(tx, OverrideFreeze))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6959#discussion_r3705353066"
+    }
+   ]
+  },
+  {
+   "number": 7430,
+   "title": "fix: Prevent AMM auction slots from being acquired at zero cost when trading fee is zero",
+   "url": "https://github.com/XRPLF/rippled/pull/7430",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-06-08T16:41:01Z",
+   "updatedAt": "2026-08-20T19:32:18Z",
+   "closedAt": "2026-08-20T19:32:18Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-06-08T17:10:55Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7430?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#issuecomment-4651480547"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-09T20:37:58Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#issuecomment-4663802715"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-11T16:09:16Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#issuecomment-4682555986"
+    }
+   ],
+   "body": "## High Level Overview of Change\nWhen `sfTradingFee` is 0, `minSlotPrice = lptAMMBalance * 0 / 25 = 0`. An unowned/expired slot can be acquired for `minSlotPrice = 0`, burning zero LP tokens. While the slot provides no immediate benefit (discounted fee is also 0), if the trading fee is later voted up, the slot holder's `sfDiscountedFee` IS updated by AMMVote, so the discount tracks the new fee. However, the slot was acquired for free, meaning there was no economic cost to speculating on future fee increases. The slot holder occupies the slot for 24 hours at zero cost.\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: ",
+   "merged": true,
+   "mergedAt": "2026-08-20T19:32:18Z",
+   "draft": false,
+   "base": "develop",
+   "head": "Kassaking7:DEFI-666",
+   "additions": 87,
+   "deletions": 30,
+   "changedFiles": 4,
+   "commits": 9,
+   "reviewComments": 10,
+   "reviews": [
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-07-03T15:24:55Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-07-03T15:46:10Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-07-14T18:22:42Z",
+     "body": ""
+    },
+    {
+     "author": "PeterChen13579",
+     "state": "APPROVED",
+     "date": "2026-07-28T15:16:53Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "PeterChen13579",
+     "state": "COMMENTED",
+     "date": "2026-07-28T15:21:24Z",
+     "body": ""
+    },
+    {
+     "author": "PeterChen13579",
+     "state": "COMMENTED",
+     "date": "2026-07-28T15:25:30Z",
+     "body": ""
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-04T17:53:11Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-08-04T18:02:34Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-11T16:59:11Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-08-11T18:54:03Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-08-17T18:52:56Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-19T15:06:42Z",
+     "body": "## Pull request overview\n\nThis pull request prevents AMM auction slots from being acquired at zero/dust cost when the pool’s trading fee is zero (a scenario that previously enabled free slot acquisition and speculative benefit if the fee later increases).\n\n**Changes:**\n- Introduces `ammAuctionMinSlotPrice(...)` helper to centralize the min-slot-price formula.\n- Updates `AMMBid` pricing to apply a non-zero floor price for zero-fee pools when `fixCleanup3_4_0` is enabled.\n- Extends/adjusts AMM and AMM-MPT unit tests to cover both pre- and post-`fixCleanup3_4_0` behaviors.\n\n### Reviewed changes\n\nCopilot reviewed 4 out of 4 changed files in this pull request and generated 1 comment.\n\n| File | De"
+    },
+    {
+     "author": "PeterChen13579",
+     "state": "APPROVED",
+     "date": "2026-08-20T16:24:20Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "shawnxie999",
+     "date": "2026-07-03T15:24:55Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMBid.cpp",
+     "body": "where did we get this forumula?",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#discussion_r3520762849"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-07-03T15:46:10Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMBid.cpp",
+     "body": "AI also proposed alternative option where we simply prohibit when the fee is 0. Is that considered?",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#discussion_r3520853228"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-07-14T18:22:42Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMBid.cpp",
+     "body": "it's the existing  `minSlotPrice`  formula with the trading fee replaced by the smallest representable non-zero fee.\n\nThe normal min price (line 207) is:\n`minSlotPrice = lptAMMBalance * getFee(tradingFee) / kAuctionSlotMinFeeFraction;`\nWhen  `tradingFee == 0` ,  `getFee(0) == 0` , so  `minSlotPrice == 0 ` — that's the bug (slot acquirable for free). The fix substitutes  `getFee(1)`  (per  `getFee` 's doc,  `1`  = 0.001%, the smallest non-zero fee):\n\n```\nlptAMMBalance * getFee(1) / kAuctionSlotMinFeeFraction   // == lptAMMBalance / 2,500,000\n```\nSo a zero-fee pool is priced as if it had the minimum non-zero fee. This keeps the floor consistent with the existing pricing (scales with pool size,",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#discussion_r3581604411"
+    },
+    {
+     "author": "PeterChen13579",
+     "date": "2026-07-28T15:21:25Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "Just wondering why is this line change needed?",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#discussion_r3666823708"
+    },
+    {
+     "author": "PeterChen13579",
+     "date": "2026-07-28T15:25:30Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMBid.cpp",
+     "body": "Also should be `Cleanup3_4_0` now",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#discussion_r3666859885"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-08-04T17:53:11Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMBid.cpp",
+     "body": "🟡 **Severity: MEDIUM**\n\nThe variable `rules` is undefined in `applyBid` scope (should be `sb.rules()` or `ctx.view().rules()`). If this somehow resolves incorrectly, the amendment gate controlling this security fix would malfunction, potentially causing consensus failures or leaving the zero-fee slot vulnerability unpatched.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Replace `rules.enabled(fixCleanup3_3_0)` with `sb.rules().enabled(fixCleanup3_3_0)` on line 265. The variable `rules` is not defined in the `applyBid` function scope. The `Sandbox& sb` parameter is available and captured by the lambda via `[&]`. This matches the pattern used in sibling",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#discussion_r3714937313"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-08-04T18:02:34Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "This line switched from the hardcoded `tiny * 1.05` to `firstPrice * 1.05` because the fix changes what the first bid actually pays when the trading fee is zero. Before the amendment, the first bid's price was just the dust tiny amount (since minSlotPrice floors to 0 with zero fee) — hence the old hardcoded expectation. After the fix, that price is floored at minBidPrice when `fixCleanup3_4_0` is enabled, so the first price is no longer tiny. firstPrice already branches on the amendment (`cleanup340 ? minBidPrice : tiny`), so using it here keeps the re-bid assertion (\"must pay ≥1.05x the last price\") correct in both amendment states instead of only the pre-fix one.",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#discussion_r3714999564"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-11T16:59:11Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMBid.cpp",
+     "body": "Can we create a helper for this formula and replace everywhere its called?",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#discussion_r3760023956"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-08-11T18:54:03Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMBid.cpp",
+     "body": "created",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#discussion_r3760833982"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-19T15:06:42Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMBid.cpp",
+     "body": "The comment says the bidder pays max(bidPrice, computedPrice), but under fixCleanup3_4_0 `computedPrice` may be clamped to `effectivePrice` first. Updating the comment would avoid misleading future readers when debugging bid price selection.",
+     "url": "https://github.com/XRPLF/rippled/pull/7430#discussion_r3814198484"
+    }
+   ]
+  },
+  {
+   "number": 7418,
+   "title": "feat: Enforce MPT CanTransfer on AMM LPTokens transfers",
+   "url": "https://github.com/XRPLF/rippled/pull/7418",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2026-06-05T23:35:15Z",
+   "updatedAt": "2026-08-17T21:34:14Z",
+   "closedAt": "2026-08-17T21:34:12Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-06-06T00:08:22Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7418?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#issuecomment-4636531571"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T22:49:31Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#issuecomment-4813931210"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-06T23:13:54Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#issuecomment-4898457448"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nWhen an AMM pool asset is an MPT, transfers of that AMM's LPToken between holders are now only permitted if the MPT has lsfMPTCanTransfer set (or the LPToken sender is the MPT's issuer). This makes a non-transferable pool MPT block LPToken movement in exactly the same way a frozen pool asset already does, via the canTransfer() helper for MPTIssue.\n\n### API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backwar",
+   "merged": true,
+   "mergedAt": "2026-08-17T21:34:12Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:gregtatcam/mpt/transferable-lptokens",
+   "additions": 200,
+   "deletions": 2,
+   "changedFiles": 5,
+   "commits": 12,
+   "reviewComments": 21,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-05T23:38:41Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-06T23:17:11Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-04T19:04:13Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-04T19:17:48Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-04T19:20:04Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-04T19:23:00Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-04T19:23:43Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-04T19:24:11Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-04T19:47:48Z",
+     "body": "The change adds a well-scoped canTransferLPToken() helper mirroring the existing isLPTokenFrozen() pattern, and wires it into the two call sites (accountHolds/getLineIfUsable-derived spendable-balance check, and DirectStep's redeem-hop check) that need it to keep non-transferable-MPT LPTokens behaving like frozen LPTokens. The logic is internally consistent: the helper is a no-op unless the LPToken issuer is actually an AMM account, the redeem-hop-only check in DirectStep is correct because a trustline hop always has one endpoint equal to the currency issuer, and the self-referential from==to==account check in accountHolds correctly models the issuer-exemption semantics of canTransfer(). Tes"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-05T14:27:36Z",
+     "body": "This is a well-scoped, carefully-reasoned change that extends the existing frozen-pool-asset handling to non-transferable MPT pool assets via a new canTransferLPToken() helper. I traced all three call sites (accountHolds in TokenHelpers.cpp, the redeem-step check in DirectStep.cpp, and the underlying implementation in View.cpp) and the from/to/lpTokenIssuer argument wiring is consistent and correct in each: the DirectStep check only fires on the redeem hop where dst_ is guaranteed to be the LPToken's actual issuer (the AMM account), which correctly limits the check to real transfers and avoids blocking the issue-side hop or exempted issuer-initiated moves. The accountHolds change mirrors the"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-05T14:43:14Z",
+     "body": "The change adds canTransferLPToken() to gate LP-token movement on the underlying MPT's CanTransfer flag, wired into accountHolds() (spendable balance) and DirectStepI::check() (redeem hop), mirroring the existing frozen-pool-asset handling. The logic is internally consistent: from==to==account in the accountHolds call correctly reduces to \"is this holder the issuer or is CanTransfer set\" regardless of the eventual counterparty, and the DirectStep hook is scoped to the redeem step where dst_ is the AMM/issuer account, matching the new LPTokenTransfer_test coverage for both DirectStep payments and offer funding. No new code operates on unchanged/context lines, and I didn't find a case where th"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-05T15:23:35Z",
+     "body": "Solid, well-scoped change: adds canTransferLPToken() to gate AMM LPToken transfers on the MPT CanTransfer flag, wired into accountHolds (spendable balance / offer funding) and DirectStepI::check() (payment redeem step), mirroring the existing frozen-pool-asset handling. Test coverage for both the payment and offer-funding paths looks good. One point worth confirming around the DirectStep call site's implicit invariant."
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-06T19:49:56Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-06T22:40:44Z",
+     "body": "This MR adds canTransferLPToken() and wires it into TokenHelpers::getLineIfUsable (spendable-balance computation) and DirectStepI::check (payment-path redeem step) so that an AMM LPToken cannot be spent/routed between two non-issuer holders when a pooled MPT lacks lsfMPTCanTransfer, mirroring the existing frozen-pool-asset behavior. The implementation is careful: it no-ops for non-AMM issuers and non-MPT pool assets (implicitly gated by featureMPTokensV2), checks both pool assets, and the DirectStep check is correctly scoped to only the redeem-to-issuer hop (the issue-from-issuer hop is already permitted intrinsically by canTransfer's issuer bypass). Tests extend LPTokenTransfer_test with bo"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-10T18:16:19Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-10T21:15:06Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-08-11T17:10:37Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-11T22:42:27Z",
+     "body": "Clean, well-scoped change: adds canTransferLPToken() in libxrpl/ledger to gate AMM LPToken movement on the transferability of any MPT pool asset, wired into the two places that determine LPToken \"usability\" (accountHolds via TokenHelpers::getLineIfUsable, and payment-path DirectStep). The core logic is symmetric with the existing isLPTokenFrozen() pattern, self-guards for non-AMM issuers and non-MPT assets, and is covered by new tests for both the direct-payment and offer-funding paths. I did not find a definite bug in the new logic, but flagging one design point worth confirming with the author around recipient-side exemption."
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-14T15:22:24Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-14T16:04:15Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-14T20:35:36Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-08-14T20:35:57Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-17T12:52:57Z",
+     "body": "## Pull request overview\n\nThis PR enforces MPToken transferability (lsfMPTCanTransfer) when AMM pool assets are MPTs, by blocking AMM LPToken movement between non-issuer holders unless the pool MPT permits transfers (or the LPToken sender is the MPT issuer). This aligns “non-transferable pool MPT” behavior with existing “frozen pool asset” behavior across path payments and order-book spendability.\n\n**Changes:**\n- Added `canTransferLPToken()` helper to validate LPToken movement based on AMM pool MPT transferability.\n- Enforced the check during payment path direct-step validation and during spendable-balance evaluation (offer funding).\n- Extended `LPTokenTransfer_test` to cover both direct-ste"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-17T13:19:37Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-17T13:48:56Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-17T13:50:28Z",
+     "body": "This MR adds canTransferLPToken() to gate AMM LPToken movement on the MPT CanTransfer flag of pool assets, mirroring the existing isLPTokenFrozen pattern. The implementation is consistent: the helper is a no-op for non-AMM issuers and non-MPT pool assets, the DirectStep check only needs to fire on the redeem hop (toward the AMM account) since any holder-to-holder transfer must pass through that hop, and the accountHolds/getLineIfUsable change correctly mirrors the freeze-based unspendable-balance behavior. Error mapping (tecNO_AUTH -> terNO_LINE) matches the existing freeze precedent, and the added tests cover both DirectStep payments and offer funding across both flag combinations and pool "
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-17T17:06:50Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-17T17:10:45Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-17T17:11:50Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-17T17:14:47Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-17T18:20:10Z",
+     "body": "This is a well-scoped addition of an MPT CanTransfer gate for AMM LPToken transfers, implemented via a single `canTransferLPToken` helper that is a no-op for non-AMM issuers/non-MPT pool assets and wired into the two relevant enforcement points (balance-spendability check in TokenHelpers, and the DirectStep redeem-against-issuer hop). The logic, parameter ordering, and early-return semantics all look consistent between the declaration, both call sites, and the accompanying tests, and the new tests cover both the payment and offer-funding paths for transferable/non-transferable pool MPTs. I did not find a clear correctness or security issue in the changed lines."
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-17T18:37:37Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-17T18:55:45Z",
+     "body": "This is a well-scoped, consistent change that extends the existing frozen-pool-asset LPToken restriction to also cover non-transferable MPT pool assets via a new canTransferLPToken() helper. The helper is a no-op for non-AMM issuers and non-MPT pool assets, so it's correctly implicitly gated by featureMPTokensV2 without needing an explicit feature check. The DirectStep.cpp integration mirrors the existing checkFreeze() call site and its 'pure issue/redeem' exemption, and the TokenHelpers.cpp change correctly zeroes spendable balance the same way isLPTokenFrozen does, giving parity with frozen-asset semantics for offers (verified against the new test's expected tecUNFUNDED_OFFER outcome) and "
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-08-17T19:05:17Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-04T19:04:13Z",
+     "path": "src/libxrpl/ledger/helpers/TokenHelpers.cpp",
+     "body": "should we return empty amount directly here?",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3715408886"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-04T19:17:48Z",
+     "path": "src/libxrpl/ledger/helpers/TokenHelpers.cpp",
+     "body": "It mirrors non-LPToken asset. I.e, `sle` can be `nullptr` without this change and we don't return empty amount directly in this case either.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3715494078"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-04T19:20:04Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "nit: rename lambda to testLPTokenTransfer",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3715507341"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-04T19:23:00Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "should we test both Asset and Asset2?",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3715527101"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-04T19:23:43Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "Should we test both Asset and Asset2?",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3715532454"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-04T19:24:11Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "nit: rename scenario to testLPTokenTransfer",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3715535132"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-06T19:49:57Z",
+     "path": "src/libxrpl/ledger/helpers/TokenHelpers.cpp",
+     "body": "It is cleaner to call canTransferLPToken inside getLineIfUsable",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3731526573"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-10T18:16:19Z",
+     "path": "src/libxrpl/tx/paths/DirectStep.cpp",
+     "body": "Although it is implicitly gated, it might be worth adding featureMPTokensV2 anyway just for efficiency. So that before featureMPTokensV2 is enabled, we do not need to call into canTransferLPToken.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3752182366"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-10T21:15:06Z",
+     "path": "src/libxrpl/tx/paths/DirectStep.cpp",
+     "body": "The explicit gate adds work forever after activation (rules().enabled(featureMPTokensV2) check); its only saving is the temporary pre-activation window, which ends and never returns. We'd be optimizing a window that closes permanently, at the cost of a permanent extra check.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3753436186"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-14T15:22:24Z",
+     "path": "src/libxrpl/ledger/helpers/TokenHelpers.cpp",
+     "body": "Why doesn't this need to be gated? Its caller is `accountHolds`, which is used accross the codebase and isn't exclusive to MPT DEX payments",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3785039162"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-14T16:04:15Z",
+     "path": "src/libxrpl/ledger/helpers/TokenHelpers.cpp",
+     "body": "Because it only applies to `LPToken`, when AMM pool has `MPToken` asset. See `canTransferLPToken()`, which returns `tesSUCCESS` for `Issue`. So this is gated implicitly by `MPTokenV2` since AMM with `MPToken` can only be created once `MPTokenV2` is enabled. One hypothetical consensus \"break\" is when `canTransferMPToken()` has a failure  to read AMM object. But a) it can't really happen; b) this failure is already checked under `fixFrozenLPTokenTransfer` above.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3785374464"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-14T20:35:36Z",
+     "path": "src/libxrpl/ledger/helpers/TokenHelpers.cpp",
+     "body": "Thanks for clarifying",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3787005010"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-17T12:52:56Z",
+     "path": "include/xrpl/ledger/View.h",
+     "body": "This change adds a new function declaration to include/xrpl/ledger/View.h, which is part of the installed/public header set. That makes this PR a public API addition (at least for libxrpl consumers), but the PR description's API Impact section has the Public API boxes unchecked. If this is intended to be internal-only, consider moving the declaration to an internal header; otherwise, please update the PR metadata to reflect the public API change.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3796501745"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-17T12:52:56Z",
+     "path": "src/libxrpl/tx/paths/DirectStep.cpp",
+     "body": "The canTransferLPToken() result is currently collapsed to terNO_LINE for any non-tesSUCCESS outcome. That hides internal/ledger-inconsistency errors (e.g. tecINTERNAL if the AMM SLE is missing) and changes behavior vs the existing frozen-LP-token path, which propagates tecINTERNAL. Consider only mapping the expected non-transferability result (tecNO_AUTH) to terNO_LINE and propagating other error codes unchanged.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3796501789"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-17T13:19:36Z",
+     "path": "include/xrpl/ledger/View.h",
+     "body": "Checked libxrpl box in PR description.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3796696126"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-17T13:48:55Z",
+     "path": "src/libxrpl/tx/paths/DirectStep.cpp",
+     "body": "Pushed suggested fix.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3796844605"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-17T17:06:50Z",
+     "path": "src/libxrpl/tx/paths/DirectStep.cpp",
+     "body": "Why are we strictly returning `terNO_LINE`? Shouldn't we return whatever error code is returned from the function? eg. it may return `tecINTERNAL`, and currently we are ignoring that.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3797424356"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-17T17:10:45Z",
+     "path": "src/libxrpl/tx/paths/DirectStep.cpp",
+     "body": "> Map only that case (tecNO_AUTH) to terNO_LINE, so a non-transferable LPToken behaves like a frozen one.\n\nIMO we don't necessarily need to follow the freeze behavior for CanTransfer, `tecNO_LINE` doesn't feel like an accurate code either",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3797443524"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-17T17:11:50Z",
+     "path": "src/libxrpl/tx/paths/DirectStep.cpp",
+     "body": "The older logic was returning terNO_LINE unconditionally. Now we are returning terNO_LINE if later is tecNO_AUTH, otherwise we are returning the actual error.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3797448837"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-17T17:14:46Z",
+     "path": "src/libxrpl/tx/paths/DirectStep.cpp",
+     "body": "> > Map only that case (tecNO_AUTH) to terNO_LINE, so a non-transferable LPToken behaves like a frozen one.\n> \n> IMO we don't necessarily need to follow the freeze behavior for CanTransfer, `tecNO_LINE` doesn't feel like an accurate code either\n\nWell, terNO_LINE also seems unrelated to freeze. Returning terNO_LINE for consistency.",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3797462775"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-17T18:37:37Z",
+     "path": "src/libxrpl/tx/paths/DirectStep.cpp",
+     "body": "```\n    \n        if (auto const lpTer = canTransferLPToken(ctx.view, src_, dst_, dst_); !isTesSuccess(lpTer))\n            return lpTer;\n```\n\ncan be moved inside the if",
+     "url": "https://github.com/XRPLF/rippled/pull/7418#discussion_r3797884254"
+    }
+   ]
+  },
+  {
+   "number": 5012,
+   "title": "Fix AMM missing XRP Asset Metadata",
+   "url": "https://github.com/XRPLF/rippled/pull/5012",
+   "state": "open",
+   "author": "shawnxie999",
+   "createdAt": "2024-05-02T15:30:48Z",
+   "updatedAt": "2026-08-12T16:19:19Z",
+   "closedAt": null,
+   "labels": [
+    "Bug",
+    "Amendment",
+    "Blocked on requested changes",
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov-commenter",
+     "date": "2024-05-02T15:59:31Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5012?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `50.00000%` with `3 lines` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 70.9%. Comparing base ([`5aa1106`](https://app.codecov.io/gh/XRPLF/rippled/commit/5aa1106ba1fe25ee26dae34feeeed2136ba21bd7?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`2c0572c`](https://app.codecov.io/gh/XRPLF/rippled/commit/2c0572cf4e13fea499fef74f5859f54be916283c?dropd",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2090885804"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-02T20:07:35Z",
+     "body": "Does it make sense to add another virtual method to `STBase`, say `canInsertMetadata()` with the default implementation returning `isDefault()` and `STIssue`/`STCurrency` returning false? `canInsertMetadata()` is only called in the metadata handling. This ensures that `isDefault()` semantic is not broken.",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2091465520"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-05-03T13:07:34Z",
+     "body": "> Does it make sense to add another virtual method to `STBase`, say `canInsertMetadata()` with the default implementation returning `isDefault()` and `STIssue`/`STCurrency` returning false? `canInsertMetadata()` is only called in the metadata handling. This ensures that `isDefault()` semantic is not broken.\n\nI'm not sure if that would be needed. `isDefault()` itself is only used for metadata purposes(though would need to double check this), so I don't think we would need to introduce another method for this. And by Ed's definition, `isDefault()` is only supposed to return true if the value represents \"nothing\", so omitting XRP would  clearly be wrong behavior.",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2092984307"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-03T13:22:38Z",
+     "body": "> > Does it make sense to add another virtual method to `STBase`, say `canInsertMetadata()` with the default implementation returning `isDefault()` and `STIssue`/`STCurrency` returning false? `canInsertMetadata()` is only called in the metadata handling. This ensures that `isDefault()` semantic is not broken.\n> \n> I'm not sure if that would be needed. `isDefault()` itself is only used for metadata purposes(though would need to double check this), so I don't think we would need to introduce another method for this. And by Ed's definition, `isDefault()` is only supposed to return true if the value represents \"nothing\", so omitting XRP would clearly be wrong behavior.\n\nCan you confirm it's only",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2093012534"
+    },
+    {
+     "author": "exunda",
+     "date": "2024-05-19T14:27:42Z",
+     "body": "> > > Does it make sense to add another virtual method to `STBase`, say `canInsertMetadata()` with the default implementation returning `isDefault()` and `STIssue`/`STCurrency` returning false? `canInsertMetadata()` is only called in the metadata handling. This ensures that `isDefault()` semantic is not broken.\n> > \n> > \n> > I'm not sure if that would be needed. `isDefault()` itself is only used for metadata purposes(though would need to double check this), so I don't think we would need to introduce another method for this. And by Ed's definition, `isDefault()` is only supposed to return true if the value represents \"nothing\", so omitting XRP would clearly be wrong behavior.\n> \n> Can you co",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2119256727"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-05-30T12:09:13Z",
+     "body": "FWIW, ~I am uncomfortable with this change. Both `STCurrency` and `STIssue` are basic protocol building blocks, and because of this we cannot assume that `isDefault()` functions will be only ever used for metadata generation (that is, regardless of the answer to the question posed by @gregtatcam , things may change in the future). IMO we should either add a new function with the required semantics and change other bits (i.e. where metadata is generated) to use it, or do something else.~\n\nEDIT: changed my opinion, scroll below",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2139416016"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-05-30T14:10:23Z",
+     "body": "> FWIW, I am uncomfortable with this change. Both `STCurrency` and `STIssue` are basic protocol building blocks, and because of this we cannot assume that `isDefault()` functions will be only ever used for metadata generation (that is, regardless of the answer to the question posed by @gregtatcam , things may change in the future). IMO we should either add a new function with the required semantics and change other bits (i.e. where metadata is generated) to use it, or do something else.\n\nI agree with this.\n\nHere is what we did:\n\n```\nbool const recordDefaultAmounts = to.rules().enabled(fixXahauV1);\n...\nbool const shouldRecord =\n                    (obj.getSType() == STI_AMOUNT && recordDefaul",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2139645451"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-06-03T13:41:32Z",
+     "body": "> > FWIW, I am uncomfortable with this change. Both `STCurrency` and `STIssue` are basic protocol building blocks, and because of this we cannot assume that `isDefault()` functions will be only ever used for metadata generation (that is, regardless of the answer to the question posed by @gregtatcam , things may change in the future). IMO we should either add a new function with the required semantics and change other bits (i.e. where metadata is generated) to use it, or do something else.\n> \n> I agree with this.\n> \n> Here is what we did:\n> \n> ```\n> bool const recordDefaultAmounts = to.rules().enabled(fixXahauV1);\n> ...\n> bool const shouldRecord =\n>                     (obj.getSType() == STI_",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2145237510"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-06-03T14:34:54Z",
+     "body": "> > > FWIW, I am uncomfortable with this change. Both `STCurrency` and `STIssue` are basic protocol building blocks, and because of this we cannot assume that `isDefault()` functions will be only ever used for metadata generation (that is, regardless of the answer to the question posed by @gregtatcam , things may change in the future). IMO we should either add a new function with the required semantics and change other bits (i.e. where metadata is generated) to use it, or do something else.\n> > \n> > \n> > I agree with this.\n> > Here is what we did:\n> > ```\n> > bool const recordDefaultAmounts = to.rules().enabled(fixXahauV1);\n> > ...\n> > bool const shouldRecord =\n> >                     (obj.g",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2145366071"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-06-03T16:55:35Z",
+     "body": "> `return (mValue == 0) && mIsNative;`\n\nI think the condition that you are citing here just happens to match the definition of \"no useful data here\", in the context of `STAmount`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2145698149"
+    },
+    {
+     "author": "donovanhide",
+     "date": "2024-08-14T07:37:53Z",
+     "body": "Hi, it would be great if this PR got pushed through, it is a major complication for dealing with newly created AMM's which haven't yet traded. Workaround at the moment means you have to scan the other metadata ledger entries for the matching `AccountRoot` to get the missing `Asset` XRP balance. Example transaction:\n\n[B2365B7E85CFB1A7F9521CB37EF206D503135C695B689AD4C553BC8E8A215634](https://xrpl.org/resources/dev-tools/rpc-tool#B2365B7E85CFB1A7F9521CB37EF206D503135C695B689AD4C553BC8E8A215634)",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2288056758"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-04-11T13:12:41Z",
+     "body": "@shawnxie999 can you please rebase, resolve the conflicts, and address the open items in the comments, if any?",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2796884417"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-04-23T16:54:07Z",
+     "body": "@bthomee I won't be able to get to this PR for a while.",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-2824940361"
+    },
+    {
+     "author": "vlntb",
+     "date": "2025-10-17T15:04:59Z",
+     "body": "@shawnxie999 Do you have time to return back to this PR?",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-3415961534"
+    },
+    {
+     "author": "vlntb",
+     "date": "2025-10-17T15:07:27Z",
+     "body": "@gregtatcam Is this change still relevant?",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-3415969527"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-10-17T19:13:15Z",
+     "body": "@vlntb Unfortunately, I won't be able to prioritize this PR for quite a while",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-3416780223"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-10-20T19:15:29Z",
+     "body": "> @gregtatcam Is this change still relevant?\n\nYes, it's still relevant.",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-3423406932"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-26T00:43:12Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-4130765198"
+    },
+    {
+     "author": "godexsoft",
+     "date": "2026-05-04T14:28:06Z",
+     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#issuecomment-4371861282"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nIn the `NewFields` of a AMM object after a `AMMCreate` transaction, `Asset` would be omitted if it is XRP, which is incorrect. A new amendment fixAMMMetadata fixes this problem \n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [x] Tests (you added tests for code that already exists, or your new feature in",
+   "merged": false,
+   "mergedAt": null,
+   "draft": true,
+   "base": "develop",
+   "head": "shawnxie999:amm-metadat-rule",
+   "additions": 104,
+   "deletions": 1,
+   "changedFiles": 6,
+   "commits": 1,
+   "reviewComments": 10,
+   "reviews": [
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-02T18:14:24Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-05-02T18:17:11Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-02T19:00:13Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-02T19:03:25Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-05-02T22:29:47Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-05-03T12:46:57Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-03T13:00:33Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-05-03T14:56:59Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "CHANGES_REQUESTED",
+     "date": "2024-06-05T10:39:11Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2024-06-05T11:33:21Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-02T18:14:24Z",
+     "path": "src/ripple/protocol/impl/STCurrency.cpp",
+     "body": "This changes semantics of this call. Post-amendment `STCurrency` and `STIssue` will not have the default value. Is this really the right behavior?",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#discussion_r1588099709"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-05-02T18:17:11Z",
+     "path": "src/ripple/protocol/impl/STCurrency.cpp",
+     "body": "https://github.com/XRPLF/rippled/issues/4965#issuecomment-2079688630\n\nhere is what Ed said about default value",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#discussion_r1588103924"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-02T19:00:13Z",
+     "path": "src/ripple/protocol/impl/STCurrency.cpp",
+     "body": "Is `isDefault()` used for the metadata insertion only? If not then is returning always `false` consistent with other uses?",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#discussion_r1588176206"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-02T19:03:25Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "Why is this not amendment guarded?",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#discussion_r1588185846"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-05-02T22:29:47Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "This is not a problem with Oracle I believe, since the asset is an inner object",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#discussion_r1588495302"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-05-03T12:46:56Z",
+     "path": "src/ripple/protocol/impl/STCurrency.cpp",
+     "body": "Yes i believe isDefault() is only used for metadata",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#discussion_r1589154071"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-03T13:00:33Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "Why it should not be amendment guarded if it's an inner object?",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#discussion_r1589168698"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-05-03T14:56:59Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "Inner object default values will not omitted. Metadata would only check the outer [object](https://github.com/XRPLF/rippled/blob/f6509495731b396ce33d96778e8df0366a8200bf/src/ripple/ledger/impl/ApplyStateTable.cpp#L236)",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#discussion_r1589324333"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-06-05T10:39:03Z",
+     "path": "src/ripple/protocol/Feature.h",
+     "body": "Having read https://github.com/XRPLF/rippled/issues/4965#issuecomment-2079688630 I think this is a good fix, but I would like the amendment to use a different name. The use of `AMM` in name is misleading, this is a currency metadata fix (i.e. a lower abstraction level), which just happens to show up in AMM (but also in Oracle, as the unit tests demonstrate).",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#discussion_r1627479283"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-06-05T11:33:21Z",
+     "path": "src/ripple/protocol/Feature.h",
+     "body": "Could be also named as asset metadata, rather than currency metadata.",
+     "url": "https://github.com/XRPLF/rippled/pull/5012#discussion_r1627580001"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [
+  {
+   "number": 498,
+   "title": "Draft: Concentrated Liquidity AMM",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/498",
+   "state": "open",
+   "isPr": true,
+   "author": "RomThpt",
+   "createdAt": "2026-03-11T12:08:02Z",
+   "updatedAt": "2026-03-20T00:50:19Z",
+   "comments": 2,
+   "labels": [
+    "has XLS number"
+   ]
+  },
+  {
+   "number": 307,
+   "title": "Add XLS-AMM-Concentrated-Liquidity Specification",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/307",
+   "state": "closed",
+   "isPr": true,
+   "author": "LJ-XRPL",
+   "createdAt": "2025-08-17T20:57:50Z",
+   "updatedAt": "2025-08-19T14:39:51Z",
+   "comments": 3,
+   "labels": []
+  },
+  {
+   "number": 141,
+   "title": "Information on AMM and Clawback collaboration",
+   "url": "https://github.com/XRPLF/XRPL-Standards/issues/141",
+   "state": "closed",
+   "isPr": false,
+   "author": "tequdev",
+   "createdAt": "2023-10-20T07:29:03Z",
+   "updatedAt": "2023-11-08T18:12:27Z",
+   "comments": 4,
+   "labels": []
+  },
+  {
+   "number": 143,
+   "title": "Clarify AMM<>Clawback behavior on XLS-39d",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/143",
+   "state": "closed",
+   "isPr": true,
+   "author": "kennyzlei",
+   "createdAt": "2023-11-02T22:45:14Z",
+   "updatedAt": "2023-11-08T18:11:20Z",
+   "comments": 0,
+   "labels": []
+  },
+  {
+   "number": 125,
+   "title": "XLS-30: AMM Specification",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/125",
+   "state": "closed",
+   "isPr": true,
+   "author": "aanchal4",
+   "createdAt": "2023-08-09T20:49:14Z",
+   "updatedAt": "2023-10-04T23:15:31Z",
+   "comments": 1,
+   "labels": []
+  }
+ ],
+ "branches": [
+  "gregtatcam/retire/fixAMMv1_1"
+ ]
+}
