@@ -64,6 +64,7 @@ export function TxBuilder(p: BuilderProps) {
   if (!xaman.account) problems.push("Connect Xaman to fill in Account and sign.");
   if (missing.length) problems.push(`Missing required fields: ${missing.join(", ")}.`);
   if (p.amendmentGate && !p.amendmentGate.enabled) problems.push(`The ${p.amendmentGate.name} amendment is not active on ${net.label}: the node will return temDISABLED.`);
+  if (net.mainnet) problems.push("Mainnet: this transaction is real. Simulate first; Xaman will ask you to confirm on the device as well.");
   if (!net.xaman) problems.push(`Xaman cannot sign on ${net.label}. You can still simulate here, or copy the JSON and sign it with another tool.`);
 
   const runSimulate = async () => {
@@ -77,6 +78,7 @@ export function TxBuilder(p: BuilderProps) {
   };
 
   const runSign = async () => {
+    if (net.mainnet && !window.confirm(`You are about to sign a real ${p.name} on Mainnet. It will cost real XRP and cannot be undone. Continue?`)) return;
     setFinal({ loading: false });
     const res = await signer.sign(tx, `${p.name} · XRPL Tx Lab (${net.label})`, net.xaman);
     if (res?.meta.signed && res.response.txid) {

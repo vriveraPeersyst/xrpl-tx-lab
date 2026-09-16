@@ -45,13 +45,13 @@ export default async function Home({ params }: { params: Promise<{ net: string }
 
       <section>
         <h2 className="display-lg mb-6">Networks</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {NETWORKS.map((n) => {
             const has = available.includes(n.id);
             const s = has ? getNet(n.id).snapshot : undefined;
             const inner = (
               <>
-                <div className="flex items-baseline justify-between"><h3 className="display-md">{n.label}</h3>{n.id === net && <span className="badge bg-accent text-black">current</span>}</div>
+                <div className="flex items-baseline justify-between"><h3 className="display-md">{n.label}</h3>{n.id === net ? <span className="badge bg-accent text-black">current</span> : n.mainnet ? <span className="badge bg-black text-white">real XRP</span> : null}</div>
                 <p className="mt-1 text-xs text-muted">{n.blurb}</p>
                 {s ? <p className="mt-3 font-mono text-sm">xrpld {s.buildVersion} · {s.amendments.filter((a) => a.enabled).length}/{s.amendments.length} amendments · {Object.keys(s.definitions.TRANSACTION_TYPES).length - 1} tx types</p> : <p className="mt-3 text-xs text-muted">Unreachable at the last sync; no data yet.</p>}
               </>

@@ -17,9 +17,22 @@ export interface Network {
   xaman?: string;
   /** Preview networks may reset or go down without notice. */
   preview?: boolean;
+  /** Real network: transactions cost real XRP. */
+  mainnet?: boolean;
 }
 
 export const NETWORKS: Network[] = [
+  {
+    id: "mainnet",
+    label: "Mainnet",
+    short: "mainnet",
+    blurb: "The production XRP Ledger. Transactions cost real XRP and cannot be undone.",
+    rpc: ["https://xrplcluster.com/", "https://s1.ripple.com:51234/", "https://s2.ripple.com:51234/"],
+    ws: "wss://xrplcluster.com",
+    explorer: "https://livenet.xrpl.org",
+    xaman: "MAINNET",
+    mainnet: true,
+  },
   {
     id: "testnet",
     label: "Testnet",

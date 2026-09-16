@@ -49,6 +49,11 @@ export default async function NetLayout({ children, params }: { children: React.
           {NAV.map(([href, label]) => <Link key={href} href={`/${net}/${href}`} className="whitespace-nowrap text-muted hover:text-fg">{label}</Link>)}
         </nav>
       </header>
+      {d.network.mainnet && (
+        <div className="border-b border-border bg-black text-white">
+          <div className="mx-auto max-w-7xl px-4 py-1.5 text-xs"><span className="text-green-300">Mainnet.</span> Everything you sign here moves real XRP and cannot be undone. Use Simulate first and double-check every field; the reserve you lock is real money.</div>
+        </div>
+      )}
       {d.network.preview && (
         <div className="border-b border-border bg-[#dbf15e] text-black">
           <div className="mx-auto max-w-7xl px-4 py-1.5 text-xs">{d.network.label} is a preview network (id {d.snapshot.networkId}): it may reset or go offline without notice. {d.network.xaman ? "" : "Xaman cannot sign on this network; use Simulate or copy the JSON to another signer."}</div>
@@ -59,7 +64,7 @@ export default async function NetLayout({ children, params }: { children: React.
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-8 text-xs text-muted md:flex-row md:items-end md:justify-between">
           <div className="space-y-1">
             <Image src="/brand/logo-black.svg" alt="XRP Ledger" width={140} height={27} />
-            <p>Educational lab. Test networks only: nothing you do here has real value.</p>
+            <p>Educational lab. On test networks nothing has real value; on Mainnet every transaction is real.</p>
             <p>Networks: {NETWORKS.map((n) => <Link key={n.id} href={`/${n.id}`} className={`mr-2 ${n.id === net ? "text-fg" : ""} ${available.includes(n.id) ? "hover:underline" : "opacity-50"}`}>{n.label}</Link>)}</p>
           </div>
           <p className="max-w-xl">Data extracted from <a className="link" href={d.protocol.source.repo} target="_blank" rel="noreferrer">XRPLF/rippled</a> ({d.protocol.source.branch} @ {d.protocol.source.commit?.slice(0, 8)}) and from {d.network.label} ({d.snapshot.rpc}, ledger {d.snapshot.validatedLedger.seq.toLocaleString("en-US")}, {new Date(d.snapshot.fetchedAt).toLocaleString("en-US")}).</p>

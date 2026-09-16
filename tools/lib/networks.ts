@@ -1,6 +1,7 @@
 /** Network list for the tools (mirrors src/lib/networks.ts without the Next alias). */
 export interface ToolNetwork { id: string; label: string; rpc: string[] }
 export const NETWORKS: ToolNetwork[] = [
+  { id: "mainnet", label: "Mainnet", rpc: ["https://xrplcluster.com/", "https://s1.ripple.com:51234/", "https://s2.ripple.com:51234/"] },
   { id: "testnet", label: "Testnet", rpc: ["https://s.altnet.rippletest.net:51234/", "https://testnet.xrpl-labs.com/"] },
   { id: "devnet", label: "Devnet", rpc: ["https://s.devnet.rippletest.net:51234/"] },
   { id: "amm-devnet", label: "AMM Devnet", rpc: ["https://amm.devnet.rippletest.net:51234/"] },
