@@ -1,9 +1,9 @@
 "use client";
 /**
- * Un renderer por tipo serializado (nomenclatura de server_definitions.TYPES).
- * El lint de cobertura comprueba que todo tipo usado por algún campo de transacción
- * en testnet tiene entrada aquí. Cada renderer recibe el valor JSON del campo y devuelve
- * el nuevo valor JSON (o undefined para "sin valor").
+ * One renderer per serialized type (server_definitions.TYPES naming).
+ * The coverage lint checks that every type used by some transaction field
+ * on testnet has an entry here. Each renderer receives the field's JSON value and returns
+ * the new JSON value (or undefined for "no value").
  */
 import type { ReactNode } from "react";
 
@@ -13,20 +13,20 @@ export interface RendererProps {
   onChange(v: unknown): void;
   hint?: string;
   required?: boolean;
-  /** Para STArray/STObject: nombre del objeto interno y sus campos. */
+  /** For STArray/STObject: inner object name and its fields. */
   inner?: { name: string; fields: { name: string; type: string; optionality: string }[] };
-  /** Para Flags: lista de flags de la transacción. */
+  /** For Flags: list of the transaction's flags. */
   flags?: { name: string; value: number; doc?: string }[];
 }
 
 export type Renderer = (p: RendererProps) => ReactNode;
 
-const inputCls = "w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-sm outline-none focus:border-accent";
+const inputCls = "input mono";
 
 function Text({ value, onChange, placeholder, mono = true, pattern }: { value: unknown; onChange(v: unknown): void; placeholder?: string; mono?: boolean; pattern?: RegExp }) {
   const s = typeof value === "string" ? value : value == null ? "" : String(value);
   const bad = pattern && s && !pattern.test(s);
-  return <input className={`${inputCls} ${mono ? "" : "font-sans"} ${bad ? "border-danger" : ""}`} value={s} placeholder={placeholder} onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)} spellCheck={false} />;
+  return <input className={`${mono ? "input mono" : "input"}`} aria-invalid={bad ? "true" : undefined} value={s} placeholder={placeholder} onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)} spellCheck={false} />;
 }
 
 function UInt({ value, onChange, max, placeholder }: { value: unknown; onChange(v: unknown): void; max: number; placeholder?: string }) {
@@ -34,17 +34,17 @@ function UInt({ value, onChange, max, placeholder }: { value: unknown; onChange(
   return <input className={inputCls} inputMode="numeric" value={s} placeholder={placeholder} onChange={(e) => { const v = e.target.value.trim(); if (v === "") return onChange(undefined); if (!/^\d+$/.test(v)) return; const n = Number(v); if (n <= max) onChange(n); }} />;
 }
 
-/** Amount: XRP en drops (string) o {currency, issuer, value} o MPT {mpt_issuance_id, value}. */
+/** Amount: XRP in drops (string) or {currency, issuer, value} or MPT {mpt_issuance_id, value}. */
 function AmountInput({ value, onChange }: RendererProps) {
   const kind = typeof value === "object" && value !== null ? ("mpt_issuance_id" in (value as object) ? "mpt" : "iou") : "xrp";
   const v = (value ?? {}) as Record<string, string>;
   const set = (k: string, val: string) => onChange({ ...(typeof value === "object" && value ? (value as object) : {}), [k]: val });
   return (
     <div className="space-y-2">
-      <div className="flex gap-1 text-xs">
+      <div className="seg">
         {(["xrp", "iou", "mpt"] as const).map((k) => (
-          <button key={k} type="button" onClick={() => onChange(k === "xrp" ? "1000000" : k === "iou" ? { currency: "USD", issuer: "", value: "1" } : { mpt_issuance_id: "", value: "1" })} className={`rounded px-2 py-1 ${kind === k ? "bg-fg text-bg" : "bg-surface-2 text-muted hover:text-fg"}`}>
-            {k === "xrp" ? "XRP (drops)" : k === "iou" ? "Token emitido" : "MPT"}
+          <button key={k} type="button" onClick={() => onChange(k === "xrp" ? "1000000" : k === "iou" ? { currency: "USD", issuer: "", value: "1" } : { mpt_issuance_id: "", value: "1" })} className="pill" aria-pressed={kind === k}>
+            {k === "xrp" ? "XRP (drops)" : k === "iou" ? "Issued token" : "MPT"}
           </button>
         ))}
       </div>
@@ -66,16 +66,16 @@ function AmountInput({ value, onChange }: RendererProps) {
   );
 }
 
-/** Issue: {currency} para XRP, {currency, issuer} para IOU, {mpt_issuance_id} para MPT. */
+/** Issue: {currency} for XRP, {currency, issuer} for IOU, {mpt_issuance_id} for MPT. */
 function IssueInput({ value, onChange }: RendererProps) {
   const v = (value ?? { currency: "XRP" }) as Record<string, string>;
   const kind = "mpt_issuance_id" in v ? "mpt" : v.currency === "XRP" ? "xrp" : "iou";
   return (
     <div className="space-y-2">
-      <div className="flex gap-1 text-xs">
+      <div className="seg">
         {(["xrp", "iou", "mpt"] as const).map((k) => (
-          <button key={k} type="button" onClick={() => onChange(k === "xrp" ? { currency: "XRP" } : k === "iou" ? { currency: "USD", issuer: "" } : { mpt_issuance_id: "" })} className={`rounded px-2 py-1 ${kind === k ? "bg-fg text-bg" : "bg-surface-2 text-muted hover:text-fg"}`}>
-            {k === "xrp" ? "XRP" : k === "iou" ? "Token emitido" : "MPT"}
+          <button key={k} type="button" onClick={() => onChange(k === "xrp" ? { currency: "XRP" } : k === "iou" ? { currency: "USD", issuer: "" } : { mpt_issuance_id: "" })} className="pill" aria-pressed={kind === k}>
+            {k === "xrp" ? "XRP" : k === "iou" ? "Issued token" : "MPT"}
           </button>
         ))}
       </div>
@@ -97,17 +97,17 @@ function FlagsInput({ value, onChange, flags = [] }: RendererProps) {
       {flags.map((f) => (
         <label key={f.name} className="flex items-start gap-2 text-sm">
           <input type="checkbox" className="mt-1" checked={(n & f.value) === f.value} onChange={(e) => onChange(e.target.checked ? (n | f.value) : (n & ~f.value) >>> 0 || undefined)} />
-          <span><code className="text-accent">{f.name}</code> <span className="text-muted">0x{f.value.toString(16).padStart(8, "0")}</span>{f.doc ? <span className="block text-xs text-muted">{f.doc}</span> : null}</span>
+          <span><code className="mono">{f.name}</code> <span className="text-muted">0x{f.value.toString(16).padStart(8, "0")}</span>{f.doc ? <span className="block text-xs text-muted">{f.doc}</span> : null}</span>
         </label>
       ))}
-      <div className="flex items-center gap-2 text-xs text-muted">Valor: <UInt value={n || undefined} onChange={onChange} max={0xffffffff} placeholder="0" /></div>
+      <div className="flex items-center gap-2 text-xs text-muted">Value: <UInt value={n || undefined} onChange={onChange} max={0xffffffff} placeholder="0" /></div>
     </div>
   );
 }
 
 function JsonInput({ value, onChange, placeholder }: { value: unknown; onChange(v: unknown): void; placeholder?: string }) {
   const s = value === undefined ? "" : JSON.stringify(value, null, 2);
-  return <textarea className={`${inputCls} min-h-24`} value={s} placeholder={placeholder} spellCheck={false} onChange={(e) => { const t = e.target.value; if (!t.trim()) return onChange(undefined); try { onChange(JSON.parse(t)); } catch { /* seguir editando */ } }} />;
+  return <textarea className="input mono" value={s} placeholder={placeholder} spellCheck={false} onChange={(e) => { const t = e.target.value; if (!t.trim()) return onChange(undefined); try { onChange(JSON.parse(t)); } catch { /* keep editing */ } }} />;
 }
 
 function ArrayInput(p: RendererProps) {
@@ -120,12 +120,12 @@ function ArrayInput(p: RendererProps) {
       {arr.map((item, i) => {
         const obj = (item?.[inner.name] ?? {}) as Record<string, unknown>;
         return (
-          <div key={i} className="rounded-md border border-border p-2">
-            <div className="mb-1 flex items-center justify-between text-xs text-muted"><span>{inner.name} #{i + 1}</span><button type="button" className="text-danger" onClick={() => p.onChange(arr.filter((_, j) => j !== i))}>quitar</button></div>
+          <div key={i} className="subcard">
+            <div className="mb-1 flex items-center justify-between text-xs text-muted"><span>{inner.name} #{i + 1}</span><button type="button" className="text-danger hover:underline" onClick={() => p.onChange(arr.filter((_, j) => j !== i))}>remove</button></div>
             <div className="grid gap-2 sm:grid-cols-2">
               {inner.fields.map((f) => (
-                <label key={f.name} className="text-xs">
-                  <span className="text-muted">{f.name}{f.optionality === "required" ? " *" : ""}</span>
+                <label key={f.name} className="block text-xs">
+                  <span className="mb-1 block text-muted">{f.name}{f.optionality === "required" ? " *" : ""}</span>
                   {f.type === "STObject" || f.type === "STArray" ? <JsonInput value={obj[f.name]} onChange={(v) => update(i, { ...obj, [f.name]: v })} /> : f.type === "Amount" ? <AmountInput field={f.name} value={obj[f.name]} onChange={(v) => update(i, { ...obj, [f.name]: v })} /> : f.type.startsWith("UInt") ? <UInt value={obj[f.name]} onChange={(v) => update(i, { ...obj, [f.name]: v })} max={Number.MAX_SAFE_INTEGER} /> : <Text value={obj[f.name]} onChange={(v) => update(i, { ...obj, [f.name]: v })} />}
                 </label>
               ))}
@@ -133,7 +133,7 @@ function ArrayInput(p: RendererProps) {
           </div>
         );
       })}
-      <button type="button" className="rounded-md border border-border px-2 py-1 text-xs hover:border-accent" onClick={() => p.onChange([...arr, { [inner.name]: {} }])}>+ añadir {inner.name}</button>
+      <button type="button" className="btn-secondary !px-3 !py-1 text-xs" onClick={() => p.onChange([...arr, { [inner.name]: {} }])}>+ add {inner.name}</button>
     </div>
   );
 }
@@ -145,25 +145,25 @@ function BlobInput({ value, onChange, field }: RendererProps) {
   return (
     <div className="space-y-1">
       <Text value={value} onChange={onChange} placeholder="hex" pattern={/^[0-9a-fA-F]*$/} />
-      {!isKey && <input className={`${inputCls} font-sans text-xs`} placeholder="…o escribe texto y se convierte a hex" value={asText} onChange={(e) => onChange(e.target.value ? Array.from(new TextEncoder().encode(e.target.value)).map((b) => b.toString(16).padStart(2, "0").toUpperCase()).join("") : undefined)} />}
+      {!isKey && <input className="input text-xs" placeholder="…or type text and it converts to hex" value={asText} onChange={(e) => onChange(e.target.value ? Array.from(new TextEncoder().encode(e.target.value)).map((b) => b.toString(16).padStart(2, "0").toUpperCase()).join("") : undefined)} />}
     </div>
   );
 }
 
 // eslint-disable-next-line react/display-name
-const hashRenderer = (len: number): Renderer => (p) => <Text value={p.value} onChange={p.onChange} placeholder={`${len} caracteres hex`} pattern={new RegExp(`^[0-9a-fA-F]{${len}}$`)} />;
+const hashRenderer = (len: number): Renderer => (p) => <Text value={p.value} onChange={p.onChange} placeholder={`${len} hex characters`} pattern={new RegExp(`^[0-9a-fA-F]{${len}}$`)} />;
 
 export const renderers: Record<string, Renderer> = {
   AccountID: (p) => <Text value={p.value} onChange={p.onChange} placeholder="r…" pattern={/^r[1-9A-HJ-NP-Za-km-z]{24,34}$/} />,
   Amount: AmountInput,
   Issue: IssueInput,
-  Currency: (p) => <Text value={p.value} onChange={p.onChange} placeholder="USD o 40 hex" />,
+  Currency: (p) => <Text value={p.value} onChange={p.onChange} placeholder="USD or 40 hex" />,
   UInt8: (p) => <UInt value={p.value} onChange={p.onChange} max={0xff} />,
   UInt16: (p) => <UInt value={p.value} onChange={p.onChange} max={0xffff} />,
   UInt32: (p) => (p.field === "Flags" ? <FlagsInput {...p} /> : <UInt value={p.value} onChange={p.onChange} max={0xffffffff} />),
-  UInt64: (p) => <Text value={p.value} onChange={p.onChange} placeholder="entero (decimal o hex) como string" />,
-  Int32: (p) => <Text value={p.value} onChange={p.onChange} placeholder="entero con signo" pattern={/^-?\d+$/} />,
-  Number: (p) => <Text value={p.value} onChange={p.onChange} placeholder="número decimal como string" />,
+  UInt64: (p) => <Text value={p.value} onChange={p.onChange} placeholder="integer (decimal or hex) as string" />,
+  Int32: (p) => <Text value={p.value} onChange={p.onChange} placeholder="signed integer" pattern={/^-?\d+$/} />,
+  Number: (p) => <Text value={p.value} onChange={p.onChange} placeholder="decimal number as string" />,
   Hash128: hashRenderer(32),
   Hash160: hashRenderer(40),
   Hash192: hashRenderer(48),
@@ -181,7 +181,7 @@ export function rendererFor(type: string): Renderer {
   return renderers[type] ?? renderers.Unknown;
 }
 
-/** Objeto interno que envuelve cada elemento de un STArray, por nombre de campo. */
+/** Inner object that wraps each element of an STArray, by field name. */
 export const ARRAY_INNER: Record<string, string> = {
   Memos: "Memo",
   Signers: "Signer",

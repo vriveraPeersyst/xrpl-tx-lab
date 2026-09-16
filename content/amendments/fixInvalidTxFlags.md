@@ -1,20 +1,20 @@
 ---
 title: fixInvalidTxFlags
-summary: Obliga a validar los flags de las transacciones de Credential y de SignerListSet, rechazando combinaciones no definidas.
+summary: Requires validation of the flags on Credential and SignerListSet transactions, rejecting undefined combinations.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixinvalidtxflags
 ---
 
-## Qué cambia
+## What changes
 
-Muchas transacciones de XRPL comprueban en `preflight` que el campo `Flags` no contenga bits fuera de los definidos para esa transacción, devolviendo `temINVALID_FLAG` si los hay. [CredentialCreate](/tx/CredentialCreate), [CredentialAccept](/tx/CredentialAccept), [CredentialDelete](/tx/CredentialDelete) y [SignerListSet](/tx/SignerListSet) no aplicaban esa comprobación: su `getFlagsMask` devolvía `0` sin `fixInvalidTxFlags`, de modo que cualquier valor en `Flags` pasaba sin rechazo aunque no correspondiera a ningún flag válido de esas transacciones.
+Many XRPL transactions check in `preflight` that the `Flags` field does not contain bits outside those defined for that transaction, returning `temINVALID_FLAG` if it does. [CredentialCreate](/tx/CredentialCreate), [CredentialAccept](/tx/CredentialAccept), [CredentialDelete](/tx/CredentialDelete), and [SignerListSet](/tx/SignerListSet) did not apply this check: their `getFlagsMask` returned `0` without `fixInvalidTxFlags`, so any value in `Flags` passed without rejection even if it did not correspond to any valid flag for those transactions.
 
-Con el amendment activo, `getFlagsMask` devuelve `tfUniversalMask` para esas cuatro transacciones, de forma que el motor de preflight común rechaza con `temINVALID_FLAG` cualquier bit de `Flags` que no esté entre los universales permitidos. Es una validación defensiva: cierra una vía por la que se podían enviar transacciones con flags mal formados o contradictorios sin que el servidor los detectara en la fase más temprana de comprobación.
+With the amendment active, `getFlagsMask` returns `tfUniversalMask` for these four transactions, so the common preflight engine rejects with `temINVALID_FLAG` any bit in `Flags` that is not among the universally allowed ones. This is a defensive validation: it closes a path through which transactions with malformed or contradictory flags could be submitted without the server detecting them at the earliest check stage.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [CredentialCreate](/tx/CredentialCreate), [CredentialAccept](/tx/CredentialAccept), [CredentialDelete](/tx/CredentialDelete): validación de `Flags` en `preflight`.
-- [SignerListSet](/tx/SignerListSet): misma validación de `Flags`.
+- [CredentialCreate](/tx/CredentialCreate), [CredentialAccept](/tx/CredentialAccept), [CredentialDelete](/tx/CredentialDelete): `Flags` validation in `preflight`.
+- [SignerListSet](/tx/SignerListSet): same `Flags` validation.
 
-## Estado y contexto
+## Status and context
 
-Se introdujo junto con el amendment [Credentials](/amendments/Credentials), del que corrige un descuido en la validación de flags de las nuevas transacciones de credenciales, aprovechando para cerrar el mismo hueco en `SignerListSet`. Sin este fix, un cliente podía construir una transacción con un `Flags` inválido y el nodo la aceptaría en lugar de rechazarla tempranamente con `temINVALID_FLAG`.
+It was introduced alongside the [Credentials](/amendments/Credentials) amendment, fixing an oversight in the flag validation of the new credential transactions, and taking the opportunity to close the same gap in `SignerListSet`. Without this fix, a client could build a transaction with an invalid `Flags` value and the node would accept it instead of rejecting it early with `temINVALID_FLAG`.

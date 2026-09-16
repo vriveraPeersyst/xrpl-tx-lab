@@ -1,88 +1,88 @@
 ---
 title: PaymentChannelCreate
-summary: Abre un canal de pago unidireccional en XRP: bloquea fondos que el destinatario podrá reclamar con firmas emitidas fuera del ledger.
+summary: Opens a one-way XRP payment channel: locks up funds that the recipient will be able to claim with signatures issued outside the ledger.
 category: canales
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/paymentchannelcreate
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`PaymentChannelCreate` aparta una cantidad de XRP de tu cuenta y la guarda en un nuevo objeto [PayChannel](/objects/PayChannel) del ledger, a nombre de un `Destination`. A partir de ahí puedes firmar **claims** off-ledger (mensajes que autorizan al destinatario a cobrar hasta cierto saldo acumulado) con la clave indicada en `PublicKey`. El destinatario presenta el claim más alto que tenga con [PaymentChannelClaim](/tx/PaymentChannelClaim) cuando quiera liquidar. Solo el propietario puede añadir fondos ([PaymentChannelFund](/tx/PaymentChannelFund)); solo se mueve XRP y solo en un sentido.
+`PaymentChannelCreate` sets aside an amount of XRP from your account and stores it in a new [PayChannel](/objects/PayChannel) object on the ledger, under a `Destination`. From there you can sign **claims** off-ledger (messages authorizing the recipient to claim up to a certain accumulated balance) with the key given in `PublicKey`. The recipient presents the highest claim they have with [PaymentChannelClaim](/tx/PaymentChannelClaim) whenever they want to settle. Only the owner can add funds ([PaymentChannelFund](/tx/PaymentChannelFund)); only XRP moves, and only in one direction.
 
-La analogía es una cuenta corriente de bar: dejas un depósito en la barra, vas firmando tickets que dicen "te debo hasta X en total", y el barman cobra el último ticket cuando cierra. Si quieres marcharte antes, tienes que avisar con `SettleDelay` segundos de antelación para que el barman pueda cobrar lo pendiente.
+The analogy is a bar tab: you leave a deposit at the bar, sign tickets saying "I owe up to X in total," and the bartender cashes the last ticket at closing time. If you want to leave earlier, you have to give `SettleDelay` seconds of notice so the bartender can collect what's pending.
 
-El objeto consume una unidad de reserva de propietario (0,2 XRP en testnet) y se enlaza en los directorios de propietario de las dos cuentas.
+The object consumes one unit of owner reserve (0.2 XRP on testnet) and is linked into both accounts' owner directories.
 
-## Cuándo usarlo
+## When to use it
 
-- Micropagos frecuentes a un mismo receptor (streaming, API de pago por uso) sin pagar tasa ni esperar ledger por cada uno.
-- Liquidación intermitente entre dos partes que se intercambian muchos mensajes firmados.
-- Canales bidireccionales: uno en cada sentido.
+- Frequent micropayments to the same recipient (streaming, pay-per-use API) without paying a fee or waiting on a ledger for each one.
+- Intermittent settlement between two parties exchanging many signed messages.
+- Bidirectional channels: one in each direction.
 
-## Cómo funciona por dentro
+## How it works inside
 
 **`PaymentChannelCreate::preflight`**:
-- `Amount` debe ser XRP y mayor que cero; si no, `temBAD_AMOUNT`.
-- `Account` y `Destination` no pueden coincidir: `temDST_IS_SRC`.
-- `PublicKey` debe ser una clave pública válida (secp256k1 o ed25519): en otro caso `temMALFORMED`.
+- `Amount` must be XRP and greater than zero; otherwise `temBAD_AMOUNT`.
+- `Account` and `Destination` can't match: `temDST_IS_SRC`.
+- `PublicKey` must be a valid public key (secp256k1 or ed25519): otherwise `temMALFORMED`.
 
 **`PaymentChannelCreate::preclaim`**:
-- Comprueba tu reserva y saldo: con [Sponsor](/amendments/Sponsor) inactivo (como en testnet), `Balance < reserva(OwnerCount + 1)` → `tecINSUFFICIENT_RESERVE`, y `Balance < reserva + Amount` → `tecUNFUNDED`. Es decir, además de lo que bloqueas tienes que conservar la reserva completa.
-- El destino debe existir (`tecNO_DST`), no tener `lsfDisallowIncomingPayChan` (`tecNO_PERMISSION`), y si tiene `lsfRequireDestTag` necesitas `DestinationTag` (`tecDST_TAG_NEEDED`). Las pseudo-cuentas (AMM, vaults) no pueden recibir canales: `tecNO_PERMISSION`.
+- Checks your reserve and balance: with [Sponsor](/amendments/Sponsor) inactive (as on testnet), `Balance < reserve(OwnerCount + 1)` → `tecINSUFFICIENT_RESERVE`, and `Balance < reserve + Amount` → `tecUNFUNDED`. That is, on top of what you lock up you must also keep the full reserve.
+- The destination must exist (`tecNO_DST`), must not have `lsfDisallowIncomingPayChan` (`tecNO_PERMISSION`), and if it has `lsfRequireDestTag` you need `DestinationTag` (`tecDST_TAG_NEEDED`). Pseudo-accounts (AMM, vaults) can't receive channels: `tecNO_PERMISSION`.
 
 **`PaymentChannelCreate::doApply`**:
-- Con [fixPayChanCancelAfter](/amendments/fixPayChanCancelAfter) (activo), si `CancelAfter` es anterior al cierre del ledger padre la transacción falla con `tecEXPIRED` en lugar de crear un canal ya muerto.
-- Crea el objeto con clave `keylet::payChannel(Account, Destination, Sequence)`. Guarda `Amount` (fondos totales), `Balance` a 0 (lo ya pagado), `SettleDelay`, `PublicKey`, `CancelAfter`, `SourceTag`, `DestinationTag` y, gracias a `fixIncludeKeyletFields`, el `Sequence`.
-- Inserta el objeto en tu directorio de propietario (`OwnerNode`) y, por [fixPayChanRecipientOwnerDir](/amendments/fixPayChanRecipientOwnerDir), también en el del destinatario (`DestinationNode`), de modo que el receptor tampoco puede borrar su cuenta mientras el canal exista.
-- Resta `Amount` de tu saldo e incrementa tu `OwnerCount`.
+- With [fixPayChanCancelAfter](/amendments/fixPayChanCancelAfter) (active), if `CancelAfter` is earlier than the parent ledger's close, the transaction fails with `tecEXPIRED` instead of creating an already-dead channel.
+- Creates the object with key `keylet::payChannel(Account, Destination, Sequence)`. Stores `Amount` (total funds), `Balance` at 0 (what's already paid), `SettleDelay`, `PublicKey`, `CancelAfter`, `SourceTag`, `DestinationTag`, and, thanks to `fixIncludeKeyletFields`, the `Sequence`.
+- Inserts the object into your owner directory (`OwnerNode`) and, per [fixPayChanRecipientOwnerDir](/amendments/fixPayChanRecipientOwnerDir), also into the recipient's (`DestinationNode`), so the recipient also can't delete their account while the channel exists.
+- Subtracts `Amount` from your balance and increases your `OwnerCount`.
 
-No hay flags específicos. `Expiration` no se fija al crear: aparece más tarde cuando el propietario pide cerrar el canal.
+There are no transaction-specific flags. `Expiration` isn't set at creation: it appears later when the owner requests to close the channel.
 
-## Campos clave
+## Key fields
 
-- **Amount** — XRP en drops que quedan bloqueados en el canal. Puedes ampliarlos después con `PaymentChannelFund`.
-- **SettleDelay** — segundos que el canal permanece abierto desde que el propietario solicita el cierre. Da margen al destinatario para presentar el último claim. Un valor cómodo para pruebas es 60-3600; el ejemplo usa 86400 (un día).
-- **PublicKey** — clave pública (hex, 33 bytes) con la que firmarás los claims. No tiene por qué ser la clave de la cuenta, pero en la práctica el builder usa la de la cuenta conectada. Es inmutable: cambiarla requiere abrir otro canal.
-- **CancelAfter** — expiración inmutable en segundos Ripple Epoch (desde 2000-01-01). Pasada esa fecha, cualquier transacción que toque el canal lo cierra.
-- **DestinationTag** — obligatorio si el destino tiene `lsfRequireDestTag`.
+- **Amount** — XRP in drops locked into the channel. You can add more later with `PaymentChannelFund`.
+- **SettleDelay** — seconds the channel stays open after the owner requests closure. Gives the recipient a window to present the final claim. A comfortable value for testing is 60-3600; the example uses 86400 (one day).
+- **PublicKey** — public key (hex, 33 bytes) you'll use to sign the claims. It doesn't have to be the account's own key, but in practice the builder uses the connected account's key. It's immutable: changing it requires opening a different channel.
+- **CancelAfter** — immutable expiration in Ripple Epoch seconds (since 2000-01-01). Past that date, any transaction touching the channel closes it.
+- **DestinationTag** — required if the destination has `lsfRequireDestTag`.
 
-## Errores habituales
+## Common errors
 
-- **tecUNFUNDED** — saldo insuficiente para bloquear `Amount` y seguir cubriendo la reserva. Reduce `Amount`.
-- **tecINSUFFICIENT_RESERVE** — no cubres la reserva con un objeto más (1 XRP + 0,2 XRP por objeto en testnet).
-- **tecNO_DST** — el destino no está financiado.
-- **tecNO_PERMISSION** — el destino activó `asfDisallowIncomingPayChan` o es una pseudo-cuenta.
-- **tecDST_TAG_NEEDED** — el destino exige `DestinationTag`.
-- **tecEXPIRED** — `CancelAfter` ya está en el pasado.
-- **temMALFORMED** — `PublicKey` no es una clave válida (revisa que sea hex de 66 caracteres).
-- **temDST_IS_SRC** — has puesto tu propia cuenta como destino.
+- **tecUNFUNDED** — insufficient balance to lock up `Amount` while still covering the reserve. Reduce `Amount`.
+- **tecINSUFFICIENT_RESERVE** — you don't cover the reserve with one more object (1 XRP + 0.2 XRP per object on testnet).
+- **tecNO_DST** — the destination isn't funded.
+- **tecNO_PERMISSION** — the destination enabled `asfDisallowIncomingPayChan` or is a pseudo-account.
+- **tecDST_TAG_NEEDED** — the destination requires `DestinationTag`.
+- **tecEXPIRED** — `CancelAfter` is already in the past.
+- **temMALFORMED** — `PublicKey` isn't a valid key (check that it's 66 hex characters).
+- **temDST_IS_SRC** — you've set your own account as the destination.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "PaymentChannelCreate",
-  "Account": "rXXXX_TU_CUENTA",
-  "Destination": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Destination": "rYYYY_OTHER_ACCOUNT",
   "Amount": "5000000",
   "SettleDelay": 86400,
   "PublicKey": "ED9434799226374926EDA3B54B1B461B4ABF7237962EAE18528FEA67595397FA32"
 }
 ```
 
-Bloquea 5 XRP para `rYYYY_OTRA_CUENTA` con un día de preaviso de cierre.
+Locks up 5 XRP for `rYYYY_OTHER_ACCOUNT` with a one-day close notice period.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Asegúrate de tener al menos `Amount` + reserva (por ejemplo, 10 XRP para bloquear 5).
-2. Rellena `Destination` con la segunda cuenta y deja que el builder ponga tu clave pública en `PublicKey`. Envía.
-3. Consulta `account_channels` con tu cuenta: verás `channel_id`, `amount` (5000000), `balance` (0), `settle_delay` y `public_key`.
-4. En `account_info` comprueba que `Balance` bajó 5 XRP más la tasa y que `OwnerCount` subió en 1. Consulta también `account_objects` de la otra cuenta con `type: payment_channel`: el canal aparece también allí.
-5. Guarda `channel_id`: lo necesitas para [PaymentChannelFund](/tx/PaymentChannelFund) y [PaymentChannelClaim](/tx/PaymentChannelClaim).
-6. Para firmar claims sin código, usa el método RPC `channel_authorize` de un nodo propio (los nodos públicos lo deshabilitan) o una librería cliente; luego verifica con `channel_verify`.
+1. Make sure you have at least `Amount` + reserve (for example, 10 XRP to lock up 5).
+2. Fill `Destination` with the second account and let the builder put your public key in `PublicKey`. Submit.
+3. Query `account_channels` with your account: you'll see `channel_id`, `amount` (5000000), `balance` (0), `settle_delay`, and `public_key`.
+4. In `account_info` check that `Balance` dropped by 5 XRP plus the fee and that `OwnerCount` went up by 1. Also check `account_objects` on the other account with `type: payment_channel`: the channel shows up there too.
+5. Save `channel_id`: you'll need it for [PaymentChannelFund](/tx/PaymentChannelFund) and [PaymentChannelClaim](/tx/PaymentChannelClaim).
+6. To sign claims without writing code, use the `channel_authorize` RPC method on your own node (public nodes disable it) or a client library; then verify with `channel_verify`.
 
-## Relacionado
+## Related
 
 - [PaymentChannelFund](/tx/PaymentChannelFund)
 - [PaymentChannelClaim](/tx/PaymentChannelClaim)

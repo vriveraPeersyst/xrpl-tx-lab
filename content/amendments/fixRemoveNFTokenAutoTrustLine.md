@@ -1,20 +1,20 @@
 ---
 title: fixRemoveNFTokenAutoTrustLine
-summary: Elimina la posibilidad de mintear NFTokens con el flag tfTrustLine, que creaba trustlines al emisor sin su permiso.
+summary: Removes the ability to mint NFTokens with the tfTrustLine flag, which created trustlines to the issuer without their permission.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixremovenftokenautotrustline
 ---
 
-## Qué cambia
+## What changes
 
-Antes de este fix, [NFTokenMint](/tx/NFTokenMint) admitía el flag `tfTrustLine`. Un NFToken minteado con ese flag, al transferirse entre cuentas usando un token de pago distinto de XRP, creaba automáticamente una trustline hacia el emisor del NFToken en la cuenta receptora, sin que esa cuenta la hubiera solicitado ni el emisor la hubiera autorizado.
+Before this fix, [NFTokenMint](/tx/NFTokenMint) accepted the `tfTrustLine` flag. An NFToken minted with that flag, when transferred between accounts using a payment token other than XRP, automatically created a trustline to the NFToken's issuer on the receiving account, without that account having requested it or the issuer having authorized it.
 
-Eso permitía un ataque: dos cuentas podían intercambiarse el mismo NFToken una y otra vez para ir generando trustlines arbitrarias sobre un emisor, incrementando su reserva sin límite y sin su consentimiento. Con fixRemoveNFTokenAutoTrustLine activo, `NFTokenMint` rechaza el flag `tfTrustLine`: se elimina de la máscara de flags válidos (`tfNFTokenMintMask`/`tfNFTokenMintMaskWithoutMutable`, según si [DynamicNFT](/amendments/DynamicNFT) está activo), así que cualquier intento de mintear con ese bit falla en `preflight`.
+That allowed an attack: two accounts could repeatedly trade the same NFToken back and forth to keep generating arbitrary trustlines against an issuer, increasing its reserve without limit and without its consent. With fixRemoveNFTokenAutoTrustLine enabled, `NFTokenMint` rejects the `tfTrustLine` flag: it is removed from the valid flags mask (`tfNFTokenMintMask`/`tfNFTokenMintMaskWithoutMutable`, depending on whether [DynamicNFT](/amendments/DynamicNFT) is enabled), so any attempt to mint with that bit fails in `preflight`.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [NFTokenMint](/tx/NFTokenMint): `tfTrustLine` deja de ser un flag válido.
-- [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): ya no puede desencadenar la creación automática de una trustline al emisor como efecto colateral de aceptar una oferta en un token distinto de XRP.
+- [NFTokenMint](/tx/NFTokenMint): `tfTrustLine` is no longer a valid flag.
+- [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): can no longer trigger the automatic creation of a trustline to the issuer as a side effect of accepting an offer in a token other than XRP.
 
-## Estado y contexto
+## Status and context
 
-Corrige un vector de abuso contra emisores de NFT: forzar la creación de trustlines no solicitadas inflaba su reserva de forma indefinida sin coste real para el atacante. El fix cierra la vía eliminando el flag que lo hacía posible, en vez de intentar limitar el abuso a posteriori.
+Fixes an abuse vector against NFT issuers: forcing the creation of unsolicited trustlines inflated their reserve indefinitely at no real cost to the attacker. The fix closes the avenue by removing the flag that made it possible, rather than trying to limit the abuse after the fact.

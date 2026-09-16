@@ -1,75 +1,75 @@
 ---
 title: VaultSet
-summary: Modifica los campos mutables de una bóveda existente: tope de activos, datos y dominio permisionado.
+summary: Modifies the mutable fields of an existing vault: asset cap, data, and permissioned domain.
 category: vault
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/vaultset
 xls: XLS-0065
 amendment: SingleAssetVault
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-**Aviso: el amendment [SingleAssetVault](/amendments/SingleAssetVault) NO está activo en la testnet.** Cualquier `VaultSet` que envíes hoy falla con `temDISABLED`. Esta página describe el código que se activará cuando el amendment se vote.
+**Notice: the [SingleAssetVault](/amendments/SingleAssetVault) amendment is NOT active on testnet.** Any `VaultSet` you send today fails with `temDISABLED`. This page describes the code that will activate once the amendment is voted in.
 
-`VaultSet` es la transacción de mantenimiento de un [Vault](/objects/Vault). Solo el `Owner` de la bóveda puede enviarla y solo cambia tres cosas: el tope `AssetsMaximum`, el campo libre `Data` y, en bóvedas privadas, el `DomainID` que decide quién puede participar. Todo lo demás (activo, política de retirada, escala, si es privada o no) queda fijado en [VaultCreate](/tx/VaultCreate) y no se puede tocar.
+`VaultSet` is the maintenance transaction for a [Vault](/objects/Vault). Only the vault's `Owner` can send it, and it only changes three things: the `AssetsMaximum` cap, the free-form `Data` field, and, in private vaults, the `DomainID` that decides who can participate. Everything else (asset, withdrawal policy, scale, whether it's private or not) is fixed in [VaultCreate](/tx/VaultCreate) and can't be touched.
 
-Un detalle importante: el `DomainID` no vive en el objeto Vault sino en la [MPTokenIssuance](/objects/MPTokenIssuance) de las shares. `VaultSet` actualiza esa emisión (y además marca el Vault como modificado para que los invariantes puedan verificarlo).
+An important detail: `DomainID` doesn't live on the Vault object but on the shares' [MPTokenIssuance](/objects/MPTokenIssuance). `VaultSet` updates that issuance (and also flags the Vault as modified so that invariants can verify it).
 
-## Cuándo usarlo
+## When to use it
 
-- Subir o bajar el límite de capital que acepta la bóveda según la demanda.
-- Cambiar el dominio permisionado de una bóveda privada (por ejemplo, migrar a un nuevo emisor de credenciales) o quitarlo enviando `DomainID` a ceros.
-- Actualizar el `Data` descriptivo (hasta 256 bytes) que ven los integradores.
+- Raising or lowering the capital limit the vault accepts, based on demand.
+- Changing the permissioned domain of a private vault (for example, migrating to a new credential issuer), or removing it by sending an all-zero `DomainID`.
+- Updating the descriptive `Data` (up to 256 bytes) seen by integrators.
 
-## Cómo funciona por dentro
+## How it works inside
 
-`VaultSet::checkExtraFeatures` exige [PermissionedDomains](/amendments/PermissionedDomains) si envías `DomainID`.
+`VaultSet::checkExtraFeatures` requires [PermissionedDomains](/amendments/PermissionedDomains) if you send `DomainID`.
 
-`VaultSet::preflight` (validación estática) devuelve `temMALFORMED` si `VaultID` es cero, si `Data` está vacío o supera 256 bytes, si `AssetsMaximum` es negativo, o si **no envías ninguno** de los tres campos mutables (una transacción que no cambia nada no es válida).
+`VaultSet::preflight` (static validation) returns `temMALFORMED` if `VaultID` is zero, if `Data` is empty or exceeds 256 bytes, if `AssetsMaximum` is negative, or if **you don't send any** of the three mutable fields (a transaction that changes nothing isn't valid).
 
-`VaultSet::preclaim` (contra el ledger): busca el Vault (`tecNO_ENTRY` si no existe) y comprueba que `Account` es su `Owner` (`tecNO_PERMISSION` si no). Si envías `DomainID`, exige que el Vault tenga `lsfVaultPrivate` (`tecNO_PERMISSION` en caso contrario: no existe forma de convertir una bóveda pública en privada) y, si el `DomainID` no es cero, que el [PermissionedDomain](/objects/PermissionedDomain) exista (`tecOBJECT_NOT_FOUND`).
+`VaultSet::preclaim` (against the ledger): looks up the Vault (`tecNO_ENTRY` if it doesn't exist) and checks that `Account` is its `Owner` (`tecNO_PERMISSION` if not). If you send `DomainID`, it requires the Vault to have `lsfVaultPrivate` (`tecNO_PERMISSION` otherwise: there's no way to convert a public vault into a private one) and, if `DomainID` is nonzero, that the [PermissionedDomain](/objects/PermissionedDomain) exists (`tecOBJECT_NOT_FOUND`).
 
-`VaultSet::doApply`: copia `Data` si viene. Si viene `AssetsMaximum` y es distinto de 0, comprueba que no sea menor que el `AssetsTotal` actual (`tecLIMIT_EXCEEDED`); es decir, no puedes fijar un tope por debajo de lo que ya hay depositado, aunque sí puedes quitar el tope con `0`. Si viene `DomainID`: un valor distinto de cero lo escribe en la emisión de shares (`sfDomainID`), y un valor cero lo elimina de la emisión, con lo que la bóveda privada queda solo accesible al owner (el flag `lsfMPTRequireAuth` sigue puesto y `checkVaultDomain` devuelve `tecNO_AUTH` sin dominio).
+`VaultSet::doApply`: copies `Data` if provided. If `AssetsMaximum` is provided and nonzero, it checks that it isn't lower than the current `AssetsTotal` (`tecLIMIT_EXCEEDED`); in other words, you can't set a cap below what's already deposited, though you can remove the cap with `0`. If `DomainID` is provided: a nonzero value is written to the share issuance (`sfDomainID`), and a zero value removes it from the issuance, leaving the private vault accessible only to the owner (the `lsfMPTRequireAuth` flag remains set, and `checkVaultDomain` returns `tecNO_AUTH` with no domain).
 
-## Campos clave
+## Key fields
 
-- **VaultID** — el `index` del objeto Vault (lo obtienes de los metadatos del VaultCreate o de `account_objects` con `type: "vault"`).
-- **AssetsMaximum** — nuevo tope de `AssetsTotal`. `0` = sin límite. Un valor positivo menor que el total actual falla.
-- **DomainID** — solo en bóvedas privadas. Un hash de 32 bytes a ceros elimina el dominio actual.
-- **Data** — hasta 256 bytes en hex; no puede enviarse vacío.
+- **VaultID** — the Vault object's `index` (obtained from `VaultCreate`'s metadata or from `account_objects` with `type: "vault"`).
+- **AssetsMaximum** — new cap on `AssetsTotal`. `0` = no limit. A positive value lower than the current total fails.
+- **DomainID** — private vaults only. An all-zero 32-byte hash removes the current domain.
+- **Data** — up to 256 bytes in hex; can't be sent empty.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo en testnet; hoy es el único resultado posible.
-- **temMALFORMED** — no has incluido ningún campo a modificar, `VaultID` a ceros o `Data` vacío/demasiado largo.
-- **tecNO_ENTRY** — no existe un Vault con ese `VaultID`.
-- **tecNO_PERMISSION** — no eres el `Owner`, o intentas poner `DomainID` en una bóveda que no se creó con `tfVaultPrivate`.
-- **tecOBJECT_NOT_FOUND** — el `DomainID` indicado no existe.
-- **tecLIMIT_EXCEEDED** — `AssetsMaximum` es positivo y menor que el `AssetsTotal` actual.
+- **temDISABLED** — the amendment isn't active on testnet; today it's the only possible result.
+- **temMALFORMED** — you didn't include any field to modify, `VaultID` is all zeros, or `Data` is empty/too long.
+- **tecNO_ENTRY** — no Vault exists with that `VaultID`.
+- **tecNO_PERMISSION** — you're not the `Owner`, or you're trying to set `DomainID` on a vault that wasn't created with `tfVaultPrivate`.
+- **tecOBJECT_NOT_FOUND** — the specified `DomainID` doesn't exist.
+- **tecLIMIT_EXCEEDED** — `AssetsMaximum` is positive and lower than the current `AssetsTotal`.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "VaultSet",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "VaultID": "0000000000000000000000000000000000000000000000000000000000000000",
   "AssetsMaximum": "2000000000"
 }
 ```
 
-Sustituye el `VaultID` de ceros por el `index` real de tu bóveda (el de ceros falla en `preflight` con `temMALFORMED`). Al ser una bóveda de XRP, `AssetsMaximum` se expresa en drops (2.000 XRP).
+Replace the all-zero `VaultID` with your vault's real `index` (the all-zero one fails in `preflight` with `temMALFORMED`). Since it's an XRP vault, `AssetsMaximum` is expressed in drops (2,000 XRP).
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Hoy: envía el ejemplo desde el builder y verás `temDISABLED`, porque `SingleAssetVault` no está habilitado. No se consume fee ni Sequence.
-2. Cuando el amendment se active: crea antes una bóveda con [VaultCreate](/tx/VaultCreate) y copia su `index`.
-3. Envía `VaultSet` con ese `VaultID` y un `AssetsMaximum` mayor. Consulta `ledger_entry` con `{"vault": "<VaultID>"}` o `account_objects` con `type: "vault"`: verás el nuevo `AssetsMaximum`.
-4. Prueba a poner un tope inferior a `AssetsTotal` tras un depósito: obtendrás `tecLIMIT_EXCEEDED`.
-5. Si la bóveda es privada, cambia el `DomainID` y comprueba con `ledger_entry` sobre el `ShareMPTID` (tipo `mpt_issuance`) que el campo `DomainID` ha cambiado en la emisión de shares, no en el Vault.
+1. Today: send the example from the builder and you'll see `temDISABLED`, because `SingleAssetVault` isn't enabled. No fee or Sequence is consumed.
+2. Once the amendment is active: first create a vault with [VaultCreate](/tx/VaultCreate) and copy its `index`.
+3. Send `VaultSet` with that `VaultID` and a larger `AssetsMaximum`. Query `ledger_entry` with `{"vault": "<VaultID>"}` or `account_objects` with `type: "vault"`: you'll see the new `AssetsMaximum`.
+4. Try setting a cap lower than `AssetsTotal` after a deposit: you'll get `tecLIMIT_EXCEEDED`.
+5. If the vault is private, change the `DomainID` and verify with `ledger_entry` on the `ShareMPTID` (type `mpt_issuance`) that the `DomainID` field has changed on the share issuance, not on the Vault.
 
-## Relacionado
+## Related
 
 - [Vault](/objects/Vault), [MPTokenIssuance](/objects/MPTokenIssuance), [PermissionedDomain](/objects/PermissionedDomain)
 - [VaultCreate](/tx/VaultCreate), [VaultDeposit](/tx/VaultDeposit), [VaultWithdraw](/tx/VaultWithdraw), [VaultDelete](/tx/VaultDelete)

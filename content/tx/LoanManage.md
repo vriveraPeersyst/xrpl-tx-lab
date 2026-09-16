@@ -1,99 +1,99 @@
 ---
 title: LoanManage
-summary: Permite al broker declarar un préstamo deteriorado (impaired), revertirlo, o declararlo en default liquidando el cover.
+summary: Lets the broker mark a loan as impaired, revert that, or declare a default that liquidates the cover.
 category: prestamos
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/loanmanage
 xls: XLS-0066
 amendment: LendingProtocol
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-**Aviso:** el amendment [LendingProtocol](/amendments/LendingProtocol) **no está activo en la testnet** (ni [SingleAssetVault](/amendments/SingleAssetVault), del que depende). Hoy esta transacción falla con `temDISABLED`. Lo siguiente describe su comportamiento cuando se active.
+**Notice:** the [LendingProtocol](/amendments/LendingProtocol) amendment **is not active on testnet** (nor is [SingleAssetVault](/amendments/SingleAssetVault), which it depends on). Today this transaction fails with `temDISABLED`. What follows describes its behavior once it's active.
 
-`LoanManage` es la herramienta del **owner del LoanBroker** para gestionar un préstamo que va mal. Tiene tres acciones excluyentes, elegidas por flag:
+`LoanManage` is the tool the **LoanBroker's owner** uses to manage a loan that's going bad. It has three mutually exclusive actions, chosen by flag:
 
-- **Impair** (`tfLoanImpair`): marca el [Loan](/objects/Loan) como deteriorado y registra en el [Vault](/objects/Vault) una "pérdida sobre el papel" (`LossUnrealized`) por el valor expuesto. No mueve fondos; reduce el valor contable de las shares del Vault.
-- **Unimpair** (`tfLoanUnimpair`): revierte lo anterior. Un [LoanPay](/tx/LoanPay) del prestatario también lo hace automáticamente.
-- **Default** (`tfLoanDefault`): cierra el préstamo como impagado. Liquida el capital de primera pérdida del broker hacia el Vault, reconoce la pérdida restante y deja el Loan con todo a cero (`PaymentRemaining = 0`), listo para [LoanDelete](/tx/LoanDelete).
+- **Impair** (`tfLoanImpair`): marks the [Loan](/objects/Loan) as impaired and records an "unrealized loss" (`LossUnrealized`) in the [Vault](/objects/Vault) for the exposed value. It doesn't move funds; it reduces the book value of the Vault's shares.
+- **Unimpair** (`tfLoanUnimpair`): reverses the above. A [LoanPay](/tx/LoanPay) from the borrower also does this automatically.
+- **Default** (`tfLoanDefault`): closes the loan as defaulted. Liquidates the broker's first-loss capital into the Vault, recognizes the remaining loss, and leaves the Loan zeroed out (`PaymentRemaining = 0`), ready for [LoanDelete](/tx/LoanDelete).
 
-Sin flags es una operación nula que solo actualiza metadatos.
+Without any flags it's a no-op that only updates metadata.
 
-## Cuándo usarlo
+## When to use it
 
-- El prestatario se ha retrasado y quieres que los depositantes del Vault vean reflejada la exposición (impair).
-- Ha vencido la cuota más el `GracePeriod` y decides ejecutar el default.
-- Te equivocaste al deteriorar un préstamo, o el prestatario se ha puesto al día fuera de cadena (unimpair).
+- The borrower has fallen behind and you want depositors in the Vault to see the exposure reflected (impair).
+- The installment plus the `GracePeriod` has expired and you decide to execute the default.
+- You mistakenly impaired a loan, or the borrower has caught up off-chain (unimpair).
 
-## Cómo funciona por dentro
+## How it works inside
 
-**preflight** (`LoanManage::preflight`): `LoanID` ≠ 0; como mucho un flag activo (`temINVALID_FLAG`).
+**preflight** (`LoanManage::preflight`): `LoanID` ≠ 0; at most one flag active (`temINVALID_FLAG`).
 
-**preclaim** (`LoanManage::preclaim`), transiciones permitidas:
-- Un Loan con `lsfLoanDefault` ya no se puede tocar (`tecNO_PERMISSION`).
-- No se puede impair dos veces, ni unimpair uno que no está impaired (`tecNO_PERMISSION`).
-- Un préstamo totalmente pagado (`PaymentRemaining = 0`) no se modifica (`tecNO_PERMISSION`).
-- `tfLoanDefault` exige que haya pasado `NextPaymentDueDate + GracePeriod`; si no, `tecTOO_SOON`.
-- Solo el `Owner` del broker puede enviarla (`tecNO_PERMISSION`).
+**preclaim** (`LoanManage::preclaim`), allowed transitions:
+- A Loan with `lsfLoanDefault` can no longer be touched (`tecNO_PERMISSION`).
+- You can't impair a loan twice, nor unimpair one that isn't impaired (`tecNO_PERMISSION`).
+- A fully paid loan (`PaymentRemaining = 0`) isn't modified (`tecNO_PERMISSION`).
+- `tfLoanDefault` requires that `NextPaymentDueDate + GracePeriod` has passed; if not, `tecTOO_SOON`.
+- Only the broker's `Owner` can send it (`tecNO_PERMISSION`).
 
-**doApply → `LoanManage::impairLoan`**: con [fixCleanup3_4_0](/amendments/fixCleanup3_4_0) solo se puede deteriorar un préstamo cuyo pago ya está vencido (`tecTOO_SOON`). Suma `loanVaultExposure` (valor pendiente para el Vault) a `Vault.LossUnrealized`; si esa pérdida superase `AssetsTotal − AssetsAvailable`, `tecLIMIT_EXCEEDED`. Marca `lsfLoanImpaired`. Antes del fix, además adelantaba `NextPaymentDueDate` al momento actual.
+**doApply → `LoanManage::impairLoan`**: with [fixCleanup3_4_0](/amendments/fixCleanup3_4_0), only a loan whose payment is already overdue can be impaired (`tecTOO_SOON`). It adds `loanVaultExposure` (the value pending for the Vault) to `Vault.LossUnrealized`; if that loss would exceed `AssetsTotal − AssetsAvailable`, `tecLIMIT_EXCEEDED`. Sets `lsfLoanImpaired`. Before the fix, it also advanced `NextPaymentDueDate` to the current time.
 
-**doApply → `LoanManage::unimpairLoan`**: resta la exposición de `LossUnrealized` y quita `lsfLoanImpaired`. Sin `fixCleanup3_4_0`, recalcula `NextPaymentDueDate`.
+**doApply → `LoanManage::unimpairLoan`**: subtracts the exposure from `LossUnrealized` and clears `lsfLoanImpaired`. Without `fixCleanup3_4_0`, it recalculates `NextPaymentDueDate`.
 
 **doApply → `LoanManage::defaultLoan`**:
 1. `totalDefaultAmount = loanVaultExposure(loan)`.
-2. Cover liquidado = `min(CoverRateLiquidation × (CoverRateMinimum × DebtTotal), totalDefaultAmount)`, acotado por `CoverAvailable`.
-3. Vault: `AssetsTotal −= (total − cubierto)`; `AssetsAvailable += cubierto`. Si el Loan estaba impaired, se descuenta de `LossUnrealized` (la pérdida pasa de latente a real).
-4. Broker: `DebtTotal −= total`; `CoverAvailable −= cubierto`.
-5. Loan: `lsfLoanDefault`, y `TotalValueOutstanding`, `PaymentRemaining`, `PrincipalOutstanding`, `ManagementFeeOutstanding` y `NextPaymentDueDate` a 0.
-6. `accountSend` del importe cubierto desde la pseudo-cuenta del broker a la del Vault (con `fixCleanup3_4_0` este envío queda exento de congelación).
+2. Liquidated cover = `min(CoverRateLiquidation × (CoverRateMinimum × DebtTotal), totalDefaultAmount)`, capped by `CoverAvailable`.
+3. Vault: `AssetsTotal −= (total − covered)`; `AssetsAvailable += covered`. If the Loan was impaired, it's deducted from `LossUnrealized` (the loss moves from latent to realized).
+4. Broker: `DebtTotal −= total`; `CoverAvailable −= covered`.
+5. Loan: `lsfLoanDefault`, and `TotalValueOutstanding`, `PaymentRemaining`, `PrincipalOutstanding`, `ManagementFeeOutstanding`, and `NextPaymentDueDate` set to 0.
+6. `accountSend` of the covered amount from the broker's pseudo-account to the Vault's (with `fixCleanup3_4_0` this transfer is exempt from freeze checks).
 
-Con [fixCleanup3_1_3](/amendments/fixCleanup3_1_3), todas las rutas con éxito refrescan `associateAsset` en Loan, broker y Vault.
+With [fixCleanup3_1_3](/amendments/fixCleanup3_1_3), every successful path refreshes `associateAsset` on the Loan, broker, and Vault.
 
-## Campos clave
+## Key fields
 
-- **LoanID** — préstamo a gestionar.
+- **LoanID** — loan to manage.
 
 ## Flags
 
-- **tfLoanDefault** (0x00010000) — ejecuta el default. Irreversible.
-- **tfLoanImpair** (0x00020000) — marca como deteriorado y anota `LossUnrealized` en el Vault.
-- **tfLoanUnimpair** (0x00040000) — revierte el impair.
+- **tfLoanDefault** (0x00010000) — executes the default. Irreversible.
+- **tfLoanImpair** (0x00020000) — marks as impaired and records `LossUnrealized` on the Vault.
+- **tfLoanUnimpair** (0x00040000) — reverses the impair.
 
-Solo puedes activar uno por transacción.
+You can only set one per transaction.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo (situación actual en testnet).
-- **temINVALID_FLAG** — más de un flag a la vez.
-- **tecNO_PERMISSION** — no eres el owner del broker, el préstamo ya está en default o pagado, o la transición no está permitida (impair sobre impaired, unimpair sobre sano).
-- **tecTOO_SOON** — default antes de `NextPaymentDueDate + GracePeriod`, o impair (con `fixCleanup3_4_0`) antes del vencimiento.
-- **tecLIMIT_EXCEEDED** — la pérdida latente dejaría inconsistente el Vault.
-- **tecNO_ENTRY** — el Loan no existe.
+- **temDISABLED** — the amendment is not active (current situation on testnet).
+- **temINVALID_FLAG** — more than one flag at once.
+- **tecNO_PERMISSION** — you're not the broker's owner, the loan is already in default or paid off, or the transition isn't allowed (impairing an already-impaired loan, unimpairing a healthy one).
+- **tecTOO_SOON** — default before `NextPaymentDueDate + GracePeriod`, or impair (with `fixCleanup3_4_0`) before it's due.
+- **tecLIMIT_EXCEEDED** — the latent loss would leave the Vault inconsistent.
+- **tecNO_ENTRY** — the Loan doesn't exist.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "LoanManage",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "LoanID": "0000000000000000000000000000000000000000000000000000000000000000",
   "Flags": 65536
 }
 ```
 
-`Flags: 65536` es `tfLoanDefault`. Sustituye `LoanID` por el índice del Loan; tu cuenta debe ser el owner del broker que lo concedió.
+`Flags: 65536` is `tfLoanDefault`. Replace `LoanID` with the Loan's index; your account must be the owner of the broker that granted it.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Hoy recibirás `temDISABLED`: `LendingProtocol` y `SingleAssetVault` no están activos en la testnet.
-2. Cuando se active: crea un préstamo corto (`PaymentInterval: 60`, `GracePeriod: 60`) con [LoanSet](/tx/LoanSet) y no pagues.
-3. Pasados 60 s, envía `LoanManage` con `Flags: 131072` (impair). En `ledger_entry` del Vault verás `LossUnrealized` > 0 y en el Loan la flag `lsfLoanImpaired`.
-4. Pasados 120 s desde el inicio, envía `Flags: 65536` (default). Observa: `CoverAvailable` del broker baja, `AssetsAvailable` del Vault sube en lo cubierto, `AssetsTotal` baja en lo no cubierto y el Loan queda con `PaymentRemaining: 0` y `lsfLoanDefault`.
-5. Termina con [LoanDelete](/tx/LoanDelete).
+1. Today you'll get `temDISABLED`: `LendingProtocol` and `SingleAssetVault` are not active on testnet.
+2. Once active: create a short loan (`PaymentInterval: 60`, `GracePeriod: 60`) with [LoanSet](/tx/LoanSet) and don't pay it.
+3. After 60 s, send `LoanManage` with `Flags: 131072` (impair). In the Vault's `ledger_entry` you'll see `LossUnrealized` > 0, and on the Loan the `lsfLoanImpaired` flag.
+4. After 120 s from the start, send `Flags: 65536` (default). Observe: the broker's `CoverAvailable` drops, the Vault's `AssetsAvailable` rises by the covered amount, `AssetsTotal` drops by the uncovered amount, and the Loan ends up with `PaymentRemaining: 0` and `lsfLoanDefault`.
+5. Finish with [LoanDelete](/tx/LoanDelete).
 
-## Relacionado
+## Related
 
 - [LoanSet](/tx/LoanSet), [LoanPay](/tx/LoanPay), [LoanDelete](/tx/LoanDelete), [LoanBrokerCoverDeposit](/tx/LoanBrokerCoverDeposit)
 - [Loan](/objects/Loan), [LoanBroker](/objects/LoanBroker), [Vault](/objects/Vault)

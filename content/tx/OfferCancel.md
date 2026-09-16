@@ -1,67 +1,67 @@
 ---
 title: OfferCancel
-summary: Retira del libro una orden tuya que sigue viva, identificada por el Sequence de la OfferCreate que la creó.
+summary: Withdraws a still-live order of yours from the book, identified by the Sequence of the OfferCreate that created it.
 category: dex
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/offercancel
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-`OfferCancel` elimina un objeto [Offer](/objects/Offer) que tu cuenta tiene en el DEX. Solo necesitas indicar `OfferSequence`: el `Sequence` (o el número de Ticket) con el que enviaste la [OfferCreate](/tx/OfferCreate) original. Al borrarse la orden, desaparece del directorio del libro y de tu directorio de propietario, y tu `OwnerCount` baja en 1, liberando 0,2 XRP de reserva en testnet.
+`OfferCancel` removes an [Offer](/objects/Offer) object that your account has in the DEX. You only need to specify `OfferSequence`: the `Sequence` (or Ticket number) with which you sent the original [OfferCreate](/tx/OfferCreate). Once the order is deleted, it disappears from the book's directory and from your owner directory, and your `OwnerCount` drops by 1, freeing 0.2 XRP of reserve on testnet.
 
-Es una transacción deliberadamente tolerante: si la orden ya no existe (porque se cruzó por completo, la borró otra transacción o nunca llegó a colocarse), el resultado sigue siendo `tesSUCCESS`. Pagas la tasa, pero no hay error. Eso hace seguro enviarla "por si acaso".
+It's a deliberately tolerant transaction: if the order no longer exists (because it was fully crossed, deleted by another transaction, or never got placed), the result is still `tesSUCCESS`. You pay the fee, but there's no error. That makes it safe to send "just in case."
 
-No hay forma de cancelar la orden de otra cuenta: la clave del objeto se deriva de tu `Account` más el `OfferSequence` (`keylet::offer(account, seq)`), así que solo puede coincidir con órdenes tuyas.
+There's no way to cancel another account's order: the object's key is derived from your `Account` plus the `OfferSequence` (`keylet::offer(account, seq)`), so it can only match orders of yours.
 
-## Cuándo usarlo
+## When to use it
 
-- Retirar una orden límite que ya no quieres mantener (el precio se ha movido).
-- Liberar reserva de propietario antes de borrar una cuenta con [AccountDelete](/tx/AccountDelete): las ofertas son borrables automáticamente, pero cancelarlas antes evita sorpresas.
-- Limpiar órdenes expiradas: una orden con `Expiration` pasada sigue ocupando reserva hasta que alguien la toca.
-- Si además quieres colocar una nueva orden, es más barato usar el campo `OfferSequence` de [OfferCreate](/tx/OfferCreate), que cancela y crea en una sola transacción.
+- Withdrawing a limit order you no longer want to keep (the price has moved).
+- Freeing owner reserve before deleting an account with [AccountDelete](/tx/AccountDelete): offers are auto-deletable, but canceling them beforehand avoids surprises.
+- Cleaning up expired orders: an order with a past `Expiration` still occupies reserve until someone touches it.
+- If you also want to place a new order, it's cheaper to use the `OfferSequence` field of [OfferCreate](/tx/OfferCreate), which cancels and creates in a single transaction.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`OfferCancel::preflight`**: la única validación estática es que `OfferSequence` no sea 0; si lo es, `temBAD_SEQUENCE`.
+**`OfferCancel::preflight`**: the only static validation is that `OfferSequence` isn't 0; if it is, `temBAD_SEQUENCE`.
 
-**`OfferCancel::preclaim`**: lee tu [AccountRoot](/objects/AccountRoot) (si no existe, `terNO_ACCOUNT`) y comprueba que `OfferSequence` es **estrictamente menor** que tu `Sequence` actual. Un valor igual o mayor no puede corresponder a ninguna orden ya enviada y devuelve `temBAD_SEQUENCE`. Ojo: como la comparación es contra `Sequence`, si la orden se creó con un Ticket cuyo número es mayor que tu `Sequence` actual, esta comprobación la rechaza.
+**`OfferCancel::preclaim`**: reads your [AccountRoot](/objects/AccountRoot) (if it doesn't exist, `terNO_ACCOUNT`) and checks that `OfferSequence` is **strictly less** than your current `Sequence`. A value equal to or greater than that can't correspond to any order already sent and returns `temBAD_SEQUENCE`. Note: since the comparison is against `Sequence`, if the order was created with a Ticket whose number is greater than your current `Sequence`, this check rejects it.
 
-**`OfferCancel::doApply`**: construye la clave `keylet::offer(Account, OfferSequence)` y hace `peek` en el ledger. Si el objeto existe, llama a `offerDelete`, que lo saca del directorio del libro (`BookDirectory`/`BookNode`), de tu directorio de propietario (`OwnerNode`), decrementa `OwnerCount` y borra el SLE. Si no existe, escribe un log de depuración y devuelve `tesSUCCESS` sin tocar nada.
+**`OfferCancel::doApply`**: builds the key `keylet::offer(Account, OfferSequence)` and does a `peek` on the ledger. If the object exists, it calls `offerDelete`, which removes it from the book's directory (`BookDirectory`/`BookNode`) and from your owner directory (`OwnerNode`), decrements `OwnerCount`, and deletes the SLE. If it doesn't exist, it writes a debug log and returns `tesSUCCESS` without touching anything.
 
-El transactor no consulta ningún amendment: el comportamiento es el mismo desde hace años. No tiene flags propios.
+The transactor doesn't check any amendment: the behavior has been the same for years. It has no flags of its own.
 
-## Campos clave
+## Key fields
 
-- **OfferSequence** — `Sequence` de la transacción `OfferCreate` que creó la orden. Si la creaste con un Ticket, es el `TicketSequence`. Lo encuentras como `seq` en la respuesta de `account_offers` o en el campo `Sequence` del objeto `Offer` en `account_objects`.
+- **OfferSequence** — the `Sequence` of the `OfferCreate` transaction that created the order. If you created it with a Ticket, it's the `TicketSequence`. You'll find it as `seq` in the `account_offers` response or in the `Sequence` field of the `Offer` object in `account_objects`.
 
-## Errores habituales
+## Common errors
 
-- **temBAD_SEQUENCE** — `OfferSequence` es 0, o es mayor o igual que el `Sequence` actual de tu cuenta. Copia el valor exacto de `account_offers`.
-- **terNO_ACCOUNT** — la cuenta que firma no existe en el ledger (no está financiada).
-- **tesSUCCESS sin cambios** — no es un error, pero es la situación más confusa: la orden ya no estaba. Comprueba en los metadatos si hay un nodo `Offer` en `DeletedNode`; si no lo hay, no se borró nada.
-- **tefPAST_SEQ / terPRE_SEQ** — errores genéricos de secuencia de la propia transacción (no de `OfferSequence`): reenvía con el `Sequence` correcto de la cuenta.
+- **temBAD_SEQUENCE** — `OfferSequence` is 0, or is greater than or equal to your account's current `Sequence`. Copy the exact value from `account_offers`.
+- **terNO_ACCOUNT** — the signing account doesn't exist on the ledger (not funded).
+- **tesSUCCESS with no changes** — not an error, but the most confusing situation: the order was already gone. Check the metadata for an `Offer` node in `DeletedNode`; if there isn't one, nothing was deleted.
+- **tefPAST_SEQ / terPRE_SEQ** — generic sequence errors of the transaction itself (not of `OfferSequence`): resubmit with the account's correct `Sequence`.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "OfferCancel",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "OfferSequence": 12345
 }
 ```
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Crea una orden con [OfferCreate](/tx/OfferCreate) a un precio que nadie vaya a cruzar (por ejemplo, 1 XRP por 1.000.000 USD) y anota el `Sequence` de esa transacción.
-2. Consulta `account_offers` y verifica que aparece con ese `seq`.
-3. Envía `OfferCancel` con `OfferSequence` igual a ese valor.
-4. Vuelve a consultar `account_offers`: la orden ha desaparecido. En `account_info`, `OwnerCount` ha bajado en 1.
-5. Reenvía exactamente la misma `OfferCancel`: verás `tesSUCCESS` otra vez, pero en los metadatos solo se modifica tu `AccountRoot` (tasa y `Sequence`), sin `DeletedNode`.
-6. Prueba con `OfferSequence` igual a tu `Sequence` actual y observa `temBAD_SEQUENCE`.
+1. Create an order with [OfferCreate](/tx/OfferCreate) at a price nobody will cross (for example, 1 XRP for 1,000,000 USD) and note the `Sequence` of that transaction.
+2. Query `account_offers` and verify it appears with that `seq`.
+3. Submit `OfferCancel` with `OfferSequence` equal to that value.
+4. Query `account_offers` again: the order is gone. In `account_info`, `OwnerCount` has dropped by 1.
+5. Resubmit the exact same `OfferCancel`: you'll see `tesSUCCESS` again, but in the metadata only your `AccountRoot` is modified (fee and `Sequence`), with no `DeletedNode`.
+6. Try with `OfferSequence` equal to your current `Sequence` and observe `temBAD_SEQUENCE`.
 
-## Relacionado
+## Related
 
 - [OfferCreate](/tx/OfferCreate)
 - [Offer](/objects/Offer)

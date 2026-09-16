@@ -1,56 +1,56 @@
 /**
- * Coste en XRP de cada objeto del ledger (owner reserve) y de cada transacción (fee),
- * con los valores vivos de la testnet (testnet.json: reserve_base, reserve_inc, base_fee).
+ * XRP cost of each ledger object (owner reserve) and each transaction (fee),
+ * with the live testnet values (testnet.json: reserve_base, reserve_inc, base_fee).
  *
- * Las unidades de reserva por objeto están contrastadas con las llamadas a
- * increaseOwnerCount/decreaseOwnerCount de los transactores (protocol.json →
- * transactor.ownerCountCalls) y con xrpl.org/docs/concepts/accounts/reserves.
+ * The per-object reserve units are cross-checked against the transactors'
+ * increaseOwnerCount/decreaseOwnerCount calls (protocol.json →
+ * transactor.ownerCountCalls) and against xrpl.org/docs/concepts/accounts/reserves.
  */
 import { protocol, testnet } from "@/lib/protocol";
 
 export interface ReserveRule {
-  /** Unidades de owner reserve que consume (reserve_inc × units). */
+  /** Owner reserve units it consumes (reserve_inc × units). */
   units: number;
-  /** Quién paga la reserva. */
+  /** Who pays the reserve. */
   owner: string;
-  /** Matices (cuándo cuenta, cuándo no, casos especiales). */
+  /** Nuances (when it counts, when it doesn't, special cases). */
   note: string;
-  /** Si la unidad depende del estado (p. ej. RippleState). */
+  /** Whether the unit depends on the state (e.g. RippleState). */
   variable?: boolean;
 }
 
 export const RESERVE_RULES: Record<string, ReserveRule> = {
-  AccountRoot: { units: 0, owner: "la propia cuenta", note: "No consume owner reserve, pero la cuenta necesita mantener siempre la reserva base (reserve_base) más una unidad por cada objeto que posee. Ese XRP no se puede gastar ni enviar." },
-  RippleState: { units: 1, owner: "cada lado que la tenga en estado no-default", variable: true, note: "Una trust line cuenta 1 para cada cuenta cuyo lado no esté en el estado por defecto (límite 0, sin flags, saldo cero desde su perspectiva). Si solo tú fijas un límite, la pagas tú; si ambas cuentas la usan, la pagan las dos. Cuando ambos lados vuelven al default, el objeto se borra solo." },
-  Offer: { units: 1, owner: "la cuenta que la crea", note: "Cada oferta viva en el libro cuenta 1. Se libera al ejecutarse por completo, cancelarse o quedar sin fondos (se limpia sola)." },
-  Escrow: { units: 1, owner: "la cuenta que lo crea", note: "Cuenta 1 mientras exista. Se libera en EscrowFinish o EscrowCancel. Con TokenEscrow, el escrow de tokens también añade 1 al emisor si crea una trust line auxiliar." },
-  PayChannel: { units: 1, owner: "la cuenta que lo abre", note: "Cuenta 1 hasta que se cierra y se borra (PaymentChannelClaim con tfClose una vez pasado SettleDelay, o CancelAfter)." },
-  Check: { units: 1, owner: "quien lo emite", note: "Cuenta 1 hasta que se cobra (CheckCash), se cancela (CheckCancel) o caduca y alguien lo cancela." },
-  DepositPreauth: { units: 1, owner: "la cuenta que preautoriza", note: "Cada preautorización (por cuenta o por conjunto de credenciales) cuenta 1." },
-  SignerList: { units: 1, owner: "la cuenta multifirma", note: "Con MultiSignReserve activo cuenta 1 sea cual sea el número de firmantes (antes: 3 + n)." },
-  Ticket: { units: 1, owner: "la cuenta que los crea", note: "Cada ticket cuenta 1 hasta que se usa (TicketSequence) y se borra. TicketCreate exige tener reserva para todos los tickets pedidos." },
-  NFTokenPage: { units: 1, owner: "el propietario de los NFT", note: "Los NFT no cuentan uno a uno: se agrupan en páginas de hasta 32 y cada página cuenta 1. Acuñar el primer NFT crea la primera página." },
-  NFTokenOffer: { units: 1, owner: "quien crea la oferta", note: "Cada oferta de compra o venta de NFT cuenta 1 hasta aceptarse, cancelarse o caducar (NFTokenCancelOffer)." },
-  DID: { units: 1, owner: "la cuenta", note: "Un único objeto DID por cuenta; cuenta 1. Se libera con DIDDelete." },
-  Oracle: { units: 1, owner: "la cuenta del oráculo", variable: true, note: "1 si tiene hasta 5 pares de precios, 2 si tiene más (máximo 10). OracleSet reevalúa la reserva al actualizar." },
-  Credential: { units: 1, owner: "el emisor hasta que se acepta; después el sujeto", note: "Al crearla la paga el emisor; cuando el sujeto la acepta (CredentialAccept) la reserva pasa al sujeto." },
-  PermissionedDomain: { units: 1, owner: "el propietario del dominio", note: "Cuenta 1 por dominio." },
-  Delegate: { units: 1, owner: "la cuenta que delega", note: "Cuenta 1 por cuenta delegada (DelegateSet). Se libera al vaciar los permisos." },
-  MPTokenIssuance: { units: 1, owner: "el emisor", note: "Cuenta 1 por emisión. Se libera con MPTokenIssuanceDestroy (solo si no hay tenedores)." },
-  MPToken: { units: 1, owner: "el tenedor", note: "Cada MPToken (tenencia de un MPT por una cuenta) cuenta 1 para el tenedor. MPTokenAuthorize con tfMPTUnauthorize lo borra si el saldo es 0." },
-  AMM: { units: 0, owner: "nadie (pseudo-cuenta)", note: "El AMM vive en una pseudo-cuenta sin reserva propia, pero AMMCreate cobra el owner reserve incremental como fee (se quema), y tus LP tokens crean una trust line que sí cuenta 1." },
-  Vault: { units: 2, owner: "el propietario del vault", note: "VaultCreate incrementa el owner count en 2 (el objeto Vault y su pseudo-cuenta/MPT de shares)." },
-  LoanBroker: { units: 2, owner: "el propietario del broker", note: "LoanBrokerSet crea el broker con 2 unidades (broker y su pseudo-cuenta)." },
-  Loan: { units: 1, owner: "el broker (propietario)", note: "Cada préstamo activo cuenta 1 en el LoanBroker." },
-  Sponsorship: { units: 1, owner: "la cuenta patrocinada", note: "Objeto que registra una relación de patrocinio; cuenta 1." },
-  Bridge: { units: 1, owner: "la cuenta puerta (door)", note: "XChainCreateBridge cuenta 1 en la cuenta door." },
-  XChainOwnedClaimID: { units: 1, owner: "quien lo crea", note: "Cuenta 1 hasta que se consume el claim (XChainClaim) o se reclama la recompensa." },
-  XChainOwnedCreateAccountClaimID: { units: 1, owner: "la cuenta door", note: "Cuenta 1 hasta que se completan las attestations." },
-  DirectoryNode: { units: 0, owner: "nadie", note: "Los directorios (owner directory, libros de órdenes) no cuentan reserva: son estructuras internas que el ledger crea y borra solo." },
-  Amendments: { units: 0, owner: "la red", note: "Objeto único del sistema." },
-  FeeSettings: { units: 0, owner: "la red", note: "Objeto único del sistema; contiene los valores actuales de reserva y fee." },
-  LedgerHashes: { units: 0, owner: "la red", note: "Objeto del sistema." },
-  NegativeUNL: { units: 0, owner: "la red", note: "Objeto único del sistema." },
+  AccountRoot: { units: 0, owner: "the account itself", note: "Doesn't consume owner reserve, but the account must always keep the base reserve (reserve_base) plus one unit per object it owns. That XRP can't be spent or sent." },
+  RippleState: { units: 1, owner: "each side that has it in a non-default state", variable: true, note: "A trust line counts 1 for each account whose side isn't in the default state (limit 0, no flags, zero balance from its perspective). If only you set a limit, you pay for it; if both accounts use it, both pay. When both sides return to default, the object deletes itself." },
+  Offer: { units: 1, owner: "the account that creates it", note: "Each live offer in the order book counts 1. It's released when fully executed, cancelled, or left unfunded (it cleans itself up)." },
+  Escrow: { units: 1, owner: "the account that creates it", note: "Counts 1 while it exists. Released on EscrowFinish or EscrowCancel. With TokenEscrow, a token escrow also adds 1 to the issuer if it creates an auxiliary trust line." },
+  PayChannel: { units: 1, owner: "the account that opens it", note: "Counts 1 until it's closed and deleted (PaymentChannelClaim with tfClose once SettleDelay has passed, or CancelAfter)." },
+  Check: { units: 1, owner: "whoever issues it", note: "Counts 1 until it's cashed (CheckCash), cancelled (CheckCancel), or it expires and someone cancels it." },
+  DepositPreauth: { units: 1, owner: "the account that preauthorizes", note: "Each preauthorization (per account or per set of credentials) counts 1." },
+  SignerList: { units: 1, owner: "the multisign account", note: "With MultiSignReserve active it counts 1 regardless of the number of signers (previously: 3 + n)." },
+  Ticket: { units: 1, owner: "the account that creates them", note: "Each ticket counts 1 until it's used (TicketSequence) and deleted. TicketCreate requires having reserve for all the tickets requested." },
+  NFTokenPage: { units: 1, owner: "the NFT owner", note: "NFTs don't count one by one: they're grouped into pages of up to 32, and each page counts 1. Minting the first NFT creates the first page." },
+  NFTokenOffer: { units: 1, owner: "whoever creates the offer", note: "Each NFT buy or sell offer counts 1 until accepted, cancelled, or expired (NFTokenCancelOffer)." },
+  DID: { units: 1, owner: "the account", note: "A single DID object per account; counts 1. Released with DIDDelete." },
+  Oracle: { units: 1, owner: "the oracle account", variable: true, note: "1 if it has up to 5 price pairs, 2 if it has more (maximum 10). OracleSet re-evaluates the reserve on update." },
+  Credential: { units: 1, owner: "the issuer until accepted; then the subject", note: "The issuer pays it when created; when the subject accepts it (CredentialAccept) the reserve moves to the subject." },
+  PermissionedDomain: { units: 1, owner: "the domain owner", note: "Counts 1 per domain." },
+  Delegate: { units: 1, owner: "the delegating account", note: "Counts 1 per delegated account (DelegateSet). Released when permissions are emptied." },
+  MPTokenIssuance: { units: 1, owner: "the issuer", note: "Counts 1 per issuance. Released with MPTokenIssuanceDestroy (only if there are no holders)." },
+  MPToken: { units: 1, owner: "the holder", note: "Each MPToken (an account's holding of an MPT) counts 1 for the holder. MPTokenAuthorize with tfMPTUnauthorize deletes it if the balance is 0." },
+  AMM: { units: 0, owner: "no one (pseudo-account)", note: "The AMM lives in a pseudo-account with no reserve of its own, but AMMCreate charges the incremental owner reserve as a fee (it's burned), and your LP tokens create a trust line that does count 1." },
+  Vault: { units: 2, owner: "the vault owner", note: "VaultCreate increases the owner count by 2 (the Vault object and its shares pseudo-account/MPT)." },
+  LoanBroker: { units: 2, owner: "the broker owner", note: "LoanBrokerSet creates the broker with 2 units (broker and its pseudo-account)." },
+  Loan: { units: 1, owner: "the broker (owner)", note: "Each active loan counts 1 on the LoanBroker." },
+  Sponsorship: { units: 1, owner: "the sponsored account", note: "Object that records a sponsorship relationship; counts 1." },
+  Bridge: { units: 1, owner: "the door account", note: "XChainCreateBridge counts 1 on the door account." },
+  XChainOwnedClaimID: { units: 1, owner: "whoever creates it", note: "Counts 1 until the claim is consumed (XChainClaim) or the reward is claimed." },
+  XChainOwnedCreateAccountClaimID: { units: 1, owner: "the door account", note: "Counts 1 until the attestations are completed." },
+  DirectoryNode: { units: 0, owner: "no one", note: "Directories (owner directory, order books) don't count reserve: they're internal structures the ledger creates and deletes on its own." },
+  Amendments: { units: 0, owner: "the network", note: "Unique system object." },
+  FeeSettings: { units: 0, owner: "the network", note: "Unique system object; holds the current reserve and fee values." },
+  LedgerHashes: { units: 0, owner: "the network", note: "System object." },
+  NegativeUNL: { units: 0, owner: "the network", note: "Unique system object." },
 };
 
 export function reserveXrp(units: number): number {
@@ -58,35 +58,35 @@ export function reserveXrp(units: number): number {
 }
 
 export function formatXrp(x: number): string {
-  return `${x.toLocaleString("es-ES", { maximumFractionDigits: 6 })} XRP`;
+  return `${x.toLocaleString("en-US", { maximumFractionDigits: 6 })} XRP`;
 }
 
-/** Reserva total de una cuenta con N objetos. */
+/** Total reserve of an account with N objects. */
 export function accountReserveXrp(ownerCount: number): number {
   return testnet.reserves.baseXrp + ownerCount * testnet.reserves.incXrp;
 }
 
 export const BASE_FEE_DROPS = Math.round(testnet.reserves.baseFeeXrp * 1_000_000);
 export const LOAD_FACTOR = testnet.reserves.loadFactor;
-/** Fee mínimo efectivo con el load factor actual (fee escalation), en drops. */
+/** Effective minimum fee with the current load factor (fee escalation), in drops. */
 export const CURRENT_MIN_FEE_DROPS = Math.ceil((BASE_FEE_DROPS * LOAD_FACTOR) / 256);
 
 export interface FeeRule { label: string; drops?: number; xrp?: number; note: string }
 
-/** Reglas de fee de una transacción, leídas del transactor cuando hay evidencia. */
+/** Fee rules for a transaction, read from the transactor when there's evidence. */
 export function txFeeRules(name: string): FeeRule[] {
   const t = protocol.transactions.find((x) => x.name === name);
-  const rules: FeeRule[] = [{ label: "Fee base", drops: BASE_FEE_DROPS, note: `Referencia del ledger (base_fee). Con carga, el mínimo sube por fee escalation (ahora load_factor ${LOAD_FACTOR}/256 → ${CURRENT_MIN_FEE_DROPS} drops). Xaman propone un fee adecuado.` }];
-  if (t?.transactor?.ownerReserveFee) rules.push({ label: "Owner reserve como fee", xrp: testnet.reserves.incXrp, note: "Este tipo cobra el owner reserve incremental como fee (se destruye). Es una medida antispam: AccountDelete, AMMCreate y LedgerStateFix." });
-  if (name === "EscrowFinish") rules.push({ label: "Fulfillment", note: "Si lleva Condition/Fulfillment: fee base × (33 + ⌈bytes del fulfillment / 16⌉)." });
-  if (name === "Batch") rules.push({ label: "Batch", note: "fee base × (2 + número de inner tx) + fees de firmantes + la suma de los fees base de cada inner tx." });
-  if (name === "SetRegularKey") rules.push({ label: "Gratis una vez", drops: 0, note: "Si la clave maestra está deshabilitada y la cuenta no tiene RegularKey ni SignerList, el fee puede ser 0 (recuperación de cuenta)." });
-  if (t?.transactor?.customBaseFee && !["EscrowFinish", "Batch", "SetRegularKey", "AccountDelete", "AMMCreate", "LedgerStateFix"].includes(name)) rules.push({ label: "Fee propio", note: `El transactor define calculateBaseFee: consulta ${t.transactor.file}.` });
-  rules.push({ label: "Multifirma", note: "Cada firma de la lista de firmantes añade una vez el fee base." });
+  const rules: FeeRule[] = [{ label: "Base fee", drops: BASE_FEE_DROPS, note: `Ledger reference (base_fee). Under load, the minimum rises due to fee escalation (currently load_factor ${LOAD_FACTOR}/256 → ${CURRENT_MIN_FEE_DROPS} drops). Xaman proposes a suitable fee.` }];
+  if (t?.transactor?.ownerReserveFee) rules.push({ label: "Owner reserve as fee", xrp: testnet.reserves.incXrp, note: "This type charges the incremental owner reserve as a fee (it's destroyed). It's an antispam measure: AccountDelete, AMMCreate and LedgerStateFix." });
+  if (name === "EscrowFinish") rules.push({ label: "Fulfillment", note: "If it carries Condition/Fulfillment: base fee × (33 + ⌈fulfillment bytes / 16⌉)." });
+  if (name === "Batch") rules.push({ label: "Batch", note: "base fee × (2 + number of inner tx) + signer fees + the sum of the base fees of each inner tx." });
+  if (name === "SetRegularKey") rules.push({ label: "Free once", drops: 0, note: "If the master key is disabled and the account has no RegularKey or SignerList, the fee can be 0 (account recovery)." });
+  if (t?.transactor?.customBaseFee && !["EscrowFinish", "Batch", "SetRegularKey", "AccountDelete", "AMMCreate", "LedgerStateFix"].includes(name)) rules.push({ label: "Custom fee", note: `The transactor defines calculateBaseFee: check ${t.transactor.file}.` });
+  rules.push({ label: "Multisign", note: "Each signature in the signer list adds the base fee once." });
   return rules;
 }
 
-/** Objetos que una transacción puede crear (y por tanto reserva que bloquea). */
+/** Objects a transaction can create (and therefore reserve it locks up). */
 export const TX_CREATES: Record<string, string[]> = {
   Payment: ["AccountRoot", "RippleState"],
   TrustSet: ["RippleState"],

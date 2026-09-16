@@ -1,19 +1,19 @@
 ---
 title: fixMPTDeliveredAmount
-summary: Añade el metadato delivered_amount a los Payment directos que mueven un MPT cuando el importe entregado difiere del solicitado.
+summary: Adds the delivered_amount metadata to direct Payments that move an MPT when the delivered amount differs from the requested one.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixmptdeliveredamount
 ---
 
-## Qué cambia
+## What changes
 
-Cuando un [Payment](/tx/Payment) mueve un Multi-Purpose Token (MPT) de forma directa entre emisor y receptor —sin pasar por el motor de pagos genérico— el importe realmente entregado puede diferir del solicitado por dos motivos: se permite un pago parcial (`tfPartialPayment`) o el emisor del MPT cobra una comisión de transferencia (`TransferRate`). En ambos casos, antes del fix la metadata de la transacción no reflejaba ese ajuste: el campo `delivered_amount` no se actualizaba con la cantidad efectivamente enviada al destinatario.
+When a [Payment](/tx/Payment) moves a Multi-Purpose Token (MPT) directly between issuer and recipient — without going through the generic payment engine — the amount actually delivered can differ from the requested amount for two reasons: a partial payment is allowed (`tfPartialPayment`) or the MPT's issuer charges a transfer fee (`TransferRate`). In both cases, before the fix the transaction metadata did not reflect that adjustment: the `delivered_amount` field was not updated with the amount actually sent to the recipient.
 
-Con `fixMPTDeliveredAmount` activo, tras aplicar `accountSend` para un MPT, si el importe entregado (`amountDeliver`) es distinto del importe solicitado (`dstAmount`) el código llama a `ctx_.deliver(amountDeliver)`, que fija `DeliveredAmount` en la metadata con el valor real entregado. Sin este dato, cualquier servicio que dependa de `delivered_amount` (exchanges, wallets, indexadores) no podía saber cuánto MPT había recibido realmente el destinatario en un pago parcial o con comisión.
+With `fixMPTDeliveredAmount` active, after applying `accountSend` for an MPT, if the delivered amount (`amountDeliver`) differs from the requested amount (`dstAmount`) the code calls `ctx_.deliver(amountDeliver)`, which sets `DeliveredAmount` in the metadata to the actual amount delivered. Without this data, any service relying on `delivered_amount` (exchanges, wallets, indexers) could not know how much MPT the recipient had actually received in a partial payment or one with a fee.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [Payment](/tx/Payment): metadata `delivered_amount` cuando el `Amount` es un MPT y se entrega vía transferencia directa.
+- [Payment](/tx/Payment): `delivered_amount` metadata when `Amount` is an MPT and it is delivered via direct transfer.
 
-## Estado y contexto
+## Status and context
 
-Corrige una laguna heredada de MPTokensV1: el mecanismo de `delivered_amount` ya existía para XRP e IOU desde hace años (tras el problema histórico de pagos parciales sin metadata), pero no se había replicado para los pagos directos de MPT al añadirse ese tipo de activo.
+Fixes a gap inherited from MPTokensV1: the `delivered_amount` mechanism had already existed for XRP and IOU for years (following the historical problem of partial payments without metadata), but had not been replicated for direct MPT payments when that asset type was added.

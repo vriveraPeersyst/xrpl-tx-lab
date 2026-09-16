@@ -1,72 +1,72 @@
 ---
 title: ConfidentialMPTConvertBack
-summary: Convierte saldo confidencial de un MPT de vuelta a saldo público, visible en el ledger.
+summary: Converts an MPT's confidential balance back into public balance, visible on the ledger.
 category: confidencial
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/confidentialmptconvertback
 amendment: ConfidentialTransfer
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-`ConfidentialMPTConvertBack` es la operación inversa de [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert): toma una cantidad de tu saldo confidencial gastable (`ConfidentialBalanceSpending`) y la revela como saldo público en tu `MPToken`, dejando de estar cifrada. Es el paso necesario cuando quieres, por ejemplo, retirar fondos a un exchange o a una contraparte que no opera con saldos confidenciales.
+`ConfidentialMPTConvertBack` is the reverse operation of [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert): it takes an amount from your spendable confidential balance (`ConfidentialBalanceSpending`) and reveals it as public balance in your `MPToken`, so it stops being encrypted. It's the step you need when you want to, for example, withdraw funds to an exchange or a counterparty that doesn't operate with confidential balances.
 
-Como en el resto de operaciones confidenciales, la transacción viaja con un compromiso criptográfico (`BalanceCommitment`) y una prueba de conocimiento cero (`ZKProof`) que demuestran que el importe descifrado corresponde realmente a tu saldo cifrado previo, sin que los validadores necesiten ver ese saldo en ningún momento del proceso.
+As with the rest of confidential operations, the transaction travels with a cryptographic commitment (`BalanceCommitment`) and a zero-knowledge proof (`ZKProof`) that prove the decrypted amount really corresponds to your previous encrypted balance, without validators needing to see that balance at any point in the process.
 
-**Este tipo de transacción depende del amendment `ConfidentialTransfer`, que hoy no está activo en testnet.** Cualquier intento de enviarla falla mientras el amendment no esté activo.
+**This transaction type depends on the `ConfidentialTransfer` amendment, which is not currently active on testnet.** Any attempt to send it fails while the amendment isn't active.
 
-## Cuándo usarlo (cuando el amendment esté activo)
+## When to use it (once the amendment is active)
 
-- Retirar fondos de tu posición confidencial hacia un saldo público que puedas enviar a cualquier tenedor, aunque no soporte saldos confidenciales.
-- Cerrar una posición confidencial antes de un evento que exige transparencia (una liquidación, una auditoría puntual).
-- Combinarlo con [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) para mover fondos dentro y fuera del modo confidencial según necesites privacidad puntual.
+- Withdrawing funds from your confidential position into a public balance you can send to any holder, even one that doesn't support confidential balances.
+- Closing a confidential position ahead of an event that requires transparency (a liquidation, a one-off audit).
+- Combining it with [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) to move funds in and out of confidential mode as your need for privacy changes.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`ConfidentialMPTConvertBack::preflight`** valida forma: `MPTAmount` distinto de cero (`temBAD_AMOUNT`) y los campos criptográficos (`ZKProof`, `BalanceCommitment`) con el formato esperado (`temMALFORMED` si no).
+**`ConfidentialMPTConvertBack::preflight`** validates form: `MPTAmount` other than zero (`temBAD_AMOUNT`) and the cryptographic fields (`ZKProof`, `BalanceCommitment`) with the expected format (`temMALFORMED` if not).
 
-**`ConfidentialMPTConvertBack::calculateBaseFee`** verifica la prueba de conocimiento cero como parte del cálculo de la fee de la transacción (`tecBAD_PROOF` si no es válida) — un patrón distinto al resto de transactores, donde esa verificación suele vivir en `preclaim`.
+**`ConfidentialMPTConvertBack::calculateBaseFee`** verifies the zero-knowledge proof as part of computing the transaction's fee (`tecBAD_PROOF` if it isn't valid) — a pattern different from most transactors, where that verification usually lives in `preclaim`.
 
-**`ConfidentialMPTConvertBack::preclaim`** exige que la emisión permita saldo confidencial (`lsfMPTCanHoldConfidentialBalance`), que tengas saldo confidencial gastable suficiente (`tecINSUFFICIENT_FUNDS`) y que tu `MPToken` y la emisión existan (`tecOBJECT_NOT_FOUND`).
+**`ConfidentialMPTConvertBack::preclaim`** requires the issuance to allow confidential balance (`lsfMPTCanHoldConfidentialBalance`), that you have enough spendable confidential balance (`tecINSUFFICIENT_FUNDS`), and that your `MPToken` and the issuance exist (`tecOBJECT_NOT_FOUND`).
 
-**`ConfidentialMPTConvertBack::doApply`** descuenta el compromiso correspondiente de tu `ConfidentialBalanceSpending`, añade `MPTAmount` a tu saldo público y reduce el total cifrado en circulación de la emisión (`ConfidentialOutstandingAmount`).
+**`ConfidentialMPTConvertBack::doApply`** subtracts the corresponding commitment from your `ConfidentialBalanceSpending`, adds `MPTAmount` to your public balance, and reduces the issuance's total encrypted supply in circulation (`ConfidentialOutstandingAmount`).
 
-## Campos clave
+## Key fields
 
-- **MPTAmount** — el importe, en claro, que sale del saldo confidencial y aparece como saldo público.
-- **HolderEncryptedAmount** / **IssuerEncryptedAmount** / **AuditorEncryptedAmount** — versiones cifradas del importe bajo cada clave relevante, usadas para verificar la consistencia con tu saldo cifrado previo.
-- **BalanceCommitment** — compromiso criptográfico de tu saldo confidencial resultante tras la operación.
-- **BlindingFactor** — factor de ofuscación del compromiso.
-- **ZKProof** — prueba de que el importe revelado es consistente con tu saldo cifrado.
+- **MPTAmount** — the amount, in clear text, that leaves the confidential balance and appears as public balance.
+- **HolderEncryptedAmount** / **IssuerEncryptedAmount** / **AuditorEncryptedAmount** — encrypted versions of the amount under each relevant key, used to verify consistency with your previous encrypted balance.
+- **BalanceCommitment** — cryptographic commitment of your resulting confidential balance after the operation.
+- **BlindingFactor** — blinding factor of the commitment.
+- **ZKProof** — proof that the revealed amount is consistent with your encrypted balance.
 
-## Errores habituales
+## Common errors
 
-- **tecBAD_PROOF** — la prueba de conocimiento cero no es válida.
-- **tecINSUFFICIENT_FUNDS** — tu saldo confidencial gastable no cubre el `MPTAmount` solicitado.
-- **tecNO_PERMISSION** — la emisión no permite saldo confidencial.
-- **tecOBJECT_NOT_FOUND** — la emisión o tu `MPToken` no existen.
-- **temBAD_AMOUNT** — `MPTAmount` es cero o inválido.
+- **tecBAD_PROOF** — the zero-knowledge proof isn't valid.
+- **tecINSUFFICIENT_FUNDS** — your spendable confidential balance doesn't cover the requested `MPTAmount`.
+- **tecNO_PERMISSION** — the issuance doesn't allow confidential balance.
+- **tecOBJECT_NOT_FOUND** — the issuance or your `MPToken` doesn't exist.
+- **temBAD_AMOUNT** — `MPTAmount` is zero or invalid.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-El amendment `ConfidentialTransfer` no está activo hoy en testnet, así que cualquier envío de `ConfidentialMPTConvertBack` desde el builder devolverá un error de tipo `temDISABLED`. Los campos criptográficos del ejemplo quedan vacíos porque generarlos requiere herramientas externas que esta web no implementa.
+The `ConfidentialTransfer` amendment isn't active on testnet today, so any `ConfidentialMPTConvertBack` submission from the builder will return a `temDISABLED` error. The cryptographic fields in the example are left empty because generating them requires external tools this site doesn't implement.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "ConfidentialMPTConvertBack",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "MPTokenIssuanceID": "000000000000000000000000000000000000000000000000",
   "MPTAmount": "100",
   "ZKProof": ""
 }
 ```
 
-Intentaría revelar 100 unidades de saldo confidencial como saldo público; hoy falla con `temDISABLED`.
+This would attempt to reveal 100 units of confidential balance as public balance; today it fails with `temDISABLED`.
 
-## Relacionado
+## Related
 
-- [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) — la operación inversa.
-- [ConfidentialMPTMergeInbox](/tx/ConfidentialMPTMergeInbox) — consolida el saldo que luego puedes revertir.
+- [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) — the reverse operation.
+- [ConfidentialMPTMergeInbox](/tx/ConfidentialMPTMergeInbox) — consolidates the balance you can later revert.
 - Amendments: [ConfidentialTransfer](/amendments/ConfidentialTransfer).

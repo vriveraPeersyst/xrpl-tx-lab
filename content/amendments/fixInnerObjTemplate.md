@@ -1,22 +1,22 @@
 ---
 title: fixInnerObjTemplate
-summary: Corrige la creación de objetos internos (STObject anidados) para que apliquen correctamente su plantilla de campos, en concreto en el slot de subasta de AMM.
+summary: Fixes the creation of inner objects (nested STObjects) so they correctly apply their field template, specifically in the AMM auction slot.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixinnerobjtemplate
 ---
 
-## Qué cambia
+## What changes
 
-Varios objetos del ledger contienen objetos internos anidados (`STObject` dentro de otro `STObject`), como `AuctionSlot` o `VoteEntry` en un [AMM](/objects/AMM), o `SignerEntry`, `Majority` y `DisabledValidator` en otros contextos. Cada uno de estos objetos internos tiene una plantilla (`SOTemplate`) que define qué campos son obligatorios, opcionales o llevan un valor por defecto.
+Several ledger objects contain nested inner objects (an `STObject` inside another `STObject`), such as `AuctionSlot` or `VoteEntry` in an [AMM](/objects/AMM), or `SignerEntry`, `Majority`, and `DisabledValidator` in other contexts. Each of these inner objects has a template (`SOTemplate`) defining which fields are required, optional, or carry a default value.
 
-Antes del fix, al construirse un objeto interno nuevo no siempre se le aplicaba su plantilla, lo que podía dejar sin fijar campos con valor por defecto — por ejemplo `sfTradingFee` o `sfDiscountedFee` en el slot de subasta de un AMM — y provocar errores al intentar leerlos. `fixInnerObjTemplate` añade un constructor de `STObject` que aplica la plantilla correspondiente (`STObject::makeInnerObject`) al crear estos objetos internos, asegurando que los campos con valor por defecto queden inicializados desde el principio.
+Before the fix, when a new inner object was constructed its template was not always applied, which could leave fields with a default value unset — for example `sfTradingFee` or `sfDiscountedFee` in an AMM's auction slot — and cause errors when trying to read them. `fixInnerObjTemplate` adds an `STObject` constructor that applies the corresponding template (`STObject::makeInnerObject`) when creating these inner objects, ensuring that fields with default values are initialized from the start.
 
-Fue el primero de dos fixes sobre el mismo problema: `fixInnerObjTemplate2`, posterior, extiende la aplicación de plantillas al resto de objetos internos que quedaban fuera de este primer arreglo.
+It was the first of two fixes for the same problem: the later `fixInnerObjTemplate2` extends template application to the remaining inner objects left out of this first fix.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [AMM](/objects/AMM): campos internos `AuctionSlot` y `VoteEntry`.
-- Indirectamente cualquier transactor que construya o lea estos objetos internos, como las relacionadas con AMM.
+- [AMM](/objects/AMM): inner `AuctionSlot` and `VoteEntry` fields.
+- Indirectly, any transactor that builds or reads these inner objects, such as those related to AMM.
 
-## Estado y contexto
+## Status and context
 
-Es un fix puntual sobre `STObject`/`InnerObjectFormats`: no añade funcionalidad nueva, corrige que los objetos internos se comporten como su plantilla exige desde su creación, evitando estados inconsistentes o excepciones al acceder a campos con valor por defecto no inicializados. El amendment ya está retirado en el código (`XRPL_RETIRE_FIX`): el comportamiento corregido es hoy el único que existe, sin rama alternativa.
+This is a targeted fix to `STObject`/`InnerObjectFormats`: it does not add new functionality, it corrects inner objects to behave as their template requires from creation, avoiding inconsistent states or exceptions when accessing uninitialized default-value fields. The amendment is already retired in the code (`XRPL_RETIRE_FIX`): the corrected behavior is now the only one that exists, with no alternative branch.

@@ -1,20 +1,20 @@
 ---
 title: fixAMMv1_3
-summary: Cambia el redondeo de los cálculos internos del AMM a "siempre hacia abajo", para que depósitos y retiros nunca beneficien al usuario a costa del pool.
+summary: Changes the rounding of the AMM's internal calculations to "always round down", so that deposits and withdrawals never benefit the user at the pool's expense.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixammv1_3
 ---
 
-## Qué cambia
+## What changes
 
-Los cálculos de LP tokens y de importes de activos en el AMM usan aritmética de precisión con un modo de redondeo configurable (`Number::RoundingMode`). Antes de este fix, ese redondeo podía seguir el modo global por defecto del proceso, lo que en ciertos cálculos de [AMMDeposit](/tx/AMMDeposit) y [AMMWithdraw](/tx/AMMWithdraw) podía redondear a favor del usuario y en contra del pool, permitiendo, con suficientes operaciones repetidas, extraer valor del AMM por acumulación de redondeos favorables.
+The AMM's calculations of LP tokens and asset amounts use precision arithmetic with a configurable rounding mode (`Number::RoundingMode`). Before this fix, that rounding could follow the process's global default mode, which in certain [AMMDeposit](/tx/AMMDeposit) and [AMMWithdraw](/tx/AMMWithdraw) calculations could round in favor of the user and against the pool, allowing, with enough repeated operations, value to be extracted from the AMM through the accumulation of favorable rounding.
 
-Con fixAMMv1_3 activo, `AMMHelpers` fuerza `Number::RoundingMode::Downward` en los cálculos afectados: los LP tokens que se acreditan en un depósito y los importes de activos que se entregan en un retiro se redondean siempre hacia abajo. Si tras el ajuste un depósito o retiro resultaría en cero tokens o cero importe, la transacción se rechaza (por ejemplo con `tecAMM_INVALID_TOKENS`) en vez de completarse con un resultado nulo o negativo para el pool.
+With fixAMMv1_3 active, `AMMHelpers` forces `Number::RoundingMode::Downward` in the affected calculations: the LP tokens credited in a deposit and the asset amounts delivered in a withdrawal are always rounded down. If, after the adjustment, a deposit or withdrawal would result in zero tokens or zero amount, the transaction is rejected (for example with `tecAMM_INVALID_TOKENS`) instead of completing with a null or negative result for the pool.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [AMMDeposit](/tx/AMMDeposit) y [AMMWithdraw](/tx/AMMWithdraw): redondeo consistente hacia abajo de LP tokens e importes de activos.
-- [AMM](/objects/AMM): su `LPTokenBalance` y los balances de los dos activos del pool quedan protegidos frente al drenaje por redondeo.
+- [AMMDeposit](/tx/AMMDeposit) and [AMMWithdraw](/tx/AMMWithdraw): consistent downward rounding of LP tokens and asset amounts.
+- [AMM](/objects/AMM): its `LPTokenBalance` and the balances of the pool's two assets are protected against drainage through rounding.
 
-## Estado y contexto
+## Status and context
 
-Es una corrección de solidez económica del AMM: garantiza que el redondeo nunca trabaja a favor del usuario individual y en contra de los demás proveedores de liquidez del pool, cerrando una vía teórica de extracción de valor mediante operaciones repetidas de pequeño importe.
+This is a fix for the AMM's economic soundness: it guarantees that rounding never works in favor of the individual user and against the pool's other liquidity providers, closing a theoretical avenue for value extraction through repeated small-amount operations.

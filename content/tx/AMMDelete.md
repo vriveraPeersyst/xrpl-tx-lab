@@ -57,7 +57,7 @@ It has no flags of its own.
   "TransactionType": "AMMDelete",
   "Account": "rXXXX_YOUR_ACCOUNT",
   "Asset": { "currency": "XRP" },
-  "Asset2": { "currency": "USD", "issuer": "rZZZZ_EMISOR" }
+  "Asset2": { "currency": "USD", "issuer": "rZZZZ_ISSUER" }
 }
 ```
 

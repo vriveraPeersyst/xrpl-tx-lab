@@ -1,70 +1,70 @@
 ---
 title: VaultDelete
-summary: Borra una bóveda vacía junto con su pseudo-cuenta y la emisión de shares, devolviendo la reserva al owner.
+summary: Deletes an empty vault along with its pseudo-account and share issuance, returning the reserve to the owner.
 category: vault
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/vaultdelete
 xls: XLS-0065
 amendment: SingleAssetVault
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-**Aviso: el amendment [SingleAssetVault](/amendments/SingleAssetVault) NO está activo en la testnet.** Cualquier `VaultDelete` que envíes hoy falla con `temDISABLED`. Esta página describe el código que se activará cuando el amendment se vote.
+**Notice: the [SingleAssetVault](/amendments/SingleAssetVault) amendment is NOT active on testnet.** Any `VaultDelete` you send today fails with `temDISABLED`. This page describes the code that will activate once the amendment is voted in.
 
-`VaultDelete` destruye un [Vault](/objects/Vault) que ya no tiene nada dentro. Elimina los tres objetos que creó [VaultCreate](/tx/VaultCreate): el propio Vault, la pseudo-cuenta que custodiaba el activo y la [MPTokenIssuance](/objects/MPTokenIssuance) de las shares. También borra el holding vacío del activo de la pseudo-cuenta (trust line o MPToken) y, si aún existe, tu propio `MPToken` de shares. El `OwnerCount` de tu cuenta baja en 2 y recuperas la reserva.
+`VaultDelete` destroys a [Vault](/objects/Vault) that no longer has anything inside it. It removes the three objects created by [VaultCreate](/tx/VaultCreate): the Vault itself, the pseudo-account that custodied the asset, and the shares' [MPTokenIssuance](/objects/MPTokenIssuance). It also deletes the pseudo-account's empty asset holding (trust line or MPToken) and, if it still exists, your own shares `MPToken`. Your account's `OwnerCount` drops by 2 and you recover the reserve.
 
-Solo el `Owner` puede borrarla, y solo cuando la bóveda está completamente vacía: sin activos (`AssetsTotal` y `AssetsAvailable` a cero) y sin shares en circulación (`OutstandingAmount` de la emisión a cero). Si quedan depositantes, cada uno debe retirar con [VaultWithdraw](/tx/VaultWithdraw), o el emisor debe recuperar con [VaultClawback](/tx/VaultClawback).
+Only the `Owner` can delete it, and only when the vault is completely empty: no assets (`AssetsTotal` and `AssetsAvailable` at zero) and no shares outstanding (`OutstandingAmount` of the issuance at zero). If depositors remain, each must withdraw with [VaultWithdraw](/tx/VaultWithdraw), or the issuer must claw back with [VaultClawback](/tx/VaultClawback).
 
-## Cuándo usarlo
+## When to use it
 
-- Cerrar un producto de rendimiento que ha terminado y del que todos los participantes ya han salido.
-- Recuperar las 2 unidades de owner reserve que bloquea la bóveda.
-- Limpiar bóvedas de prueba que creaste y ya no usas.
+- Closing a yield product that has ended and from which all participants have already exited.
+- Recovering the 2 units of owner reserve locked up by the vault.
+- Cleaning up test vaults you created and no longer use.
 
-## Cómo funciona por dentro
+## How it works inside
 
-`VaultDelete::preflight` (validación estática) devuelve `temMALFORMED` si `VaultID` es cero. Si incluyes `MemoData` (un motivo de borrado de hasta 256 bytes) hace falta [LendingProtocolV1_1](/amendments/LendingProtocolV1_1); sin ese amendment el campo provoca `temDISABLED`.
+`VaultDelete::preflight` (static validation) returns `temMALFORMED` if `VaultID` is zero. If you include `MemoData` (a deletion reason of up to 256 bytes), [LendingProtocolV1_1](/amendments/LendingProtocolV1_1) is required; without that amendment the field triggers `temDISABLED`.
 
-`VaultDelete::preclaim` (contra el ledger): busca el Vault (`tecNO_ENTRY`), comprueba que `Account` es el `Owner` (`tecNO_PERMISSION`) y que `AssetsAvailable` y `AssetsTotal` son cero (`tecHAS_OBLIGATIONS`). Después lee la emisión de shares (`ShareMPTID`), verifica que su emisor es la pseudo-cuenta del Vault y que `OutstandingAmount` es cero (`tecHAS_OBLIGATIONS` si quedan shares en manos de alguien).
+`VaultDelete::preclaim` (against the ledger): looks up the Vault (`tecNO_ENTRY`), checks that `Account` is the `Owner` (`tecNO_PERMISSION`) and that `AssetsAvailable` and `AssetsTotal` are zero (`tecHAS_OBLIGATIONS`). It then reads the share issuance (`ShareMPTID`), verifies that its issuer is the Vault's pseudo-account and that `OutstandingAmount` is zero (`tecHAS_OBLIGATIONS` if shares remain in anyone's hands).
 
-`VaultDelete::doApply` hace la limpieza en orden: (1) `removeEmptyHolding` sobre la pseudo-cuenta para borrar su trust line o MPToken del activo; (2) si tú, el owner, aún tienes un `MPToken` de shares, lo elimina; (3) quita la emisión de shares del directorio de la pseudo-cuenta, decrementa su `OwnerCount` y la borra; (4) comprueba que la pseudo-cuenta no tiene balance, ni objetos, ni directorio (si no, `tecHAS_OBLIGATIONS`) y borra su `AccountRoot`; (5) quita el Vault de tu directorio, baja tu `OwnerCount` en 2 y borra el Vault. Cualquier inconsistencia en el ledger produce `tefBAD_LEDGER` o `tefINTERNAL`, códigos que en la práctica no deberías ver.
+`VaultDelete::doApply` performs the cleanup in order: (1) `removeEmptyHolding` on the pseudo-account to delete its trust line or MPToken for the asset; (2) if you, the owner, still have a shares `MPToken`, it's removed; (3) removes the share issuance from the pseudo-account's directory, decrements its `OwnerCount` and deletes it; (4) checks that the pseudo-account has no balance, no objects and no directory (otherwise `tecHAS_OBLIGATIONS`) and deletes its `AccountRoot`; (5) removes the Vault from your directory, lowers your `OwnerCount` by 2 and deletes the Vault. Any ledger inconsistency produces `tefBAD_LEDGER` or `tefINTERNAL`, codes you shouldn't see in practice.
 
-Nota: si la bóveda está enlazada a un [LoanBroker](/objects/LoanBroker) con préstamos activos, `AssetsTotal` no es cero (incluye el capital prestado), así que el borrado falla hasta que el broker devuelva todo.
+Note: if the vault is linked to a [LoanBroker](/objects/LoanBroker) with active loans, `AssetsTotal` isn't zero (it includes the lent-out capital), so deletion fails until the broker returns everything.
 
-## Campos clave
+## Key fields
 
-- **VaultID** — `index` del objeto Vault que quieres borrar.
-- **MemoData** — motivo del borrado, hasta 256 bytes en hex. Solo con [LendingProtocolV1_1](/amendments/LendingProtocolV1_1).
+- **VaultID** — the `index` of the Vault object you want to delete.
+- **MemoData** — reason for the deletion, up to 256 bytes in hex. Only with [LendingProtocolV1_1](/amendments/LendingProtocolV1_1).
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo en testnet (o has usado `MemoData` sin LendingProtocolV1_1).
-- **temMALFORMED** — `VaultID` a ceros o `MemoData` demasiado largo.
-- **tecNO_ENTRY** — no existe una bóveda con ese `VaultID`.
-- **tecNO_PERMISSION** — no eres el `Owner`.
-- **tecHAS_OBLIGATIONS** — quedan activos (`AssetsTotal`/`AssetsAvailable` ≠ 0) o shares en circulación. Retira todo primero.
+- **temDISABLED** — the amendment isn't active on testnet (or you used `MemoData` without LendingProtocolV1_1).
+- **temMALFORMED** — `VaultID` is all zeros, or `MemoData` is too long.
+- **tecNO_ENTRY** — no vault exists with that `VaultID`.
+- **tecNO_PERMISSION** — you're not the `Owner`.
+- **tecHAS_OBLIGATIONS** — assets remain (`AssetsTotal`/`AssetsAvailable` ≠ 0) or shares are outstanding. Withdraw everything first.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "VaultDelete",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "VaultID": "0000000000000000000000000000000000000000000000000000000000000000"
 }
 ```
 
-Sustituye el `VaultID` de ceros por el `index` real de tu bóveda; el de ceros se rechaza en `preflight`.
+Replace the all-zero `VaultID` with your vault's real `index`; the all-zero one is rejected in `preflight`.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Hoy: envía el ejemplo desde el builder y obtendrás `temDISABLED`, porque `SingleAssetVault` no está habilitado en la red.
-2. Cuando el amendment se active: crea una bóveda con [VaultCreate](/tx/VaultCreate), deposita con [VaultDeposit](/tx/VaultDeposit) e intenta borrarla. Verás `tecHAS_OBLIGATIONS`.
-3. Retira todo con [VaultWithdraw](/tx/VaultWithdraw) (por ejemplo indicando en `Amount` todas tus shares) y vuelve a enviar `VaultDelete`. Ahora obtendrás `tesSUCCESS`.
-4. Consulta `account_objects` con `type: "vault"`: la bóveda ya no está. En `account_info` tu `OwnerCount` ha bajado en 2 y `ledger_entry` sobre la antigua pseudo-cuenta devuelve `entryNotFound`.
+1. Today: send the example from the builder and you'll get `temDISABLED`, because `SingleAssetVault` isn't enabled on the network.
+2. Once the amendment is active: create a vault with [VaultCreate](/tx/VaultCreate), deposit with [VaultDeposit](/tx/VaultDeposit) and try deleting it. You'll see `tecHAS_OBLIGATIONS`.
+3. Withdraw everything with [VaultWithdraw](/tx/VaultWithdraw) (for example specifying all your shares in `Amount`) and resend `VaultDelete`. Now you'll get `tesSUCCESS`.
+4. Query `account_objects` with `type: "vault"`: the vault is gone. In `account_info` your `OwnerCount` has dropped by 2, and `ledger_entry` on the old pseudo-account returns `entryNotFound`.
 
-## Relacionado
+## Related
 
 - [Vault](/objects/Vault), [MPTokenIssuance](/objects/MPTokenIssuance)
 - [VaultCreate](/tx/VaultCreate), [VaultWithdraw](/tx/VaultWithdraw), [VaultClawback](/tx/VaultClawback)

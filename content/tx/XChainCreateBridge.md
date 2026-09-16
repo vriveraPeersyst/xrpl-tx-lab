@@ -1,74 +1,74 @@
 ---
 title: XChainCreateBridge
-summary: Crea un puente entre dos cadenas (locking e issuing) desde una de sus cuentas door, fijando la recompensa a los witnesses y el mínimo para crear cuentas.
+summary: Creates a bridge between two chains (locking and issuing) from one of their door accounts, setting the witness reward and the minimum for account creation.
 category: puente
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/xchaincreatebridge
 xls: XLS-0038
 amendment: XChainBridge
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-**Atención: el amendment [XChainBridge](/amendments/XChainBridge) no está activo en la testnet.** El tipo existe en las definiciones de la red (el servidor lo soporta), pero cualquier envío se rechaza con `temDISABLED` hasta que se active. Lo que sigue describe lo que hará cuando esté habilitado.
+**Warning: the [XChainBridge](/amendments/XChainBridge) amendment is not active on testnet.** The type exists in the network's definitions (the server supports it), but any submission is rejected with `temDISABLED` until it's activated. What follows describes what it will do once enabled.
 
-Un puente conecta dos ledgers independientes: la **cadena locking** (donde el activo original queda bloqueado) y la **cadena issuing** (donde se emite un activo "envuelto" que lo representa 1:1). No hay tipo de cambio: cada token envuelto equivale a un token bloqueado. En cada cadena hay una **cuenta door**, controlada por multifirma por un conjunto de **witnesses** (servidores que observan ambas cadenas y firman atestaciones de lo que ocurre en la otra).
+A bridge connects two independent ledgers: the **locking chain** (where the original asset gets locked) and the **issuing chain** (where a "wrapped" asset that represents it 1:1 is issued). There's no exchange rate: each wrapped token equals one locked token. On each chain there's a **door account**, controlled by multisig from a set of **witnesses** (servers that observe both chains and sign attestations of what happens on the other).
 
-`XChainCreateBridge` la envía una de las dos cuentas door y crea el objeto [Bridge](/objects/Bridge) en su propia cadena. El objeto guarda la especificación del puente (`XChainBridge`: las dos doors y los dos activos), la `SignatureReward` que cobrarán los witnesses por cada atestación y, opcionalmente, `MinAccountCreateAmount`, que habilita la creación de cuentas a través del puente. Además inicializa tres contadores a 0: `XChainClaimID`, `XChainAccountCreateCount` y `XChainAccountClaimCount`.
+`XChainCreateBridge` is sent by one of the two door accounts and creates the [Bridge](/objects/Bridge) object on its own chain. The object stores the bridge's specification (`XChainBridge`: the two doors and the two assets), the `SignatureReward` witnesses will collect per attestation, and, optionally, `MinAccountCreateAmount`, which enables account creation through the bridge. It also initializes three counters to 0: `XChainClaimID`, `XChainAccountCreateCount`, and `XChainAccountClaimCount`.
 
-Para que el puente funcione de verdad hay que crearlo **en las dos cadenas** (una transacción por cadena, cada una enviada por su door) y configurar en cada door una lista de firmantes ([SignerListSet](/tx/SignerListSet)) con las claves de los witnesses.
+For the bridge to actually work it must be created **on both chains** (one transaction per chain, each sent by its door) and each door must be configured with a signer list ([SignerListSet](/tx/SignerListSet)) containing the witnesses' keys.
 
-## Cuándo usarlo
+## When to use it
 
-- Montar una sidechain que use XRP envuelto: la door de la issuing chain debe ser la cuenta raíz de esa cadena.
-- Puentear un token emitido (IOU): la door de la issuing chain debe ser el propio emisor del token envuelto.
-- Solo tiene sentido si controlas la cuenta door y un conjunto de witnesses; un usuario normal nunca envía esta transacción.
+- Setting up a sidechain that uses wrapped XRP: the issuing chain's door must be that chain's root account.
+- Bridging an issued token (IOU): the issuing chain's door must be the issuer of the wrapped token itself.
+- Only makes sense if you control the door account and a set of witnesses; a regular user never sends this transaction.
 
-## Cómo funciona por dentro
+## How it works inside
 
-`XChainCreateBridge::preflight` (validación estática, en `transactors/bridge/XChainBridge.cpp`):
+`XChainCreateBridge::preflight` (static validation, in `transactors/bridge/XChainBridge.cpp`):
 
-- Las dos doors deben ser distintas (`temXCHAIN_EQUAL_DOOR_ACCOUNTS`), para evitar replays entre cadenas.
-- La cuenta que envía debe ser una de las dos doors (`temXCHAIN_BRIDGE_NONDOOR_OWNER`).
-- Los dos activos deben ser ambos XRP o ambos IOU (`temXCHAIN_BRIDGE_BAD_ISSUES`): tienen rangos numéricos distintos.
-- `SignatureReward` debe ser XRP y no negativa (`temXCHAIN_BRIDGE_BAD_REWARD_AMOUNT`). Puede ser 0.
-- `MinAccountCreateAmount`, si va, debe ser XRP positivo y el puente debe ser XRP-XRP (`temXCHAIN_BRIDGE_BAD_MIN_ACCOUNT_CREATE_AMOUNT`).
-- Si el activo de la issuing chain es XRP, `IssuingChainDoor` tiene que ser la cuenta raíz (la derivada de `masterpassphrase`, `rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh`), para que nunca "se quede sin" XRP envuelto. Si es un IOU, la door debe ser su emisor. Y la door locking no puede ser el emisor del activo que bloquea (no habría nada que bloquear). Todo ello devuelve `temXCHAIN_BRIDGE_BAD_ISSUES`.
+- The two doors must be different (`temXCHAIN_EQUAL_DOOR_ACCOUNTS`), to prevent replays between chains.
+- The sending account must be one of the two doors (`temXCHAIN_BRIDGE_NONDOOR_OWNER`).
+- The two assets must be either both XRP or both IOU (`temXCHAIN_BRIDGE_BAD_ISSUES`): they have different numeric ranges.
+- `SignatureReward` must be XRP and non-negative (`temXCHAIN_BRIDGE_BAD_REWARD_AMOUNT`). It can be 0.
+- `MinAccountCreateAmount`, if present, must be positive XRP and the bridge must be XRP-XRP (`temXCHAIN_BRIDGE_BAD_MIN_ACCOUNT_CREATE_AMOUNT`).
+- If the issuing chain's asset is XRP, `IssuingChainDoor` must be the root account (the one derived from `masterpassphrase`, `rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh`), so it never "runs out" of wrapped XRP. If it's an IOU, the door must be its issuer. And the locking door cannot be the issuer of the asset it locks (there would be nothing to lock). All of this returns `temXCHAIN_BRIDGE_BAD_ISSUES`.
 
-`XChainCreateBridge::preclaim` (contra el ledger):
+`XChainCreateBridge::preclaim` (against the ledger):
 
-- Si ya existe un Bridge con esa especificación en cualquiera de los dos lados, `tecDUPLICATE`.
-- Si el activo de esta cadena es un IOU, su emisor debe existir (`tecNO_ISSUER`) y **no** tener `lsfAllowTrustLineClawback` (`tecNO_PERMISSION`): un clawback rompería la garantía de que cada token envuelto está respaldado.
-- La cuenta debe cubrir la reserva con un objeto más (`tecINSUFFICIENT_RESERVE`).
+- If a Bridge with that specification already exists on either side, `tecDUPLICATE`.
+- If this chain's asset is an IOU, its issuer must exist (`tecNO_ISSUER`) and **not** have `lsfAllowTrustLineClawback` (`tecNO_PERMISSION`): a clawback would break the guarantee that every wrapped token is backed.
+- The account must cover the reserve for one more object (`tecINSUFFICIENT_RESERVE`).
 
-`XChainCreateBridge::doApply` crea el objeto Bridge (`keylet::bridge(spec, chainType)`), lo enlaza en el directorio del owner y sube el `OwnerCount` en 1.
+`XChainCreateBridge::doApply` creates the Bridge object (`keylet::bridge(spec, chainType)`), links it into the owner's directory, and increases `OwnerCount` by 1.
 
-## Campos clave
+## Key fields
 
-- **XChainBridge** — objeto con `LockingChainDoor`, `LockingChainIssue`, `IssuingChainDoor` e `IssuingChainIssue`. Identifica el puente; debe ser idéntico en las dos cadenas y en todas las transacciones posteriores.
-- **SignatureReward** — XRP (en drops) que quien reclama paga a los witnesses; se reparte a partes iguales entre los que atestiguaron. Cada `XChainCreateClaimID` y `XChainAccountCreateCommit` debe indicar exactamente este valor.
-- **MinAccountCreateAmount** — si está presente, el puente permite `XChainAccountCreateCommit` y ese es el mínimo de XRP a enviar. Si se omite, la creación de cuentas por puente está deshabilitada.
+- **XChainBridge** — object with `LockingChainDoor`, `LockingChainIssue`, `IssuingChainDoor`, and `IssuingChainIssue`. Identifies the bridge; must be identical on both chains and in all subsequent transactions.
+- **SignatureReward** — XRP (in drops) that whoever claims pays to the witnesses; distributed equally among those who attested. Every `XChainCreateClaimID` and `XChainAccountCreateCommit` must specify exactly this value.
+- **MinAccountCreateAmount** — if present, the bridge allows `XChainAccountCreateCommit`, and this is the minimum XRP to send. If omitted, account creation through the bridge is disabled.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo en la red. Es lo que verás hoy en testnet.
-- **temXCHAIN_BRIDGE_NONDOOR_OWNER** — la cuenta que firma no es ninguna de las dos doors.
-- **temXCHAIN_BRIDGE_BAD_ISSUES** — issuing door incorrecta (no es la raíz para XRP o no es el emisor para IOU), o mezcla XRP/IOU.
-- **temXCHAIN_EQUAL_DOOR_ACCOUNTS** — has puesto la misma cuenta en las dos doors.
-- **tecDUPLICATE** — el puente ya existe en esta cadena.
-- **tecNO_PERMISSION** — el emisor del IOU tiene clawback habilitado.
-- **tecINSUFFICIENT_RESERVE** — no cubres la reserva del nuevo objeto.
+- **temDISABLED** — the amendment isn't active on the network. This is what you'll see today on testnet.
+- **temXCHAIN_BRIDGE_NONDOOR_OWNER** — the signing account isn't either of the two doors.
+- **temXCHAIN_BRIDGE_BAD_ISSUES** — incorrect issuing door (not the root account for XRP, or not the issuer for an IOU), or mixing XRP/IOU.
+- **temXCHAIN_EQUAL_DOOR_ACCOUNTS** — you've set the same account as both doors.
+- **tecDUPLICATE** — the bridge already exists on this chain.
+- **tecNO_PERMISSION** — the IOU's issuer has clawback enabled.
+- **tecINSUFFICIENT_RESERVE** — you don't cover the reserve for the new object.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "XChainCreateBridge",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "XChainBridge": {
-    "LockingChainDoor": "rXXXX_TU_CUENTA",
+    "LockingChainDoor": "rXXXX_YOUR_ACCOUNT",
     "LockingChainIssue": { "currency": "XRP" },
-    "IssuingChainDoor": "rZZZZ_EMISOR",
+    "IssuingChainDoor": "rZZZZ_ISSUER",
     "IssuingChainIssue": { "currency": "XRP" }
   },
   "SignatureReward": "100",
@@ -76,16 +76,16 @@ Para que el puente funcione de verdad hay que crearlo **en las dos cadenas** (un
 }
 ```
 
-Aquí tu cuenta actúa como door de la cadena locking y `rZZZZ_EMISOR` es la door de la cadena emisora. Ojo: para un puente XRP-XRP real, esa door emisora tendría que ser la cuenta raíz de la sidechain, no una cuenta cualquiera.
+Here your account acts as the locking chain's door and `rZZZZ_ISSUER` is the issuing chain's door. Note: for a real XRP-XRP bridge, that issuing door would have to be the sidechain's root account, not just any account.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Carga el ejemplo en el builder y fírmalo con tu cuenta.
-2. Envíalo: hoy la respuesta será `temDISABLED`, porque XChainBridge no está activo. Consulta `feature` con el hash `C98D98EE9616ACD36E81FDEB8D41D349BF5F1B41DD64A0ABC1FE9AA5EA267E9C` para ver su estado de votación.
-3. Cuando el amendment se active: tras un `tesSUCCESS`, `account_objects` con `type: "bridge"` mostrará el objeto Bridge con `XChainClaimID: 0`, `XChainAccountCreateCount: 0` y `XChainAccountClaimCount: 0`, y `OwnerCount` de tu cuenta subirá en 1.
-4. Después tendrías que configurar los witnesses con `SignerListSet` y deshabilitar la master key de la door; sin lista de firmantes cualquier atestación o claim falla con `tecXCHAIN_NO_SIGNERS_LIST`.
+1. Load the example into the builder and sign it with your account.
+2. Submit it: today the response will be `temDISABLED`, because XChainBridge isn't active. Check `feature` with the hash `C98D98EE9616ACD36E81FDEB8D41D349BF5F1B41DD64A0ABC1FE9AA5EA267E9C` to see its voting status.
+3. Once the amendment is activated: after a `tesSUCCESS`, `account_objects` with `type: "bridge"` will show the Bridge object with `XChainClaimID: 0`, `XChainAccountCreateCount: 0`, and `XChainAccountClaimCount: 0`, and your account's `OwnerCount` will go up by 1.
+4. Afterward you'd need to configure the witnesses with `SignerListSet` and disable the door's master key; without a signer list, any attestation or claim fails with `tecXCHAIN_NO_SIGNERS_LIST`.
 
-## Relacionado
+## Related
 
 - [XChainModifyBridge](/tx/XChainModifyBridge), [XChainCreateClaimID](/tx/XChainCreateClaimID), [XChainCommit](/tx/XChainCommit), [XChainClaim](/tx/XChainClaim)
 - [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit)

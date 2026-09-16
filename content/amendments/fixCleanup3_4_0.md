@@ -1,18 +1,18 @@
 ---
 title: fixCleanup3_4_0
-summary: Agrupa en un único amendment el conjunto de correcciones de comportamiento acumuladas para la versión 3.4.0 de rippled.
+summary: Groups the set of behavior fixes accumulated for rippled version 3.4.0 into a single amendment.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixcleanup3_4_0
 introducedIn: 3.4.0
 ---
 
-## Qué cambia
+## What changes
 
-Tercera entrega de la serie de amendments "paraguas" tras [fixCleanup3_2_0](/amendments/fixCleanup3_2_0) y [fixCleanup3_3_0](/amendments/fixCleanup3_3_0). Activa varias correcciones dispersas de cara a rippled 3.4.0, entre ellas cambios en `RippleStateHelpers`, `CredentialHelpers` y `NFTokenHelpers`, en `LendingHelpers` y `LoanSet`/`LoanManage`/`LoanPay`, en `EscrowFinish`/`EscrowCancel`, `MPTokenAuthorize`, `NFTokenAcceptOffer`, `SponsorshipTransfer` y en el motor de pagos (`OfferStream`, `Payment`). También modifica el esquema de firmas: con `fixCleanup3_4_0` activo, una firma en `CounterpartySignature` o `SponsorSignature` cubre un prefijo distinto al de la firma propia de la transacción (`CPT`/`CPM` y `SPN`/`SPM` respectivamente), de modo que ya no se puede mover una firma de un rol a otro.
+Third installment in the series of "umbrella" amendments following [fixCleanup3_2_0](/amendments/fixCleanup3_2_0) and [fixCleanup3_3_0](/amendments/fixCleanup3_3_0). Activates several scattered fixes for rippled 3.4.0, including changes to `RippleStateHelpers`, `CredentialHelpers`, and `NFTokenHelpers`, to `LendingHelpers` and `LoanSet`/`LoanManage`/`LoanPay`, to `EscrowFinish`/`EscrowCancel`, `MPTokenAuthorize`, `NFTokenAcceptOffer`, `SponsorshipTransfer`, and the payment engine (`OfferStream`, `Payment`). It also modifies the signature scheme: with `fixCleanup3_4_0` active, a signature in `CounterpartySignature` or `SponsorSignature` covers a different prefix than the transaction's own signature (`CPT`/`CPM` and `SPN`/`SPM` respectively), so that a signature can no longer be moved from one role to another.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-[EscrowFinish](/tx/EscrowFinish), [EscrowCancel](/tx/EscrowCancel), [MPTokenAuthorize](/tx/MPTokenAuthorize), [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), [Payment](/tx/Payment), y transacciones con `CounterpartySignature` o `SponsorSignature` como las de `Sponsor` y `LoanSet`/`LoanManage`/`LoanPay`.
+[EscrowFinish](/tx/EscrowFinish), [EscrowCancel](/tx/EscrowCancel), [MPTokenAuthorize](/tx/MPTokenAuthorize), [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), [Payment](/tx/Payment), and transactions with `CounterpartySignature` or `SponsorSignature` such as those of `Sponsor` and `LoanSet`/`LoanManage`/`LoanPay`.
 
-## Estado y contexto
+## Status and context
 
-Como el resto de la serie, no responde a una única propuesta de diseño sino al empaquetado periódico de correcciones de bugs de distintos subsistemas bajo un solo amendment votable por versión. La API-CHANGELOG de rippled documenta explícitamente el cambio de prefijos de firma como parte visible de este amendment, dado que afecta a clientes que construyen firmas fuera de rippled.
+Like the rest of the series, this does not respond to a single design proposal but to the periodic packaging of bug fixes from different subsystems under a single votable amendment per version. The rippled API-CHANGELOG explicitly documents the signature prefix change as a visible part of this amendment, since it affects clients that build signatures outside of rippled.

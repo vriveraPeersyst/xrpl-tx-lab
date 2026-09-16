@@ -1,23 +1,23 @@
 ---
 title: TokenEscrow
-summary: Permite que el Amount de un Escrow sea un token IOU o MPT, además de XRP.
+summary: Allows an Escrow's Amount to be an IOU or MPT token, in addition to XRP.
 xrplDocs: https://xrpl.org/resources/known-amendments#tokenescrow
 ---
 
-## Qué cambia
+## What changes
 
-Hasta ahora, [EscrowCreate](/tx/EscrowCreate) solo aceptaba XRP en el campo `Amount`. Con TokenEscrow, `Amount` puede ser también un IOU emitido o un MPT: `EscrowCreate` comprueba, con `featureTokenEscrow` activo, que si el importe no es nativo lo maneja como `STAmount` de tipo `Issue` o `MPTIssue` en vez de rechazarlo, y valida por ejemplo que un MPT no supere `kMaxMpTokenAmount` y que el importe sea estrictamente positivo. Las trustlines o MPTokens implicados deben existir y estar autorizados igual que en cualquier otra transferencia de esos tipos de token; si el emisor del IOU tiene `RequireAuth`, se aplican las mismas comprobaciones de autorización que en un `Payment`.
+Until now, [EscrowCreate](/tx/EscrowCreate) only accepted XRP in the `Amount` field. With TokenEscrow, `Amount` can also be an issued IOU or an MPT: with `featureTokenEscrow` active, `EscrowCreate` checks whether the amount is non-native and, if so, handles it as an `STAmount` of type `Issue` or `MPTIssue` instead of rejecting it, and validates, for example, that an MPT does not exceed `kMaxMpTokenAmount` and that the amount is strictly positive. The trustlines or MPTokens involved must exist and be authorized just as in any other transfer of those token types; if the IOU issuer has `RequireAuth`, the same authorization checks apply as in a `Payment`.
 
-`EscrowFinish` y `EscrowCancel` liberan o devuelven el importe en el mismo tipo de activo con el que se creó el escrow, moviendo balance de trustline o de MPToken en lugar de drops de XRP. El resto de la mecánica del escrow (condición criptográfica, `CancelAfter`/`FinishAfter`, o ejecución opcional de un `FinishFunction` si `featureSmartEscrow` está activo) no cambia: solo se generaliza qué tipo de valor puede quedar retenido.
+`EscrowFinish` and `EscrowCancel` release or return the amount in the same asset type the escrow was created with, moving trustline or MPToken balance instead of XRP drops. The rest of the escrow mechanics (cryptographic condition, `CancelAfter`/`FinishAfter`, or the optional execution of a `FinishFunction` if `featureSmartEscrow` is active) remain unchanged: only the type of value that can be held is generalized.
 
-Este amendment depende de `fixTokenEscrowV1` para comportarse correctamente en los casos límite de emisores con clawback o congelación; sin ese fix, algunos escenarios de tokens IOU/MPT en escrow pueden dejar el estado inconsistente.
+This amendment depends on `fixTokenEscrowV1` to behave correctly in edge cases involving issuers with clawback or freeze enabled; without that fix, some IOU/MPT escrow scenarios can leave the state inconsistent.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [EscrowCreate](/tx/EscrowCreate), [EscrowFinish](/tx/EscrowFinish) y [EscrowCancel](/tx/EscrowCancel): `Amount` admite IOU y MPT además de XRP.
-- Objeto [Escrow](/objects/Escrow): el importe retenido puede representar un token en vez de XRP.
-- Interactúa con [TrustSet](/tx/TrustSet)/[RippleState](/objects/RippleState) y [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate)/[MPToken](/objects/MPToken) según el tipo de activo escrowed.
+- [EscrowCreate](/tx/EscrowCreate), [EscrowFinish](/tx/EscrowFinish), and [EscrowCancel](/tx/EscrowCancel): `Amount` now supports IOU and MPT in addition to XRP.
+- [Escrow](/objects/Escrow) object: the held amount can represent a token instead of XRP.
+- Interacts with [TrustSet](/tx/TrustSet)/[RippleState](/objects/RippleState) and [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate)/[MPToken](/objects/MPToken) depending on the escrowed asset type.
 
-## Estado y contexto
+## Status and context
 
-Amplía uno de los mecanismos más antiguos del protocolo, el escrow condicional o temporizado, a cualquier token emitido en el ledger (IOU) o MPT, no solo XRP. Esto permite casos de uso como nóminas, vesting de tokens de proyecto, o pagos condicionados en stablecoins emitidas en XRPL, que antes solo podían montarse con XRP nativo o requerían un contrato externo.
+Extends one of the protocol's oldest mechanisms, the conditional or time-locked escrow, to any token issued on the ledger (IOU) or MPT, not just XRP. This enables use cases such as payroll, project token vesting, or conditional payments in stablecoins issued on XRPL, which previously could only be built with native XRP or required an external contract.

@@ -1,12 +1,12 @@
 import Link from "next/link";
 import type { TransactorAnalysis } from "@/lib/protocol";
 
-/** Diagrama de las fases del transactor con los códigos TER que devuelve cada una. */
+/** Diagram of the transactor phases with the TER codes each one returns. */
 export function Lifecycle({ t }: { t: TransactorAnalysis }) {
   const phases = [
-    { key: "preflight", label: "preflight", desc: "Validación estática: campos, flags, amendments.", fns: ["checkExtraFeatures", "getFlagsMask", "preflight", "preflightSigValidated", "checkGranularSemantics"] },
-    { key: "preclaim", label: "preclaim", desc: "Comprobaciones contra el ledger actual.", fns: ["preclaim", "calculateBaseFee", "checkSeqProxy", "checkPriorTxAndLastLedger", "checkFee", "checkSign", "checkPermission"] },
-    { key: "doApply", label: "doApply", desc: "Aplica los cambios al ledger.", fns: ["doApply", "applyGuts", "apply", "visitInvariantEntry", "finalizeInvariants"] },
+    { key: "preflight", label: "preflight", desc: "Static validation: fields, flags, amendments.", fns: ["checkExtraFeatures", "getFlagsMask", "preflight", "preflightSigValidated", "checkGranularSemantics"] },
+    { key: "preclaim", label: "preclaim", desc: "Checks against the current ledger.", fns: ["preclaim", "calculateBaseFee", "checkSeqProxy", "checkPriorTxAndLastLedger", "checkFee", "checkSign", "checkPermission"] },
+    { key: "doApply", label: "doApply", desc: "Applies the changes to the ledger.", fns: ["doApply", "applyGuts", "apply", "visitInvariantEntry", "finalizeInvariants"] },
   ];
   const codes = (fns: string[]) => {
     const set = new Set<string>();
@@ -23,10 +23,10 @@ export function Lifecycle({ t }: { t: TransactorAnalysis }) {
           <p className="text-xs text-muted">{p.desc}</p>
           {p.has ? (
             <div className="mt-2 flex flex-wrap gap-1">
-              {p.codes.length ? p.codes.map((c) => <Link key={c} href={`/results#${c}`} className={`badge font-mono ${c.startsWith("tec") ? "bg-[#dbf15e] text-black" : "bg-[#fdece7] text-[#a22514]"}`}>{c}</Link>) : <span className="text-xs text-muted">sin códigos de error propios (usa los genéricos de Transactor)</span>}
+              {p.codes.length ? p.codes.map((c) => <Link key={c} href={`/results#${c}`} className={`badge font-mono ${c.startsWith("tec") ? "bg-[#dbf15e] text-black" : "bg-[#fdece7] text-[#a22514]"}`}>{c}</Link>) : <span className="text-xs text-muted">no error codes of its own (uses Transactor&apos;s generic ones)</span>}
             </div>
           ) : (
-            <p className="mt-2 text-xs text-muted">Hereda la implementación genérica de <code>Transactor</code>.</p>
+            <p className="mt-2 text-xs text-muted">Inherits the generic <code>Transactor</code> implementation.</p>
           )}
         </div>
       ))}

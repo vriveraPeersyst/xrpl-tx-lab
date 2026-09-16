@@ -1,78 +1,78 @@
 ---
 title: CheckCreate
-summary: Crea un Check, un pago diferido que el destinatario decide cuándo cobrar (hasta un máximo SendMax) o dejar caducar.
+summary: Creates a Check, a deferred payment where the recipient decides when to cash it (up to a maximum SendMax) or let it expire.
 category: cheques
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/checkcreate
 xls: XLS-0011
 amendment: Checks
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-`CheckCreate` emite un [Check](/objects/Check) a favor de otra cuenta. Funciona como un cheque bancario: tú firmas un compromiso de pagar hasta `SendMax`, pero el dinero **no sale de tu cuenta** al crearlo. Es el destinatario quien lo cobra más tarde con [CheckCash](/tx/CheckCash), y en ese momento se comprueba si tienes fondos. Si prefieres retirarlo, o si caduca, se elimina con [CheckCancel](/tx/CheckCancel).
+`CheckCreate` issues a [Check](/objects/Check) payable to another account. It works like a bank check: you sign a commitment to pay up to `SendMax`, but the money **doesn't leave your account** when you create it. It's the recipient who cashes it later with [CheckCash](/tx/CheckCash), and only then is your balance checked. If you'd rather withdraw it, or if it expires, it's removed with [CheckCancel](/tx/CheckCancel).
 
-A diferencia de un `Payment`, el destinatario tiene que actuar para recibir los fondos, lo que encaja con cuentas que exigen `DepositAuth`. A diferencia de un escrow, los fondos no quedan bloqueados: si al cobrar no tienes saldo, el cobro falla. El objeto consume una unidad de owner reserve de tu cuenta mientras exista.
+Unlike a `Payment`, the recipient has to act to receive the funds, which fits accounts that require `DepositAuth`. Unlike an escrow, the funds aren't locked up: if you don't have the balance when it's cashed, the cashing fails. The object consumes one owner reserve unit from your account for as long as it exists.
 
-## Cuándo usarlo
+## When to use it
 
-- Pagar a cuentas con `asfDepositAuth`, que rechazan pagos entrantes directos.
-- Ofrecer un pago que el receptor puede aceptar total o parcialmente cuando le convenga.
-- Enviar tokens a alguien que aún no tiene trust line: `CheckCash` puede crearla al cobrar ([CheckCashMakesTrustLine](/amendments/CheckCashMakesTrustLine)).
-- Facturación con referencia: `InvoiceID` viaja en el cheque hasta que se cobra.
+- Paying accounts with `asfDepositAuth`, which reject direct incoming payments.
+- Offering a payment the recipient can accept in full or in part whenever it suits them.
+- Sending tokens to someone who doesn't yet have a trust line: `CheckCash` can create it when cashing ([CheckCashMakesTrustLine](/amendments/CheckCashMakesTrustLine)).
+- Invoicing with a reference: `InvoiceID` travels with the check until it's cashed.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`CheckCreate::preflight`** (estático). Un cheque a ti mismo se rechaza con `temREDUNDANT`. `SendMax` tiene que ser un importe legal y positivo (`temBAD_AMOUNT`) con una moneda válida (`temBAD_CURRENCY`). Si pones `Expiration`, no puede ser 0 (`temBAD_EXPIRATION`). `checkExtraFeatures` rechaza un `SendMax` en MPT mientras MPTokensV2 no exista en la red; en testnet solo puedes emitir cheques en XRP o IOU.
+**`CheckCreate::preflight`** (static). A check to yourself is rejected with `temREDUNDANT`. `SendMax` must be a legal, positive amount (`temBAD_AMOUNT`) with a valid currency (`temBAD_CURRENCY`). If you set `Expiration`, it can't be 0 (`temBAD_EXPIRATION`). `checkExtraFeatures` rejects a `SendMax` in MPT as long as MPTokensV2 doesn't exist on the network; on testnet you can only issue checks in XRP or IOU.
 
-**`CheckCreate::preclaim`** (contra el ledger). El destino debe existir (`tecNO_DST`), no tener `lsfDisallowIncomingCheck` ni ser una pseudo-cuenta (`tecNO_PERMISSION`), y si tiene `lsfRequireDestTag` exige `DestinationTag` (`tecDST_TAG_NEEDED`). Para un `SendMax` en tokens: la moneda no puede estar globalmente congelada por el emisor; si tú tienes trust line con el emisor, no puede estar congelada por él; y la trust line del destino con el emisor tampoco puede estar congelada (`tecFROZEN`). El código permite explícitamente crear un cheque de una moneda para la que todavía no tienes trust line. Por último, si `Expiration` ya ha pasado respecto al cierre del ledger padre, `tecEXPIRED`.
+**`CheckCreate::preclaim`** (against the ledger). The destination must exist (`tecNO_DST`), must not have `lsfDisallowIncomingCheck` and must not be a pseudo-account (`tecNO_PERMISSION`), and if it has `lsfRequireDestTag` it requires a `DestinationTag` (`tecDST_TAG_NEEDED`). For a `SendMax` in tokens: the currency can't be globally frozen by the issuer; if you have a trust line with the issuer, it can't be frozen by them; and the destination's trust line with the issuer can't be frozen either (`tecFROZEN`). The code explicitly allows creating a check in a currency for which you don't yet have a trust line. Finally, if `Expiration` has already passed relative to the parent ledger's close time, `tecEXPIRED`.
 
-**`CheckCreate::doApply`** (efectos). Comprueba que cubres la reserva con un objeto más, usando el saldo previo a la fee (`checkReserve` con `preFeeBalance_`), de modo que se permite "morder" la reserva para pagar la fee pero no para el objeto nuevo. Crea la entrada `Check` indexada por tu cuenta y el `Sequence` (o Ticket) de la transacción, copiando `Destination`, `SendMax`, `SourceTag`, `DestinationTag`, `InvoiceID` y `Expiration`. Inserta el objeto en el owner directory del destino y en el tuyo, y sube tu `OwnerCount` en uno. Tu `Balance` no cambia salvo por la fee.
+**`CheckCreate::doApply`** (effects). It checks that you cover the reserve for one more object, using the balance before the fee (`checkReserve` with `preFeeBalance_`), so you're allowed to "dip into" the reserve to pay the fee but not for the new object. It creates the `Check` entry indexed by your account and the transaction's `Sequence` (or Ticket), copying `Destination`, `SendMax`, `SourceTag`, `DestinationTag`, `InvoiceID` and `Expiration`. It inserts the object into the destination's owner directory and into yours, and raises your `OwnerCount` by one. Your `Balance` doesn't change except for the fee.
 
-## Campos clave
+## Key fields
 
-- **SendMax** — Máximo que autorizas a cobrar. En drops si es XRP; `{currency, issuer, value}` para tokens. Con tokens, el cobro pasa por `flow()` y puede aplicar el `TransferRate` del emisor, por lo que el destinatario puede recibir menos de `SendMax`.
-- **Expiration** — Segundos desde el Ripple Epoch (2000-01-01), no Unix. Pasada esa hora el cheque no se puede cobrar y cualquiera puede cancelarlo.
-- **InvoiceID** — Hash de 256 bits arbitrario que se guarda en el objeto como referencia.
-- **DestinationTag** — Obligatorio si el destino tiene `lsfRequireDestTag`. Se comprueba también en el cobro.
+- **SendMax** — Maximum you authorize to be cashed. In drops if XRP; `{currency, issuer, value}` for tokens. With tokens, the cashing goes through `flow()` and can apply the issuer's `TransferRate`, so the recipient may receive less than `SendMax`.
+- **Expiration** — Seconds since the Ripple Epoch (2000-01-01), not Unix. Past that time the check can't be cashed and anyone can cancel it.
+- **InvoiceID** — Arbitrary 256-bit hash stored on the object as a reference.
+- **DestinationTag** — Required if the destination has `lsfRequireDestTag`. Also checked when cashing.
 
-## Errores habituales
+## Common errors
 
-- **temREDUNDANT** — `Destination` es tu propia cuenta.
-- **tecNO_DST** — La cuenta destino no existe.
-- **tecNO_PERMISSION** — El destino activó `asfDisallowIncomingCheck` (amendment [DisallowIncoming](/amendments/DisallowIncoming)).
-- **tecDST_TAG_NEEDED** — Falta `DestinationTag` y el destino lo exige.
-- **tecEXPIRED** — `Expiration` ya está en el pasado.
-- **tecINSUFFICIENT_RESERVE** — No tienes XRP para la reserva de un objeto más (0,2 XRP en testnet).
-- **tecFROZEN** — Cheque en tokens cuya trust line (tuya o del destino) está congelada, o moneda con global freeze.
+- **temREDUNDANT** — `Destination` is your own account.
+- **tecNO_DST** — The destination account doesn't exist.
+- **tecNO_PERMISSION** — The destination turned on `asfDisallowIncomingCheck` (amendment [DisallowIncoming](/amendments/DisallowIncoming)).
+- **tecDST_TAG_NEEDED** — Missing `DestinationTag` and the destination requires it.
+- **tecEXPIRED** — `Expiration` is already in the past.
+- **tecINSUFFICIENT_RESERVE** — You don't have enough XRP for the reserve of one more object (0.2 XRP on testnet).
+- **tecFROZEN** — A check in tokens whose trust line (yours or the destination's) is frozen, or a currency with global freeze.
 
-## Ejemplo
+## Example
 
-Cheque de hasta 1 XRP que caduca en un día (843086400 ≈ ahora + 86 400 s en Ripple Epoch):
+A check for up to 1 XRP that expires in one day (843086400 ≈ now + 86,400 s in Ripple Epoch):
 
 ```json
 {
   "TransactionType": "CheckCreate",
-  "Account": "rXXXX_TU_CUENTA",
-  "Destination": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Destination": "rYYYY_OTHER_ACCOUNT",
   "SendMax": "1000000",
   "Expiration": 843086400
 }
 ```
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. En el builder, deja `SendMax` en `1000000` drops y una `Expiration` futura (`{{time+86400}}`). Firma y envía; espera `tesSUCCESS`.
-2. Consulta `account_objects` con `type: "check"` sobre tu cuenta: verás el objeto con su `index`. Ese `index` es el `CheckID` que necesitará el destinatario en `CheckCash` o cualquiera en `CheckCancel`.
-3. Consulta `account_info`: tu `Balance` solo ha bajado la fee (el cheque no mueve fondos) y tu `OwnerCount` ha subido en uno.
-4. Consulta `account_objects` con `type: "check"` sobre la cuenta destino: el mismo cheque aparece también ahí, aunque la reserva la pagas tú.
-5. Cóbralo desde la otra cuenta con [CheckCash](/tx/CheckCash) o retíralo con [CheckCancel](/tx/CheckCancel).
+1. In the builder, leave `SendMax` at `1000000` drops and set a future `Expiration` (`{{time+86400}}`). Sign and send; expect `tesSUCCESS`.
+2. Query `account_objects` with `type: "check"` on your account: you'll see the object with its `index`. That `index` is the `CheckID` the recipient will need for `CheckCash`, or anyone for `CheckCancel`.
+3. Query `account_info`: your `Balance` has only dropped by the fee (the check doesn't move funds) and your `OwnerCount` has gone up by one.
+4. Query `account_objects` with `type: "check"` on the destination account: the same check appears there too, even though you pay the reserve.
+5. Cash it from the other account with [CheckCash](/tx/CheckCash) or withdraw it with [CheckCancel](/tx/CheckCancel).
 
-## Relacionado
+## Related
 
-- [CheckCash](/tx/CheckCash) — el destinatario cobra el cheque.
-- [CheckCancel](/tx/CheckCancel) — retira un cheque (o limpia uno caducado).
-- [Check](/objects/Check) — el objeto creado.
-- [Checks](/amendments/Checks) — amendment que introdujo los cheques.
-- [DisallowIncoming](/amendments/DisallowIncoming) — permite bloquear cheques entrantes con `asfDisallowIncomingCheck`.
-- [Payment](/tx/Payment) — la alternativa inmediata.
+- [CheckCash](/tx/CheckCash) — the recipient cashes the check.
+- [CheckCancel](/tx/CheckCancel) — withdraws a check (or cleans up an expired one).
+- [Check](/objects/Check) — the object created.
+- [Checks](/amendments/Checks) — the amendment that introduced checks.
+- [DisallowIncoming](/amendments/DisallowIncoming) — allows blocking incoming checks with `asfDisallowIncomingCheck`.
+- [Payment](/tx/Payment) — the immediate alternative.

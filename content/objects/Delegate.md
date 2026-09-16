@@ -1,47 +1,47 @@
 ---
 title: Delegate
-summary: Registra qué permisos ha delegado una cuenta en otra para que envíe ciertas transacciones en su nombre.
+summary: Records which permissions an account has delegated to another so it can send certain transactions on its behalf.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/delegate
 createdBy: DelegateSet
 modifiedBy: DelegateSet
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `Delegate` es un poder notarial limitado. La cuenta `Account` autoriza a la cuenta `Authorize` a firmar y enviar determinadas transacciones como si fuera ella. La transacción delegada lleva el campo `Delegate` con la dirección del apoderado y se firma con las claves del apoderado; la comisión la paga el apoderado, pero los efectos (y la `Sequence`) son de la cuenta delegante.
+A `Delegate` is a limited power of attorney. The `Account` account authorizes the `Authorize` account to sign and send certain transactions as if it were itself. The delegated transaction carries the `Delegate` field with the delegate's address and is signed with the delegate's keys; the delegate pays the fee, but the effects (and the `Sequence`) belong to the delegating account.
 
-Los permisos pueden ser tipos de transacción completos (`Payment`, `TrustSet`, `OfferCreate`…) o permisos granulares como `PaymentMint`, `PaymentBurn`, `TrustlineAuthorize`, `TrustlineFreeze`, `AccountDomainSet` o `MPTokenIssuanceLock`. Los tipos marcados como no delegables en `transactions.macro` (por ejemplo `AccountDelete`, `SetRegularKey`, `SignerListSet`, `DelegateSet`, `Batch`) nunca pueden aparecer aquí.
+Permissions can be entire transaction types (`Payment`, `TrustSet`, `OfferCreate`…) or granular permissions such as `PaymentMint`, `PaymentBurn`, `TrustlineAuthorize`, `TrustlineFreeze`, `AccountDomainSet`, or `MPTokenIssuanceLock`. Types marked as non-delegable in `transactions.macro` (for example `AccountDelete`, `SetRegularKey`, `SignerListSet`, `DelegateSet`, `Batch`) can never appear here.
 
-**Estado en testnet**: [DelegateSet](/tx/DelegateSet) requiere el amendment [PermissionDelegationV1_1](/amendments/PermissionDelegationV1_1), que hoy no está activado. No podrás crear este objeto en la testnet pública hasta que se active.
+**Testnet status**: [DelegateSet](/tx/DelegateSet) requires the [PermissionDelegationV1_1](/amendments/PermissionDelegationV1_1) amendment, which is not currently enabled. You won't be able to create this object on public testnet until it's enabled.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación y modificación**: [DelegateSet](/tx/DelegateSet) con la lista completa de `Permissions`. Si el objeto no existe, `DelegateSet::doApply` lo crea, lo enlaza en el directorio del delegante (`OwnerNode`) y en el del apoderado (`DestinationNode`) y cobra 1 de reserva al delegante. Si existe, sustituye la lista entera; no hay "añadir uno".
-- **Borrado**: enviar `DelegateSet` con `Permissions` vacío borra el objeto y devuelve la reserva. [AccountDelete](/tx/AccountDelete) de cualquiera de las dos cuentas también lo elimina.
+- **Creation and modification**: [DelegateSet](/tx/DelegateSet) with the full list of `Permissions`. If the object doesn't exist, `DelegateSet::doApply` creates it, links it into the delegator's directory (`OwnerNode`) and into the delegate's (`DestinationNode`), and charges 1 reserve unit to the delegator. If it exists, it replaces the entire list; there's no "add one".
+- **Deletion**: sending `DelegateSet` with an empty `Permissions` deletes the object and returns the reserve. [AccountDelete](/tx/AccountDelete) of either account also removes it.
 
-`preflight` rechaza permisos duplicados, más de 10 permisos, delegarse a uno mismo y cualquier permiso no delegable.
+`preflight` rejects duplicate permissions, more than 10 permissions, delegating to oneself, and any non-delegable permission.
 
-## Campos clave
+## Key fields
 
-- **Account** — quien delega. Sus fondos y su estado son los que se ven afectados.
-- **Authorize** — quien recibe el poder. Es quien firma las transacciones delegadas.
-- **Permissions** — array de `Permission` con `PermissionValue`. Un tipo de transacción se codifica como su número de tipo + 1; los permisos granulares tienen valores propios (65537 en adelante). En JSON se muestran por nombre.
-- **OwnerNode / DestinationNode** — páginas de los directorios del delegante y del apoderado.
+- **Account** — the delegator. Its funds and state are the ones affected.
+- **Authorize** — the one receiving the power. This is the one who signs the delegated transactions.
+- **Permissions** — array of `Permission` with `PermissionValue`. A transaction type is encoded as its type number plus 1; granular permissions have their own values (65537 and up). In JSON they're shown by name.
+- **OwnerNode / DestinationNode** — pages of the delegator's and delegate's directories.
 
 ## Flags
 
-No tiene flags `lsf*`.
+Has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "delegate"` en cualquiera de las dos cuentas. Con `ledger_entry`:
+`account_objects` with `type: "delegate"` on either account. With `ledger_entry`:
 
 ```json
 { "method": "ledger_entry", "params": [{ "delegate": { "account": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "authorize": "rfkE1aSy9G8Upk4JssnwBxhEv5p4mn2KTy" }, "ledger_index": "validated" }] }
 ```
 
-La clave es `SHA512Half(0x0083 || Account || Authorize)` (`keylet::delegate`). Respuesta típica:
+The key is `SHA512Half(0x0083 || Account || Authorize)` (`keylet::delegate`). Typical response:
 
 ```json
 {
@@ -62,12 +62,14 @@ La clave es `SHA512Half(0x0083 || Account || Authorize)` (`keylet::delegate`). R
 }
 ```
 
-## Reserva
+## Reserve
 
-1 unidad de reserva de propietario a cargo de la cuenta delegante.
+1 owner reserve unit charged to the delegating account.
 
-## Relacionado
+## Related
 
 - [DelegateSet](/tx/DelegateSet), [Payment](/tx/Payment), [TrustSet](/tx/TrustSet)
 - [SignerList](/objects/SignerList), [AccountRoot](/objects/AccountRoot)
 - [PermissionDelegationV1_1](/amendments/PermissionDelegationV1_1)
+</content>
+</invoke>

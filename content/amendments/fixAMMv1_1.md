@@ -1,21 +1,21 @@
 ---
 title: fixAMMv1_1
-summary: Corrige varios problemas de precisión y consistencia del AMM: redondeo del último proveedor de liquidez, importes negativos en accountSendIOU y calidad de las ofertas sintéticas frente al libro central.
+summary: Fixes several AMM precision and consistency issues: rounding for the last liquidity provider, negative amounts in accountSendIOU, and the quality of synthetic offers against the central book.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixammv1_1
 ---
 
-## Qué cambia
+## What changes
 
-Agrupa varias correcciones sobre el AMM introducido por [AMM](/amendments/AMM). En [AMMWithdraw](/tx/AMMWithdraw), por redondeo acumulado el `LPTokenBalance` del objeto `AMM` podía no coincidir exactamente con el saldo real en la trustline del último proveedor de liquidez; con el fix activo, `verifyAndAdjustLPTokenBalance` compara ambos valores y ajusta el `LPTokenBalance` almacenado cuando la diferencia es pequeña, o rechaza el retiro con `tecAMM_INVALID_TOKENS` si es demasiado grande. También añade una comprobación defensiva que evita retirar más LP tokens de los que el pool tiene registrados (`tecINTERNAL` si ocurriera, algo que no debería suceder salvo error interno).
+Groups several fixes to the AMM introduced by [AMM](/amendments/AMM). In [AMMWithdraw](/tx/AMMWithdraw), accumulated rounding could cause the `LPTokenBalance` of the `AMM` object to not exactly match the actual balance in the last liquidity provider's trustline; with the fix active, `verifyAndAdjustLPTokenBalance` compares both values and adjusts the stored `LPTokenBalance` when the difference is small, or rejects the withdrawal with `tecAMM_INVALID_TOKENS` if it is too large. It also adds a defensive check that prevents withdrawing more LP tokens than the pool has on record (`tecINTERNAL` if that were to happen, something that should not occur except due to an internal error).
 
-Además, `accountSendIOU` empieza a rechazar explícitamente con `tecINTERNAL` cualquier intento de mover un importe negativo o un MPT por esta vía pensada solo para IOU, cerrando una vía de estados inconsistentes. Por último, ajusta cómo se compara la calidad de la oferta sintética de un AMM frente a la mejor oferta del libro central en `BookStep`, para que la elección entre AMM y CLOB sea coherente en casos límite de `Quality` muy próxima.
+In addition, `accountSendIOU` now explicitly rejects with `tecINTERNAL` any attempt to move a negative amount or an MPT through this path, which is meant only for IOUs, closing off a path to inconsistent states. Finally, it adjusts how the quality of an AMM's synthetic offer is compared against the best offer in the central book in `BookStep`, so that the choice between AMM and CLOB is consistent in edge cases with very close `Quality` values.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [AMMWithdraw](/tx/AMMWithdraw): ajuste del `LPTokenBalance` del último proveedor de liquidez.
-- [Payment](/tx/Payment) y [OfferCreate](/tx/OfferCreate): comparación de calidad entre ofertas de AMM y del libro central durante el enrutamiento.
-- [AMM](/objects/AMM): consistencia de su `LPTokenBalance`.
+- [AMMWithdraw](/tx/AMMWithdraw): adjustment of the last liquidity provider's `LPTokenBalance`.
+- [Payment](/tx/Payment) and [OfferCreate](/tx/OfferCreate): quality comparison between AMM and central book offers during routing.
+- [AMM](/objects/AMM): consistency of its `LPTokenBalance`.
 
-## Estado y contexto
+## Status and context
 
-Es un paquete de correcciones de precisión numérica sobre el AMM, detectadas tras el despliegue inicial del amendment [AMM](/amendments/AMM): sin ellas, operaciones de retiro en condiciones límite podían dejar el pool con un saldo de LP tokens ligeramente inconsistente o provocar decisiones de enrutamiento subóptimas frente al libro de órdenes.
+This is a package of numerical precision fixes to the AMM, detected after the initial deployment of the [AMM](/amendments/AMM) amendment: without them, withdrawal operations under edge conditions could leave the pool with a slightly inconsistent LP token balance or lead to suboptimal routing decisions against the order book.

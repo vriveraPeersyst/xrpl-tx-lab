@@ -1,18 +1,18 @@
 ---
 title: fixDisallowIncomingV1
-summary: Corrige que las flags lsfDisallowIncoming* de una cuenta no bloqueaban la creación de nuevas trustlines mediante TrustSet.
+summary: Fixes an issue where an account's lsfDisallowIncoming* flags did not block the creation of new trustlines via TrustSet.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixdisallowincomingv1
 ---
 
-## Qué cambia
+## What changes
 
-El amendment [DisallowIncoming](/amendments/DisallowIncoming) añadió flags de cuenta como `asfDisallowIncomingTrustline` para que un emisor pudiera rechazar objetos entrantes no deseados. Sin embargo, su aplicación original tenía un hueco: cuando un usuario creaba una trustline hacia un emisor con `lsfDisallowIncomingTrustline` activada mediante [TrustSet](/tx/TrustSet), la operación se permitía igualmente si la trustline no implicaba un balance en contra del emisor, dejando pasar líneas de confianza que la flag debía impedir. `fixDisallowIncomingV1` corrige ese caso para que `TrustSet` respete la flag también al crear una trustline nueva, no solo en flujos indirectos como el cruce de ofertas.
+The [DisallowIncoming](/amendments/DisallowIncoming) amendment added account flags such as `asfDisallowIncomingTrustline` so that an issuer could reject unwanted incoming objects. However, its original implementation had a gap: when a user created a trustline toward an issuer with `lsfDisallowIncomingTrustline` enabled via [TrustSet](/tx/TrustSet), the operation was still allowed if the trustline did not imply a balance against the issuer, letting through trust lines that the flag was supposed to prevent. `fixDisallowIncomingV1` fixes this case so that `TrustSet` also respects the flag when creating a new trustline, not only in indirect flows such as offer crossing.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [TrustSet](/tx/TrustSet): comprueba `lsfDisallowIncomingTrustline` del emisor antes de crear la trustline.
-- [AccountRoot](/objects/AccountRoot): las flags `lsfDisallowIncomingTrustline`, `lsfDisallowIncomingNFTokenOffer`, `lsfDisallowIncomingCheck` y `lsfDisallowIncomingPayChan` pasan a aplicarse de forma consistente en todos los caminos de creación de objeto.
+- [TrustSet](/tx/TrustSet): checks the issuer's `lsfDisallowIncomingTrustline` before creating the trustline.
+- [AccountRoot](/objects/AccountRoot): the `lsfDisallowIncomingTrustline`, `lsfDisallowIncomingNFTokenOffer`, `lsfDisallowIncomingCheck`, and `lsfDisallowIncomingPayChan` flags now apply consistently across all object-creation paths.
 
-## Estado y contexto
+## Status and context
 
-Corrige un bug de la implementación inicial de DisallowIncoming: sin este fix, una cuenta que había activado `asfDisallowIncomingTrustline` para evitar acumular líneas de confianza no solicitadas podía terminar recibiéndolas igualmente vía TrustSet directo. En el código actual el amendment está retirado (`XRPL_RETIRE_FIX(DisallowIncomingV1)` en `features.macro`): el comportamiento corregido es ya el único existente y no queda rama de código condicionada a él, salvo referencias en tests que documentan el bug original.
+Fixes a bug in the initial implementation of DisallowIncoming: without this fix, an account that had enabled `asfDisallowIncomingTrustline` to avoid accumulating unsolicited trust lines could still end up receiving them via a direct TrustSet. In the current code the amendment is retired (`XRPL_RETIRE_FIX(DisallowIncomingV1)` in `features.macro`): the corrected behavior is now the only one that exists, and no code branch remains conditioned on it, except references in tests that document the original bug.

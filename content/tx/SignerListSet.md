@@ -60,7 +60,7 @@ There's no specific `preclaim`. In `doApply`, `SignerListSet::replaceSignerList`
   "SignerQuorum": 2,
   "SignerEntries": [
     { "SignerEntry": { "Account": "rYYYY_OTHER_ACCOUNT", "SignerWeight": 1 } },
-    { "SignerEntry": { "Account": "rZZZZ_EMISOR", "SignerWeight": 1 } }
+    { "SignerEntry": { "Account": "rZZZZ_ISSUER", "SignerWeight": 1 } }
   ]
 }
 ```

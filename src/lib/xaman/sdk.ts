@@ -1,7 +1,7 @@
 /**
- * Loader del Xaman Universal SDK vía CDN oficial (mismo patrón que onehextwo-v2/web):
- * sin dependencia npm, API key PÚBLICA (flujo OAuth2 PKCE en navegador), singleton
- * (instanciar más de una vez rompe la sesión PKCE). Docs: https://docs.xaman.dev/environments/browser-web3
+ * Loader for the Xaman Universal SDK via the official CDN (same pattern as onehextwo-v2/web):
+ * no npm dependency, PUBLIC API key (browser OAuth2 PKCE flow), singleton
+ * (instantiating more than once breaks the PKCE session). Docs: https://docs.xaman.dev/environments/browser-web3
  */
 const CDN_URL = "https://xumm.app/assets/cdn/xumm.min.js";
 
@@ -45,13 +45,13 @@ let instance: XummInstance | undefined;
 function loadConstructor(): Promise<XummConstructor> {
   if (scriptPromise) return scriptPromise;
   scriptPromise = new Promise<XummConstructor>((resolve, reject) => {
-    if (typeof window === "undefined") return reject(new Error("Xaman SDK solo en navegador"));
+    if (typeof window === "undefined") return reject(new Error("Xaman SDK only runs in the browser"));
     if (typeof window.Xumm === "function") return resolve(window.Xumm);
     const existing = document.querySelector<HTMLScriptElement>(`script[src="${CDN_URL}"]`);
     const script = existing ?? document.createElement("script");
-    const done = () => (typeof window.Xumm === "function" ? resolve(window.Xumm) : reject(new Error("El bundle de Xaman no expuso window.Xumm")));
+    const done = () => (typeof window.Xumm === "function" ? resolve(window.Xumm) : reject(new Error("The Xaman bundle did not expose window.Xumm")));
     script.addEventListener("load", done, { once: true });
-    script.addEventListener("error", () => reject(new Error("No se pudo cargar el SDK de Xaman")), { once: true });
+    script.addEventListener("error", () => reject(new Error("Could not load the Xaman SDK")), { once: true });
     if (!existing) {
       script.src = CDN_URL;
       script.async = true;
@@ -65,7 +65,7 @@ function loadConstructor(): Promise<XummConstructor> {
 
 export async function getXumm(apiKey: string): Promise<XummInstance> {
   if (instance) return instance;
-  if (!apiKey) throw new Error("Falta NEXT_PUBLIC_XAMAN_API_KEY");
+  if (!apiKey) throw new Error("Missing NEXT_PUBLIC_XAMAN_API_KEY");
   const Xumm = await loadConstructor();
   instance = new Xumm(apiKey);
   return instance;
@@ -76,5 +76,5 @@ export function getXummInstance(): XummInstance | undefined {
 }
 
 export const XAMAN_API_KEY = process.env.NEXT_PUBLIC_XAMAN_API_KEY ?? "";
-/** Todos los payloads se fuerzan a TESTNET: esta web solo opera en la red de pruebas. */
+/** All payloads are forced to TESTNET: this site only operates on the test network. */
 export const XAMAN_FORCE_NETWORK = "TESTNET";

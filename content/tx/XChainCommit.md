@@ -1,75 +1,75 @@
 ---
 title: XChainCommit
-summary: Bloquea fondos en la cuenta door de la cadena origen, asociados a un claim ID obtenido en la cadena destino, para que los witnesses los atestigüen.
+summary: Locks funds in the source chain's door account, associated with a claim ID obtained on the destination chain, so witnesses can attest to it.
 category: puente
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/xchaincommit
 xls: XLS-0038
 amendment: XChainBridge
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-**Atención: el amendment [XChainBridge](/amendments/XChainBridge) no está activo en la testnet.** Hasta que se active, cualquier envío se rechaza con `temDISABLED`.
+**Warning: the [XChainBridge](/amendments/XChainBridge) amendment is not active on testnet.** Until it's activated, any submission is rejected with `temDISABLED`.
 
-`XChainCommit` es el paso en el que los fondos entran en el puente. Envías `Amount` a la cuenta door de **esta** cadena, indicando el `XChainClaimID` que obtuviste antes en la **otra** cadena con [XChainCreateClaimID](/tx/XChainCreateClaimID). Si esta es la cadena locking, los fondos quedan bloqueados en la door; si es la issuing, el activo envuelto vuelve a la door (que es su emisor) y deja de circular.
+`XChainCommit` is the step where funds enter the bridge. You send `Amount` to **this** chain's door account, specifying the `XChainClaimID` you obtained earlier on the **other** chain with [XChainCreateClaimID](/tx/XChainCreateClaimID). If this is the locking chain, the funds are locked in the door; if it's the issuing chain, the wrapped asset goes back to the door (which is its issuer) and stops circulating.
 
-La transacción no crea ningún objeto en el ledger: es, en esencia, un pago a la door. Su efecto real lo producen los **witnesses**, que ven la transacción validada y envían [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation) en la otra cadena. Cuando allí se alcanza el quórum, la door de destino entrega el importe equivalente a la cuenta indicada.
+The transaction doesn't create any object on the ledger: it's essentially a payment to the door. Its real effect is produced by the **witnesses**, who see the transaction validated and send [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation) on the other chain. When quorum is reached there, the destination door delivers the equivalent amount to the specified account.
 
-## Cuándo usarlo
+## When to use it
 
-- Mover XRP o un IOU de la cadena locking a la issuing (bloquear y recibir envuelto).
-- Devolver el activo envuelto de la issuing a la locking (quemar y desbloquear).
-- Siempre después de tener un claim ID en la cadena de destino; sin él los fondos quedarían en la door sin forma de reclamarlos.
+- Moving XRP or an IOU from the locking chain to the issuing chain (locking and receiving wrapped).
+- Returning the wrapped asset from the issuing chain to the locking chain (burning and unlocking).
+- Always after already having a claim ID on the destination chain; without it the funds would sit in the door with no way to claim them.
 
-## Cómo funciona por dentro
+## How it works inside
 
-`XChainCommit::preflight` (en `transactors/bridge/XChainBridge.cpp`):
+`XChainCommit::preflight` (in `transactors/bridge/XChainBridge.cpp`):
 
-- `Amount` debe ser positivo y un importe legal (`temBAD_AMOUNT`).
-- Su activo debe ser `LockingChainIssue` o `IssuingChainIssue` del `XChainBridge` (`temBAD_ISSUER`).
-- `makeTxConsequences` declara como gasto máximo el `Amount` si es XRP.
+- `Amount` must be positive and a legal amount (`temBAD_AMOUNT`).
+- Its asset must be the `XChainBridge`'s `LockingChainIssue` or `IssuingChainIssue` (`temBAD_ISSUER`).
+- `makeTxConsequences` declares `Amount` as the maximum expense if it's XRP.
 
 `XChainCommit::preclaim`:
 
-- Busca el [Bridge](/objects/Bridge) en esta cadena; si no existe, `tecNO_ENTRY`.
-- La door no puede hacer commit sobre sí misma (`tecXCHAIN_SELF_COMMIT`).
-- Determina si esta cadena es la locking o la issuing comparando la `Account` del Bridge con las doors, y exige que el activo de `Amount` sea el de **este** lado (`tecXCHAIN_BAD_TRANSFER_ISSUE`). Es decir: en la locking chain envías `LockingChainIssue`; en la issuing, `IssuingChainIssue`.
+- Looks up the [Bridge](/objects/Bridge) on this chain; if it doesn't exist, `tecNO_ENTRY`.
+- The door cannot commit against itself (`tecXCHAIN_SELF_COMMIT`).
+- Determines whether this chain is the locking or issuing one by comparing the Bridge's `Account` against the doors, and requires the asset of `Amount` to be that of **this** side (`tecXCHAIN_BAD_TRANSFER_ISSUE`). That is: on the locking chain you send `LockingChainIssue`; on the issuing chain, `IssuingChainIssue`.
 
-`XChainCommit::doApply` llama a `transferHelper` de tu cuenta a la door con `CanCreateDstPolicy::No` y `DepositAuthPolicy::Normal`:
+`XChainCommit::doApply` calls `transferHelper` from your account to the door with `CanCreateDstPolicy::No` and `DepositAuthPolicy::Normal`:
 
-- Si la door exige destination tag, `tecDST_TAG_NEEDED`; si tiene `lsfDepositAuth` sin preautorizarte, `tecNO_PERMISSION`.
-- Para XRP, comprueba `saldo ≥ Amount + reserva` (`tecUNFUNDED_PAYMENT`). Un detalle: se permite que el **fee** de la transacción salga de la reserva (`TransferHelperSubmittingAccountInfo` pasa el saldo previo al fee), pero no el `Amount`.
-- Para IOU, ejecuta un `flow` sin paths, sin pago parcial y pagando el emisor la transfer fee; cualquier fallo que no sea `tec`/`ter` se traduce a `tecXCHAIN_PAYMENT_FAILED`.
+- If the door requires a destination tag, `tecDST_TAG_NEEDED`; if it has `lsfDepositAuth` without preauthorizing you, `tecNO_PERMISSION`.
+- For XRP, checks `balance ≥ Amount + reserve` (`tecUNFUNDED_PAYMENT`). A detail: the transaction's **fee** is allowed to come out of the reserve (`TransferHelperSubmittingAccountInfo` passes the prior balance before the fee), but not the `Amount`.
+- For an IOU, runs a `flow` with no paths, no partial payment, and the issuer paying the transfer fee; any failure that isn't `tec`/`ter` is translated to `tecXCHAIN_PAYMENT_FAILED`.
 
-No comprueba que el claim ID exista (está en la otra cadena) ni que `OtherChainDestination` sea válido: el transactor **no lee** `OtherChainDestination`; solo lo usan los witnesses.
+It doesn't check that the claim ID exists (it's on the other chain) or that `OtherChainDestination` is valid: the transactor **doesn't read** `OtherChainDestination`; only the witnesses use it.
 
-## Campos clave
+## Key fields
 
-- **XChainClaimID** — el número del `XChainOwnedClaimID` que creaste en la cadena de destino. Si te equivocas, los witnesses atestiguarán sobre un claim ID que no es tuyo (o que no existe) y no podrás reclamar.
-- **Amount** — importe en el activo de esta cadena. El equivalente en la otra cadena tendrá el mismo valor numérico con el otro issue.
-- **OtherChainDestination** — opcional. Cuenta de la otra cadena a la que los witnesses deben atestiguar como destino; si lo pones, la entrega es automática al alcanzar quórum. Si lo omites, tendrás que enviar tú [XChainClaim](/tx/XChainClaim) en el destino.
+- **XChainClaimID** — the number of the `XChainOwnedClaimID` you created on the destination chain. If you get it wrong, the witnesses will attest to a claim ID that isn't yours (or doesn't exist) and you won't be able to claim.
+- **Amount** — amount in this chain's asset. The equivalent on the other chain will have the same numeric value with the other issue.
+- **OtherChainDestination** — optional. Account on the other chain that witnesses should attest to as the destination; if you set it, delivery is automatic once quorum is reached. If you omit it, you'll have to send [XChainClaim](/tx/XChainClaim) yourself at the destination.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo. Es lo que verás hoy en testnet.
-- **tecNO_ENTRY** — no hay Bridge con esa especificación en esta cadena.
-- **tecXCHAIN_BAD_TRANSFER_ISSUE** — has enviado el activo del otro lado (por ejemplo, el IOU envuelto en la cadena locking).
-- **tecXCHAIN_SELF_COMMIT** — la cuenta que firma es la propia door.
-- **tecUNFUNDED_PAYMENT** — el `Amount` te dejaría por debajo de la reserva.
-- **tecNO_PERMISSION** — la door tiene DepositAuth y no estás preautorizado.
-- **temBAD_ISSUER** — el activo de `Amount` no es ninguno de los dos del puente.
+- **temDISABLED** — the amendment isn't active. This is what you'll see today on testnet.
+- **tecNO_ENTRY** — there's no Bridge with that specification on this chain.
+- **tecXCHAIN_BAD_TRANSFER_ISSUE** — you've sent the asset from the other side (for example, the wrapped IOU on the locking chain).
+- **tecXCHAIN_SELF_COMMIT** — the signing account is the door itself.
+- **tecUNFUNDED_PAYMENT** — the `Amount` would leave you below the reserve.
+- **tecNO_PERMISSION** — the door has DepositAuth and you're not preauthorized.
+- **temBAD_ISSUER** — the asset of `Amount` isn't either of the bridge's two.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "XChainCommit",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "XChainBridge": {
-    "LockingChainDoor": "rYYYY_OTRA_CUENTA",
+    "LockingChainDoor": "rYYYY_OTHER_ACCOUNT",
     "LockingChainIssue": { "currency": "XRP" },
-    "IssuingChainDoor": "rZZZZ_EMISOR",
+    "IssuingChainDoor": "rZZZZ_ISSUER",
     "IssuingChainIssue": { "currency": "XRP" }
   },
   "XChainClaimID": "1",
@@ -77,16 +77,16 @@ No comprueba que el claim ID exista (está en la otra cadena) ni que `OtherChain
 }
 ```
 
-`rYYYY_OTRA_CUENTA` es la door de la cadena locking (esta) y `rZZZZ_EMISOR` la door de la cadena emisora. Bloqueas 1 XRP para el claim ID 1.
+`rYYYY_OTHER_ACCOUNT` is the locking chain's door (this one) and `rZZZZ_ISSUER` the issuing chain's door. You lock 1 XRP for claim ID 1.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Carga el ejemplo en el builder. `XChainClaimID` debe ser el que obtuviste con `XChainCreateClaimID` en la cadena de destino.
-2. Envíalo: hoy obtendrás `temDISABLED` porque XChainBridge no está activo.
-3. Cuando el amendment se active y exista el puente: tras `tesSUCCESS`, `account_info` de la door mostrará su `Balance` aumentado en `Amount`, y en tu cuenta habrá bajado `Amount + Fee`. No aparece ningún objeto nuevo en `account_objects`.
-4. En la otra cadena, observa cómo el `XChainOwnedClaimID` va acumulando entradas en `XChainClaimAttestations` a medida que los witnesses envían atestaciones, hasta que desaparece al completarse la reclamación.
+1. Load the example into the builder. `XChainClaimID` must be the one you obtained with `XChainCreateClaimID` on the destination chain.
+2. Submit it: today you'll get `temDISABLED` because XChainBridge isn't active.
+3. Once the amendment is activated and the bridge exists: after `tesSUCCESS`, `account_info` of the door will show its `Balance` increased by `Amount`, and your own will have gone down by `Amount + Fee`. No new object appears in `account_objects`.
+4. On the other chain, watch how the `XChainOwnedClaimID` accumulates entries in `XChainClaimAttestations` as witnesses send attestations, until it disappears once the claim is completed.
 
-## Relacionado
+## Related
 
 - [XChainCreateClaimID](/tx/XChainCreateClaimID), [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation), [XChainClaim](/tx/XChainClaim)
 - [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit)

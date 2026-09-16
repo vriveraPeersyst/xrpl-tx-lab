@@ -2,18 +2,18 @@ import Link from "next/link";
 import { getLedgerEntry, testnetLedgerEntryNames, protocol, testnet } from "@/lib/protocol";
 import { readDoc } from "@/lib/content";
 
-export const metadata = { title: "Objetos del ledger" };
+export const metadata = { title: "Ledger objects" };
 
 export default function ObjectsIndex() {
   const names = testnetLedgerEntryNames();
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="display-lg">Objetos del ledger ({names.length})</h1>
-        <p className="text-muted">Cada entrada del estado del ledger (ledger entry) que existe en el <code>xrpld</code> de testnet, con los campos y flags que declara el código.</p>
+        <h1 className="display-lg">Ledger objects ({names.length})</h1>
+        <p className="text-muted">Every ledger state entry (ledger entry) that exists in testnet&apos;s <code>xrpld</code>, with the fields and flags declared by the code.</p>
       </div>
       <table className="tbl">
-        <thead><tr><th>Objeto</th><th>Tipo</th><th>Resumen</th><th>Creado por</th><th className="text-right">Campos</th><th className="text-right">Flags</th></tr></thead>
+        <thead><tr><th>Object</th><th>Type</th><th>Summary</th><th>Created by</th><th className="text-right">Fields</th><th className="text-right">Flags</th></tr></thead>
         <tbody>
           {names.map((n) => {
             const e = getLedgerEntry(n);

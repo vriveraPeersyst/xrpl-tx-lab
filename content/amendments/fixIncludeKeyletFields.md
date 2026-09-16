@@ -1,18 +1,18 @@
 ---
 title: fixIncludeKeyletFields
-summary: Guarda el Sequence de la transacción creadora dentro de varios objetos del ledger, para poder recalcular su keylet sin datos externos.
+summary: Stores the creating transaction's Sequence inside several ledger objects, so their keylet can be recomputed without external data.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixincludekeyletfields
 ---
 
-## Qué cambia
+## What changes
 
-Objetos como [PayChannel](/objects/PayChannel), [Escrow](/objects/Escrow), [SignerList](/objects/SignerList) o los resultados de [OracleSet](/tx/OracleSet) se identifican mediante un keylet derivado, entre otros datos, de la cuenta y del `Sequence` (o `Ticket`) de la transacción que los creó. Antes de este fix, ese `Sequence` no quedaba almacenado en el propio objeto: para volver a derivar su keylet había que conocer aparte el número de secuencia original, algo que no siempre está disponible solo con el objeto en mano (por ejemplo al reconstruirlo desde un snapshot o desde metadata). Con `fixIncludeKeyletFields` activo, [PaymentChannelCreate](/tx/PaymentChannelCreate), [EscrowCreate](/tx/EscrowCreate), [SignerListSet](/tx/SignerListSet) y [OracleSet](/tx/OracleSet) escriben el campo `Sequence` dentro del objeto creado.
+Objects such as [PayChannel](/objects/PayChannel), [Escrow](/objects/Escrow), [SignerList](/objects/SignerList), or the results of [OracleSet](/tx/OracleSet) are identified by a keylet derived, among other data, from the account and the `Sequence` (or `Ticket`) of the transaction that created them. Before this fix, that `Sequence` was not stored in the object itself: to re-derive its keylet you had to separately know the original sequence number, which is not always available with just the object in hand (for example when reconstructing it from a snapshot or from metadata). With `fixIncludeKeyletFields` active, [PaymentChannelCreate](/tx/PaymentChannelCreate), [EscrowCreate](/tx/EscrowCreate), [SignerListSet](/tx/SignerListSet), and [OracleSet](/tx/OracleSet) write the `Sequence` field inside the created object.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [PayChannel](/objects/PayChannel), [Escrow](/objects/Escrow), [SignerList](/objects/SignerList) y el objeto Oracle: ganan el campo `Sequence`.
-- [PaymentChannelCreate](/tx/PaymentChannelCreate), [EscrowCreate](/tx/EscrowCreate), [SignerListSet](/tx/SignerListSet), [OracleSet](/tx/OracleSet): escriben ese campo al crear el objeto.
+- [PayChannel](/objects/PayChannel), [Escrow](/objects/Escrow), [SignerList](/objects/SignerList), and the Oracle object: gain the `Sequence` field.
+- [PaymentChannelCreate](/tx/PaymentChannelCreate), [EscrowCreate](/tx/EscrowCreate), [SignerListSet](/tx/SignerListSet), [OracleSet](/tx/OracleSet): write that field when creating the object.
 
-## Estado y contexto
+## Status and context
 
-Sin el `Sequence` guardado en el objeto, cualquier herramienta o servicio que necesite reconstruir el keylet de uno de estos objetos a partir únicamente de su representación en el ledger (sin acceso al historial de transacciones) no podía hacerlo. Este fix hace que los objetos sean autocontenidos respecto a su propio keylet, simplificando indexadores, clientes ligeros y herramientas de auditoría que trabajan solo con el estado del ledger.
+Without the `Sequence` stored in the object, any tool or service that needs to reconstruct the keylet of one of these objects using only its ledger representation (without access to the transaction history) could not do so. This fix makes these objects self-contained with respect to their own keylet, simplifying indexers, light clients, and auditing tools that work only with ledger state.

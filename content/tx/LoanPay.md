@@ -1,96 +1,96 @@
 ---
 title: LoanPay
-summary: Paga una o varias cuotas de un préstamo, un pago tardío, una cancelación anticipada o un sobrepago, repartiendo entre Vault y broker.
+summary: Pays one or more loan installments, a late payment, an early payoff, or an overpayment, splitting between the Vault and the broker.
 category: prestamos
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/loanpay
 xls: XLS-0066
 amendment: LendingProtocol
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-**Aviso:** el amendment [LendingProtocol](/amendments/LendingProtocol) **no está activo en la testnet** (ni [SingleAssetVault](/amendments/SingleAssetVault), del que depende). Hoy esta transacción falla con `temDISABLED`. Lo siguiente describe su comportamiento cuando se active.
+**Notice:** the [LendingProtocol](/amendments/LendingProtocol) amendment **is not active on testnet** (nor is [SingleAssetVault](/amendments/SingleAssetVault), which it depends on). Today this transaction fails with `temDISABLED`. What follows describes its behavior once it's active.
 
-`LoanPay` es la transacción con la que el **prestatario** devuelve un [Loan](/objects/Loan). Según el flag, hace un pago regular (una o varias cuotas de golpe), un pago tardío con penalizaciones, una cancelación anticipada total o un pago regular con sobrepago de principal. Cada pago se descompone en tres partes: principal e interés, que vuelven a la pseudo-cuenta del [Vault](/objects/Vault), y las fees del broker (`ManagementFeeRate` sobre el interés más `LoanServiceFee`, `LatePaymentFee`, etc.), que van al owner del [LoanBroker](/objects/LoanBroker).
+`LoanPay` is the transaction the **borrower** uses to repay a [Loan](/objects/Loan). Depending on the flag, it makes a regular payment (one or several installments at once), a late payment with penalties, a full early payoff, or a regular payment with a principal overpayment. Each payment is split into two parts: principal and interest, which go back to the [Vault](/objects/Vault)'s pseudo-account, and the broker's fees (`ManagementFeeRate` on the interest plus `LoanServiceFee`, `LatePaymentFee`, etc.), which go to the [LoanBroker](/objects/LoanBroker)'s owner.
 
-Detalle importante: si el broker no tiene el cover mínimo, o no puede recibir el activo (deep frozen, sin autorización), la fee no se pierde: se ingresa en la pseudo-cuenta del broker y suma a `CoverAvailable`. Y si el préstamo estaba *impaired*, un pago lo restaura automáticamente (`unimpairLoan`) antes de aplicarse.
+An important detail: if the broker doesn't have the minimum cover, or can't receive the asset (deep frozen, unauthorized), the fee isn't lost: it's deposited into the broker's pseudo-account and added to `CoverAvailable`. And if the loan was *impaired*, a payment restores it automatically (`unimpairLoan`) before being applied.
 
-## Cuándo usarlo
+## When to use it
 
-- Pagar la cuota del periodo (o adelantar varias en una sola transacción, hasta 100).
-- Ponerte al día tras un retraso (`tfLoanLatePayment`), antes de que el broker declare el default.
-- Liquidar el préstamo entero antes de tiempo (`tfLoanFullPayment`).
-- Reducir principal por encima de la cuota (`tfLoanOverpayment`), si el préstamo lo permite.
+- Pay the period's installment (or advance several in a single transaction, up to 100).
+- Catch up after a delay (`tfLoanLatePayment`), before the broker declares default.
+- Pay off the entire loan early (`tfLoanFullPayment`).
+- Reduce principal beyond the installment (`tfLoanOverpayment`), if the loan allows it.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**preflight** (`LoanPay::preflight`): `LoanID` ≠ 0; `Amount` > 0 (`temBAD_AMOUNT`); a lo sumo un flag de los tres (`temINVALID_FLAG`).
+**preflight** (`LoanPay::preflight`): `LoanID` ≠ 0; `Amount` > 0 (`temBAD_AMOUNT`); at most one of the three flags (`temINVALID_FLAG`).
 
-**calculateBaseFee** (`LoanPay::calculateBaseFee`): un pago regular puede procesar varias cuotas, así que el fee mínimo escala: un fee base por cada 5 cuotas estimadas (`Amount / (cuota + LoanServiceFee)`), con tope de 20 fees base (100 cuotas). Pagos tardíos y totales cuestan un solo fee base.
+**calculateBaseFee** (`LoanPay::calculateBaseFee`): a regular payment can process several installments, so the minimum fee scales: one base fee for every 5 estimated installments (`Amount / (installment + LoanServiceFee)`), capped at 20 base fees (100 installments). Late and full payments cost a single base fee.
 
 **preclaim** (`LoanPay::preclaim`):
-- El Loan debe existir y `Borrower` debe ser tu cuenta (`tecNO_PERMISSION`).
-- `tfLoanOverpayment` sobre un préstamo sin `lsfLoanOverpayment` → `tecNO_PERMISSION` (con [fixCleanup3_1_3](/amendments/fixCleanup3_1_3); antes, `temINVALID_FLAG`).
-- Si `PaymentRemaining = 0` o `PrincipalOutstanding = 0`, `tecKILLED` (ya pagado).
-- `Amount` en el activo del Vault (`tecWRONG_ASSET`); tú no congelado; pseudo-cuenta del Vault no deep frozen; autorización del emisor.
-- Debes tener **todo** `Amount` disponible aunque el pago consuma menos: no hay pagos parciales (`tecINSUFFICIENT_FUNDS`).
+- The Loan must exist and `Borrower` must be your account (`tecNO_PERMISSION`).
+- `tfLoanOverpayment` on a loan without `lsfLoanOverpayment` → `tecNO_PERMISSION` (with [fixCleanup3_1_3](/amendments/fixCleanup3_1_3); before that, `temINVALID_FLAG`).
+- If `PaymentRemaining = 0` or `PrincipalOutstanding = 0`, `tecKILLED` (already paid off).
+- `Amount` must be in the Vault's asset (`tecWRONG_ASSET`); you must not be frozen; the Vault's pseudo-account must not be deep frozen; issuer authorization applies.
+- You must have **all** of `Amount` available even if the payment consumes less: there are no partial payments (`tecINSUFFICIENT_FUNDS`).
 
-**doApply** (`LoanPay::doApply` y `loanMakePayment` en `LendingHelpers.cpp`):
-- Si el pago está vencido (`isPaymentLate`) y no llevas `tfLoanLatePayment`, `tecEXPIRED`.
-- **Regular**: bucle que aplica cuotas completas mientras `Amount` cubra `PeriodicPayment + LoanServiceFee`, queden pagos y no supere 100. Si no alcanza ni para una cuota, `tecINSUFFICIENT_PAYMENT`. El remanente se ignora salvo con sobrepago.
-- **Overpayment**: tras las cuotas completas, el resto (redondeado a `LoanScale`) se aplica a principal con `OverpaymentFee` y `OverpaymentInterestRate`, y se recalcula el calendario.
-- **Late**: una cuota más el interés de demora (`LateInterestRate` sobre el retraso) y `LatePaymentFee`. Si `Amount` no cubre el total, `tecINSUFFICIENT_PAYMENT`.
-- **Full**: solo si `PaymentRemaining > 1` (`tecKILLED` en la última cuota). Paga el principal teórico pendiente más el interés devengado y de cierre (`CloseInterestRate`) más `ClosePaymentFee`.
-- Después actualiza `PrincipalOutstanding`, `TotalValueOutstanding`, `NextPaymentDueDate`, `PaymentRemaining`; `Vault.AssetsAvailable += principal + interés`; `Vault.AssetsTotal` según modelo accrual o cash-basis; `Broker.DebtTotal −= delta`.
-- `accountSendMulti` desde tu cuenta a la pseudo-cuenta del Vault y al payee del broker, sin transfer fee. Si `AssetsAvailable` no cambia por redondeo, `tecPRECISION_LOSS`.
+**doApply** (`LoanPay::doApply` and `loanMakePayment` in `LendingHelpers.cpp`):
+- If the payment is overdue (`isPaymentLate`) and you don't include `tfLoanLatePayment`, `tecEXPIRED`.
+- **Regular**: a loop applies full installments while `Amount` covers `PeriodicPayment + LoanServiceFee`, there are payments left, and it hasn't exceeded 100. If it doesn't cover even one installment, `tecINSUFFICIENT_PAYMENT`. The remainder is ignored except with overpayment.
+- **Overpayment**: after the full installments, the rest (rounded to `LoanScale`) is applied to principal with `OverpaymentFee` and `OverpaymentInterestRate`, and the schedule is recalculated.
+- **Late**: one installment plus the delay interest (`LateInterestRate` on the delay) and `LatePaymentFee`. If `Amount` doesn't cover the total, `tecINSUFFICIENT_PAYMENT`.
+- **Full**: only if `PaymentRemaining > 1` (`tecKILLED` on the last installment). Pays the theoretical outstanding principal plus accrued interest and closing interest (`CloseInterestRate`) plus `ClosePaymentFee`.
+- Afterward it updates `PrincipalOutstanding`, `TotalValueOutstanding`, `NextPaymentDueDate`, `PaymentRemaining`; `Vault.AssetsAvailable += principal + interest`; `Vault.AssetsTotal` according to the accrual or cash-basis model; `Broker.DebtTotal −= delta`.
+- `accountSendMulti` from your account to the Vault's pseudo-account and to the broker's payee, with no transfer fee. If `AssetsAvailable` doesn't change due to rounding, `tecPRECISION_LOSS`.
 
-## Campos clave
+## Key fields
 
-- **LoanID** — préstamo a pagar.
-- **Amount** — cantidad que pones a disposición, en el activo del Vault. Debe cubrir al menos una cuota (regular), o el total exigido (late/full). Lo que sobre no se cobra (excepto en sobrepago).
+- **LoanID** — loan to pay.
+- **Amount** — amount you're making available, in the Vault's asset. Must cover at least one installment (regular), or the full amount required (late/full). Any surplus isn't charged (except on overpayment).
 
 ## Flags
 
-- **tfLoanOverpayment** (0x00010000) — pago regular más sobrepago de principal. Requiere `lsfLoanOverpayment` en el Loan.
-- **tfLoanFullPayment** (0x00020000) — cancela el préstamo completo antes de la última cuota.
-- **tfLoanLatePayment** (0x00040000) — obligatorio si `NextPaymentDueDate` ya pasó.
+- **tfLoanOverpayment** (0x00010000) — regular payment plus a principal overpayment. Requires `lsfLoanOverpayment` on the Loan.
+- **tfLoanFullPayment** (0x00020000) — cancels the loan in full before the last installment.
+- **tfLoanLatePayment** (0x00040000) — mandatory if `NextPaymentDueDate` has already passed.
 
-Son mutuamente excluyentes.
+They're mutually exclusive.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo (situación actual en testnet).
-- **tecNO_PERMISSION** — no eres el prestatario, o pides sobrepago en un préstamo que no lo admite.
-- **tecEXPIRED** — el pago está vencido y no usaste `tfLoanLatePayment`.
-- **tecINSUFFICIENT_PAYMENT** — `Amount` no cubre la cuota (o el total tardío/completo).
-- **tecINSUFFICIENT_FUNDS** — tu saldo disponible es menor que `Amount`.
-- **tecKILLED** — el préstamo ya está pagado, o intentas `tfLoanFullPayment` en la última cuota.
-- **tecWRONG_ASSET** — `Amount` no es el activo del Vault.
-- **telINSUF_FEE_P** — el fee no cubre los incrementos por número de cuotas.
+- **temDISABLED** — the amendment is not active (current situation on testnet).
+- **tecNO_PERMISSION** — you're not the borrower, or you're requesting an overpayment on a loan that doesn't allow it.
+- **tecEXPIRED** — the payment is overdue and you didn't use `tfLoanLatePayment`.
+- **tecINSUFFICIENT_PAYMENT** — `Amount` doesn't cover the installment (or the late/full total).
+- **tecINSUFFICIENT_FUNDS** — your available balance is less than `Amount`.
+- **tecKILLED** — the loan is already paid off, or you're attempting `tfLoanFullPayment` on the last installment.
+- **tecWRONG_ASSET** — `Amount` isn't the Vault's asset.
+- **telINSUF_FEE_P** — the fee doesn't cover the increase for the number of installments.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "LoanPay",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "LoanID": "0000000000000000000000000000000000000000000000000000000000000000",
   "Amount": "2500000"
 }
 ```
 
-Pago regular de 2,5 XRP (una cuota del préstamo de 10 XRP a 4 plazos del ejemplo de [LoanSet](/tx/LoanSet); ajusta a `PeriodicPayment + LoanServiceFee` del Loan real). Sustituye `LoanID` por el índice del Loan.
+A regular payment of 2.5 XRP (one installment of the 10 XRP, 4-installment loan from the [LoanSet](/tx/LoanSet) example; adjust to the actual Loan's `PeriodicPayment + LoanServiceFee`). Replace `LoanID` with the Loan's index.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Hoy el builder devolverá `temDISABLED`: `LendingProtocol` y `SingleAssetVault` no están activos en la testnet.
-2. Cuando se active: crea un préstamo con [LoanSet](/tx/LoanSet) y lee `PeriodicPayment`, `LoanServiceFee` y `NextPaymentDueDate` en `account_objects` (`type: "loan"`).
-3. Antes del vencimiento, envía `LoanPay` con `Amount` ≥ `PeriodicPayment + LoanServiceFee`. Verás `PaymentRemaining` bajar en 1, `NextPaymentDueDate` avanzar un `PaymentInterval`, `AssetsAvailable` del Vault subir y el owner del broker recibir su fee.
-4. Envía el doble: se aplicarán dos cuotas en una sola transacción.
-5. Deja pasar el vencimiento y paga sin flag: `tecEXPIRED`. Repite con `Flags: 262144` y observa que se cobran `LatePaymentFee` e interés de demora.
+1. Today the builder will return `temDISABLED`: `LendingProtocol` and `SingleAssetVault` are not active on testnet.
+2. Once active: create a loan with [LoanSet](/tx/LoanSet) and read `PeriodicPayment`, `LoanServiceFee`, and `NextPaymentDueDate` in `account_objects` (`type: "loan"`).
+3. Before it's due, send `LoanPay` with `Amount` ≥ `PeriodicPayment + LoanServiceFee`. You'll see `PaymentRemaining` drop by 1, `NextPaymentDueDate` advance by one `PaymentInterval`, the Vault's `AssetsAvailable` rise, and the broker's owner receive their fee.
+4. Send double that amount: two installments will be applied in a single transaction.
+5. Let the due date pass and pay without a flag: `tecEXPIRED`. Repeat with `Flags: 262144` and observe that `LatePaymentFee` and delay interest are charged.
 
-## Relacionado
+## Related
 
 - [LoanSet](/tx/LoanSet), [LoanManage](/tx/LoanManage), [LoanDelete](/tx/LoanDelete), [LoanBrokerCoverWithdraw](/tx/LoanBrokerCoverWithdraw)
 - [Loan](/objects/Loan), [LoanBroker](/objects/LoanBroker), [Vault](/objects/Vault)

@@ -1,48 +1,48 @@
 ---
 title: Escrow
-summary: Retiene XRP hasta que se cumple una condición criptográfica, pasa un tiempo mínimo, o ambas cosas.
+summary: Holds XRP until a cryptographic condition is met, a minimum time passes, or both.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/escrow
 createdBy: EscrowCreate
 modifiedBy: EscrowFinish, EscrowCancel
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `Escrow` bloquea XRP fuera del balance disponible del emisor hasta que se cumple una condición: que pase `FinishAfter`, que alguien presente el cumplimiento de una `Condition` criptográfica (crypto-condition PREIMAGE-SHA-256), o ambas. Mientras existe, el XRP no cuenta como balance gastable de `Account` pero sí como parte de su `Balance` total (afecta a cálculos de reserva del emisor de forma indirecta, no directa: el escrow en sí consume 1 unidad de owner reserve).
+An `Escrow` locks XRP out of the sender's available balance until a condition is met: `FinishAfter` elapses, someone presents fulfillment of a cryptographic `Condition` (PREIMAGE-SHA-256 crypto-condition), or both. While it exists, the XRP doesn't count as `Account`'s spendable balance but it does count as part of its total `Balance` (it affects the sender's reserve calculations indirectly, not directly: the escrow itself consumes 1 owner reserve unit).
 
-Solo soporta XRP, nunca tokens emitidos ni MPT: `Amount` es siempre un STAmount en drops.
+It only supports XRP, never issued tokens or MPTs: `Amount` is always an STAmount in drops.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [EscrowCreate](/tx/EscrowCreate). `preflight` exige al menos uno de `CancelAfter`, `FinishAfter` o `Condition`, y valida el formato de la condición si se da. `doApply` crea el objeto, lo enlaza al directorio del emisor (`OwnerNode`) y, si aplica, al del destino (`DestinationNode`), y suma 1 al `OwnerCount` del emisor.
-- **Liberación**: [EscrowFinish](/tx/EscrowFinish), por cualquier cuenta (no hace falta ser el emisor ni el destino). Si hay `Condition`, hay que aportar `Fulfillment` que la satisfaga; si hay `FinishAfter`, el `close_time` del ledger tiene que haberlo superado. El objeto se borra y el XRP pasa a `Destination`.
-- **Cancelación**: [EscrowCancel](/tx/EscrowCancel), solo posible tras `CancelAfter`. Devuelve el XRP a `Account` y borra el objeto. Sin `CancelAfter` el escrow no se puede cancelar nunca: solo se libera con `EscrowFinish`.
-- **Borrado en cascada**: [AccountDelete](/tx/AccountDelete) del emisor o del destino falla si aún quedan escrows pendientes; hay que resolverlos antes.
+- **Creation**: [EscrowCreate](/tx/EscrowCreate). `preflight` requires at least one of `CancelAfter`, `FinishAfter`, or `Condition`, and validates the condition's format if given. `doApply` creates the object, links it to the sender's directory (`OwnerNode`) and, if applicable, to the destination's (`DestinationNode`), and adds 1 to the sender's `OwnerCount`.
+- **Release**: [EscrowFinish](/tx/EscrowFinish), by any account (it doesn't have to be the sender or the destination). If there's a `Condition`, a `Fulfillment` satisfying it must be provided; if there's a `FinishAfter`, the ledger's `close_time` must have passed it. The object is deleted and the XRP goes to `Destination`.
+- **Cancellation**: [EscrowCancel](/tx/EscrowCancel), only possible after `CancelAfter`. Returns the XRP to `Account` and deletes the object. Without `CancelAfter` the escrow can never be canceled: it can only be released with `EscrowFinish`.
+- **Cascading deletion**: [AccountDelete](/tx/AccountDelete) of the sender or the destination fails if there are still pending escrows; they must be resolved first.
 
-## Campos clave
+## Key fields
 
-- **Account** — el emisor, quien paga y a quien se le cobra la reserva.
-- **Destination** — quien recibe el XRP al liberarse.
-- **Amount** — XRP en drops, fijado en la creación; no cambia.
-- **Condition** — crypto-condition en formato binario (DER). Si está presente, `EscrowFinish` exige un `Fulfillment` válido.
-- **CancelAfter / FinishAfter** — segundos desde el Ripple Epoch (2000-01-01). `FinishAfter` es el momento a partir del cual se puede finalizar; `CancelAfter`, a partir del cual se puede cancelar.
-- **OwnerNode / DestinationNode** — páginas del directorio del emisor y del destino donde está enlazado el objeto.
-- **TransferRate / IssuerNode** — reservados para escrows con `Condition` de tipo especial; en la práctica no se usan en escrows XRP normales.
+- **Account** — the sender, who pays and is charged the reserve.
+- **Destination** — who receives the XRP upon release.
+- **Amount** — XRP in drops, fixed at creation; it doesn't change.
+- **Condition** — crypto-condition in binary (DER) format. If present, `EscrowFinish` requires a valid `Fulfillment`.
+- **CancelAfter / FinishAfter** — seconds since the Ripple Epoch (2000-01-01). `FinishAfter` is the point from which the escrow can be finished; `CancelAfter`, the point from which it can be canceled.
+- **OwnerNode / DestinationNode** — pages of the sender's and destination's directories where the object is linked.
+- **TransferRate / IssuerNode** — reserved for escrows with a special-type `Condition`; in practice not used in normal XRP escrows.
 
 ## Flags
 
-No tiene flags `lsf*`.
+Has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "escrow"` lo devuelve para el emisor y, si está enlazado, para el destino. Con `ledger_entry`, `escrow` acepta `owner` (la cuenta emisora) y `seq` (la `Sequence` de la `EscrowCreate`):
+`account_objects` with `type: "escrow"` returns it for the sender and, if linked, for the destination. With `ledger_entry`, `escrow` accepts `owner` (the sending account) and `seq` (the `Sequence` of the `EscrowCreate`):
 
 ```json
 { "method": "ledger_entry", "params": [{ "escrow": { "owner": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "seq": 20790113 }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x0075 || AccountID_emisor || Sequence)` (`keylet::escrow`). Respuesta típica:
+The index is `SHA512Half(0x0075 || AccountID_sender || Sequence)` (`keylet::escrow`). Typical response:
 
 ```json
 {
@@ -64,12 +64,15 @@ El índice es `SHA512Half(0x0075 || AccountID_emisor || Sequence)` (`keylet::esc
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 1 unidad de reserva de propietario (0,2 XRP en testnet) del emisor mientras exista.
+Consumes 1 owner reserve unit (0.2 XRP on testnet) from the sender while it exists.
 
-## Relacionado
+## Related
 
 - [EscrowCreate](/tx/EscrowCreate), [EscrowFinish](/tx/EscrowFinish), [EscrowCancel](/tx/EscrowCancel)
 - [Check](/objects/Check), [PayChannel](/objects/PayChannel), [AccountRoot](/objects/AccountRoot)
 - [Escrow](/amendments/Escrow), [CryptoConditions](/amendments/CryptoConditions)
+</content>
+</invoke>
+<parameter name="file_path">/Users/vrc-mini/Projects/Peersyst/peersyst-Workspace/xrpl-tx-lab/content/objects/FeeSettings.md

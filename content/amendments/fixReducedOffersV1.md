@@ -1,20 +1,20 @@
 ---
 title: fixReducedOffersV1
-summary: Corrige el redondeo al reducir el tamaño de una oferta para que su calidad nunca empeore la original.
+summary: Fixes rounding when reducing an offer's size so that its quality never worsens relative to the original.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixreducedoffersv1
 ---
 
-## Qué cambia
+## What changes
 
-Cuando el motor Flow de pagos con paths cruza parcialmente una [Offer](/objects/Offer), calcula una versión "reducida" de esa oferta con menos cantidad en ambos lados. Ese cálculo implica redondear, y antes de este fix el redondeo podía producir una oferta reducida con una calidad (tasa `TakerPays`/`TakerGets`) ligeramente peor que la de la oferta original. Una oferta reducida con peor calidad que la mejor oferta disponible en el libro bloqueaba efectivamente ese nivel de precio: quedaba ahí sin poder cruzarse, pero tampoco se retiraba.
+When the payment pathfinding Flow engine partially crosses an [Offer](/objects/Offer), it computes a "reduced" version of that offer with less amount on both sides. That calculation involves rounding, and before this fix the rounding could produce a reduced offer with a slightly worse quality (the `TakerPays`/`TakerGets` rate) than the original offer. A reduced offer with worse quality than the best offer available in the book effectively blocked that price level: it stayed there unable to be crossed, but was not removed either.
 
-Con fixReducedOffersV1 activo, el redondeo se ajusta para que la calidad de la oferta reducida sea siempre igual o mejor que la de la oferta original, de modo que nunca empeora respecto al precio que el creador de la oferta aceptó originalmente.
+With fixReducedOffersV1 enabled, the rounding is adjusted so that the quality of the reduced offer is always equal to or better than that of the original offer, so it never worsens relative to the price the offer's creator originally accepted.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [OfferCreate](/tx/OfferCreate) y [Payment](/tx/Payment) con paths: el cálculo del tamaño reducido de una oferta al cruzarla parcialmente.
-- [Offer](/objects/Offer): el objeto que queda en el ledger tras un cruce parcial.
+- [OfferCreate](/tx/OfferCreate) and [Payment](/tx/Payment) with paths: the calculation of an offer's reduced size when it is partially crossed.
+- [Offer](/objects/Offer): the object that remains on the ledger after a partial crossing.
 
-## Estado y contexto
+## Status and context
 
-Corrige un bug del motor Flow que podía dejar libros de ofertas efectivamente bloqueados en un nivel de precio por una oferta residual con peor calidad de la que debería. [fixReducedOffersV2](/amendments/fixReducedOffersV2) amplía esta misma corrección a otro caso de redondeo que este fix no cubría.
+Fixes a bug in the Flow engine that could leave offer books effectively blocked at a price level due to a residual offer with worse quality than it should have. [fixReducedOffersV2](/amendments/fixReducedOffersV2) extends this same correction to another rounding case that this fix did not cover.

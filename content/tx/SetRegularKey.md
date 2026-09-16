@@ -1,79 +1,79 @@
 ---
 title: SetRegularKey
-summary: Asigna, cambia o elimina la clave regular de tu cuenta: un segundo par de claves con el que firmar sin exponer la clave maestra.
+summary: Assigns, changes, or removes your account's regular key: a second key pair you can sign with without exposing the master key.
 category: cuenta
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/setregularkey
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-Toda cuenta del XRPL nace con una **clave maestra**, derivada de la semilla que la creó. `SetRegularKey` añade al [AccountRoot](/objects/AccountRoot) un campo `RegularKey` con la dirección derivada de otro par de claves. A partir de ahí, las transacciones de la cuenta pueden firmarse con la clave maestra **o** con la regular.
+Every XRPL account is born with a **master key**, derived from the seed that created it. `SetRegularKey` adds a `RegularKey` field to the [AccountRoot](/objects/AccountRoot) with the address derived from another key pair. From then on, the account's transactions can be signed with either the master key **or** the regular key.
 
-La idea es la de una llave de uso diario frente a la llave del banco: guardas la maestra fuera de línea y operas con la regular. Si la regular se filtra, la sustituyes con otra `SetRegularKey` firmada con la maestra. Y si además desactivas la maestra con [AccountSet](/tx/AccountSet) (`asfDisableMaster`), una filtración de la maestra tampoco compromete la cuenta mientras la regular esté a salvo.
+The idea is a daily-use key versus the key to the vault: you keep the master key offline and operate with the regular one. If the regular key leaks, you replace it with another `SetRegularKey` signed with the master key. And if you also disable the master key with [AccountSet](/tx/AccountSet) (`asfDisableMaster`), a leak of the master key won't compromise the account either, as long as the regular key stays safe.
 
-La transacción solo modifica el `AccountRoot`; no crea objetos ni consume reserva.
+The transaction only modifies the `AccountRoot`; it doesn't create objects or consume reserve.
 
-## Cuándo usarlo
+## When to use it
 
-- Rotar claves de forma periódica sin cambiar de dirección.
-- Firmar desde un servidor o un dispositivo menos seguro con una clave que puedas revocar.
-- Preparar el paso a `asfDisableMaster` para que la maestra quede en frío.
-- Recuperar el control tras un compromiso de la clave regular.
+- Rotating keys periodically without changing your address.
+- Signing from a server or a less secure device with a key you can revoke.
+- Preparing the move to `asfDisableMaster` so the master key can be kept in cold storage.
+- Regaining control after a compromise of the regular key.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`SetRegularKey::calculateBaseFee`** tiene una peculiaridad: si la transacción está firmada con la **clave maestra** de la cuenta y el `AccountRoot` no tiene el flag `lsfPasswordSpent`, la fee base es **0 drops**. Es una salvaguarda de un solo uso: una cuenta cuya clave regular ha sido comprometida puede fijar una nueva aunque el atacante le haya vaciado el saldo. En cualquier otro caso se cobra la fee normal.
+**`SetRegularKey::calculateBaseFee`** has a peculiarity: if the transaction is signed with the account's **master key** and the `AccountRoot` doesn't have the `lsfPasswordSpent` flag, the base fee is **0 drops**. It's a one-time safeguard: an account whose regular key has been compromised can set a new one even if the attacker has drained its balance. In any other case, the normal fee is charged.
 
-**`SetRegularKey::preflight`** solo comprueba una cosa: `RegularKey` no puede ser la dirección de la propia cuenta (`temBAD_REGKEY`). Es decir, no puedes registrar la maestra como regular.
+**`SetRegularKey::preflight`** only checks one thing: `RegularKey` can't be the account's own address (`temBAD_REGKEY`). In other words, you can't register the master key as the regular key.
 
-No hay `preclaim` específico; se aplican las comprobaciones genéricas de `Transactor` (cuenta existente, secuencia, firma…).
+There's no transaction-specific `preclaim`; the generic `Transactor` checks apply (existing account, sequence, signature...).
 
 **`SetRegularKey::doApply`**:
 
-1. Si la fee cobrada fue inferior a la mínima (es decir, se usó la fee gratuita), marca `lsfPasswordSpent` en el `AccountRoot`. El flag se vuelve a desarmar cuando la cuenta recibe un pago de XRP directo ([Payment](/tx/Payment) lo limpia en `doApply`).
-2. Si la transacción trae `RegularKey`, la escribe en el `AccountRoot`.
-3. Si no la trae, **elimina** la clave regular. Pero si la maestra está desactivada (`lsfDisableMaster`) y no existe un [SignerList](/objects/SignerList), lo rechaza con `tecNO_ALTERNATIVE_KEY`: no puedes dejar la cuenta sin ninguna forma de firmar.
+1. If the fee charged was below the minimum (that is, the free fee was used), it sets `lsfPasswordSpent` on the `AccountRoot`. The flag is cleared again when the account receives a direct XRP payment ([Payment](/tx/Payment) clears it in `doApply`).
+2. If the transaction includes `RegularKey`, it writes it to the `AccountRoot`.
+3. If it doesn't include one, it **removes** the regular key. But if the master key is disabled (`lsfDisableMaster`) and there's no [SignerList](/objects/SignerList), it's rejected with `tecNO_ALTERNATIVE_KEY`: you can't leave the account with no way to sign at all.
 
-Fíjate en que el ledger **no verifica** que `RegularKey` corresponda a una clave que realmente poseas: es una dirección cualquiera. Si te equivocas al derivarla, esa clave no servirá para nada y tendrás que corregirla con la maestra.
+Note that the ledger **doesn't verify** that `RegularKey` corresponds to a key you actually possess: it's just some address. If you make a mistake deriving it, that key won't work for anything, and you'll have to fix it with the master key.
 
-La transacción no es delegable.
+The transaction isn't delegable.
 
-## Campos clave
+## Key fields
 
-- **RegularKey** — dirección (`r...`) derivada de la clave pública del nuevo par. Se obtiene como cualquier dirección: `calcAccountID(publicKey)`. Omítelo para borrar la clave regular actual.
+- **RegularKey** — the address (`r...`) derived from the public key of the new key pair. It's obtained like any address: `calcAccountID(publicKey)`. Omit it to remove the current regular key.
 
-## Errores habituales
+## Common errors
 
-- **temBAD_REGKEY** — `RegularKey` es igual a `Account`. Deriva una clave nueva.
-- **tecNO_ALTERNATIVE_KEY** — intentas eliminar la clave regular con la maestra desactivada y sin lista de firmantes. Rehabilita la maestra (`ClearFlag: 4`) o crea un [SignerListSet](/tx/SignerListSet) antes.
-- **tefMASTER_DISABLED** — (comprobación genérica de firma) firmas con la maestra cuando está desactivada.
-- **tefBAD_AUTH** — firmas con una clave que no es ni la maestra ni la regular vigente.
+- **temBAD_REGKEY** — `RegularKey` is the same as `Account`. Derive a new key.
+- **tecNO_ALTERNATIVE_KEY** — you're trying to remove the regular key while the master key is disabled and there's no signer list. Re-enable the master key (`ClearFlag: 4`) or create a [SignerListSet](/tx/SignerListSet) first.
+- **tefMASTER_DISABLED** — (generic signature check) you're signing with the master key while it's disabled.
+- **tefBAD_AUTH** — you're signing with a key that's neither the master key nor the current regular key.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "SetRegularKey",
-  "Account": "rXXXX_TU_CUENTA",
-  "RegularKey": "rYYYY_OTRA_CUENTA"
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "RegularKey": "rYYYY_OTHER_ACCOUNT"
 }
 ```
 
-En el ejemplo se usa la dirección de otra cuenta de demostración como clave regular. En un uso real generarías un par de claves nuevo y pondrías su dirección aquí.
+The example uses another demo account's address as the regular key. In real use you'd generate a new key pair and put its address here.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Envía el ejemplo. Consulta `account_info`: en `account_data` aparece `RegularKey: rYYYY_OTRA_CUENTA`.
-2. Firma cualquier transacción sencilla (por ejemplo un [AccountSet](/tx/AccountSet) vacío) con la semilla de `rYYYY_OTRA_CUENTA` pero con `Account: rXXXX_TU_CUENTA`: se acepta, porque esa clave ahora es la regular de tu cuenta.
-3. Envía `SetRegularKey` **sin** `RegularKey`, firmado con la maestra: el campo desaparece de `account_info`.
-4. Para ver `tecNO_ALTERNATIVE_KEY`: vuelve a fijar la regular, desactiva la maestra con `AccountSet SetFlag: 4` (firmado con la maestra), y luego intenta borrar la regular firmando con ella misma.
-5. Observa la fee: si la envías firmada con la maestra y la cuenta nunca usó la fee gratuita, el builder puede poner `Fee: "0"` y la red la aceptará; en los metadatos verás que se activa `lsfPasswordSpent`.
+1. Submit the example. Query `account_info`: `account_data` now shows `RegularKey: rYYYY_OTHER_ACCOUNT`.
+2. Sign any simple transaction (for example an empty [AccountSet](/tx/AccountSet)) with `rYYYY_OTHER_ACCOUNT`'s seed but `Account: rXXXX_YOUR_ACCOUNT`: it's accepted, because that key is now your account's regular key.
+3. Submit `SetRegularKey` **without** `RegularKey`, signed with the master key: the field disappears from `account_info`.
+4. To see `tecNO_ALTERNATIVE_KEY`: set the regular key again, disable the master key with `AccountSet SetFlag: 4` (signed with the master key), then try to remove the regular key by signing with itself.
+5. Watch the fee: if you submit it signed with the master key and the account never used the free fee, the builder may set `Fee: "0"` and the network will accept it; in the metadata you'll see `lsfPasswordSpent` get set.
 
-## Relacionado
+## Related
 
-- [AccountSet](/tx/AccountSet) — `asfDisableMaster` (4) para desactivar la maestra una vez configurada la regular.
-- [SignerListSet](/tx/SignerListSet) — alternativa multifirma; también cuenta como "clave alternativa".
-- [Payment](/tx/Payment) — un pago XRP entrante rearma la fee gratuita (`lsfPasswordSpent`).
-- Objetos: [AccountRoot](/objects/AccountRoot), [SignerList](/objects/SignerList).
+- [AccountSet](/tx/AccountSet) — `asfDisableMaster` (4) to disable the master key once the regular key is configured.
+- [SignerListSet](/tx/SignerListSet) — multisig alternative; also counts as an "alternative key."
+- [Payment](/tx/Payment) — an incoming XRP payment rearms the free fee (`lsfPasswordSpent`).
+- Objects: [AccountRoot](/objects/AccountRoot), [SignerList](/objects/SignerList).
 - Amendments: [fixMasterKeyAsRegularKey](/amendments/fixMasterKeyAsRegularKey).

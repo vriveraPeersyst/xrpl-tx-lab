@@ -1,24 +1,24 @@
 ---
 title: PriceOracle
-summary: Permite publicar en cadena series de precios de pares de activos, firmadas por un proveedor de datos.
+summary: Allows publishing on-chain price series for asset pairs, signed by a data provider.
 xls: XLS-0047
 xlsUrl: https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0047-price-oracle
 xrplDocs: https://xrpl.org/resources/known-amendments#priceoracle
 introducedIn: 2.2.0
 ---
 
-## Qué cambia
+## What changes
 
-Introduce el objeto `Oracle` (`ltORACLE`), propiedad de una cuenta (`Owner`), identificado además por un `OracleDocumentID` opcional para permitir varios oráculos por cuenta. Almacena un `Provider` (identificador del proveedor de datos, hasta `kMaxOracleProvider` bytes), una `AssetClass` (categoría del activo, p. ej. "currency"), un `LastUpdateTime` y, el campo central, `PriceDataSeries`: un array de hasta `kMaxOracleDataSeries` pares `BaseAsset`/`QuoteAsset` con su precio.
+Introduces the `Oracle` object (`ltORACLE`), owned by an account (`Owner`), additionally identified by an optional `OracleDocumentID` to allow multiple oracles per account. It stores a `Provider` (data provider identifier, up to `kMaxOracleProvider` bytes), an `AssetClass` (asset category, e.g. "currency"), a `LastUpdateTime`, and the central field, `PriceDataSeries`: an array of up to `kMaxOracleDataSeries` `BaseAsset`/`QuoteAsset` pairs with their price.
 
-`OracleSet` crea o actualiza el oráculo. En `preflight` valida que `PriceDataSeries` no esté vacío ni exceda el máximo de entradas, y que `Provider`, `URI` y `AssetClass` respeten sus longitudes máximas; rechaza pares de activos duplicados dentro de la misma serie usando la clave `(BaseAsset, QuoteAsset)`. `OracleDelete` retira el objeto del ledger. Cualquier cuenta puede leer el objeto y usar sus precios; el amendment `fixPriceOracleOrder` corrige después un problema en el orden de validación de `OracleSet`, y `fixIncludeKeyletFields` añade metadatos de keylet a la transacción.
+`OracleSet` creates or updates the oracle. In `preflight` it validates that `PriceDataSeries` is not empty and does not exceed the maximum number of entries, and that `Provider`, `URI` and `AssetClass` respect their maximum lengths; it rejects duplicate asset pairs within the same series using the `(BaseAsset, QuoteAsset)` key. `OracleDelete` removes the object from the ledger. Any account can read the object and use its prices; the `fixPriceOracleOrder` amendment later fixes an issue in the validation order of `OracleSet`, and `fixIncludeKeyletFields` adds keylet metadata to the transaction.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nuevas: [OracleSet](/tx/OracleSet) y [OracleDelete](/tx/OracleDelete).
-- Objeto: nuevo [Oracle](/objects/Oracle).
-- Consumido por funcionalidades posteriores de AMM y del protocolo de préstamos que necesitan una referencia de precio en cadena para calcular colateral, liquidaciones o valoración de posiciones.
+- New: [OracleSet](/tx/OracleSet) and [OracleDelete](/tx/OracleDelete).
+- Object: new [Oracle](/objects/Oracle).
+- Consumed by later AMM and lending protocol features that need an on-chain price reference to calculate collateral, liquidations, or position valuation.
 
-## Estado y contexto
+## Status and context
 
-Antes de este amendment, XRPL no tenía forma nativa de traer datos de precios externos (fuera del propio libro de órdenes on-chain) al ledger: cualquier protocolo que necesitara un precio de referencia —por ejemplo XRP/USD para calcular el valor de una garantía— dependía de infraestructura fuera de cadena sin manera de verificarlo on-chain. PriceOracle define un formato estándar para que proveedores de datos publiquen y actualicen precios directamente en el ledger, firmados por su propia cuenta, sirviendo de base de datos de precios para funciones de AMM, préstamos colateralizados y otros usos que requieren una fuente de verdad de precio auditable.
+Before this amendment, XRPL had no native way to bring external price data (outside of the on-chain order book itself) onto the ledger: any protocol that needed a reference price—for example XRP/USD to calculate the value of collateral—depended on off-chain infrastructure with no way to verify it on-chain. PriceOracle defines a standard format for data providers to publish and update prices directly on the ledger, signed by their own account, serving as a price database for AMM functions, collateralized lending, and other uses that require an auditable source of price truth.

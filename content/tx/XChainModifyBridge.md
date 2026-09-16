@@ -1,89 +1,89 @@
 ---
 title: XChainModifyBridge
-summary: Cambia la recompensa a los witnesses o el mínimo de creación de cuentas de un puente existente; solo la cuenta door puede enviarla.
+summary: Changes the witness reward or the account-creation minimum of an existing bridge; only the door account can send it.
 category: puente
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/xchainmodifybridge
 xls: XLS-0038
 amendment: XChainBridge
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-**Atención: el amendment [XChainBridge](/amendments/XChainBridge) no está activo en la testnet.** Hasta que se active, cualquier envío se rechaza con `temDISABLED`.
+**Warning: the [XChainBridge](/amendments/XChainBridge) amendment is not active on testnet.** Until it's activated, any submission is rejected with `temDISABLED`.
 
-`XChainModifyBridge` modifica los dos únicos parámetros ajustables de un objeto [Bridge](/objects/Bridge) ya creado con [XChainCreateBridge](/tx/XChainCreateBridge): la `SignatureReward` que cobran los witnesses y el `MinAccountCreateAmount` que habilita (o, con el flag `tfClearAccountCreateAmount`, deshabilita) la creación de cuentas a través del puente. La especificación del puente (`XChainBridge`: doors y activos) no se puede cambiar; sirve solo para localizar el objeto.
+`XChainModifyBridge` modifies the only two adjustable parameters of a [Bridge](/objects/Bridge) object already created with [XChainCreateBridge](/tx/XChainCreateBridge): the `SignatureReward` witnesses collect and the `MinAccountCreateAmount` that enables (or, with the `tfClearAccountCreateAmount` flag, disables) account creation through the bridge. The bridge's specification (`XChainBridge`: doors and assets) cannot be changed; it's used only to locate the object.
 
-La envía la cuenta door de esa cadena. Como la door está controlada por multifirma por los witnesses, en la práctica esta transacción requiere un quórum de ellos. Solo afecta al Bridge de la cadena donde se envía: si quieres el mismo cambio en las dos cadenas, hay que enviarla en ambas.
+It's sent by that chain's door account. Since the door is controlled by multisig from the witnesses, in practice this transaction requires a quorum of them. It only affects the Bridge on the chain where it's sent: if you want the same change on both chains, it must be sent on both.
 
-## Cuándo usarlo
+## When to use it
 
-- Ajustar la recompensa de los witnesses cuando cambian los costes o el precio del XRP.
-- Activar la creación de cuentas por puente en un puente XRP-XRP que se creó sin `MinAccountCreateAmount`.
-- Desactivar la creación de cuentas con `tfClearAccountCreateAmount` (por ejemplo, ante abusos o para congelar el bootstrap).
+- Adjusting the witness reward when costs or XRP's price change.
+- Enabling account creation through the bridge on an XRP-XRP bridge that was created without `MinAccountCreateAmount`.
+- Disabling account creation with `tfClearAccountCreateAmount` (for example, in the face of abuse, or to freeze bootstrapping).
 
-## Cómo funciona por dentro
+## How it works inside
 
-En el código la clase se llama `BridgeModify` (en `transactors/bridge/XChainBridge.cpp`), aunque el tipo de transacción es `XChainModifyBridge`.
+In the code the class is called `BridgeModify` (in `transactors/bridge/XChainBridge.cpp`), although the transaction type is `XChainModifyBridge`.
 
 `BridgeModify::preflight`:
 
-- Debe cambiar algo: si no viene ni `SignatureReward`, ni `MinAccountCreateAmount`, ni el flag `tfClearAccountCreateAmount`, devuelve `temMALFORMED`.
-- No puedes fijar `MinAccountCreateAmount` y a la vez marcar `tfClearAccountCreateAmount` (`temMALFORMED`).
-- La cuenta debe ser una de las dos doors del `XChainBridge` (`temXCHAIN_BRIDGE_NONDOOR_OWNER`).
-- `SignatureReward`, si va, debe ser XRP no negativo (`temXCHAIN_BRIDGE_BAD_REWARD_AMOUNT`).
-- `MinAccountCreateAmount`, si va, debe ser XRP positivo y los dos activos del puente deben ser XRP (`temXCHAIN_BRIDGE_BAD_MIN_ACCOUNT_CREATE_AMOUNT`).
-- Los flags se validan contra `tfXChainModifyBridgeMask`: el único válido es `tfClearAccountCreateAmount`.
+- Something must change: if neither `SignatureReward`, nor `MinAccountCreateAmount`, nor the `tfClearAccountCreateAmount` flag is provided, it returns `temMALFORMED`.
+- You cannot set `MinAccountCreateAmount` while also setting `tfClearAccountCreateAmount` (`temMALFORMED`).
+- The account must be one of the two doors of the `XChainBridge` (`temXCHAIN_BRIDGE_NONDOOR_OWNER`).
+- `SignatureReward`, if provided, must be non-negative XRP (`temXCHAIN_BRIDGE_BAD_REWARD_AMOUNT`).
+- `MinAccountCreateAmount`, if provided, must be positive XRP and both of the bridge's assets must be XRP (`temXCHAIN_BRIDGE_BAD_MIN_ACCOUNT_CREATE_AMOUNT`).
+- The flags are validated against `tfXChainModifyBridgeMask`: the only valid one is `tfClearAccountCreateAmount`.
 
-`BridgeModify::preclaim`: busca el Bridge en el lado que corresponde a la door que firma (`keylet::bridge(spec, chainType)`); si no existe, `tecNO_ENTRY`.
+`BridgeModify::preclaim`: looks up the Bridge on the side corresponding to the signing door (`keylet::bridge(spec, chainType)`); if it doesn't exist, `tecNO_ENTRY`.
 
-`BridgeModify::doApply`: escribe `SignatureReward` y/o `MinAccountCreateAmount` en el objeto y, si el flag está puesto y el campo existe, lo elimina con `makeFieldAbsent`. No toca los contadores ni la reserva.
+`BridgeModify::doApply`: writes `SignatureReward` and/or `MinAccountCreateAmount` to the object and, if the flag is set and the field exists, removes it with `makeFieldAbsent`. It doesn't touch the counters or the reserve.
 
-## Campos clave
+## Key fields
 
-- **XChainBridge** — la especificación completa del puente, usada solo para localizarlo. Debe coincidir exactamente con la del objeto.
-- **SignatureReward** — nueva recompensa en drops. Afecta a los `XChainCreateClaimID` y `XChainAccountCreateCommit` futuros: deben indicar exactamente este valor. Los claim IDs ya creados conservan la recompensa con la que se crearon.
-- **MinAccountCreateAmount** — nuevo mínimo en drops para `XChainAccountCreateCommit`. Presente = creación de cuentas habilitada.
+- **XChainBridge** — the bridge's full specification, used only to locate it. Must exactly match the object's.
+- **SignatureReward** — new reward, in drops. Affects future `XChainCreateClaimID` and `XChainAccountCreateCommit` transactions: they must specify exactly this value. Claim IDs already created keep the reward they were created with.
+- **MinAccountCreateAmount** — new minimum, in drops, for `XChainAccountCreateCommit`. Present = account creation enabled.
 
 ## Flags
 
-- **tfClearAccountCreateAmount** (0x00010000) — elimina `MinAccountCreateAmount` del Bridge, con lo que `XChainAccountCreateCommit` pasará a fallar con `tecXCHAIN_CREATE_ACCOUNT_DISABLED`. Incompatible con enviar `MinAccountCreateAmount` en la misma transacción.
+- **tfClearAccountCreateAmount** (0x00010000) — removes `MinAccountCreateAmount` from the Bridge, so `XChainAccountCreateCommit` will start failing with `tecXCHAIN_CREATE_ACCOUNT_DISABLED`. Incompatible with sending `MinAccountCreateAmount` in the same transaction.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo. Es lo que verás hoy en testnet.
-- **temMALFORMED** — no cambias nada, o combinas `MinAccountCreateAmount` con `tfClearAccountCreateAmount`.
-- **temXCHAIN_BRIDGE_NONDOOR_OWNER** — la cuenta no es door del puente.
-- **temXCHAIN_BRIDGE_BAD_MIN_ACCOUNT_CREATE_AMOUNT** — mínimo no XRP, cero o puente de IOU.
-- **tecNO_ENTRY** — no existe un Bridge con esa especificación en esta cadena (o lo estás enviando desde la door equivocada).
-- **temINVALID_FLAG** — has puesto un flag distinto de `tfClearAccountCreateAmount`.
+- **temDISABLED** — the amendment isn't active. This is what you'll see today on testnet.
+- **temMALFORMED** — you're not changing anything, or you're combining `MinAccountCreateAmount` with `tfClearAccountCreateAmount`.
+- **temXCHAIN_BRIDGE_NONDOOR_OWNER** — the account isn't a door of the bridge.
+- **temXCHAIN_BRIDGE_BAD_MIN_ACCOUNT_CREATE_AMOUNT** — minimum isn't XRP, is zero, or the bridge is an IOU bridge.
+- **tecNO_ENTRY** — there's no Bridge with that specification on this chain (or you're sending from the wrong door).
+- **temINVALID_FLAG** — you've set a flag other than `tfClearAccountCreateAmount`.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "XChainModifyBridge",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "XChainBridge": {
-    "LockingChainDoor": "rXXXX_TU_CUENTA",
+    "LockingChainDoor": "rXXXX_YOUR_ACCOUNT",
     "LockingChainIssue": { "currency": "XRP" },
-    "IssuingChainDoor": "rZZZZ_EMISOR",
+    "IssuingChainDoor": "rZZZZ_ISSUER",
     "IssuingChainIssue": { "currency": "XRP" }
   },
   "SignatureReward": "200"
 }
 ```
 
-Tu cuenta es la door de la cadena locking; `rZZZZ_EMISOR` es la door de la cadena emisora. Sube la recompensa de 100 a 200 drops.
+Your account is the locking chain's door; `rZZZZ_ISSUER` is the issuing chain's door. It raises the reward from 100 to 200 drops.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Carga el ejemplo en el builder con la misma `XChainBridge` que usaste (o usarías) en `XChainCreateBridge`.
-2. Envíalo: hoy obtendrás `temDISABLED` porque XChainBridge no está activo.
-3. Cuando el amendment se active y exista el Bridge: tras `tesSUCCESS`, `ledger_entry` con `bridge_account` y `bridge` (la especificación) devolverá el objeto con `SignatureReward: "200"`. Si usaste `tfClearAccountCreateAmount`, el campo `MinAccountCreateAmount` habrá desaparecido.
-4. Comprueba después que un `XChainCreateClaimID` con la recompensa antigua falla con `tecXCHAIN_REWARD_MISMATCH`.
+1. Load the example into the builder with the same `XChainBridge` you used (or would use) in `XChainCreateBridge`.
+2. Submit it: today you'll get `temDISABLED` because XChainBridge isn't active.
+3. Once the amendment is activated and the Bridge exists: after `tesSUCCESS`, `ledger_entry` with `bridge_account` and `bridge` (the specification) will return the object with `SignatureReward: "200"`. If you used `tfClearAccountCreateAmount`, the `MinAccountCreateAmount` field will have disappeared.
+4. Then check that an `XChainCreateClaimID` with the old reward fails with `tecXCHAIN_REWARD_MISMATCH`.
 
-## Relacionado
+## Related
 
 - [XChainCreateBridge](/tx/XChainCreateBridge), [XChainCreateClaimID](/tx/XChainCreateClaimID), [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit)
 - [Bridge](/objects/Bridge)

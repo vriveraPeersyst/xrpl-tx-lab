@@ -1,22 +1,22 @@
 ---
 title: fixXChainRewardRounding
-summary: Corrige el redondeo al repartir la SignatureReward de un XChainBridge entre los witness que firman las attestations.
+summary: Fixes rounding when distributing an XChainBridge's SignatureReward among the witnesses that sign the attestations.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixxchainrewardrounding
 ---
 
-## Qué cambia
+## What changes
 
-Un [XChainBridge](/objects/Bridge) reparte su `SignatureReward` entre las cuentas witness que aportan attestations válidas para completar un cruce. El reparto se calcula dividiendo la recompensa total entre el número de firmantes que participaron; antes de este fix, esa división podía dejar restos sin asignar o distribuir cantidades ligeramente distintas de las esperadas debido a redondeos hacia abajo en aritmética entera.
+An [XChainBridge](/objects/Bridge) distributes its `SignatureReward` among the witness accounts that provide valid attestations to complete a crossing. The distribution is calculated by dividing the total reward by the number of signers who participated; before this fix, that division could leave remainders unassigned or distribute amounts slightly different from what was expected due to rounding down in integer arithmetic.
 
-Con fixXChainRewardRounding activo, el cálculo de la parte que corresponde a cada witness se corrige para que el redondeo sea consistente y la suma de las partes repartidas no se desvíe del total disponible en la cuenta del bridge (ni deje polvo residual bloqueado indefinidamente).
+With fixXChainRewardRounding enabled, the calculation of each witness's share is fixed so that rounding is consistent and the sum of the distributed shares does not deviate from the total available in the bridge's account (nor leave residual dust locked indefinitely).
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [XChainCreateBridge](/tx/XChainCreateBridge) y [XChainModifyBridge](/tx/XChainModifyBridge): definen la `SignatureReward` a repartir.
-- [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation) y [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation): disparan el reparto cuando se alcanza el quórum.
-- [XChainCommit](/tx/XChainCommit), [XChainClaim](/tx/XChainClaim) y [XChainCreateClaimID](/tx/XChainCreateClaimID): parte del flujo de cruce cuyo pago final incluye este reparto.
-- Objeto [Bridge](/objects/Bridge).
+- [XChainCreateBridge](/tx/XChainCreateBridge) and [XChainModifyBridge](/tx/XChainModifyBridge): define the `SignatureReward` to be distributed.
+- [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation) and [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation): trigger the distribution when quorum is reached.
+- [XChainCommit](/tx/XChainCommit), [XChainClaim](/tx/XChainClaim), and [XChainCreateClaimID](/tx/XChainCreateClaimID): part of the crossing flow whose final payment includes this distribution.
+- [Bridge](/objects/Bridge) object.
 
-## Estado y contexto
+## Status and context
 
-Es un fix de precisión sobre el mecanismo de recompensas introducido por [XChainBridge](/amendments/XChainBridge). Sin el redondeo correcto, los witness podían recibir en conjunto algo menos de lo previsto por la `SignatureReward`, lo cual es un problema económico para quienes operan la infraestructura de puente entre XRPL y una cadena lateral o sidechain compatible con EVM.
+This is a precision fix to the reward mechanism introduced by [XChainBridge](/amendments/XChainBridge). Without correct rounding, witnesses could collectively receive somewhat less than expected from the `SignatureReward`, which is an economic problem for those operating the bridge infrastructure between XRPL and a sidechain or EVM-compatible sidechain.

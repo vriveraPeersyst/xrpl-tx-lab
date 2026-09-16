@@ -1,87 +1,87 @@
 ---
 title: XChainCreateClaimID
-summary: Reserva en la cadena de destino un identificador de reclamación (claim ID) antes de enviar fondos por el puente desde la otra cadena.
+summary: Reserves a claim identifier (claim ID) on the destination chain before sending funds through the bridge from the other chain.
 category: puente
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/xchaincreateclaimid
 xls: XLS-0038
 amendment: XChainBridge
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-**Atención: el amendment [XChainBridge](/amendments/XChainBridge) no está activo en la testnet.** Hasta que se active, cualquier envío se rechaza con `temDISABLED`.
+**Warning: the [XChainBridge](/amendments/XChainBridge) amendment is not active on testnet.** Until it's activated, any submission is rejected with `temDISABLED`.
 
-Una transferencia por puente empieza siempre **en la cadena de destino**: antes de bloquear fondos en la cadena origen, tienes que obtener un **claim ID** en la cadena a la que quieres traerlos. `XChainCreateClaimID` crea el objeto [XChainOwnedClaimID](/objects/XChainOwnedClaimID), con un número secuencial que el puente asigna incrementando su contador `XChainClaimID`. Ese número es de un solo uso: cuando la reclamación se completa el objeto se borra y el número no vuelve a existir nunca.
+A bridge transfer always starts **on the destination chain**: before locking funds on the source chain, you need to obtain a **claim ID** on the chain you want to bring them to. `XChainCreateClaimID` creates the [XChainOwnedClaimID](/objects/XChainOwnedClaimID) object, with a sequential number that the bridge assigns by incrementing its `XChainClaimID` counter. That number is single-use: once the claim is completed the object is deleted and the number never exists again.
 
-El objeto guarda quién lo posee (tú), qué cuenta enviará los fondos en la otra cadena (`OtherChainSource`), la `SignatureReward` que pagarás a los witnesses y un array vacío `XChainClaimAttestations` donde se irán acumulando las atestaciones. Es lo que impide que una atestación se use más de una vez.
+The object stores who owns it (you), which account will send the funds on the other chain (`OtherChainSource`), the `SignatureReward` you'll pay the witnesses, and an empty `XChainClaimAttestations` array where attestations will accumulate. This is what prevents an attestation from being used more than once.
 
-El flujo completo es: `XChainCreateClaimID` (destino) → [XChainCommit](/tx/XChainCommit) con ese ID (origen) → los witnesses envían [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation) (destino) → los fondos llegan automáticamente o los reclamas con [XChainClaim](/tx/XChainClaim).
+The full flow is: `XChainCreateClaimID` (destination) → [XChainCommit](/tx/XChainCommit) with that ID (source) → witnesses send [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation) (destination) → the funds arrive automatically or you claim them with [XChainClaim](/tx/XChainClaim).
 
-## Cuándo usarlo
+## When to use it
 
-- Es el primer paso de cualquier transferencia de un activo ya puenteado, desde cualquiera de las dos cadenas hacia la otra.
-- Necesitas tener ya una cuenta en la cadena de destino. Si no la tienes (bootstrap de una sidechain), usa [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit), que no requiere claim ID.
+- It's the first step of any transfer of an already-bridged asset, from either chain toward the other.
+- You need to already have an account on the destination chain. If you don't (bootstrapping a sidechain), use [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit), which doesn't require a claim ID.
 
-## Cómo funciona por dentro
+## How it works inside
 
-`XChainCreateClaimID::preflight` (en `transactors/bridge/XChainBridge.cpp`) solo valida `SignatureReward`: debe ser XRP, no negativa y un importe legal (`temXCHAIN_BRIDGE_BAD_REWARD_AMOUNT`).
+`XChainCreateClaimID::preflight` (in `transactors/bridge/XChainBridge.cpp`) only validates `SignatureReward`: it must be XRP, non-negative, and a legal amount (`temXCHAIN_BRIDGE_BAD_REWARD_AMOUNT`).
 
 `XChainCreateClaimID::preclaim`:
 
-- Busca el [Bridge](/objects/Bridge) por su especificación en cualquiera de los dos lados (`readBridge`); si no existe, `tecNO_ENTRY`.
-- `SignatureReward` debe ser **exactamente igual** a la del Bridge, ni más ni menos (`tecXCHAIN_REWARD_MISMATCH`).
-- La cuenta debe cubrir la reserva con un objeto más (`tecINSUFFICIENT_RESERVE`).
+- Looks up the [Bridge](/objects/Bridge) by its specification on either side (`readBridge`); if it doesn't exist, `tecNO_ENTRY`.
+- `SignatureReward` must be **exactly equal** to the Bridge's, no more and no less (`tecXCHAIN_REWARD_MISMATCH`).
+- The account must cover the reserve for one more object (`tecINSUFFICIENT_RESERVE`).
 
 `XChainCreateClaimID::doApply`:
 
-- Incrementa `XChainClaimID` en el Bridge y usa el nuevo valor como identificador (si desbordase a 0, `tecINTERNAL`).
-- Crea el objeto `XChainOwnedClaimID` (`keylet::xChainClaimID(spec, id)`) con `Account`, `XChainBridge`, `XChainClaimID`, `OtherChainSource`, `SignatureReward` y `XChainClaimAttestations` vacío.
-- Lo inserta en tu directorio de owner y sube tu `OwnerCount` en 1.
+- Increments the Bridge's `XChainClaimID` and uses the new value as the identifier (if it were to overflow to 0, `tecINTERNAL`).
+- Creates the `XChainOwnedClaimID` object (`keylet::xChainClaimID(spec, id)`) with `Account`, `XChainBridge`, `XChainClaimID`, `OtherChainSource`, `SignatureReward`, and an empty `XChainClaimAttestations`.
+- Inserts it into your owner directory and increases your `OwnerCount` by 1.
 
-Nota: la recompensa **no se cobra aquí**. Se paga desde tu cuenta cuando la reclamación se completa (en `finalizeClaimHelper`, desde `rewardPoolSrc`, que es el owner del claim ID). Por eso conviene mantener saldo suficiente hasta entonces.
+Note: the reward **isn't charged here**. It's paid from your account when the claim is completed (in `finalizeClaimHelper`, from `rewardPoolSrc`, which is the claim ID's owner). So it's worth keeping sufficient balance until then.
 
-## Campos clave
+## Key fields
 
-- **XChainBridge** — la especificación del puente. Debe existir un Bridge con ella en esta cadena.
-- **SignatureReward** — copia exacta de la recompensa que figura en el Bridge en este momento. Si la door la cambia con [XChainModifyBridge](/tx/XChainModifyBridge), los claim IDs ya creados conservan la antigua.
-- **OtherChainSource** — la cuenta de la **otra** cadena que hará el `XChainCommit`. Las atestaciones cuyo `OtherChainSource` no coincida se rechazan con `tecXCHAIN_SENDING_ACCOUNT_MISMATCH`. Suele ser tu propia cuenta en la otra cadena, pero puede ser cualquiera.
+- **XChainBridge** — the bridge specification. A Bridge with it must exist on this chain.
+- **SignatureReward** — exact copy of the reward currently on the Bridge. If the door changes it with [XChainModifyBridge](/tx/XChainModifyBridge), claim IDs already created keep the old one.
+- **OtherChainSource** — the account on the **other** chain that will perform the `XChainCommit`. Attestations whose `OtherChainSource` doesn't match are rejected with `tecXCHAIN_SENDING_ACCOUNT_MISMATCH`. It's usually your own account on the other chain, but it can be anyone.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo. Es lo que verás hoy en testnet.
-- **tecNO_ENTRY** — no hay ningún Bridge con esa especificación en esta cadena.
-- **tecXCHAIN_REWARD_MISMATCH** — la `SignatureReward` no coincide con la del Bridge. Léela con `ledger_entry` antes de enviar.
-- **tecINSUFFICIENT_RESERVE** — falta XRP para la reserva del nuevo objeto.
-- **temXCHAIN_BRIDGE_BAD_REWARD_AMOUNT** — la recompensa no es XRP o es negativa.
+- **temDISABLED** — the amendment isn't active. This is what you'll see today on testnet.
+- **tecNO_ENTRY** — there's no Bridge with that specification on this chain.
+- **tecXCHAIN_REWARD_MISMATCH** — `SignatureReward` doesn't match the Bridge's. Read it with `ledger_entry` before sending.
+- **tecINSUFFICIENT_RESERVE** — not enough XRP for the new object's reserve.
+- **temXCHAIN_BRIDGE_BAD_REWARD_AMOUNT** — the reward isn't XRP or is negative.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "XChainCreateClaimID",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "XChainBridge": {
-    "LockingChainDoor": "rYYYY_OTRA_CUENTA",
+    "LockingChainDoor": "rYYYY_OTHER_ACCOUNT",
     "LockingChainIssue": { "currency": "XRP" },
-    "IssuingChainDoor": "rZZZZ_EMISOR",
+    "IssuingChainDoor": "rZZZZ_ISSUER",
     "IssuingChainIssue": { "currency": "XRP" }
   },
   "SignatureReward": "100",
-  "OtherChainSource": "rYYYY_OTRA_CUENTA"
+  "OtherChainSource": "rYYYY_OTHER_ACCOUNT"
 }
 ```
 
-`rYYYY_OTRA_CUENTA` hace de door de la cadena locking (y, por simplicidad del ejemplo, también de origen en la otra cadena); `rZZZZ_EMISOR` es la door de la cadena emisora.
+`rYYYY_OTHER_ACCOUNT` acts as the locking chain's door (and, for the example's simplicity, also as the source on the other chain); `rZZZZ_ISSUER` is the issuing chain's door.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Carga el ejemplo en el builder. Pon en `XChainBridge` la especificación exacta de un puente y en `SignatureReward` el valor que tenga ese Bridge.
-2. Envíalo: hoy obtendrás `temDISABLED` porque XChainBridge no está activo.
-3. Cuando el amendment se active y exista el puente: tras `tesSUCCESS`, `account_objects` con `type: "xchain_owned_claim_id"` mostrará el objeto con `XChainClaimID` igual al contador del Bridge (1 para el primero) y `XChainClaimAttestations: []`.
-4. Usa ese `XChainClaimID` en el `XChainCommit` de la otra cadena. Cuando los witnesses atestigüen y se alcance el quórum, el objeto desaparecerá y tu `OwnerCount` bajará en 1.
+1. Load the example into the builder. Put the exact specification of a bridge in `XChainBridge` and, in `SignatureReward`, the value that Bridge has.
+2. Submit it: today you'll get `temDISABLED` because XChainBridge isn't active.
+3. Once the amendment is activated and the bridge exists: after `tesSUCCESS`, `account_objects` with `type: "xchain_owned_claim_id"` will show the object with `XChainClaimID` equal to the Bridge's counter (1 for the first) and `XChainClaimAttestations: []`.
+4. Use that `XChainClaimID` in the `XChainCommit` on the other chain. Once witnesses attest and quorum is reached, the object will disappear and your `OwnerCount` will go down by 1.
 
-## Relacionado
+## Related
 
 - [XChainCommit](/tx/XChainCommit), [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation), [XChainClaim](/tx/XChainClaim)
 - [XChainCreateBridge](/tx/XChainCreateBridge), [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit)

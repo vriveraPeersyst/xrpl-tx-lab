@@ -1,26 +1,26 @@
 ---
 title: fixCleanup3_1_3
-summary: Amendment "paraguas" que agrupa en una sola activación un lote de pequeñas correcciones de bugs repartidas por varios subsistemas del ledger.
+summary: "Umbrella" amendment that groups a batch of small bug fixes spread across several ledger subsystems into a single activation.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixcleanup3_1_3
 introducedIn: 3.1.3
 ---
 
-## Qué cambia
+## What changes
 
-A diferencia de otros `fix*` que corrigen un único bug puntual, fixCleanup3_1_3 agrupa bajo un solo amendment varias correcciones pequeñas e independientes acumuladas para la versión 3.1.3 de rippled, en lugar de publicar un amendment separado por cada una. Entre las correcciones que gatea (`ctx.view.rules().enabled(fixCleanup3_1_3)` en el código):
+Unlike other `fix*` amendments that correct a single specific bug, fixCleanup3_1_3 groups several small, independent fixes accumulated for rippled version 3.1.3 under a single amendment, instead of publishing a separate amendment for each one. Among the fixes it gates (`ctx.view.rules().enabled(fixCleanup3_1_3)` in the code):
 
-- [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): antes, aceptar una oferta caducada fallaba en `preclaim` con `tecEXPIRED`; con el fix, la oferta caducada se detecta y se borra del ledger en la propia transacción en vez de solo rechazarla.
-- MPToken: ajusta cómo se agrega el `MaximumAmount` y cómo se comprueba el `LockedAmount` en las transferencias.
-- [PermissionedDEX](/objects/Offer) (ofertas híbridas): la comprobación de oferta malformada pasa a rechazar también un dominio con tamaño `0`, no solo el que falta o supera 1.
-- Vault ([VaultClawback](/tx/VaultClawback)): elimina un retorno temprano incorrecto cuando el importe a recuperar es cero.
-- Lending ([LoanPay](/tx/LoanPay)): limita el número de incrementos de fee aplicables (`kMaxFeeIncrements`) y devuelve `tecNO_PERMISSION` en vez de `temINVALID_FLAG` en el caso correspondiente.
-- Credentials y PermissionedDomain: ajustan el tratamiento de credenciales caducadas y de dominios permitidos.
-- Varias invariant checks (`InvariantCheck`, `PermissionedDEXInvariant`, `PermissionedDomainInvariant`) se endurecen para detectar estos mismos estados corregidos.
+- [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): previously, accepting an expired offer failed in `preclaim` with `tecEXPIRED`; with the fix, the expired offer is detected and deleted from the ledger within the transaction itself instead of just being rejected.
+- MPToken: adjusts how the `MaximumAmount` is aggregated and how the `LockedAmount` is checked in transfers.
+- [PermissionedDEX](/objects/Offer) (hybrid offers): the malformed-offer check now also rejects a domain with size `0`, not only one that is missing or exceeds 1.
+- Vault ([VaultClawback](/tx/VaultClawback)): removes an incorrect early return when the amount to claw back is zero.
+- Lending ([LoanPay](/tx/LoanPay)): limits the number of applicable fee increments (`kMaxFeeIncrements`) and returns `tecNO_PERMISSION` instead of `temINVALID_FLAG` in the corresponding case.
+- Credentials and PermissionedDomain: adjust the handling of expired credentials and permissioned domains.
+- Several invariant checks (`InvariantCheck`, `PermissionedDEXInvariant`, `PermissionedDomainInvariant`) are tightened to detect these same corrected states.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-Toca a [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), transacciones de MPToken, [VaultClawback](/tx/VaultClawback), [LoanPay](/tx/LoanPay), [PermissionedDomainSet](/tx/PermissionedDomainSet) y las transacciones de Credentials, además de las invariant checks que validan objetos como `MPToken`, `Vault`, `Loan`, `PermissionedDomain` y ofertas híbridas del `PermissionedDEX`.
+Affects [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), MPToken transactions, [VaultClawback](/tx/VaultClawback), [LoanPay](/tx/LoanPay), [PermissionedDomainSet](/tx/PermissionedDomainSet), and Credentials transactions, as well as the invariant checks that validate objects such as `MPToken`, `Vault`, `Loan`, `PermissionedDomain`, and hybrid offers in the `PermissionedDEX`.
 
-## Estado y contexto
+## Status and context
 
-Es un amendment de "limpieza de versión": en vez de coordinar la votación de media docena de amendments diminutos por separado, rippled los empaqueta en uno solo asociado a su número de release (3.1.3). Su `VoteBehavior::DefaultYes` en `features.macro` refleja que se trata de correcciones de bajo riesgo pensadas para activarse rápido una vez validado el release.
+This is a "version cleanup" amendment: instead of coordinating the voting of half a dozen tiny amendments separately, rippled packages them into one tied to its release number (3.1.3). Its `VoteBehavior::DefaultYes` in `features.macro` reflects that these are low-risk fixes intended to be activated quickly once the release has been validated.

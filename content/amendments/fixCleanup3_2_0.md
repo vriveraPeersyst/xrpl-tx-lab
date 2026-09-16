@@ -1,18 +1,18 @@
 ---
 title: fixCleanup3_2_0
-summary: Agrupa en un único amendment el conjunto de correcciones de comportamiento acumuladas para la versión 3.2.0 de rippled.
+summary: Groups the set of behavior fixes accumulated for rippled version 3.2.0 into a single amendment.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixcleanup3_2_0
 introducedIn: 3.2.0
 ---
 
-## Qué cambia
+## What changes
 
-En lugar de introducir un amendment independiente por cada corrección menor, rippled agrupa periódicamente varios arreglos no relacionados entre sí bajo un único amendment "de limpieza" por versión. `fixCleanup3_2_0` es la primera de esta serie y activa a la vez, entre otros: el nuevo límite de páginas de directorio ([DirectoryNode](/objects/DirectoryNode)), reglas de precisión en `Number` para vaults y préstamos (`MantissaScale::Large320`), el requisito de trustline con autorización para el emisor en [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), validaciones de `Channel`/`Amount` no nulos en [PaymentChannelClaim](/tx/PaymentChannelClaim) y [PaymentChannelFund](/tx/PaymentChannelFund), el rechazo de importes con formato inválido en `preflightUniversal` (`temBAD_AMOUNT`), y ajustes en el redondeo de calidad de [OfferCreate](/tx/OfferCreate), entre varios otros cambios en Vault, Lending, AMM y MPT.
+Instead of introducing a separate amendment for each minor fix, rippled periodically groups several unrelated fixes under a single "cleanup" amendment per version. `fixCleanup3_2_0` is the first in this series and simultaneously activates, among others: the new directory page limit ([DirectoryNode](/objects/DirectoryNode)), `Number` precision rules for vaults and loans (`MantissaScale::Large320`), the requirement for an authorized trustline for the issuer in [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), non-null `Channel`/`Amount` validations in [PaymentChannelClaim](/tx/PaymentChannelClaim) and [PaymentChannelFund](/tx/PaymentChannelFund), the rejection of malformed amounts in `preflightUniversal` (`temBAD_AMOUNT`), and adjustments to quality rounding in [OfferCreate](/tx/OfferCreate), along with several other changes to Vault, Lending, AMM, and MPT.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-Toca de forma transversal [Vault](/objects/Vault), [MPTokenIssuance](/objects/MPTokenIssuance), [PaymentChannel](/objects/PaymentChannel), [Escrow](/objects/Escrow), [DirectoryNode](/objects/DirectoryNode), [OfferCreate](/tx/OfferCreate), [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), [NFTokenCancelOffer](/tx/NFTokenCancelOffer), y los transactors de `LoanBroker*`, `VaultWithdraw`, `VaultDeposit` y `VaultCreate`.
+Affects, across the board, [Vault](/objects/Vault), [MPTokenIssuance](/objects/MPTokenIssuance), [PaymentChannel](/objects/PaymentChannel), [Escrow](/objects/Escrow), [DirectoryNode](/objects/DirectoryNode), [OfferCreate](/tx/OfferCreate), [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), [NFTokenCancelOffer](/tx/NFTokenCancelOffer), and the `LoanBroker*`, `VaultWithdraw`, `VaultDeposit`, and `VaultCreate` transactors.
 
-## Estado y contexto
+## Status and context
 
-No corresponde a una única propuesta funcional sino a la práctica de rippled de empaquetar decenas de correcciones pequeñas, dispersas por muchos subsistemas, en un solo amendment por release para no saturar la lista de amendments votables. El código sigue comprobando `rules.enabled(fixCleanup3_2_0)` en cada punto concreto que corrige, por lo que el amendment funciona como paraguas: activarlo activa a la vez todas las correcciones incluidas en la versión 3.2.0.
+This does not correspond to a single functional proposal but to rippled's practice of packaging dozens of small fixes, scattered across many subsystems, into a single amendment per release so as not to saturate the list of votable amendments. The code still checks `rules.enabled(fixCleanup3_2_0)` at each specific point it corrects, so the amendment functions as an umbrella: activating it activates all the fixes included in version 3.2.0 at once.

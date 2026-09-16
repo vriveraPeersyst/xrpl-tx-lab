@@ -15,31 +15,31 @@ export default function Home() {
       <section className="grid gap-4 lg:grid-cols-3">
         <div className="card-grey grid-lines lg:col-span-2 flex min-h-[380px] flex-col justify-between">
           <div className="relative">
-            <h1 className="display-xl max-w-3xl">Todas las transacciones de la XRPL, explicadas desde el código.</h1>
+            <h1 className="display-xl max-w-3xl">Every XRPL transaction, explained from the code.</h1>
           </div>
           <div className="relative mt-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <p className="standfirst max-w-xl">Cada tipo de transacción y cada objeto del ledger se documenta a partir del código fuente de xrpld (la versión que corre en testnet). Conecta Xaman, construye la transacción, simúlala y envíala.</p>
-            <Link href="/tx/Payment" className="btn-primary shrink-0">Empezar con un Payment <ArrowUpRight size={16} /></Link>
+            <p className="standfirst max-w-xl">Every transaction type and every ledger object is documented from the xrpld source code (the version running on testnet). Connect Xaman, build the transaction, simulate it and submit it.</p>
+            <Link href="/tx/Payment" className="btn-primary shrink-0">Start with a Payment <ArrowUpRight size={16} /></Link>
           </div>
         </div>
         <div className="card-black grid-lines flex flex-col justify-between">
-          <p className="relative text-sm text-green-300">xrpld en testnet</p>
+          <p className="relative text-sm text-green-300">xrpld on testnet</p>
           <div className="relative">
             <p className="datapoint text-green-300" style={{ fontSize: "3.5rem" }}>{testnet.buildVersion}</p>
-            <p className="mt-2 text-xs text-grey-300">ledger {testnet.validatedLedger.seq.toLocaleString("es-ES")} · {new Date(testnet.fetchedAt).toLocaleDateString("es-ES")}</p>
+            <p className="mt-2 text-xs text-grey-300">ledger {testnet.validatedLedger.seq.toLocaleString("en-US")} · {new Date(testnet.fetchedAt).toLocaleDateString("en-US")}</p>
           </div>
         </div>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Tile label="Tipos de transacción" value={names.length} sub={`${names.length - 3} enviables + 3 pseudo`} href="/tx" />
-        <Tile label="Objetos del ledger" value={testnetLedgerEntryNames().length} sub={`${protocol.sfields.length} campos serializados`} href="/objects" />
-        <Tile label="Amendments activos" value={`${enabled}/${testnet.amendments.length}`} sub={`${voting.length} en votación`} href="/amendments" />
-        <Tile label="Reserva por objeto" value={`${testnet.reserves.incXrp} XRP`} sub={`base ${testnet.reserves.baseXrp} XRP · fee ${Math.round(testnet.reserves.baseFeeXrp * 1e6)} drops`} href="/reserves" />
+        <Tile label="Transaction types" value={names.length} sub={`${names.length - 3} submittable + 3 pseudo`} href="/tx" />
+        <Tile label="Ledger objects" value={testnetLedgerEntryNames().length} sub={`${protocol.sfields.length} serialized fields`} href="/objects" />
+        <Tile label="Active amendments" value={`${enabled}/${testnet.amendments.length}`} sub={`${voting.length} in voting`} href="/amendments" />
+        <Tile label="Reserve per object" value={`${testnet.reserves.incXrp} XRP`} sub={`base ${testnet.reserves.baseXrp} XRP · fee ${Math.round(testnet.reserves.baseFeeXrp * 1e6)} drops`} href="/reserves" />
       </section>
 
       <section>
-        <h2 className="display-lg mb-6">Transacciones por categoría</h2>
+        <h2 className="display-lg mb-6">Transactions by category</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {(Object.keys(CATEGORIES) as (keyof typeof CATEGORIES)[]).filter((c) => byCat[c].length).map((c) => (
             <div key={c} className="card">
@@ -54,19 +54,19 @@ export default function Home() {
       <section className="grid gap-4 md:grid-cols-2">
         <div className="card-green grid-lines">
           <div className="relative">
-            <h2 className="display-md mb-3">Cómo se procesa una transacción</h2>
+            <h2 className="display-md mb-3">How a transaction is processed</h2>
             <ol className="ml-5 list-decimal space-y-1 text-sm">
-              <li><b>preflight</b>: validación estática (campos, flags, amendments). Errores <code>tem*</code>, sin fee.</li>
-              <li><b>preclaim</b>: comprobaciones contra el ledger (saldos, objetos, permisos).</li>
-              <li><b>doApply</b>: aplica los cambios. Si falla con <code>tec*</code> cobra el fee y consume el Sequence.</li>
+              <li><b>preflight</b>: static validation (fields, flags, amendments). <code>tem*</code> errors, no fee.</li>
+              <li><b>preclaim</b>: checks against the ledger (balances, objects, permissions).</li>
+              <li><b>doApply</b>: applies the changes. If it fails with <code>tec*</code> it charges the fee and consumes the Sequence.</li>
             </ol>
-            <Link href="/results" className="mt-4 inline-flex items-center gap-1 text-sm underline">Ver todos los códigos <ArrowUpRight size={14} /></Link>
+            <Link href="/results" className="mt-4 inline-flex items-center gap-1 text-sm underline">See all result codes <ArrowUpRight size={14} /></Link>
           </div>
         </div>
         <div className="card">
-          <h2 className="display-md mb-3">Actualización automática</h2>
-          <p className="text-sm text-muted">Un job diario (12:00 Madrid) consulta la testnet, alinea el código fuente de rippled con la versión desplegada, re-extrae los datos y pasa un lint de cobertura que exige documentación y UI para cada tipo, objeto, flag, campo y amendment.</p>
-          <p className="mt-3 text-sm">Estado: {cov ? (cov.ok ? <span className="text-accent-ink">cobertura completa</span> : <span className="text-danger">{cov.errors.length} elementos sin cubrir</span>) : "sin datos"} · <Link className="link" href="/sync">detalles</Link></p>
+          <h2 className="display-md mb-3">Automatic updates</h2>
+          <p className="text-sm text-muted">A daily job (12:00 Madrid time) queries testnet, aligns the rippled source code with the deployed version, re-extracts the data and runs a coverage lint that requires documentation and UI for every type, object, flag, field and amendment.</p>
+          <p className="mt-3 text-sm">Status: {cov ? (cov.ok ? <span className="text-accent-ink">full coverage</span> : <span className="text-danger">{cov.errors.length} items not covered</span>) : "no data"} · <Link className="link" href="/sync">details</Link></p>
         </div>
       </section>
     </div>

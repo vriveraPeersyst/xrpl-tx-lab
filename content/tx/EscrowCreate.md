@@ -1,82 +1,82 @@
 ---
 title: EscrowCreate
-summary: Bloquea XRP, tokens emitidos o MPT en un objeto Escrow que solo se libera al destinatario cuando pasa un tiempo o se presenta una condición criptográfica.
+summary: Locks XRP, issued tokens, or MPT in an Escrow object that is only released to the recipient after a time passes or a cryptographic condition is presented.
 category: escrow
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/escrowcreate
 amendment: Escrow
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`EscrowCreate` aparta una cantidad de tu cuenta y la guarda en un objeto [Escrow](/objects/Escrow) del ledger. Ese dinero deja de estar disponible para ti, pero tampoco lo tiene todavía el destinatario: queda "en depósito" hasta que alguien lo libera con [EscrowFinish](/tx/EscrowFinish) o lo devuelve con [EscrowCancel](/tx/EscrowCancel).
+`EscrowCreate` sets aside an amount from your account and stores it in an [Escrow](/objects/Escrow) object on the ledger. That money stops being available to you, but the recipient doesn't have it yet either: it stays "in escrow" until someone releases it with [EscrowFinish](/tx/EscrowFinish) or returns it with [EscrowCancel](/tx/EscrowCancel).
 
-La analogía es un sobre cerrado en una caja fuerte con temporizador: nadie puede abrirlo antes de `FinishAfter`, solo el destinatario puede cobrarlo entre `FinishAfter` y `CancelAfter`, y después de `CancelAfter` solo se puede devolver al remitente. Además del tiempo, puedes exigir una `Condition` (crypto-condition PREIMAGE-SHA-256): el escrow solo se libera si alguien presenta la preimagen correcta.
+The analogy is a sealed envelope in a safe with a timer: no one can open it before `FinishAfter`, only the recipient can claim it between `FinishAfter` and `CancelAfter`, and after `CancelAfter` it can only be returned to the sender. In addition to time, you can require a `Condition` (a PREIMAGE-SHA-256 crypto-condition): the escrow is only released if someone presents the correct preimage.
 
-Desde el amendment [TokenEscrow](/amendments/TokenEscrow), activo en testnet, el `Amount` puede ser XRP, un token emitido (IOU) o un MPT. Con tokens el emisor debe haber activado `lsfAllowTrustLineLocking` (o `lsfMPTCanEscrow` en la emisión MPT). El objeto creado consume una unidad de owner reserve de tu cuenta hasta que desaparece.
+Since the [TokenEscrow](/amendments/TokenEscrow) amendment, active on testnet, `Amount` can be XRP, an issued token (IOU), or an MPT. With tokens, the issuer must have enabled `lsfAllowTrustLineLocking` (or `lsfMPTCanEscrow` on the MPT issuance). The created object consumes one unit of owner reserve from your account until it disappears.
 
-## Cuándo usarlo
+## When to use it
 
-- Pagos diferidos o vesting: liberar fondos a una fecha concreta sin depender de que el remitente siga activo.
-- Pagos condicionados: un intercambio en el que el cobro exige revelar un secreto (la preimagen de la condición).
-- Garantías: bloquear XRP como fianza, con `CancelAfter` para recuperarla si nadie la reclama.
-- Bloquear tokens emitidos (stablecoins, por ejemplo) con las mismas reglas, si el emisor lo permite.
+- Deferred payments or vesting: releasing funds on a specific date without depending on the sender staying active.
+- Conditional payments: an exchange where claiming requires revealing a secret (the condition's preimage).
+- Guarantees: locking XRP as a bond, with `CancelAfter` to recover it if no one claims it.
+- Locking issued tokens (stablecoins, for example) under the same rules, if the issuer allows it.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`EscrowCreate::preflight`** (validación estática). Si `Amount` no es XRP, exige que [TokenEscrow](/amendments/TokenEscrow) esté activo (si no, `temBAD_AMOUNT`) y que el importe sea positivo y con moneda válida. Con XRP basta con que sea mayor que cero. Debe haber al menos uno de `CancelAfter` o `FinishAfter` (`temBAD_EXPIRATION`); si están los dos, `CancelAfter` tiene que ser estrictamente posterior a `FinishAfter`. Si no hay `FinishAfter`, tiene que haber `Condition`: el código lo justifica porque, sin ninguno de los dos, el escrow se podría finalizar de inmediato y eso confunde (`temMALFORMED`). Si hay `Condition`, se deserializa con `Condition::deserialize`; si está mal formada, `temMALFORMED`. Los campos `Bytecode` y `Data` (SmartEscrow) hacen que `checkExtraFeatures` rechace la transacción mientras ese amendment no exista en la red.
+**`EscrowCreate::preflight`** (static validation). If `Amount` isn't XRP, it requires [TokenEscrow](/amendments/TokenEscrow) to be active (otherwise `temBAD_AMOUNT`) and the amount to be positive with a valid currency. With XRP it's enough for it to be greater than zero. There must be at least one of `CancelAfter` or `FinishAfter` (`temBAD_EXPIRATION`); if both are present, `CancelAfter` must be strictly after `FinishAfter`. If there's no `FinishAfter`, there must be a `Condition`: the code justifies this because, without either, the escrow could be finished immediately, which is confusing (`temMALFORMED`). If there's a `Condition`, it's deserialized with `Condition::deserialize`; if malformed, `temMALFORMED`. The `Bytecode` and `Data` fields (SmartEscrow) cause `checkExtraFeatures` to reject the transaction while that amendment doesn't exist on the network.
 
-**`EscrowCreate::preclaim`** (contra el ledger). El destino tiene que existir (`tecNO_DST`) y no puede ser una pseudo-cuenta (`tecNO_PERMISSION`). Para tokens IOU, `escrowCreatePreclaimHelper<Issue>` comprueba, en este orden: no eres el emisor; el emisor existe (`tecNO_ISSUER`) y tiene `lsfAllowTrustLineLocking` (`tecNO_PERMISSION`); tienes trust line con él (`tecNO_LINE`); tanto tú como el destino pasáis `requireAuth` si el emisor exige autorización; ninguno de los dos está congelado (`tecFROZEN`); y tu saldo disponible cubre el importe (`tecINSUFFICIENT_FUNDS`). Para MPT se comprueba lo equivalente: la emisión existe, tiene `lsfMPTCanEscrow`, tienes un objeto MPToken, no estás bloqueado (`tecLOCKED`) y la emisión permite transferir.
+**`EscrowCreate::preclaim`** (against the ledger). The destination must exist (`tecNO_DST`) and can't be a pseudo-account (`tecNO_PERMISSION`). For IOU tokens, `escrowCreatePreclaimHelper<Issue>` checks, in this order: you're not the issuer; the issuer exists (`tecNO_ISSUER`) and has `lsfAllowTrustLineLocking` (`tecNO_PERMISSION`); you have a trust line with them (`tecNO_LINE`); both you and the destination pass `requireAuth` if the issuer requires authorization; neither of you is frozen (`tecFROZEN`); and your available balance covers the amount (`tecINSUFFICIENT_FUNDS`). For MPT, the equivalent is checked: the issuance exists, has `lsfMPTCanEscrow`, you have an MPToken object, you're not locked (`tecLOCKED`), and the issuance allows transfers.
 
-**`EscrowCreate::doApply`** (efectos). Primero mira el tiempo de cierre del ledger padre: si `CancelAfter` o `FinishAfter` ya han pasado, devuelve `tecNO_PERMISSION`, es decir, no puedes crear un escrow con fechas en el pasado. Luego comprueba que cubres la reserva con un objeto más (`checkReserve`) y, si el escrow es de XRP, que tras restar el importe sigues por encima de tu reserva (`tecUNFUNDED`). Si el destino tiene `lsfRequireDestTag` y no pones `DestinationTag`, `tecDST_TAG_NEEDED`. A continuación crea la entrada `Escrow` indexada por tu cuenta y el Sequence (o Ticket) de la transacción, la inserta en tu owner directory, en el del destino (si no es un auto-envío) y, para IOU, también en el del emisor. Con tokens guarda el `TransferRate` vigente del emisor en el objeto para aplicarlo en el cobro. Finalmente resta el importe de tu `Balance` (XRP) o mueve los tokens al emisor con `directSendNoFee` / `lockEscrowMPT`, e incrementa tu `OwnerCount`.
+**`EscrowCreate::doApply`** (effects). It first checks the parent ledger's close time: if `CancelAfter` or `FinishAfter` have already passed, it returns `tecNO_PERMISSION` — that is, you can't create an escrow with dates in the past. Then it checks that you cover the reserve for one more object (`checkReserve`) and, if the escrow is XRP, that after subtracting the amount you're still above your reserve (`tecUNFUNDED`). If the destination has `lsfRequireDestTag` and you don't set `DestinationTag`, `tecDST_TAG_NEEDED`. Next it creates the `Escrow` entry indexed by your account and the transaction's Sequence (or Ticket), inserts it into your owner directory, into the destination's directory (if it's not a self-send) and, for IOU, also into the issuer's directory. With tokens, it stores the issuer's current `TransferRate` in the object to apply it when claimed. Finally it subtracts the amount from your `Balance` (XRP) or moves the tokens to the issuer with `directSendNoFee` / `lockEscrowMPT`, and increments your `OwnerCount`.
 
-## Campos clave
+## Key fields
 
-- **Amount** — Cantidad a bloquear. En drops si es XRP; objeto `{currency, issuer, value}` para IOU; `{mpt_issuance_id, value}` para MPT.
-- **FinishAfter** — Segundos desde el Ripple Epoch (2000-01-01 00:00 UTC), no Unix. Antes de este instante nadie puede finalizar el escrow.
-- **CancelAfter** — Segundos Ripple Epoch. A partir de aquí ya no se puede finalizar y cualquiera puede cancelar. Sin él, el escrow nunca caduca.
-- **Condition** — Crypto-condition PREIMAGE-SHA-256 en hexadecimal. Quien finalice tendrá que aportar el `Fulfillment` correspondiente.
-- **DestinationTag** — Obligatorio si el destino exige tag; se copia al objeto para que el destinatario lo vea al cobrar.
+- **Amount** — Amount to lock. In drops if XRP; `{currency, issuer, value}` object for IOU; `{mpt_issuance_id, value}` for MPT.
+- **FinishAfter** — Seconds since the Ripple Epoch (2000-01-01 00:00 UTC), not Unix. Before this moment, no one can finish the escrow.
+- **CancelAfter** — Ripple Epoch seconds. From this point on, the escrow can no longer be finished, and anyone can cancel it. Without it, the escrow never expires.
+- **Condition** — PREIMAGE-SHA-256 crypto-condition in hexadecimal. Whoever finishes it will need to provide the corresponding `Fulfillment`.
+- **DestinationTag** — Required if the destination requires a tag; it's copied to the object so the recipient sees it when claiming.
 
-## Errores habituales
+## Common errors
 
-- **temBAD_EXPIRATION** — No has puesto ni `FinishAfter` ni `CancelAfter`, o `CancelAfter` no es posterior a `FinishAfter`.
-- **temMALFORMED** — Sin `FinishAfter` y sin `Condition`, o la `Condition` no es un crypto-condition válido.
-- **tecNO_PERMISSION** — Las fechas ya han pasado al aplicar la transacción, el destino es una pseudo-cuenta, o el emisor del token no permite bloquear (`lsfAllowTrustLineLocking` / `lsfMPTCanEscrow`).
-- **tecUNFUNDED** — Tras apartar el XRP te quedarías por debajo de la reserva (1 XRP base + 0,2 XRP por objeto en testnet).
-- **tecINSUFFICIENT_RESERVE** — No cubres la reserva del nuevo objeto.
-- **tecNO_DST** — La cuenta destino no existe. Un escrow no crea cuentas.
-- **tecDST_TAG_NEEDED** — El destino tiene `lsfRequireDestTag` y falta `DestinationTag`.
-- **tecNO_LINE / tecFROZEN** — Con tokens: no tienes trust line con el emisor o la línea (tuya o del destino) está congelada.
+- **temBAD_EXPIRATION** — You didn't set either `FinishAfter` or `CancelAfter`, or `CancelAfter` isn't after `FinishAfter`.
+- **temMALFORMED** — No `FinishAfter` and no `Condition`, or the `Condition` isn't a valid crypto-condition.
+- **tecNO_PERMISSION** — The dates have already passed by the time the transaction is applied, the destination is a pseudo-account, or the token issuer doesn't allow locking (`lsfAllowTrustLineLocking` / `lsfMPTCanEscrow`).
+- **tecUNFUNDED** — After setting aside the XRP you'd fall below the reserve (1 XRP base + 0.2 XRP per object on testnet).
+- **tecINSUFFICIENT_RESERVE** — You don't cover the reserve for the new object.
+- **tecNO_DST** — The destination account doesn't exist. An escrow doesn't create accounts.
+- **tecDST_TAG_NEEDED** — The destination has `lsfRequireDestTag` and `DestinationTag` is missing.
+- **tecNO_LINE / tecFROZEN** — With tokens: you don't have a trust line with the issuer, or the line (yours or the destination's) is frozen.
 
-## Ejemplo
+## Example
 
-Bloquea 2 XRP que se podrán cobrar a partir de dos minutos y devolver a partir de un día. Los tiempos son Ripple Epoch (843000120 ≈ ahora + 120 s; 843086400 ≈ ahora + 86 400 s).
+Lock 2 XRP that can be claimed starting in two minutes and returned starting after one day. The times are Ripple Epoch (843000120 ≈ now + 120 s; 843086400 ≈ now + 86,400 s).
 
 ```json
 {
   "TransactionType": "EscrowCreate",
-  "Account": "rXXXX_TU_CUENTA",
-  "Destination": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Destination": "rYYYY_OTHER_ACCOUNT",
   "Amount": "2000000",
   "FinishAfter": 843000120,
   "CancelAfter": 843086400
 }
 ```
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. En el builder, deja `Amount` en `2000000` drops y ajusta `FinishAfter` a unos minutos en el futuro (el builder calcula `{{time+120}}` por ti).
-2. Firma y envía. Comprueba que el resultado es `tesSUCCESS` y anota el `Sequence` de la transacción: lo necesitarás como `OfferSequence` en `EscrowFinish` o `EscrowCancel`.
-3. Consulta `account_objects` con `type: "escrow"` sobre tu cuenta: verás el objeto con `Amount`, `Destination`, `FinishAfter` y `CancelAfter`.
-4. Consulta `account_info`: tu `Balance` ha bajado en 2 XRP más la fee y tu `OwnerCount` ha subido en 1.
-5. Intenta un `EscrowFinish` antes de `FinishAfter`: obtendrás `tecNO_PERMISSION`. Repite cuando haya pasado el tiempo.
+1. In the builder, leave `Amount` at `2000000` drops and set `FinishAfter` a few minutes in the future (the builder computes `{{time+120}}` for you).
+2. Sign and send. Check that the result is `tesSUCCESS` and note the transaction's `Sequence`: you'll need it as `OfferSequence` in `EscrowFinish` or `EscrowCancel`.
+3. Query `account_objects` with `type: "escrow"` on your account: you'll see the object with `Amount`, `Destination`, `FinishAfter`, and `CancelAfter`.
+4. Query `account_info`: your `Balance` has dropped by 2 XRP plus the fee, and your `OwnerCount` has increased by 1.
+5. Try an `EscrowFinish` before `FinishAfter`: you'll get `tecNO_PERMISSION`. Repeat once the time has passed.
 
-## Relacionado
+## Related
 
-- [EscrowFinish](/tx/EscrowFinish) — libera los fondos al destinatario.
-- [EscrowCancel](/tx/EscrowCancel) — devuelve los fondos tras `CancelAfter`.
-- [Escrow](/objects/Escrow) — el objeto que crea esta transacción.
-- [TokenEscrow](/amendments/TokenEscrow) — permite bloquear IOU y MPT.
-- [fixTokenEscrowV1](/amendments/fixTokenEscrowV1) — correcciones al escrow de tokens.
-- [AccountSet](/tx/AccountSet) — el emisor activa `asfAllowTrustLineLocking`.
+- [EscrowFinish](/tx/EscrowFinish) — releases the funds to the recipient.
+- [EscrowCancel](/tx/EscrowCancel) — returns the funds after `CancelAfter`.
+- [Escrow](/objects/Escrow) — the object this transaction creates.
+- [TokenEscrow](/amendments/TokenEscrow) — allows locking IOU and MPT.
+- [fixTokenEscrowV1](/amendments/fixTokenEscrowV1) — fixes to token escrow.
+- [AccountSet](/tx/AccountSet) — the issuer enables `asfAllowTrustLineLocking`.

@@ -59,9 +59,9 @@ export function TxBuilder(p: BuilderProps) {
 
   const missing = p.fields.filter((f) => f.optionality === "required" && f.inTestnet && tx[f.name] === undefined).map((f) => f.name);
   const problems: string[] = [];
-  if (!xaman.account) problems.push("Conecta Xaman para rellenar Account y firmar.");
-  if (missing.length) problems.push(`Faltan campos obligatorios: ${missing.join(", ")}.`);
-  if (p.amendmentGate && !p.amendmentGate.enabled) problems.push(`El amendment ${p.amendmentGate.name} no está activo en testnet: el nodo devolverá temDISABLED.`);
+  if (!xaman.account) problems.push("Connect Xaman to fill in Account and sign.");
+  if (missing.length) problems.push(`Missing required fields: ${missing.join(", ")}.`);
+  if (p.amendmentGate && !p.amendmentGate.enabled) problems.push(`The ${p.amendmentGate.name} amendment is not active on testnet: the node will return temDISABLED.`);
 
   const runSimulate = async () => {
     setSim({ loading: true });
@@ -78,19 +78,19 @@ export function TxBuilder(p: BuilderProps) {
     const res = await signer.sign(tx, `${p.name} · XRPL Tx Lab (testnet)`);
     if (res?.meta.signed && res.response.txid) {
       setFinal({ loading: true });
-      // El tx tarda unos segundos en validarse; reintentamos.
+      // The tx takes a few seconds to validate; we retry.
       for (let i = 0; i < 12; i++) {
         await new Promise((r) => setTimeout(r, 2500));
         try {
           const t = await txByHash(res.response.txid);
           if (t.validated) { setFinal({ loading: false, tx: t }); return; }
-        } catch { /* txnNotFound todavía */ }
+        } catch { /* txnNotFound still */ }
       }
-      setFinal({ loading: false, error: "No se encontró la transacción validada tras 30 s. Consulta el explorador." });
+      setFinal({ loading: false, error: "The validated transaction was not found after 30s. Check the explorer." });
     }
   };
 
-  if (p.pseudo) return <div className="rounded-[2px] border border-border bg-surface p-4 text-sm text-muted">Esta es una pseudo-transacción: la emite la propia red durante el cierre del ledger y no puede enviarla ninguna cuenta.</div>;
+  if (p.pseudo) return <div className="rounded-[2px] border border-border bg-surface p-4 text-sm text-muted">This is a pseudo-transaction: the network itself emits it during ledger close, and no account can send it.</div>;
 
   const visibleFields = p.fields.filter((f) => f.inTestnet);
   const commonVisible = p.commonFields.filter((f) => !HIDDEN_COMMON.has(f.name));
@@ -99,16 +99,16 @@ export function TxBuilder(p: BuilderProps) {
     <div className="grid gap-6 lg:grid-cols-2">
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2 text-sm">
-          <button type="button" className="btn-secondary" onClick={loadExample}>Cargar ejemplo</button>
-          <button type="button" className="btn-secondary" onClick={() => { setRawText(json); setRaw(!raw); setRawErr(null); }}>{raw ? "Formulario" : "Editar JSON"}</button>
-          <button type="button" className="btn-secondary" onClick={() => setShowCommon(!showCommon)}>{showCommon ? "Ocultar comunes" : "Campos comunes"}</button>
+          <button type="button" className="btn-secondary" onClick={loadExample}>Load example</button>
+          <button type="button" className="btn-secondary" onClick={() => { setRawText(json); setRaw(!raw); setRawErr(null); }}>{raw ? "Form" : "Edit JSON"}</button>
+          <button type="button" className="btn-secondary" onClick={() => setShowCommon(!showCommon)}>{showCommon ? "Hide common" : "Common fields"}</button>
         </div>
         {p.prerequisites?.length ? (
-          <div className="rounded-[2px] border border-warning/40 bg-warning/10 p-3 text-sm"><b>Antes de enviar:</b><ul className="ml-4 list-disc">{p.prerequisites.map((x) => <li key={x}>{x}</li>)}</ul></div>
+          <div className="notice notice-warn"><b>Before sending:</b><ul className="ml-4 list-disc">{p.prerequisites.map((x) => <li key={x}>{x}</li>)}</ul></div>
         ) : null}
         {raw ? (
           <div>
-            <textarea className="min-h-80 w-full rounded-[2px] border border-border bg-surface p-3 font-mono text-xs" value={rawText} spellCheck={false} onChange={(e) => { setRawText(e.target.value); try { const v = JSON.parse(e.target.value); setTx(v); setRawErr(null); } catch (err) { setRawErr(err instanceof Error ? err.message : "JSON inválido"); } }} />
+            <textarea className="input mono min-h-80 text-xs" value={rawText} spellCheck={false} onChange={(e) => { setRawText(e.target.value); try { const v = JSON.parse(e.target.value); setTx(v); setRawErr(null); } catch (err) { setRawErr(err instanceof Error ? err.message : "Invalid JSON"); } }} />
             {rawErr && <p className="text-xs text-danger">{rawErr}</p>}
           </div>
         ) : (
@@ -116,7 +116,7 @@ export function TxBuilder(p: BuilderProps) {
             {visibleFields.map((f) => <FieldRow key={f.name} f={f} value={tx[f.name]} onChange={(v) => set(f.name, v)} flags={p.flags} innerObjects={p.innerObjects} />)}
             {showCommon && (
               <div className="space-y-3 border-t border-border pt-3">
-                <p className="text-xs text-muted">Campos comunes a todas las transacciones. Fee, Sequence y LastLedgerSequence los rellena Xaman automáticamente.</p>
+                <p className="text-xs text-muted">Fields common to all transactions. Xaman fills Fee, Sequence and LastLedgerSequence automatically.</p>
                 {commonVisible.map((f) => <FieldRow key={f.name} f={f} value={tx[f.name]} onChange={(v) => set(f.name, v)} flags={p.flags} innerObjects={p.innerObjects} />)}
               </div>
             )}
@@ -125,50 +125,50 @@ export function TxBuilder(p: BuilderProps) {
       </div>
 
       <div className="space-y-4">
-        <pre className="max-h-96 overflow-auto rounded-[2px] border border-border bg-surface-2 p-3 text-xs">{json}</pre>
-        {problems.length > 0 && <ul className="space-y-1 text-sm text-warning">{problems.map((x) => <li key={x}>⚠ {x}</li>)}</ul>}
+        <pre className="code-block-dark max-h-96">{json}</pre>
+        {problems.length > 0 && <ul className="notice notice-warn space-y-1">{problems.map((x) => <li key={x}>⚠ {x}</li>)}</ul>}
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn-secondary" disabled={sim.loading} onClick={runSimulate}>{sim.loading ? "Simulando…" : "Simular (sin firmar)"}</button>
+          <button type="button" className="btn-secondary" disabled={sim.loading} onClick={runSimulate}>{sim.loading ? "Simulating…" : "Simulate (no signing)"}</button>
           {xaman.account ? (
-            <button type="button" className="btn-primary" disabled={signer.status === "creating" || signer.status === "awaiting" || missing.length > 0} onClick={runSign}>{signer.status === "creating" ? "Creando payload…" : signer.status === "awaiting" ? "Esperando firma…" : "Firmar y enviar con Xaman"}</button>
+            <button type="button" className="btn-primary" disabled={signer.status === "creating" || signer.status === "awaiting" || missing.length > 0} onClick={runSign}>{signer.status === "creating" ? "Creating payload…" : signer.status === "awaiting" ? "Waiting for signature…" : "Sign and submit with Xaman"}</button>
           ) : (
-            <button type="button" className="btn-primary" disabled={!xaman.configured || xaman.connecting} onClick={xaman.connect}>{xaman.configured ? "Conectar Xaman" : "Xaman no configurado"}</button>
+            <button type="button" className="btn-primary" disabled={!xaman.configured || xaman.connecting} onClick={xaman.connect}>{xaman.configured ? "Connect Xaman" : "Xaman not configured"}</button>
           )}
-          <button type="button" className="btn-secondary" onClick={() => navigator.clipboard.writeText(json)}>Copiar JSON</button>
+          <button type="button" className="btn-secondary" onClick={() => navigator.clipboard.writeText(json)}>Copy JSON</button>
         </div>
 
-        {sim.error && <div className="rounded-[2px] border border-danger/40 bg-danger/10 p-3 text-sm">Error al simular: {sim.error}</div>}
+        {sim.error && <div className="notice notice-error">Simulation error: {sim.error}</div>}
         {sim.result && (
-          <div className="rounded-[2px] border border-border p-3">
-            <h4 className="mb-2 text-sm font-semibold">Simulación (RPC <code>simulate</code>, sin firma ni fee)</h4>
+          <div className="card">
+            <h4 className="mb-2 text-sm font-semibold">Simulation (RPC <code>simulate</code>, no signature or fee)</h4>
             <TxResult engineResult={sim.result.engine_result} message={sim.result.engine_result_message} meta={sim.result.meta} txJson={sim.result.tx_json} />
           </div>
         )}
 
         {signer.status === "awaiting" && signer.created && (
-          <div className="rounded-[2px] border border-accent/50 bg-surface p-4">
-            <p className="mb-2 text-sm font-semibold">Firma en Xaman</p>
+          <div className="card-green grid-lines"><div className="relative">
+            <p className="mb-2 text-sm font-semibold">Sign in Xaman</p>
             <div className="flex flex-col items-center gap-3 sm:flex-row">
-              <img src={signer.created.refs.qr_png} alt="QR de firma Xaman" className="h-44 w-44 rounded bg-white p-1" />
+              <img src={signer.created.refs.qr_png} alt="Xaman signing QR" className="h-44 w-44 rounded bg-white p-1" />
               <div className="space-y-2 text-sm">
-                <p>Escanea el QR con la app Xaman (red <b>Testnet</b>) o abre el enlace en el móvil.</p>
-                <a className="btn-primary inline-block" href={signer.created.next.always} target="_blank" rel="noreferrer">Abrir en Xaman</a>
-                <button type="button" className="btn-secondary block" onClick={signer.cancel}>Cancelar</button>
+                <p>Scan the QR with the Xaman app (<b>Testnet</b> network) or open the link on mobile.</p>
+                <a className="btn-primary inline-block" href={signer.created.next.always} target="_blank" rel="noreferrer">Open in Xaman</a>
+                <button type="button" className="btn-secondary block" onClick={signer.cancel}>Cancel</button>
               </div>
             </div>
-          </div>
+          </div></div>
         )}
-        {(signer.status === "rejected" || signer.status === "expired" || signer.status === "error") && <div className="rounded-[2px] border border-danger/40 bg-danger/10 p-3 text-sm">{signer.error}</div>}
+        {(signer.status === "rejected" || signer.status === "expired" || signer.status === "error") && <div className="notice notice-error">{signer.error}</div>}
         {signer.status === "signed" && signer.txid && (
-          <div className="rounded-[2px] border border-success/50 p-3 text-sm">
-            <p>Firmada y enviada. Hash: <a className="link" href={`${TESTNET_EXPLORER}/transactions/${signer.txid}`} target="_blank" rel="noreferrer">{signer.txid}</a></p>
-            {signer.resolved?.response.dispatched_result && <p className="text-muted">Resultado preliminar del nodo: <code>{signer.resolved.response.dispatched_result}</code></p>}
-            {final.loading && <p className="text-muted">Esperando validación…</p>}
+          <div className="notice notice-ok">
+            <p>Signed and submitted. Hash: <a className="link" href={`${TESTNET_EXPLORER}/transactions/${signer.txid}`} target="_blank" rel="noreferrer">{signer.txid}</a></p>
+            {signer.resolved?.response.dispatched_result && <p className="text-muted">Preliminary node result: <code>{signer.resolved.response.dispatched_result}</code></p>}
+            {final.loading && <p className="text-muted">Waiting for validation…</p>}
             {final.error && <p className="text-warning">{final.error}</p>}
             {final.tx && <TxResult engineResult={String((final.tx.meta as Record<string, unknown>)?.TransactionResult ?? "")} meta={final.tx.meta as Record<string, unknown>} txJson={(final.tx.tx_json ?? final.tx) as Record<string, unknown>} validated hash={signer.txid} />}
           </div>
         )}
-        <p className="text-xs text-muted">Todo se firma y envía a la <b>XRPL Testnet</b> (force_network=TESTNET). Las sesiones de Xaman viven en tu navegador. <Link href="/account" className="link">Ver mi cuenta</Link>.</p>
+        <p className="text-xs text-muted">Everything is signed and sent to the <b>XRPL Testnet</b> (force_network=TESTNET). Xaman sessions live in your browser. <Link href="/account" className="link">View my account</Link>.</p>
       </div>
     </div>
   );
@@ -180,12 +180,12 @@ function FieldRow({ f, value, onChange, flags, innerObjects }: { f: BuilderField
   const inner = innerName && innerObjects[innerName] ? { name: innerName, fields: innerObjects[innerName] } : innerName === "Memo" ? { name: "Memo", fields: [{ name: "MemoType", type: "Blob", optionality: "optional" }, { name: "MemoData", type: "Blob", optionality: "optional" }, { name: "MemoFormat", type: "Blob", optionality: "optional" }] } : innerName === "RawTransaction" ? { name: "RawTransaction", fields: [] } : undefined;
   return (
     <div>
-      <label className="mb-1 flex items-baseline justify-between text-sm">
+      <label className="field-label">
         <span><Link className="font-mono hover:underline" href={`/fields/${f.name}`}>{f.name}</Link>{f.optionality === "required" ? <span className="ml-1 text-danger">*</span> : null}{f.optionality === "default" ? <span className="ml-1 text-xs text-muted">(por defecto)</span> : null}</span>
-        <span className="text-xs text-muted">{f.type}{f.mptSupported ? " · MPT" : ""}</span>
+        <span className="field-type mono">{f.type}{f.mptSupported ? " · MPT" : ""}</span>
       </label>
       {R({ field: f.name, value, onChange, hint: f.hint, required: f.optionality === "required", flags: f.name === "Flags" ? flags : undefined, inner: inner?.fields.length ? inner : undefined })}
-      {f.hint && <p className="mt-1 text-xs text-muted">{f.hint}</p>}
+      {f.hint && <p className="hint">{f.hint}</p>}
     </div>
   );
 }

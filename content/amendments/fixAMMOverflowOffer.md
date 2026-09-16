@@ -1,20 +1,20 @@
 ---
 title: fixAMMOverflowOffer
-summary: Corrige un overflow al calcular la oferta sintética que un AMM proyecta contra el libro de órdenes central.
+summary: Fixes an overflow when calculating the synthetic offer that an AMM projects against the central order book.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixammoverflowoffer
 ---
 
-## Qué cambia
+## What changes
 
-Cuando un pago o un `OfferCreate` cruza liquidez, el motor de pagos compara la mejor oferta del libro central con la oferta sintética que un [AMM](/objects/AMM) generaría a ese mismo `Quality`. Ese cálculo implica operaciones sobre los balances del pool que, en determinadas combinaciones de balances extremos, podían desbordar el tipo numérico usado internamente y lanzar una excepción `overflow_error` o producir un resultado incorrecto en lugar de simplemente indicar que el AMM no podía ofrecer a esa calidad.
+When a payment or an `OfferCreate` crosses liquidity, the payment engine compares the best offer in the central book with the synthetic offer that an [AMM](/objects/AMM) would generate at that same `Quality`. That calculation involves operations on the pool balances that, under certain combinations of extreme balances, could overflow the numeric type used internally and throw an `overflow_error` exception or produce an incorrect result instead of simply indicating that the AMM could not offer at that quality.
 
-fixAMMOverflowOffer corrige ese cálculo para que, ante esas combinaciones extremas, el motor de rutas trate la situación como "el AMM no tiene una oferta válida en este rango" en vez de desbordar. El efecto práctico es que los pagos que atraviesan pools con balances muy desproporcionados dejan de fallar de forma imprevisible.
+fixAMMOverflowOffer corrects that calculation so that, in these extreme combinations, the routing engine treats the situation as "the AMM has no valid offer in this range" instead of overflowing. The practical effect is that payments that traverse pools with very disproportionate balances no longer fail unpredictably.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [Payment](/tx/Payment) y [OfferCreate](/tx/OfferCreate): al calcular ofertas sintéticas de AMM durante el enrutamiento de pagos (`BookStep`, `AMMLiquidity`).
-- [AMM](/objects/AMM): el cálculo de la oferta que el pool proyecta contra el libro de órdenes.
+- [Payment](/tx/Payment) and [OfferCreate](/tx/OfferCreate): when calculating synthetic AMM offers during payment routing (`BookStep`, `AMMLiquidity`).
+- [AMM](/objects/AMM): the calculation of the offer the pool projects against the order book.
 
-## Estado y contexto
+## Status and context
 
-Es una corrección puntual del motor de liquidez de AMM introducido por el amendment [AMM](/amendments/AMM): sin ella, ciertos estados de pool con balances muy desiguales podían provocar fallos internos al enrutar pagos que combinaban liquidez de AMM y del libro central. Está retirado (`XRPL_RETIRE_FIX` en `features.macro`): la corrección es hoy el único comportamiento posible.
+This is a targeted fix to the AMM liquidity engine introduced by the [AMM](/amendments/AMM) amendment: without it, certain pool states with very uneven balances could cause internal failures when routing payments that combined AMM and central book liquidity. It is retired (`XRPL_RETIRE_FIX` in `features.macro`): the fix is now the only possible behavior.

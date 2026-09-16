@@ -20,8 +20,8 @@ export default function AmendmentsIndex() {
     return (
       <tr>
         <td><Link href={`/amendments/${name}`} className="font-mono font-medium hover:underline">{name}</Link></td>
-        <td><span className={`badge ${st.cls}`}>{st.label}</span>{s && !s.enabled && s.count !== undefined && <span className="ml-1 text-xs text-muted">{s.count}/{s.validations ?? "?"} votos (umbral {s.threshold})</span>}</td>
-        <td className="whitespace-nowrap text-xs text-muted">{f ? `${f.supported ? "soportado" : "no soportado"} · voto por defecto: ${f.defaultVote}` : "no está en la fuente"}</td>
+        <td><span className={`badge ${st.cls}`}>{st.label}</span>{s && !s.enabled && s.count !== undefined && <span className="ml-1 text-xs text-muted">{s.count}/{s.validations ?? "?"} votes (threshold {s.threshold})</span>}</td>
+        <td className="whitespace-nowrap text-xs text-muted">{f ? `${f.supported ? "supported" : "not supported"} · default vote: ${f.defaultVote}` : "not in source"}</td>
         <td className="min-w-72 text-muted">{doc?.data.summary ?? ""}</td>
         <td className="text-xs">{txs.slice(0, 6).map((t) => <Link key={t} href={`/tx/${t}`} className="mr-1 font-mono hover:underline">{t}</Link>)}{txs.length > 6 && <span className="text-muted">+{txs.length - 6}</span>}</td>
       </tr>
@@ -31,23 +31,23 @@ export default function AmendmentsIndex() {
     <div className="space-y-8">
       <div>
         <h1 className="display-lg">Amendments</h1>
-        <p className="text-muted">Estado real en la testnet (RPC <code>feature</code>) frente a lo que declara el código fuente (<code>features.macro</code>). Un amendment se activa cuando mantiene &gt; 80 % de los votos de los validadores durante dos semanas.</p>
+        <p className="text-muted">Actual state on testnet (RPC <code>feature</code>) versus what the source code declares (<code>features.macro</code>). An amendment activates when it holds &gt; 80% of validator votes for two weeks.</p>
       </div>
       <section>
-        <h2 className="mb-2 display-md">En votación o pendientes en testnet ({voting.length})</h2>
-        <table className="tbl"><thead><tr><th>Amendment</th><th>Estado testnet</th><th>Fuente</th><th>Resumen</th><th>Transacciones</th></tr></thead><tbody>{voting.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
+        <h2 className="mb-2 display-md">Voting or pending on testnet ({voting.length})</h2>
+        <table className="tbl"><thead><tr><th>Amendment</th><th>Testnet status</th><th>Source</th><th>Summary</th><th>Transactions</th></tr></thead><tbody>{voting.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
       </section>
       <section>
-        <h2 className="mb-2 display-md">Solo en el código fuente, aún no en testnet ({sourceOnly.length})</h2>
-        <p className="mb-2 text-sm text-muted">Propuestas que ya están en la rama <code>{protocol.source.branch}</code> de rippled ({protocol.source.version}) pero que el binario de testnet ({testnet.buildVersion}) todavía no conoce.</p>
-        <table className="tbl"><thead><tr><th>Amendment</th><th>Estado testnet</th><th>Fuente</th><th>Resumen</th><th>Transacciones</th></tr></thead><tbody>{sourceOnly.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
+        <h2 className="mb-2 display-md">Source code only, not yet on testnet ({sourceOnly.length})</h2>
+        <p className="mb-2 text-sm text-muted">Proposals already on rippled&apos;s <code>{protocol.source.branch}</code> branch ({protocol.source.version}) but that the testnet binary ({testnet.buildVersion}) doesn&apos;t know about yet.</p>
+        <table className="tbl"><thead><tr><th>Amendment</th><th>Testnet status</th><th>Source</th><th>Summary</th><th>Transactions</th></tr></thead><tbody>{sourceOnly.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
       </section>
       <section>
-        <h2 className="mb-2 display-md">Activos en testnet ({enabled.length})</h2>
-        <table className="tbl"><thead><tr><th>Amendment</th><th>Estado testnet</th><th>Fuente</th><th>Resumen</th><th>Transacciones</th></tr></thead><tbody>{enabled.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
+        <h2 className="mb-2 display-md">Active on testnet ({enabled.length})</h2>
+        <table className="tbl"><thead><tr><th>Amendment</th><th>Testnet status</th><th>Source</th><th>Summary</th><th>Transactions</th></tr></thead><tbody>{enabled.map((a) => <Row key={a.name} name={a.name} />)}</tbody></table>
       </section>
       <section>
-        <h2 className="mb-2 display-md">Retirados (integrados en el protocolo base)</h2>
+        <h2 className="mb-2 display-md">Retired (merged into the base protocol)</h2>
         <p className="text-sm text-muted">{protocol.features.filter((f) => f.retired).map((f) => f.name).join(", ")}</p>
       </section>
     </div>

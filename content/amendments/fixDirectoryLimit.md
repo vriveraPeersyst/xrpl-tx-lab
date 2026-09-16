@@ -1,18 +1,18 @@
 ---
 title: fixDirectoryLimit
-summary: Elimina el límite artificial de 262144 páginas en los directorios del ledger.
+summary: Removes the artificial limit of 262144 pages in ledger directories.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixdirectorylimit
 ---
 
-## Qué cambia
+## What changes
 
-Cada [DirectoryNode](/objects/DirectoryNode) (owner directory o book directory) enlaza sus páginas mediante `sfIndexNext`/`sfIndexPrevious`, usando un contador de página de 64 bits. Antes de este fix, `dirAdd` comprobaba además una constante independiente, `kDirNodeMaxPages` (262144), y se negaba a crear una página nueva por encima de ese número aunque el tipo de dato pudiera representar muchas más. Con `fixDirectoryLimit` activo, esa comprobación adicional desaparece: el único límite real pasa a ser el desbordamiento del propio contador de página (`page == 0` tras incrementar), muy por encima del límite anterior.
+Each [DirectoryNode](/objects/DirectoryNode) (owner directory or book directory) links its pages via `sfIndexNext`/`sfIndexPrevious`, using a 64-bit page counter. Before this fix, `dirAdd` additionally checked an independent constant, `kDirNodeMaxPages` (262144), and refused to create a new page above that number even though the data type could represent many more. With `fixDirectoryLimit` active, that additional check disappears: the only real limit becomes the overflow of the page counter itself (`page == 0` after incrementing), far above the previous limit.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [DirectoryNode](/objects/DirectoryNode): elimina el tope artificial de páginas encadenadas.
-- Indirectamente, cualquier transacción que añade entradas a un directorio de propietario u order book, como [OfferCreate](/tx/OfferCreate), [TrustSet](/tx/TrustSet) o [NFTokenMint](/tx/NFTokenMint), que antes podían fallar con `tecDIR_FULL` al alcanzar el límite de páginas de una cuenta o un book con muchísimas entradas.
+- [DirectoryNode](/objects/DirectoryNode): removes the artificial cap on chained pages.
+- Indirectly, any transaction that adds entries to an owner directory or order book, such as [OfferCreate](/tx/OfferCreate), [TrustSet](/tx/TrustSet), or [NFTokenMint](/tx/NFTokenMint), which previously could fail with `tecDIR_FULL` upon reaching the page limit of an account or a book with a very large number of entries.
 
-## Estado y contexto
+## Status and context
 
-El límite de 262144 páginas (con 32 entradas por página, unos 8,4 millones de objetos por directorio) era un valor conservador fijado hace años que en la práctica nunca debería alcanzarse por una sola cuenta, pero sí podía convertirse en un problema para libros de órdenes o directorios de owner con un volumen de entradas muy elevado, provocando fallos `tecDIR_FULL` evitables. El fix retira esa cota defensiva obsoleta y deja que el propio tipo de dato del contador de página sea el límite.
+The 262144-page limit (with 32 entries per page, about 8.4 million objects per directory) was a conservative value set years ago that in practice should never be reached by a single account, but could become a problem for order books or owner directories with a very high volume of entries, causing avoidable `tecDIR_FULL` failures. The fix removes that obsolete defensive cap and leaves the page counter's own data type as the limit.

@@ -1,58 +1,58 @@
 ---
 title: SetFee
-summary: Pseudo-transacción con la que los validadores cambian la fee base y las reservas de XRP de la red.
+summary: Pseudo-transaction with which validators change the network's base fee and XRP reserves.
 category: sistema
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/pseudo-transaction-types/setfee
 amendment: XRPFees
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-`SetFee` fija los tres parámetros económicos globales del XRPL: la fee base de una transacción (`BaseFeeDrops`), la reserva mínima que debe tener toda cuenta (`ReserveBaseDrops`) y la reserva adicional por cada objeto que posee (`ReserveIncrementDrops`). En testnet valen hoy 10 drops, 1 XRP y 0,2 XRP respectivamente; puedes verlos en `server_info` (`validated_ledger`) o en el objeto [FeeSettings](/objects/FeeSettings).
+`SetFee` sets the XRPL's three global economic parameters: the base fee of a transaction (`BaseFeeDrops`), the minimum reserve every account must hold (`ReserveBaseDrops`), and the additional reserve for each object it owns (`ReserveIncrementDrops`). On testnet today these are 10 drops, 1 XRP, and 0.2 XRP respectively; you can see them in `server_info` (`validated_ledger`) or in the [FeeSettings](/objects/FeeSettings) object.
 
-Igual que [EnableAmendment](/tx/EnableAmendment), no la envía nadie: la emiten los validadores en un flag ledger (cada 256 ledgers) cuando la mayoría de ellos vota por unos valores distintos de los actuales. Cada validador configura sus preferencias (`[voting]` en `rippled.cfg`) y la red converge en la mediana. Aparece con `Account` igual a la cuenta nula, `Fee: "0"` y sin firma.
+Like [EnableAmendment](/tx/EnableAmendment), nobody sends it: validators issue it in a flag ledger (every 256 ledgers) when a majority of them vote for values different from the current ones. Each validator configures its preferences (`[voting]` in `rippled.cfg`), and the network converges on the median. It appears with `Account` equal to the null account, `Fee: "0"`, and no signature.
 
-## Cuándo usarlo
+## When to use it
 
-No se puede enviar. Es relevante para:
+It can't be submitted. It's relevant for:
 
-- Explicar por qué las reservas pueden cambiar con el tiempo sin que haya un amendment (en mainnet bajaron de 20/5 XRP a 10/2 XRP y después a 1/0,2 XRP por este mecanismo).
-- Saber de dónde salen los valores `reserve_base_xrp`, `reserve_inc_xrp` y `base_fee_xrp` que devuelve `server_info`.
-- Diseñar aplicaciones que no den por fijas las reservas: léelas siempre del ledger.
+- Explaining why reserves can change over time without an amendment (on mainnet they dropped from 20/5 XRP to 10/2 XRP and then to 1/0.2 XRP through this mechanism).
+- Knowing where the `reserve_base_xrp`, `reserve_inc_xrp`, and `base_fee_xrp` values returned by `server_info` come from.
+- Designing applications that don't treat reserves as fixed: always read them from the ledger.
 
-## Cómo funciona por dentro
+## How it works inside
 
-`SetFee` usa el transactor compartido `Change` (`src/libxrpl/tx/transactors/system/Change.cpp`), con las mismas reglas estructurales que las demás pseudo-transacciones: cuenta cero, fee 0, sin firma y `Sequence` 0 (`temBAD_SRC_ACCOUNT`, `temBAD_FEE`, `temBAD_SIGNATURE`, `temBAD_SEQUENCE` en `Transactor::invokePreflight<Change>`).
+`SetFee` uses the shared `Change` transactor (`src/libxrpl/tx/transactors/system/Change.cpp`), with the same structural rules as the other pseudo-transactions: zero account, fee 0, no signature, and `Sequence` 0 (`temBAD_SRC_ACCOUNT`, `temBAD_FEE`, `temBAD_SIGNATURE`, `temBAD_SEQUENCE` in `Transactor::invokePreflight<Change>`).
 
-`Change::preclaim` devuelve `temINVALID` si la transacción se intenta aplicar contra el ledger abierto, y para `ttFEE` valida qué campos deben estar según el amendment [XRPFees](/amendments/XRPFees):
+`Change::preclaim` returns `temINVALID` if the transaction is attempted against the open ledger, and for `ttFEE` it validates which fields must be present according to the [XRPFees](/amendments/XRPFees) amendment:
 
-- Con `XRPFees` activo (el caso de testnet): `BaseFeeDrops`, `ReserveBaseDrops` y `ReserveIncrementDrops` son obligatorios (`temMALFORMED` si falta alguno) y los campos antiguos `BaseFee`, `ReferenceFeeUnits`, `ReserveBase` y `ReserveIncrement` están prohibidos (`temMALFORMED`).
-- Sin `XRPFees`: justo al revés; los campos antiguos son obligatorios y los nuevos dan `temDISABLED`.
-- `GasLimit`, `BytecodeSizeLimit` y `GasPrice` existen en el formato pero están prohibidos incondicionalmente (`temDISABLED`) "hasta que FeeVoteImpl los rellene", según el comentario del código. Son un anticipo del Smart Escrow.
+- With `XRPFees` active (the case on testnet): `BaseFeeDrops`, `ReserveBaseDrops`, and `ReserveIncrementDrops` are required (`temMALFORMED` if any is missing), and the old fields `BaseFee`, `ReferenceFeeUnits`, `ReserveBase`, and `ReserveIncrement` are prohibited (`temMALFORMED`).
+- Without `XRPFees`: exactly the opposite; the old fields are required and the new ones give `temDISABLED`.
+- `GasLimit`, `BytecodeSizeLimit`, and `GasPrice` exist in the format but are unconditionally prohibited (`temDISABLED`) "until FeeVoteImpl fills them in," per the code comment. They're a preview of Smart Escrow.
 
-`Change::doApply` llama a `Change::applyFee`: lee (o crea) el objeto `FeeSettings`, copia los tres valores en drops y, con `XRPFees`, borra explícitamente los cuatro campos antiguos. Siempre devuelve `tesSUCCESS` y deja un aviso "Fees have been changed" en el log. Los nuevos valores rigen desde el ledger siguiente.
+`Change::doApply` calls `Change::applyFee`: it reads (or creates) the `FeeSettings` object, copies the three values in drops, and, with `XRPFees`, explicitly clears the four old fields. It always returns `tesSUCCESS` and leaves a "Fees have been changed" notice in the log. The new values take effect starting with the next ledger.
 
-## Campos clave
+## Key fields
 
-- **BaseFeeDrops** — fee mínima de una transacción de referencia, en drops. Es el "coste 1" que multiplican las fees especiales (multifirma, [Batch](/tx/Batch)) y el load factor.
-- **ReserveBaseDrops** — XRP que una cuenta no puede gastar solo por existir. También es lo mínimo que hay que enviar para crear una cuenta con un [Payment](/tx/Payment).
-- **ReserveIncrementDrops** — reserva extra por cada unidad de `OwnerCount` (trust lines, ofertas, escrows, tickets…). Es también la fee de [AccountDelete](/tx/AccountDelete) y [LedgerStateFix](/tx/LedgerStateFix).
-- **LedgerSequence** — flag ledger en el que se aplica.
-- **BaseFee, ReferenceFeeUnits, ReserveBase, ReserveIncrement** — formato antiguo (unidades de fee y hex); solo válido si `XRPFees` no está activo.
+- **BaseFeeDrops** — the minimum fee for a reference transaction, in drops. It's the "cost 1" multiplied by special fees (multisigning, [Batch](/tx/Batch)) and the load factor.
+- **ReserveBaseDrops** — XRP an account can't spend simply by existing. It's also the minimum amount that must be sent to create an account via a [Payment](/tx/Payment).
+- **ReserveIncrementDrops** — extra reserve per unit of `OwnerCount` (trust lines, offers, escrows, tickets, etc.). It's also the fee for [AccountDelete](/tx/AccountDelete) and [LedgerStateFix](/tx/LedgerStateFix).
+- **LedgerSequence** — the flag ledger where this applies.
+- **BaseFee, ReferenceFeeUnits, ReserveBase, ReserveIncrement** — the old format (fee units and hex); only valid if `XRPFees` isn't active.
 
-## Errores habituales
+## Common errors
 
-Solo visibles en los logs de un validador:
+Only visible in a validator's logs:
 
-- **temMALFORMED** — mezcla de campos nuevos y antiguos, o falta alguno de los obligatorios para el modo activo.
-- **temDISABLED** — campos en drops sin `XRPFees`, o cualquiera de `GasLimit`/`BytecodeSizeLimit`/`GasPrice`.
-- **temINVALID** — se intentó aplicar contra el ledger abierto.
-- **temBAD_SRC_ACCOUNT, temBAD_FEE, temBAD_SIGNATURE, temBAD_SEQUENCE** — alguien intentó enviarla desde una cuenta normal.
+- **temMALFORMED** — a mix of new and old fields, or a required field missing for the active mode.
+- **temDISABLED** — drop-denominated fields without `XRPFees`, or any of `GasLimit`/`BytecodeSizeLimit`/`GasPrice`.
+- **temINVALID** — an attempt to apply it against the open ledger.
+- **temBAD_SRC_ACCOUNT, temBAD_FEE, temBAD_SIGNATURE, temBAD_SEQUENCE** — someone tried to send it from a regular account.
 
-## Ejemplo
+## Example
 
-Así aparece en el ledger con `XRPFees` activo:
+How it appears on the ledger with `XRPFees` active:
 
 ```json
 {
@@ -68,11 +68,11 @@ Así aparece en el ledger con `XRPFees` activo:
 }
 ```
 
-No se puede enviar. Para ver los valores vigentes usa `server_info` o `ledger_entry` con `fee: true`; el objeto `FeeSettings` guarda además el `PreviousTxnID` del último `SetFee` que lo cambió.
+It can't be submitted. To see the current values, use `server_info` or `ledger_entry` with `fee: true`; the `FeeSettings` object also stores the `PreviousTxnID` of the last `SetFee` that changed it.
 
-## Relacionado
+## Related
 
-- [FeeSettings](/objects/FeeSettings) — el objeto que modifica.
-- [EnableAmendment](/tx/EnableAmendment) y [UNLModify](/tx/UNLModify) — las otras pseudo-transacciones.
-- [XRPFees](/amendments/XRPFees) — cambió el formato a drops.
-- [AccountDelete](/tx/AccountDelete), [TicketCreate](/tx/TicketCreate) — transacciones cuyo coste depende directamente de estas reservas.
+- [FeeSettings](/objects/FeeSettings) — the object it modifies.
+- [EnableAmendment](/tx/EnableAmendment) and [UNLModify](/tx/UNLModify) — the other pseudo-transactions.
+- [XRPFees](/amendments/XRPFees) — changed the format to drops.
+- [AccountDelete](/tx/AccountDelete), [TicketCreate](/tx/TicketCreate) — transactions whose cost depends directly on these reserves.

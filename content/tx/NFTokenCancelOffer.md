@@ -1,77 +1,77 @@
 ---
 title: NFTokenCancelOffer
-summary: Elimina una o varias ofertas de NFT (hasta 500) que sean tuyas, te tengan como destino o hayan caducado.
+summary: Removes one or more NFT offers (up to 500) that are yours, name you as destination, or have expired.
 category: nft
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/nftokencanceloffer
 xls: XLS-0020
 amendment: NonFungibleTokensV1_1
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-`NFTokenCancelOffer` borra objetos [NFTokenOffer](/objects/NFTokenOffer) del ledger y devuelve a su creador la reserva que ocupaban. Es una transacción de limpieza: acepta una lista de identificadores en `NFTokenOffers` y elimina todos los que existan, siempre que tengas derecho sobre cada uno.
+`NFTokenCancelOffer` deletes [NFTokenOffer](/objects/NFTokenOffer) objects from the ledger and returns the reserve they occupied to their creator. It's a cleanup transaction: it accepts a list of identifiers in `NFTokenOffers` and deletes all of them that exist, as long as you have rights over each one.
 
-Tienes derecho a cancelar una oferta si se cumple cualquiera de estas condiciones: eres su `Owner` (la creaste), eres su `Destination`, o su `Expiration` ya ha pasado. Este último caso permite a cualquiera retirar ofertas caducadas que ocupan reserva ajena.
+You have the right to cancel an offer if any of these conditions hold: you're its `Owner` (you created it), you're its `Destination`, or its `Expiration` has already passed. This last case lets anyone remove expired offers that are occupying someone else's reserve.
 
-## Cuándo usarlo
+## When to use it
 
-- Retirar una oferta de venta o compra que ya no te interesa.
-- Como destinatario de una oferta privada, rechazarla de forma explícita.
-- Limpiar ofertas caducadas de terceros (por ejemplo, tras una quema con más de 500 ofertas, que deja huérfanas las restantes).
+- Withdrawing a sell or buy offer you're no longer interested in.
+- As the recipient of a private offer, rejecting it explicitly.
+- Cleaning up expired offers left by third parties (for example, after a burn that had more than 500 offers, leaving the remainder orphaned).
 
-## Cómo funciona por dentro
+## How it works inside
 
 **`NFTokenCancelOffer::preflight`**:
-- `NFTokenOffers` vacío o con más de 500 entradas (`kMaxTokenOfferCancelCount`) → `temMALFORMED`.
-- Con [fixCleanup3_2_0](/amendments/fixCleanup3_2_0) activo (sí en testnet), cualquier identificador a cero → `temMALFORMED`.
-- Identificadores repetidos en la lista → `temMALFORMED` (se ordena y se buscan adyacentes iguales).
+- `NFTokenOffers` empty or with more than 500 entries (`kMaxTokenOfferCancelCount`) → `temMALFORMED`.
+- With [fixCleanup3_2_0](/amendments/fixCleanup3_2_0) active (yes on testnet), any identifier of all zeros → `temMALFORMED`.
+- Duplicate identifiers in the list → `temMALFORMED` (the list is sorted and checked for equal neighbors).
 
-**`NFTokenCancelOffer::preclaim`** recorre la lista y devuelve `tecNO_PERMISSION` en cuanto encuentra una entrada que no puedas cancelar. Para cada ID:
-- Si no existe ningún objeto con ese ID, se ignora (no es error).
-- Si existe pero no es de tipo `NFTokenOffer` → `tecNO_PERMISSION`.
-- Si su `Expiration` ya ha pasado → permitido.
-- Si `Owner` es tu cuenta → permitido.
-- Si `Destination` es tu cuenta → permitido.
-- En cualquier otro caso → `tecNO_PERMISSION`.
+**`NFTokenCancelOffer::preclaim`** walks the list and returns `tecNO_PERMISSION` as soon as it finds an entry you can't cancel. For each ID:
+- If no object exists with that ID, it's ignored (not an error).
+- If it exists but isn't of type `NFTokenOffer` → `tecNO_PERMISSION`.
+- If its `Expiration` has already passed → allowed.
+- If `Owner` is your account → allowed.
+- If `Destination` is your account → allowed.
+- In any other case → `tecNO_PERMISSION`.
 
-**`NFTokenCancelOffer::doApply`**: para cada ID, si la oferta existe la borra con `nft::deleteTokenOffer`, que la quita del directorio de su propietario y del directorio de compras/ventas del token y decrementa el `OwnerCount` del propietario. Un fallo al borrar devuelve `tefBAD_LEDGER`.
+**`NFTokenCancelOffer::doApply`**: for each ID, if the offer exists it's deleted with `nft::deleteTokenOffer`, which removes it from its owner's directory and from the token's buy/sell directory and decrements the owner's `OwnerCount`. A deletion failure returns `tefBAD_LEDGER`.
 
-No consume ni exige reserva. Como los IDs inexistentes se ignoran, la transacción tiene éxito aunque parte de la lista ya haya sido cancelada o consumida por una aceptación.
+It neither consumes nor requires reserve. Since nonexistent IDs are ignored, the transaction succeeds even if part of the list has already been canceled or consumed by an acceptance.
 
-## Campos clave
+## Key fields
 
-- **NFTokenOffers** — array de hashes de 64 hex. Son los `LedgerIndex` de los objetos `NFTokenOffer`, no los `NFTokenID`. Los obtienes de `nft_sell_offers`, `nft_buy_offers` o del `CreatedNode` de la transacción que creó la oferta. Máximo 500, sin duplicados ni ceros.
+- **NFTokenOffers** — array of 64-hex-character hashes. These are the `LedgerIndex` values of the `NFTokenOffer` objects, not the `NFTokenID` values. You get them from `nft_sell_offers`, `nft_buy_offers`, or the `CreatedNode` of the transaction that created the offer. Maximum 500, no duplicates or zeros.
 
-## Errores habituales
+## Common errors
 
-- **temMALFORMED** — lista vacía, más de 500 entradas, duplicados o un hash a cero (el ejemplo por defecto lleva ceros; sustitúyelo).
-- **tecNO_PERMISSION** — alguna entrada apunta a una oferta que no es tuya, no te tiene como destino y no ha caducado, o a un objeto que no es una oferta de NFT.
+- **temMALFORMED** — empty list, more than 500 entries, duplicates, or a zero hash (the default example carries zeros; replace it).
+- **tecNO_PERMISSION** — some entry points to an offer that isn't yours, doesn't name you as destination, and hasn't expired, or to an object that isn't an NFT offer.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "NFTokenCancelOffer",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "NFTokenOffers": [
     "0000000000000000000000000000000000000000000000000000000000000000"
   ]
 }
 ```
 
-Sustituye el hash por el `nft_offer_index` real. Puedes listar varios.
+Replace the hash with the real `nft_offer_index`. You can list several.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Crea una oferta de venta con [NFTokenCreateOffer](/tx/NFTokenCreateOffer) sobre un NFT tuyo.
-2. Consulta `nft_sell_offers` con el `NFTokenID` y copia el `nft_offer_index`.
-3. Carga el ejemplo, pega ese índice en `NFTokenOffers` y envía.
-4. Vuelve a `nft_sell_offers`: responde `objectNotFound`. En `account_info`, `OwnerCount` ha bajado en 1.
-5. Reenvía la misma transacción: sigue devolviendo `tesSUCCESS` porque los IDs inexistentes se ignoran.
-6. Para ver `tecNO_PERMISSION`, pide a otra cuenta que cree una oferta sin `Destination` e intenta cancelarla tú.
+1. Create a sell offer with [NFTokenCreateOffer](/tx/NFTokenCreateOffer) on an NFT of yours.
+2. Query `nft_sell_offers` with the `NFTokenID` and copy the `nft_offer_index`.
+3. Load the example, paste that index into `NFTokenOffers`, and submit.
+4. Check `nft_sell_offers` again: it returns `objectNotFound`. In `account_info`, `OwnerCount` has dropped by 1.
+5. Resubmit the same transaction: it still returns `tesSUCCESS` because nonexistent IDs are ignored.
+6. To see `tecNO_PERMISSION`, have another account create an offer without a `Destination` and try to cancel it yourself.
 
-## Relacionado
+## Related
 
 - [NFTokenCreateOffer](/tx/NFTokenCreateOffer), [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), [NFTokenBurn](/tx/NFTokenBurn)
 - [NFTokenOffer](/objects/NFTokenOffer)

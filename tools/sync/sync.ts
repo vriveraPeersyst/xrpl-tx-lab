@@ -1,16 +1,16 @@
 /**
- * Job de sincronización (one-shot, pensado para pm2 cron_restart a las 12:00 Europe/Madrid).
+ * Sync job (one-shot, meant for pm2 cron_restart at 12:00 Europe/Madrid).
  *
- *   1. Toma un snapshot de testnet (versión de xrpld, amendments, server_definitions).
- *   2. Alinea el código fuente de rippled en vendor/rippled con esa versión
- *      (tag exacto si existe, si no la rama develop, que siempre va por delante).
- *   3. Re-extrae protocol.json.
- *   4. Ejecuta el lint de cobertura; para todo lo que falte (tx, objeto, amendment nuevos)
- *      genera la documentación: con `claude -p` si está disponible, si no un stub marcado draft.
- *   5. Vuelve a pasar el lint, escribe src/data/sync-log.json y, si hay cambios, hace commit
- *      (y push si hay remoto). El deploy lo hace Vercel a partir del push.
+ *   1. Takes a testnet snapshot (xrpld version, amendments, server_definitions).
+ *   2. Aligns the rippled source code in vendor/rippled with that version
+ *      (exact tag if it exists, otherwise the develop branch, which is always ahead).
+ *   3. Re-extracts protocol.json.
+ *   4. Runs the coverage lint; for everything missing (new tx, object, amendment)
+ *      generates the documentation: with `claude -p` if available, otherwise a stub marked draft.
+ *   5. Runs the lint again, writes src/data/sync-log.json and, if there are changes, commits
+ *      (and pushes if there is a remote). Vercel handles the deploy from the push.
  *
- * Variables: TESTNET_RPC, SYNC_NO_GIT=1 (no commit), SYNC_NO_CLAUDE=1 (solo stubs), SYNC_NO_PUSH=1
+ * Variables: TESTNET_RPC, SYNC_NO_GIT=1 (no commit), SYNC_NO_CLAUDE=1 (stubs only), SYNC_NO_PUSH=1
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -30,20 +30,20 @@ const before = readJson("src/data/testnet.json");
 run("pnpm exec tsx tools/extract/testnet.ts");
 const after = readJson("src/data/testnet.json");
 
-// 2. Fuente de rippled alineada con testnet
+// 2. rippled source aligned with testnet
 function ensureSource(version: string) {
   if (!fs.existsSync(RIPPLED)) {
-    log("clonando rippled (develop)…");
+    log("cloning rippled (develop)…");
     run(`git clone --depth 1 --branch develop ${REPO} ${RIPPLED}`);
   }
   const tag = version.replace(/\+.*$/, "");
   const hasTag = sh(`git ls-remote --tags ${REPO} refs/tags/${tag}`).length > 0;
   if (hasTag) {
-    log(`tag ${tag} existe en GitHub → checkout exacto`);
+    log(`tag ${tag} exists on GitHub → exact checkout`);
     run(`git fetch --depth 1 origin tag ${tag}`, RIPPLED);
     run(`git checkout -q ${tag}`, RIPPLED);
   } else {
-    log(`no hay tag ${tag} público → usando develop (última)`);
+    log(`no public tag ${tag} → using develop (latest)`);
     run("git fetch --depth 1 origin develop", RIPPLED);
     run("git checkout -q develop", RIPPLED);
     run("git reset -q --hard origin/develop", RIPPLED);
@@ -54,7 +54,7 @@ ensureSource(after.buildVersion);
 // 3. Extract
 run("pnpm exec tsx tools/extract/extract.ts");
 
-// 4. Lint + generación de lo que falte
+// 4. Lint + generation of what is missing
 function lint(): any {
   const r = spawnSync("pnpm", ["exec", "tsx", "tools/lint/coverage.ts", "--json"], { cwd: ROOT, encoding: "utf8" });
   const jsonStart = r.stdout.indexOf("{");
@@ -66,7 +66,7 @@ const hasClaude = !process.env.SYNC_NO_CLAUDE && spawnSync("which", ["claude"], 
 function draftWithClaude(prompt: string): string | undefined {
   if (!hasClaude) return undefined;
   const r = spawnSync("claude", ["-p", "--model", "claude-sonnet-5", "--output-format", "text", prompt], { cwd: ROOT, encoding: "utf8", maxBuffer: 20 * 1024 * 1024, timeout: 600_000 });
-  if (r.status !== 0) { log("claude -p falló:", r.stderr.slice(0, 500)); return undefined; }
+  if (r.status !== 0) { log("claude -p failed:", r.stderr.slice(0, 500)); return undefined; }
   return r.stdout.trim();
 }
 
@@ -75,21 +75,21 @@ function writeDoc(kind: "tx" | "objects" | "amendments", name: string) {
   const file = path.join(ROOT, `content/${kind}/${name}.md`);
   if (fs.existsSync(file)) return;
   const guide = fs.readFileSync(path.join(ROOT, "content/GUIDE.md"), "utf8");
-  const prompt = `${guide}\n\nEscribe el fichero content/${kind}/${name}.md siguiendo exactamente la guía anterior. Usa como fuente src/data/protocol.json, src/data/testnet.json y el código en vendor/rippled (busca "${name}"). Devuelve SOLO el contenido del fichero markdown con su frontmatter, sin explicaciones.`;
+  const prompt = `${guide}\n\nWrite the file content/${kind}/${name}.md following exactly the guide above. Use as source src/data/protocol.json, src/data/testnet.json and the code in vendor/rippled (search for "${name}"). Return ONLY the markdown file content with its frontmatter, no explanations.`;
   let body = draftWithClaude(prompt);
   if (!body || !body.startsWith("---")) {
-    body = `---\ntitle: ${name}\nsummary: Documentación pendiente de redactar (generado automáticamente por sync el ${new Date().toISOString().slice(0, 10)}).\ncategory: ${kind === "tx" ? "otros" : kind}\ndraft: true\n---\n\n## Qué hace\n\nPendiente. Consulta el código fuente enlazado en la pestaña "Fuente" y la documentación en xrpl.org.\n\n## Campos\n\nLa tabla de campos se genera automáticamente a partir de protocol.json.\n\n## Errores habituales\n\nLa lista de códigos TER se genera automáticamente a partir del transactor.\n`;
+    body = `---\ntitle: ${name}\nsummary: Documentation pending (auto-generated by sync on ${new Date().toISOString().slice(0, 10)}).\ncategory: ${kind === "tx" ? "otros" : kind}\ndraft: true\n---\n\n## What it does\n\nPending. See the source code linked in the "Source" tab and the documentation at xrpl.org.\n\n## Fields\n\nThe fields table is generated automatically from protocol.json.\n\n## Common errors\n\nThe list of TER codes is generated automatically from the transactor.\n`;
   }
   fs.writeFileSync(file, body + "\n");
   generated.push(`content/${kind}/${name}.md`);
-  log("generado", `content/${kind}/${name}.md`, hasClaude ? "(claude)" : "(stub)");
+  log("generated", `content/${kind}/${name}.md`, hasClaude ? "(claude)" : "(stub)");
 }
 for (const n of cov.report.missingTxDocs) writeDoc("tx", n);
 for (const n of cov.report.missingObjectDocs) writeDoc("objects", n);
 for (const n of cov.report.missingAmendmentDocs) writeDoc("amendments", n);
 
 if (cov.report.missingRegistry.length) {
-  // Entrada mínima en el registro: ejemplo con los campos requeridos y placeholders.
+  // Minimal registry entry: example with the required fields and placeholders.
   const protocol = readJson("src/data/protocol.json");
   const regPath = path.join(ROOT, "src/lib/tx/registry.ts");
   let reg = fs.readFileSync(regPath, "utf8");
@@ -100,7 +100,7 @@ if (cov.report.missingRegistry.length) {
     const entry = `  ${name}: {\n    category: "otros",\n    example: ${JSON.stringify(ex, null, 6).replace(/\n/g, "\n    ")},\n    generated: true,\n  },\n`;
     reg = reg.replace(/\n\};\s*$/, `\n${entry}};\n`);
     generated.push(`registry:${name}`);
-    log("registro: entrada generada para", name);
+    log("registry: entry generated for", name);
   }
   fs.writeFileSync(regPath, reg);
 }
@@ -119,36 +119,36 @@ function placeholderFor(field: string, protocol: any): unknown {
 
 cov = lint();
 
-// 5. Log de cambios + git
+// 5. Change log + git
 const changes: string[] = [];
 if (before) {
-  if (before.buildVersion !== after.buildVersion) changes.push(`xrpld en testnet: ${before.buildVersion} → ${after.buildVersion}`);
+  if (before.buildVersion !== after.buildVersion) changes.push(`xrpld on testnet: ${before.buildVersion} → ${after.buildVersion}`);
   const prev = new Map(before.amendments.map((a: any) => [a.name, a]));
   for (const a of after.amendments) {
     const p: any = prev.get(a.name);
-    if (!p) changes.push(`nuevo amendment: ${a.name}${a.enabled ? " (activo)" : ""}`);
-    else if (p.enabled !== a.enabled) changes.push(`amendment ${a.name}: ${p.enabled ? "activo" : "inactivo"} → ${a.enabled ? "activo" : "inactivo"}`);
-    else if ((p.majority ?? 0) !== (a.majority ?? 0) && a.majority) changes.push(`amendment ${a.name}: alcanzó mayoría (activación prevista)`);
+    if (!p) changes.push(`new amendment: ${a.name}${a.enabled ? " (active)" : ""}`);
+    else if (p.enabled !== a.enabled) changes.push(`amendment ${a.name}: ${p.enabled ? "active" : "inactive"} → ${a.enabled ? "active" : "inactive"}`);
+    else if ((p.majority ?? 0) !== (a.majority ?? 0) && a.majority) changes.push(`amendment ${a.name}: reached majority (activation expected)`);
   }
-  if (before.definitions.hash !== after.definitions.hash) changes.push(`server_definitions cambió: ${before.definitions.hash.slice(0, 8)} → ${after.definitions.hash.slice(0, 8)}`);
+  if (before.definitions.hash !== after.definitions.hash) changes.push(`server_definitions changed: ${before.definitions.hash.slice(0, 8)} → ${after.definitions.hash.slice(0, 8)}`);
 }
 const entry = { at: new Date().toISOString(), testnet: after.buildVersion, source: readJson("src/data/protocol.json").source, changes, generated, coverageOk: cov.ok, errors: cov.errors, warnings: cov.warnings };
 const logPath = path.join(ROOT, "src/data/sync-log.json");
 const history = readJson("src/data/sync-log.json") ?? [];
 fs.writeFileSync(logPath, JSON.stringify([entry, ...history].slice(0, 200), null, 2));
-log("cambios:", changes.length ? changes : "ninguno", "| generados:", generated.length, "| cobertura:", cov.ok ? "OK" : `${cov.errors.length} errores`);
+log("changes:", changes.length ? changes : "none", "| generated:", generated.length, "| coverage:", cov.ok ? "OK" : `${cov.errors.length} errors`);
 
 if (!process.env.SYNC_NO_GIT) {
   const dirty = sh("git status --porcelain -- src/data content src/lib/tx/registry.ts");
   if (dirty) {
     run("git add src/data content src/lib/tx/registry.ts");
-    const msg = `sync: testnet ${after.buildVersion} (${after.validatedLedger.seq})${changes.length ? "\n\n" + changes.map((c) => "- " + c).join("\n") : ""}${generated.length ? "\n\nGenerado: " + generated.join(", ") : ""}\n\nCo-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`;
+    const msg = `sync: testnet ${after.buildVersion} (${after.validatedLedger.seq})${changes.length ? "\n\n" + changes.map((c) => "- " + c).join("\n") : ""}${generated.length ? "\n\nGenerated: " + generated.join(", ") : ""}\n\nCo-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`;
     const msgFile = path.join(ROOT, ".git/SYNC_COMMIT_MSG");
     fs.writeFileSync(msgFile, msg);
     run(`git commit -q -F ${JSON.stringify(msgFile)}`);
     fs.unlinkSync(msgFile);
-    log("commit hecho");
-    if (!process.env.SYNC_NO_PUSH && sh("git remote").length) { run("git push -q"); log("push hecho"); }
-  } else log("sin cambios en el repo");
+    log("commit done");
+    if (!process.env.SYNC_NO_PUSH && sh("git remote").length) { run("git push -q"); log("push done"); }
+  } else log("no changes in the repo");
 }
 process.exit(cov.ok ? 0 : 2);

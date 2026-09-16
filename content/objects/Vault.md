@@ -1,49 +1,49 @@
 ---
 title: Vault
-summary: Un pool de un único activo (Single Asset Vault) que agrupa depósitos de varios usuarios y emite un MPT que representa la participación de cada uno.
+summary: A single-asset pool (Single Asset Vault) that pools deposits from multiple users and issues an MPT representing each one's share.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/vault
 createdBy: VaultCreate
 modifiedBy: VaultSet, VaultDeposit, VaultWithdraw, VaultClawback
 reserve: 2
 ---
 
-## Qué representa
+## What it represents
 
-Un `Vault` es un cajón compartido de un solo activo (`Asset`: XRP, un token emitido o un MPT): los depositantes meten ese activo y a cambio reciben unidades de `ShareMPTID`, un [MPTokenIssuance](/objects/MPTokenIssuance) creado automáticamente junto al vault que representa su parte proporcional. El valor del activo depositado puede crecer (por ejemplo, prestado a través de un [LoanBroker](/objects/LoanBroker) que genera intereses) sin que haga falta mover el capital de cada depositante individualmente: basta con que suba `AssetsTotal` para que cada unidad de `ShareMPTID` valga más.
+A `Vault` is a shared basket of a single asset (`Asset`: XRP, an issued token, or an MPT): depositors put in that asset and in exchange receive units of `ShareMPTID`, an [MPTokenIssuance](/objects/MPTokenIssuance) automatically created alongside the vault that represents their proportional share. The value of the deposited asset can grow (for example, lent out through a [LoanBroker](/objects/LoanBroker) that generates interest) without needing to move each depositor's capital individually: it is enough for `AssetsTotal` to rise for each `ShareMPTID` unit to be worth more.
 
-Puede ser público (`lsfVaultPrivate` ausente, cualquiera deposita) o privado (solo cuentas con acceso a un [PermissionedDomain](/objects/PermissionedDomain) concreto).
+It can be public (`lsfVaultPrivate` absent, anyone can deposit) or private (only accounts with access to a specific [PermissionedDomain](/objects/PermissionedDomain)).
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [VaultCreate](/tx/VaultCreate), por el `Owner`. Fija `Asset`, `WithdrawalPolicy` (cómo se procesan las retiradas) y, si es privado, el `DomainID` que restringe quién puede participar. Crea automáticamente el `ShareMPTID` asociado.
-- **Configuración**: [VaultSet](/tx/VaultSet) ajusta parámetros mutables como `AssetsMaximum` o el `DomainID` de un vault privado.
-- **Depósito/retirada**: [VaultDeposit](/tx/VaultDeposit) mete activo y entrega `ShareMPTID`; [VaultWithdraw](/tx/VaultWithdraw) devuelve `ShareMPTID` y saca el activo proporcional, sujeto a `AssetsAvailable` (lo que no está prestado a un `LoanBroker`).
-- **Clawback**: [VaultClawback](/tx/VaultClawback), solo si el activo subyacente permite clawback, deja al emisor recuperar activo de un depositante concreto.
-- **Borrado**: [VaultDelete](/tx/VaultDelete), solo cuando `AssetsTotal` es cero (todo el mundo ha retirado).
+- **Creation**: [VaultCreate](/tx/VaultCreate), by the `Owner`. Sets `Asset`, `WithdrawalPolicy` (how withdrawals are processed) and, if private, the `DomainID` that restricts who can participate. Automatically creates the associated `ShareMPTID`.
+- **Configuration**: [VaultSet](/tx/VaultSet) adjusts mutable parameters such as `AssetsMaximum` or the `DomainID` of a private vault.
+- **Deposit/withdrawal**: [VaultDeposit](/tx/VaultDeposit) puts in the asset and delivers `ShareMPTID`; [VaultWithdraw](/tx/VaultWithdraw) returns `ShareMPTID` and takes out the proportional asset, subject to `AssetsAvailable` (what is not lent out to a `LoanBroker`).
+- **Clawback**: [VaultClawback](/tx/VaultClawback), only if the underlying asset allows clawback, lets the issuer recover asset from a specific depositor.
+- **Deletion**: [VaultDelete](/tx/VaultDelete), only when `AssetsTotal` is zero (everyone has withdrawn).
 
-## Campos clave
+## Key fields
 
-- **Owner / Account** — quien controla el vault (fija sus parámetros) y la cuenta interna que custodia los fondos, respectivamente; suelen coincidir en la práctica.
-- **Asset** — el único activo que acepta este vault, fijado para siempre en la creación.
-- **AssetsTotal / AssetsAvailable / AssetsMaximum** — el total teórico (incluyendo lo prestado), lo líquido disponible para retirar ahora mismo, y el tope de capital que acepta el vault.
-- **ShareMPTID** — el `MPTokenIssuance` que representa la participación de cada depositante; su `OutstandingAmount` es el total de "acciones" del vault.
-- **WithdrawalPolicy** — cómo se resuelven las retiradas cuando no hay liquidez inmediata (p. ej. cola de espera vs. rechazo).
-- **LossUnrealized** — pérdidas detectadas pero aún no repercutidas en el valor por unidad de `ShareMPTID` (p. ej. por un préstamo impagado sin liquidar del todo).
-- **Data** — bytes libres para metadatos del vault.
+- **Owner / Account** — who controls the vault (sets its parameters) and the internal account that custodies the funds, respectively; in practice they usually coincide.
+- **Asset** — the single asset this vault accepts, fixed forever at creation.
+- **AssetsTotal / AssetsAvailable / AssetsMaximum** — the theoretical total (including what is lent out), the liquid amount available to withdraw right now, and the capital cap the vault accepts.
+- **ShareMPTID** — the `MPTokenIssuance` that represents each depositor's share; its `OutstandingAmount` is the vault's total "shares".
+- **WithdrawalPolicy** — how withdrawals are resolved when there is no immediate liquidity (e.g. waiting queue vs. rejection).
+- **LossUnrealized** — losses detected but not yet passed through to the per-unit value of `ShareMPTID` (e.g. from a defaulted loan not fully settled).
+- **Data** — free bytes for vault metadata.
 
 ## Flags
 
-- **lsfVaultPrivate** — el vault solo acepta depósitos de cuentas con credenciales aceptadas por su `DomainID`; sin este flag, es abierto a cualquiera.
+- **lsfVaultPrivate** — the vault only accepts deposits from accounts with credentials accepted by its `DomainID`; without this flag, it is open to anyone.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "vault"` lo devuelve para el `Owner`. Con `ledger_entry`, `vault` acepta `owner` y `seq` (la `Sequence` de la `VaultCreate`):
+`account_objects` with `type: "vault"` returns it for the `Owner`. With `ledger_entry`, `vault` accepts `owner` and `seq` (the `Sequence` of the `VaultCreate`):
 
 ```json
 { "method": "ledger_entry", "params": [{ "vault": { "owner": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "seq": 20790113 }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x0056 || AccountID_owner || Sequence)` (`keylet::vault`, namespace `'V'`). Respuesta típica:
+The index is `SHA512Half(0x0056 || AccountID_owner || Sequence)` (`keylet::vault`, namespace `'V'`). Typical response:
 
 ```json
 {
@@ -61,11 +61,11 @@ El índice es `SHA512Half(0x0056 || AccountID_owner || Sequence)` (`keylet::vaul
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 2 unidades de reserva de propietario (0,4 XRP en testnet) del `Owner`: una por el propio `Vault` y otra por el `MPTokenIssuance` de `ShareMPTID` que se crea con él.
+Consumes 2 owner reserve units (0.4 XRP on testnet) from the `Owner`: one for the `Vault` itself and another for the `ShareMPTID`'s `MPTokenIssuance` created with it.
 
-## Relacionado
+## Related
 
 - [VaultCreate](/tx/VaultCreate), [VaultSet](/tx/VaultSet), [VaultDeposit](/tx/VaultDeposit), [VaultWithdraw](/tx/VaultWithdraw), [VaultClawback](/tx/VaultClawback), [VaultDelete](/tx/VaultDelete)
 - [LoanBroker](/objects/LoanBroker), [MPTokenIssuance](/objects/MPTokenIssuance), [PermissionedDomain](/objects/PermissionedDomain)

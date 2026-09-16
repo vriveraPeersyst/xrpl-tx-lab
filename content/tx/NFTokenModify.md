@@ -1,76 +1,76 @@
 ---
 title: NFTokenModify
-summary: Cambia o borra la URI de un NFT acuñado con tfMutable; solo puede hacerlo su emisor o el minter autorizado.
+summary: Changes or clears the URI of an NFT minted with tfMutable; only its issuer or authorized minter can do this.
 category: nft
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/nftokenmodify
 xls: XLS-0046
 amendment: DynamicNFT
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`NFTokenModify` actualiza el campo `URI` de un token que ya existe dentro de una [NFTokenPage](/objects/NFTokenPage). Es la única propiedad de un NFT que puede cambiar después de acuñarlo: el `NFTokenID` (y con él los flags, el emisor, el taxon y el `TransferFee`) es inmutable.
+`NFTokenModify` updates the `URI` field of a token that already exists inside an [NFTokenPage](/objects/NFTokenPage). It's the only property of an NFT that can change after minting: the `NFTokenID` (and with it the flags, the issuer, the taxon, and the `TransferFee`) is immutable.
 
-Solo funciona con tokens acuñados con el flag `tfMutable` (16), y solo puede enviarla el emisor codificado en el ID o la cuenta que ese emisor tenga en `NFTokenMinter`. El propietario actual del token no interviene ni firma nada; si no es el emisor, se le indica en `Owner`.
+It only works on tokens minted with the `tfMutable` flag (16), and only the issuer encoded in the ID or the account that issuer has set as `NFTokenMinter` can send it. The token's current owner has no part in this and signs nothing; if they're not the issuer, they're specified in `Owner`.
 
-Lo introduce el amendment [DynamicNFT](/amendments/DynamicNFT), activo en testnet.
+It's introduced by the [DynamicNFT](/amendments/DynamicNFT) amendment, active on testnet.
 
-## Cuándo usarlo
+## When to use it
 
-- Metadatos que evolucionan: un personaje de juego que sube de nivel, un certificado que se renueva, una obra "viva".
-- Migrar los metadatos de un servidor a otro (por ejemplo, de https a ipfs) sin reacuñar.
-- Eliminar la URI por completo (omitiendo el campo) si los metadatos pasan a resolverse fuera de la cadena.
+- Evolving metadata: a game character that levels up, a certificate that renews, a "living" artwork.
+- Migrating metadata from one server to another (for example, from https to ipfs) without reminting.
+- Removing the URI entirely (by omitting the field) if the metadata is to be resolved off-chain.
 
-## Cómo funciona por dentro
+## How it works inside
 
 **`NFTokenModify::preflight`**:
-- `Owner` igual a `Account` → `temMALFORMED` (si el token es tuyo, omite `Owner`).
-- `URI` presente pero vacía o de más de 256 bytes → `temMALFORMED`.
+- `Owner` equal to `Account` → `temMALFORMED` (if the token is yours, omit `Owner`).
+- `URI` present but empty or longer than 256 bytes → `temMALFORMED`.
 
 **`NFTokenModify::preclaim`**:
-1. Determina el propietario: `Owner` si está, si no `Account`. Busca el token en sus páginas; si no está → `tecNO_ENTRY`.
-2. El ID debe llevar `kFlagMutable` (`tfMutable`); si no → `tecNO_PERMISSION`.
-3. Si el emisor codificado en el ID no es tu cuenta, lee el `AccountRoot` del emisor y exige que su `NFTokenMinter` sea tu cuenta; si no → `tecNO_PERMISSION`.
+1. Determines the owner: `Owner` if present, otherwise `Account`. Looks up the token in their pages; if not found → `tecNO_ENTRY`.
+2. The ID must carry `kFlagMutable` (`tfMutable`); if not → `tecNO_PERMISSION`.
+3. If the issuer encoded in the ID isn't your account, it reads the issuer's `AccountRoot` and requires their `NFTokenMinter` to be your account; if not → `tecNO_PERMISSION`.
 
-**`NFTokenModify::doApply`** llama a `nft::changeTokenURI` sobre las páginas del propietario con la `URI` de la tx. Si omites `URI`, el campo se elimina del token. No hay cambio de reserva ni de `OwnerCount`.
+**`NFTokenModify::doApply`** calls `nft::changeTokenURI` on the owner's pages with the tx's `URI`. If you omit `URI`, the field is removed from the token. There's no change to reserve or `OwnerCount`.
 
-## Campos clave
+## Key fields
 
-- **NFTokenID** — el token a modificar. Debe tener el bit `tfMutable` en sus 16 bits de flags (el primer grupo de 4 hex del ID acabará en 1 en el nibble correspondiente).
-- **Owner** — dueño actual si no eres tú. Obligatorio cuando el token ya se ha vendido o regalado.
-- **URI** — nueva URI en hex (1-256 bytes). Si la omites, se borra la URI actual.
+- **NFTokenID** — the token to modify. It must have the `tfMutable` bit among its 16 flag bits (the first 4-hex-digit group of the ID will end in 1 in the corresponding nibble).
+- **Owner** — current owner if it's not you. Required when the token has already been sold or gifted.
+- **URI** — new URI in hex (1-256 bytes). If you omit it, the current URI is removed.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_PERMISSION** — el NFT no es mutable, o tú no eres su emisor ni el `NFTokenMinter` del emisor. Los tokens acuñados sin `tfMutable` nunca podrán modificarse.
-- **tecNO_ENTRY** — el token no está en las páginas del `Owner` indicado (o has omitido `Owner` y ya no es tuyo).
-- **temMALFORMED** — `URI` vacía o demasiado larga, o `Owner` igual a tu cuenta.
-- **temDISABLED** — no ocurre en testnet, `DynamicNFT` está activo.
+- **tecNO_PERMISSION** — the NFT isn't mutable, or you're neither its issuer nor the issuer's `NFTokenMinter`. Tokens minted without `tfMutable` can never be modified.
+- **tecNO_ENTRY** — the token isn't in the specified `Owner`'s pages (or you omitted `Owner` and it's no longer yours).
+- **temMALFORMED** — `URI` empty or too long, or `Owner` equal to your own account.
+- **temDISABLED** — doesn't happen on testnet, `DynamicNFT` is active.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "NFTokenModify",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "NFTokenID": "0000000000000000000000000000000000000000000000000000000000000000",
   "URI": "68747470733A2F2F6578616D706C652E636F6D2F76322E6A736F6E"
 }
 ```
 
-La URI de ejemplo es `https://example.com/v2.json`. Si el token está en otra cuenta, añade `"Owner": "rYYYY_OTRA_CUENTA"`.
+The example URI is `https://example.com/v2.json`. If the token is in another account, add `"Owner": "rYYYY_OTHER_ACCOUNT"`.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Acuña un NFT con [NFTokenMint](/tx/NFTokenMint) usando `Flags: 24` (`tfTransferable` + `tfMutable`) y una `URI` cualquiera.
-2. Consulta `account_nfts` y copia el `NFTokenID`. Fíjate en la `URI` actual.
-3. Carga el ejemplo con ese ID y envía. Vuelve a `account_nfts`: la `URI` ha cambiado y el `NFTokenID` es el mismo.
-4. Envía de nuevo sin el campo `URI`: en `account_nfts` el token ya no tiene `URI`.
-5. Acuña otro token con `Flags: 8` (sin `tfMutable`) e intenta modificarlo: obtendrás `tecNO_PERMISSION`.
-6. Regala el token mutable a la otra cuenta (oferta de venta a 0 + aceptación) y modifícalo desde tu cuenta añadiendo `Owner`: sigue funcionando porque eres el emisor.
+1. Mint an NFT with [NFTokenMint](/tx/NFTokenMint) using `Flags: 24` (`tfTransferable` + `tfMutable`) and any `URI`.
+2. Query `account_nfts` and copy the `NFTokenID`. Note the current `URI`.
+3. Load the example with that ID and submit. Check `account_nfts` again: the `URI` has changed and the `NFTokenID` is the same.
+4. Submit again without the `URI` field: in `account_nfts` the token no longer has a `URI`.
+5. Mint another token with `Flags: 8` (without `tfMutable`) and try to modify it: you'll get `tecNO_PERMISSION`.
+6. Gift the mutable token to the other account (sell offer at 0 + acceptance) and modify it from your account by adding `Owner`: it still works because you're the issuer.
 
-## Relacionado
+## Related
 
 - [NFTokenMint](/tx/NFTokenMint), [NFTokenBurn](/tx/NFTokenBurn)
 - [NFTokenPage](/objects/NFTokenPage)

@@ -1,20 +1,20 @@
 ---
 title: SortedDirectories
-summary: Ordena de forma determinista las entradas dentro de cada página de una owner directory al insertarlas.
+summary: Deterministically sorts the entries within each page of an owner directory as they are inserted.
 xrplDocs: https://xrpl.org/resources/known-amendments#sorteddirectories
 ---
 
-## Qué cambia
+## What changes
 
-Las owner directories (y otros directorios del ledger, como los de ofertas) se dividen en páginas cuando crecen; cada página es una lista de índices a otros objetos que pertenecen al mismo dueño. Antes de este amendment, una nueva entrada se insertaba simplemente al final de la página con espacio libre, sin ningún orden particular entre entradas. SortedDirectories cambia la lógica de inserción para que las entradas dentro de cada página queden ordenadas de forma determinista según su clave, en vez de por orden de llegada.
+Owner directories (and other ledger directories, such as offer directories) are split into pages as they grow; each page is a list of indexes pointing to other objects that belong to the same owner. Before this amendment, a new entry was simply inserted at the end of the page with free space, with no particular order among entries. SortedDirectories changes the insertion logic so that entries within each page end up deterministically ordered by their key, rather than by arrival order.
 
-El cambio no toca el formato de los objetos ni introduce nuevos campos: es puramente un cambio en el algoritmo de inserción y búsqueda de `SLE::pointer` dentro de una `Directory`. No afecta a qué objetos puede poseer una cuenta ni a las reglas de negocio de ninguna transacción; solo determina en qué posición concreta de qué página acaba cada entrada del directorio, lo que hace el recorrido de directorios reproducible entre implementaciones.
+The change does not touch the object format or introduce new fields: it is purely a change to the insertion and lookup algorithm for `SLE::pointer` within a `Directory`. It does not affect which objects an account can own, nor the business rules of any transaction; it only determines the exact position within which page each directory entry ends up, which makes directory traversal reproducible across implementations.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- No introduce transacciones nuevas: afecta a cualquier transacción que añade o quita una entrada de un directorio de propietario, como [OfferCreate](/tx/OfferCreate), [TrustSet](/tx/TrustSet), [EscrowCreate](/tx/EscrowCreate), [CheckCreate](/tx/CheckCreate) o [NFTokenMint](/tx/NFTokenMint).
-- Objetos: [DirectoryNode](/objects/DirectoryNode), la estructura de páginas donde se guardan los índices de los objetos que posee una cuenta.
+- Introduces no new transactions: it affects any transaction that adds or removes an entry from an owner directory, such as [OfferCreate](/tx/OfferCreate), [TrustSet](/tx/TrustSet), [EscrowCreate](/tx/EscrowCreate), [CheckCreate](/tx/CheckCreate), or [NFTokenMint](/tx/NFTokenMint).
+- Objects: [DirectoryNode](/objects/DirectoryNode), the page structure where the indexes of the objects an account owns are stored.
 
-## Estado y contexto
+## Status and context
 
-Al no depender del orden de inserción, el ordenamiento determinista hace que dos nodos que reconstruyan el mismo estado a partir de las mismas transacciones lleguen exactamente a la misma disposición interna de páginas, lo que simplifica la verificación de estado y evita divergencias sutiles causadas por el historial concreto de inserciones y borrados, en vez de por el contenido final del directorio.
+Because it no longer depends on insertion order, deterministic ordering means that two nodes reconstructing the same state from the same transactions arrive at exactly the same internal page layout, which simplifies state verification and avoids subtle divergences caused by the specific history of insertions and deletions, rather than by the final content of the directory.

@@ -1,20 +1,20 @@
 ---
 title: fixQualityUpperBound
-summary: Corrige el cálculo de una cota superior de calidad usada al estimar pasos de pago con conversión de moneda.
+summary: Fixes the calculation of an upper quality bound used when estimating payment steps that convert currency.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixqualityupperbound
 ---
 
-## Qué cambia
+## What changes
 
-El motor de pagos con paths estima, para cada paso de una ruta que cambia de moneda, una cota superior de "calidad" (la mejor tasa de cambio posible, entrada/salida) para descartar de antemano rutas que no pueden mejorar el resultado ya encontrado. fixQualityUpperBound corrige un error en ese cálculo de la cota, que podía quedar mal estimada para algunos pasos de conversión de moneda.
+The pathfinding payment engine estimates, for each step of a route that changes currency, an upper bound on "quality" (the best possible exchange rate, output/input) in order to discard ahead of time routes that cannot improve on the result already found. fixQualityUpperBound fixes a bug in that bound calculation, which could be miscalculated for some currency-conversion steps.
 
-Según la documentación de xrpl.org, el código afectado formaba parte de una ruta de estimación que en la práctica no llegaba a ejecutarse en el motor de pagos vigente, por lo que el fix no tiene impacto observable en el resultado de las transacciones: corrige el bug en el código, pero no cambia el comportamiento de ningún [Payment](/tx/Payment) real.
+According to xrpl.org documentation, the affected code was part of an estimation path that in practice was never actually executed by the current payment engine, so the fix has no observable impact on the outcome of transactions: it fixes the bug in the code, but does not change the behavior of any real [Payment](/tx/Payment).
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [Payment](/tx/Payment) con paths que atraviesan más de una moneda: el cálculo interno de la cota de calidad, sin efecto observable en el resultado final.
-- [OfferCreate](/tx/OfferCreate): comparte el motor de cálculo de calidad usado para cruzar y encadenar ofertas.
+- [Payment](/tx/Payment) with paths that cross more than one currency: the internal calculation of the quality bound, with no observable effect on the final result.
+- [OfferCreate](/tx/OfferCreate): shares the quality-calculation engine used to cross and chain offers.
 
-## Estado y contexto
+## Status and context
 
-Es uno de los fixes de mantenimiento del motor de pagos: corrige una fórmula interna sin cambiar el resultado de las transacciones, como documentación de rippled deja constancia explícita de que "no tiene impacto conocido en el procesamiento de transacciones". Sirve como saneamiento de código y como base más correcta para futuros cambios en el cálculo de calidad de las rutas.
+This is one of the payment engine's maintenance fixes: it corrects an internal formula without changing the outcome of transactions, as rippled documentation explicitly notes it "has no known impact on transaction processing." It serves as code hygiene and as a more correct foundation for future changes to route quality calculation.

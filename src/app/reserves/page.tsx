@@ -4,7 +4,7 @@ import { RESERVE_RULES, reserveXrp, formatXrp, BASE_FEE_DROPS, LOAD_FACTOR, CURR
 import { Stat } from "@/components/protocol";
 import { ReserveCalculator } from "@/components/ReserveCalculator";
 
-export const metadata = { title: "Reservas y fees" };
+export const metadata = { title: "Reserves & fees" };
 
 export default function ReservesPage() {
   const names = testnetLedgerEntryNames();
@@ -12,20 +12,20 @@ export default function ReservesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="display-lg">Cuánto XRP cuesta cada cosa</h1>
-        <p className="max-w-3xl text-muted">La XRPL exige a cada cuenta mantener bloqueada una <b>reserva base</b> más una <b>reserva incremental</b> por cada objeto que posee. Ese XRP no se destruye: se libera al borrar el objeto. Los <b>fees</b> de transacción sí se destruyen. Valores vivos de la testnet (objeto <Link href="/objects/FeeSettings" className="link">FeeSettings</Link>).</p>
+        <h1 className="display-lg">How much XRP everything costs</h1>
+        <p className="max-w-3xl text-muted">The XRPL requires every account to keep a <b>base reserve</b> locked plus an <b>incremental reserve</b> for each object it owns. That XRP is not destroyed: it&apos;s released when the object is deleted. Transaction <b>fees</b> are destroyed. Live values from testnet (<Link href="/objects/FeeSettings" className="link">FeeSettings</Link> object).</p>
       </div>
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat label="Reserva base" value={formatXrp(testnet.reserves.baseXrp)} sub="para que la cuenta exista" />
-        <Stat label="Reserva por objeto" value={formatXrp(testnet.reserves.incXrp)} sub="cada unidad de owner reserve" />
-        <Stat label="Fee base" value={`${BASE_FEE_DROPS} drops`} sub={`${testnet.reserves.baseFeeXrp} XRP por transacción simple`} />
-        <Stat label="Fee mínimo ahora" value={`${CURRENT_MIN_FEE_DROPS} drops`} sub={`load_factor ${LOAD_FACTOR}/256 (fee escalation)`} />
+        <Stat label="Base reserve" value={formatXrp(testnet.reserves.baseXrp)} sub="for the account to exist" />
+        <Stat label="Reserve per object" value={formatXrp(testnet.reserves.incXrp)} sub="each owner reserve unit" />
+        <Stat label="Base fee" value={`${BASE_FEE_DROPS} drops`} sub={`${testnet.reserves.baseFeeXrp} XRP per simple transaction`} />
+        <Stat label="Minimum fee now" value={`${CURRENT_MIN_FEE_DROPS} drops`} sub={`load_factor ${LOAD_FACTOR}/256 (fee escalation)`} />
       </section>
       <ReserveCalculator />
       <section>
-        <h2 className="mb-2 display-md">Reserva por objeto del ledger</h2>
+        <h2 className="mb-2 display-md">Reserve per ledger object</h2>
         <table className="tbl">
-          <thead><tr><th>Objeto</th><th>Unidades</th><th>En testnet</th><th>Quién la paga</th><th>Detalle</th><th>Evidencia en el código</th></tr></thead>
+          <thead><tr><th>Object</th><th>Units</th><th>On testnet</th><th>Who pays it</th><th>Detail</th><th>Evidence in the code</th></tr></thead>
           <tbody>
             {names.map((n) => {
               const r = RESERVE_RULES[n];
@@ -45,15 +45,15 @@ export default function ReservesPage() {
         </table>
       </section>
       <section className="space-y-2">
-        <h2 className="display-md">Fees de transacción</h2>
+        <h2 className="display-md">Transaction fees</h2>
         <ul className="ml-5 list-disc space-y-1 text-sm">
-          <li><b>Fee base</b>: {BASE_FEE_DROPS} drops. Se multiplica por el <i>load factor</i> del servidor cuando hay carga (fee escalation). Cuanto más pagas, antes entra en el ledger si la cola está llena.</li>
-          <li><b>Multifirma</b>: fee base × (1 + número de firmas en <code>Signers</code>). Código: <code>Transactor::calculateBaseFee</code>.</li>
-          <li><b>Owner reserve como fee</b> ({formatXrp(testnet.reserves.incXrp)}): {protocol.transactions.filter((t) => t.transactor?.ownerReserveFee).map((t) => <Link key={t.name} href={`/tx/${t.name}#coste`} className="link mr-1 font-mono">{t.name}</Link>)} — antispam: se destruye.</li>
-          <li><b>EscrowFinish con fulfillment</b>: fee base × (33 + ⌈bytes/16⌉).</li>
-          <li><b>Batch</b>: fee base × (2 + n inner) + fees de firmantes + suma de fees base de cada inner.</li>
-          <li><b>Memos</b>: no cambian el fee base en xrpld, pero el tamaño total de la transacción está limitado (memo ≤ 1 KB) y algunos servidores cobran por byte al retransmitir.</li>
-          <li><b>Transactores con fee propio</b> (<code>calculateBaseFee</code>): {protocol.transactions.filter((t) => t.transactor?.customBaseFee).map((t) => <Link key={t.name} href={`/tx/${t.name}#coste`} className="link mr-1 font-mono">{t.name}</Link>)}</li>
+          <li><b>Base fee</b>: {BASE_FEE_DROPS} drops. It&apos;s multiplied by the server&apos;s <i>load factor</i> when there&apos;s load (fee escalation). The more you pay, the sooner it enters the ledger if the queue is full.</li>
+          <li><b>Multisign</b>: base fee × (1 + number of signatures in <code>Signers</code>). Code: <code>Transactor::calculateBaseFee</code>.</li>
+          <li><b>Owner reserve as fee</b> ({formatXrp(testnet.reserves.incXrp)}): {protocol.transactions.filter((t) => t.transactor?.ownerReserveFee).map((t) => <Link key={t.name} href={`/tx/${t.name}#coste`} className="link mr-1 font-mono">{t.name}</Link>)} — antispam: it&apos;s destroyed.</li>
+          <li><b>EscrowFinish with fulfillment</b>: base fee × (33 + ⌈bytes/16⌉).</li>
+          <li><b>Batch</b>: base fee × (2 + n inner) + signer fees + sum of each inner&apos;s base fee.</li>
+          <li><b>Memos</b>: don&apos;t change the base fee in xrpld, but the total transaction size is limited (memo ≤ 1 KB) and some servers charge per byte when relaying.</li>
+          <li><b>Transactors with their own fee</b> (<code>calculateBaseFee</code>): {protocol.transactions.filter((t) => t.transactor?.customBaseFee).map((t) => <Link key={t.name} href={`/tx/${t.name}#coste`} className="link mr-1 font-mono">{t.name}</Link>)}</li>
         </ul>
       </section>
     </div>

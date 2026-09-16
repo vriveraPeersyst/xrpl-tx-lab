@@ -9,11 +9,11 @@ export interface PlaceholderContext {
   pubkey?: string;
 }
 
-/** Cuentas de demostración en testnet (financiadas por el faucet en algún momento; solo como destino). */
+/** Demo accounts on testnet (funded by the faucet at some point; only used as a destination). */
 export const DEMO_OTHER = "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe";
 export const DEMO_ISSUER = "rhub8VRN55s94qWKDv6jmDy1pUykJzF3wq";
 
-/** Sustituye {{account}}, {{other}}, {{issuer}}, {{seq}}, {{seq+N}}, {{ledger+N}}, {{time+N}}, {{unix}}, {{pubkey}}. */
+/** Substitutes {{account}}, {{other}}, {{issuer}}, {{seq}}, {{seq+N}}, {{ledger+N}}, {{time+N}}, {{unix}}, {{pubkey}}. */
 export function fillPlaceholders<T>(value: T, ctx: PlaceholderContext): T {
   const repl = (s: string): unknown => {
     const m = s.match(/^\{\{(\w+)(?:\+(\d+))?\}\}$/);

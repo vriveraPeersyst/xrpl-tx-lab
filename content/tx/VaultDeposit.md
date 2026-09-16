@@ -1,80 +1,80 @@
 ---
 title: VaultDeposit
-summary: Deposita el activo de una bóveda y recibe a cambio shares (MPT) proporcionales al valor aportado.
+summary: Deposits a vault's asset and receives shares (MPT) proportional to the value contributed in return.
 category: vault
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/vaultdeposit
 xls: XLS-0065
 amendment: SingleAssetVault
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-**Aviso: el amendment [SingleAssetVault](/amendments/SingleAssetVault) NO está activo en la testnet.** Cualquier `VaultDeposit` que envíes hoy falla con `temDISABLED`. Esta página describe el código que se activará cuando el amendment se vote.
+**Notice: the [SingleAssetVault](/amendments/SingleAssetVault) amendment is NOT active on testnet.** Any `VaultDeposit` you send today fails with `temDISABLED`. This page describes the code that will activate once the amendment is voted in.
 
-`VaultDeposit` transfiere una cantidad del activo de la bóveda desde tu cuenta a la pseudo-cuenta del [Vault](/objects/Vault) y, a cambio, la pseudo-cuenta te entrega shares: un [MPToken](/objects/MPToken) de la emisión `ShareMPTID`. Las shares representan tu parte proporcional del valor total de la bóveda. Cuando el fondo gana (por ejemplo, intereses de préstamos) cada share vale más activos; cuando pierde, menos.
+`VaultDeposit` transfers an amount of the vault's asset from your account to the [Vault](/objects/Vault)'s pseudo-account and, in exchange, the pseudo-account hands you shares: an [MPToken](/objects/MPToken) of the `ShareMPTID` issuance. The shares represent your proportional stake in the vault's total value. When the fund gains (for example, loan interest), each share is worth more assets; when it loses, less.
 
-Si es tu primer depósito, la transacción crea automáticamente el `MPToken` de shares en tu cuenta (consume 1 unidad de owner reserve). En bóvedas privadas, además, necesitas cumplir el dominio permisionado salvo que seas el owner.
+If this is your first deposit, the transaction automatically creates the shares `MPToken` in your account (consuming 1 unit of owner reserve). In private vaults, you also need to satisfy the permissioned domain unless you're the owner.
 
-## Cuándo usarlo
+## When to use it
 
-- Aportar liquidez a un fondo de préstamos (XLS-66) y obtener rendimiento vía las shares.
-- Participar en una bóveda privada para la que tienes credenciales del [PermissionedDomain](/objects/PermissionedDomain).
-- Cualquier escenario en el que quieras convertir un activo en una participación fungible y transferible (si el owner no marcó `tfVaultShareNonTransferable`).
+- Contributing liquidity to a lending fund (XLS-66) and earning yield via the shares.
+- Participating in a private vault for which you hold credentials from the [PermissionedDomain](/objects/PermissionedDomain).
+- Any scenario where you want to convert an asset into a fungible, transferable stake (if the owner didn't set `tfVaultShareNonTransferable`).
 
-## Cómo funciona por dentro
+## How it works inside
 
-`VaultDeposit::preflight` (validación estática): `temMALFORMED` si `VaultID` es cero; `temBAD_AMOUNT` si `Amount` es cero o negativo.
+`VaultDeposit::preflight` (static validation): `temMALFORMED` if `VaultID` is zero; `temBAD_AMOUNT` if `Amount` is zero or negative.
 
-`VaultDeposit::preclaim` (contra el ledger):
-- Busca el Vault (`tecNO_ENTRY`). Con [LendingProtocolV1_1](/amendments/LendingProtocolV1_1), una bóveda cerrada en fase de inversión o de redención rechaza depósitos con `tecEXPIRED`.
-- `Amount` debe ser exactamente el `Asset` de la bóveda (`tecWRONG_ASSET`); no puedes depositar shares.
-- `canTransfer` comprueba que el activo puede moverse de ti a la pseudo-cuenta (para MPT, `lsfMPTCanTransfer`; para IOU, rippling y freeze).
-- Con [fixCleanup3_3_0](/amendments/fixCleanup3_3_0) (activo en testnet), `checkDepositFreeze` rechaza si el activo está congelado globalmente o para ti (`tecFROZEN` en IOU, `tecLOCKED` en MPT).
-- Si la bóveda es privada y no eres el owner, `checkVaultDomain` valida que tienes una credencial aceptada del `DomainID` de la emisión de shares; sin dominio devuelve `tecNO_AUTH`. Una credencial caducada se tolera aquí porque `doApply` la borra.
-- `requireAuth`: si el activo es un MPT necesitas ya tener el MPToken (y estar autorizado si la emisión lo exige).
-- Con [fixCleanup3_2_0](/amendments/fixCleanup3_2_0), el importe se redondea hacia abajo a la escala del `AssetsTotal`; si queda a cero, `tecPRECISION_LOSS`. Después comprueba que tu saldo cubre el importe (`tecINSUFFICIENT_FUNDS`).
+`VaultDeposit::preclaim` (against the ledger):
+- Looks up the Vault (`tecNO_ENTRY`). With [LendingProtocolV1_1](/amendments/LendingProtocolV1_1), a closed-ended vault in its investment or redemption phase rejects deposits with `tecEXPIRED`.
+- `Amount` must exactly be the vault's `Asset` (`tecWRONG_ASSET`); you can't deposit shares.
+- `canTransfer` checks that the asset can move from you to the pseudo-account (for MPT, `lsfMPTCanTransfer`; for IOU, rippling and freeze).
+- With [fixCleanup3_3_0](/amendments/fixCleanup3_3_0) (active on testnet), `checkDepositFreeze` rejects if the asset is frozen globally or for you (`tecFROZEN` for IOU, `tecLOCKED` for MPT).
+- If the vault is private and you're not the owner, `checkVaultDomain` verifies that you hold an accepted credential for the share issuance's `DomainID`; without a domain, it returns `tecNO_AUTH`. An expired credential is tolerated here because `doApply` deletes it.
+- `requireAuth`: if the asset is an MPT you already need to have the MPToken (and be authorized if the issuance requires it).
+- With [fixCleanup3_2_0](/amendments/fixCleanup3_2_0), the amount is rounded down to `AssetsTotal`'s scale; if it comes out to zero, `tecPRECISION_LOSS`. It then checks that your balance covers the amount (`tecINSUFFICIENT_FUNDS`).
 
-`VaultDeposit::doApply`: si eres owner o la bóveda es pública, crea tu `MPToken` de shares si no existe; si es privada y no eres owner, `enforceMPTokenAuthorization` te autoriza contra el dominio. Luego calcula las shares con `assetsToSharesDeposit` (`VaultHelpers.cpp`): si `AssetsTotal` es 0, shares = importe × 10^`Scale` truncado; si no, shares = `OutstandingAmount` × importe / `AssetsTotal`, truncado a entero. Si sale 0 shares, `tecPRECISION_LOSS`. Convierte esas shares de vuelta a activos para cobrarte solo lo que valen realmente (nunca más de lo ofrecido). Suma el resultado a `AssetsTotal` y `AssetsAvailable`, y si `AssetsMaximum` ≠ 0 y el nuevo total lo supera, `tecLIMIT_EXCEEDED`. Finalmente mueve los activos de ti a la pseudo-cuenta y las shares de la pseudo-cuenta a ti, ambos sin transfer fee (`WaiveTransferFee::Yes`). Un desbordamiento numérico con escalas grandes devuelve `tecPATH_DRY`.
+`VaultDeposit::doApply`: if you're the owner or the vault is public, it creates your shares `MPToken` if it doesn't exist; if it's private and you're not the owner, `enforceMPTokenAuthorization` authorizes you against the domain. It then computes the shares with `assetsToSharesDeposit` (`VaultHelpers.cpp`): if `AssetsTotal` is 0, shares = amount × 10^`Scale`, truncated; otherwise, shares = `OutstandingAmount` × amount / `AssetsTotal`, truncated to an integer. If that comes out to 0 shares, `tecPRECISION_LOSS`. It converts those shares back to assets to charge you only what they're actually worth (never more than what you offered). It adds the result to `AssetsTotal` and `AssetsAvailable`, and if `AssetsMaximum` ≠ 0 and the new total exceeds it, `tecLIMIT_EXCEEDED`. Finally it moves the assets from you to the pseudo-account and the shares from the pseudo-account to you, both without a transfer fee (`WaiveTransferFee::Yes`). A numeric overflow with large scales returns `tecPATH_DRY`.
 
-## Campos clave
+## Key fields
 
-- **VaultID** — `index` del objeto Vault.
-- **Amount** — cantidad del activo de la bóveda: drops si es XRP, `{currency, issuer, value}` si es IOU, `{mpt_issuance_id, value}` si es MPT. Lo que realmente se cobra puede ser algo menor por el truncado a shares enteras.
+- **VaultID** — the Vault object's `index`.
+- **Amount** — amount of the vault's asset: drops if XRP, `{currency, issuer, value}` if IOU, `{mpt_issuance_id, value}` if MPT. What's actually charged may be slightly less due to truncation to whole shares.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo en testnet; hoy es el único resultado posible.
-- **tecNO_ENTRY** — no existe una bóveda con ese `VaultID`.
-- **tecWRONG_ASSET** — `Amount` no es el activo de la bóveda (moneda o emisor distinto).
-- **tecINSUFFICIENT_FUNDS** — tu saldo del activo es menor que el importe.
-- **tecNO_AUTH / tecEXPIRED** — bóveda privada y no tienes credencial válida del dominio (o el dominio no está configurado).
-- **tecLIMIT_EXCEEDED** — el depósito superaría `AssetsMaximum`.
-- **tecPRECISION_LOSS** — el importe es tan pequeño que no genera ni una share entera.
-- **tecFROZEN / tecLOCKED** — el emisor ha congelado el activo.
+- **temDISABLED** — the amendment isn't active on testnet; today it's the only possible result.
+- **tecNO_ENTRY** — no vault exists with that `VaultID`.
+- **tecWRONG_ASSET** — `Amount` isn't the vault's asset (different currency or issuer).
+- **tecINSUFFICIENT_FUNDS** — your balance of the asset is less than the amount.
+- **tecNO_AUTH / tecEXPIRED** — the vault is private and you don't have a valid domain credential (or the domain isn't configured).
+- **tecLIMIT_EXCEEDED** — the deposit would exceed `AssetsMaximum`.
+- **tecPRECISION_LOSS** — the amount is so small it doesn't generate even one whole share.
+- **tecFROZEN / tecLOCKED** — the issuer has frozen the asset.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "VaultDeposit",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "VaultID": "0000000000000000000000000000000000000000000000000000000000000000",
   "Amount": "5000000"
 }
 ```
 
-Sustituye el `VaultID` de ceros por el `index` de la bóveda (el de ceros falla con `temMALFORMED`). `Amount` en drops porque el activo es XRP: 5 XRP.
+Replace the all-zero `VaultID` with the vault's `index` (the all-zero one fails with `temMALFORMED`). `Amount` is in drops because the asset is XRP: 5 XRP.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Hoy: envía el ejemplo desde el builder y obtendrás `temDISABLED`, porque `SingleAssetVault` no está habilitado en la red.
-2. Cuando el amendment se active: crea una bóveda de XRP con [VaultCreate](/tx/VaultCreate) y usa su `index` como `VaultID`.
-3. Envía el depósito. En los metadatos verás modificado el `Vault` (`AssetsTotal` y `AssetsAvailable` +5.000.000), la pseudo-cuenta con +5 XRP, y un `MPToken` creado o modificado en tu cuenta con `MPTAmount` = 5.000.000 shares (escala 0 al ser XRP y primer depósito).
-4. Consulta `account_objects` con `type: "mptoken"`: tu balance de shares. `ledger_entry` con `{"vault": "<VaultID>"}` muestra los totales.
-5. Haz un segundo depósito de otra cuenta y comprueba que recibe shares en la misma proporción.
+1. Today: send the example from the builder and you'll get `temDISABLED`, because `SingleAssetVault` isn't enabled on the network.
+2. Once the amendment is active: create an XRP vault with [VaultCreate](/tx/VaultCreate) and use its `index` as `VaultID`.
+3. Send the deposit. In the metadata you'll see the `Vault` modified (`AssetsTotal` and `AssetsAvailable` +5,000,000), the pseudo-account with +5 XRP, and an `MPToken` created or modified in your account with `MPTAmount` = 5,000,000 shares (scale 0 since it's XRP and the first deposit).
+4. Query `account_objects` with `type: "mptoken"`: your shares balance. `ledger_entry` with `{"vault": "<VaultID>"}` shows the totals.
+5. Make a second deposit from another account and verify it receives shares in the same proportion.
 
-## Relacionado
+## Related
 
 - [Vault](/objects/Vault), [MPToken](/objects/MPToken), [MPTokenIssuance](/objects/MPTokenIssuance)
 - [VaultCreate](/tx/VaultCreate), [VaultWithdraw](/tx/VaultWithdraw), [VaultClawback](/tx/VaultClawback)

@@ -1,47 +1,47 @@
 ---
 title: XChainOwnedClaimID
-summary: Un identificador de reclamación para un cruce de cadena vía puente: acumula las firmas (attestations) de los testigos hasta que hay suficientes para liberar los fondos.
+summary: A claim identifier for a cross-chain transfer via a bridge: it accumulates witness attestations until there are enough to release the funds.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/xchainownedclaimid
 createdBy: XChainCreateClaimID
 modifiedBy: XChainAddClaimAttestation, XChainClaim
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Cuando alguien mueve fondos de una cadena a otra a través de un [Bridge](/objects/Bridge) (por ejemplo, entre XRPL mainnet y una sidechain), el proceso no es atómico: primero se deposita en la cadena de origen ([XChainCommit](/tx/XChainCommit)), y luego hace falta que suficientes testigos (witness servers) atestigüen ese depósito en la cadena de destino antes de liberar los fondos. `XChainOwnedClaimID` es el contenedor de esas atestaciones para una operación concreta: mientras no se junten suficientes firmas (según el quórum configurado en el `Bridge`), los fondos no se liberan.
+When someone moves funds from one chain to another through a [Bridge](/objects/Bridge) (for example, between XRPL mainnet and a sidechain), the process is not atomic: first a deposit is made on the source chain ([XChainCommit](/tx/XChainCommit)), and then enough witnesses (witness servers) need to attest to that deposit on the destination chain before the funds are released. `XChainOwnedClaimID` is the container for those attestations for a specific operation: until enough signatures come together (according to the quorum configured on the `Bridge`), the funds are not released.
 
-El `XChainClaimID` en sí (un número) no lo elige el usuario: lo asigna la cadena de destino de forma incremental al crear el objeto.
+The `XChainClaimID` itself (a number) is not chosen by the user: it is assigned incrementally by the destination chain when the object is created.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [XChainCreateClaimID](/tx/XChainCreateClaimID), en la cadena de destino, antes de depositar en origen. Fija `OtherChainSource` (quién va a depositar en la cadena de origen) y paga `SignatureReward` por adelantado, la recompensa que se repartirá entre los testigos que atestigüen correctamente.
-- **Acumulación de firmas**: [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation), enviado por cada testigo (normalmente de forma automática por el software de witness), añade una entrada a `XChainClaimAttestations` con su firma sobre el depósito observado en la cadena de origen.
-- **Liberación**: [XChainClaim](/tx/XChainClaim), por el beneficiario, una vez `XChainClaimAttestations` alcanza el quórum. Libera los fondos hacia el destino final y borra el objeto.
-- **Borrado en cascada**: [AccountDelete](/tx/AccountDelete) del `Account` falla si aún tiene claim IDs pendientes sin resolver.
+- **Creation**: [XChainCreateClaimID](/tx/XChainCreateClaimID), on the destination chain, before depositing on the source chain. Sets `OtherChainSource` (who is going to deposit on the source chain) and pays `SignatureReward` in advance, the reward that will be distributed among the witnesses who attest correctly.
+- **Signature accumulation**: [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation), sent by each witness (normally automatically by the witness software), adds an entry to `XChainClaimAttestations` with its signature over the deposit observed on the source chain.
+- **Release**: [XChainClaim](/tx/XChainClaim), by the beneficiary, once `XChainClaimAttestations` reaches the quorum. Releases the funds to the final destination and deletes the object.
+- **Cascading deletion**: [AccountDelete](/tx/AccountDelete) of the `Account` fails if it still has unresolved pending claim IDs.
 
-## Campos clave
+## Key fields
 
-- **Account** — quien creó el claim ID en la cadena de destino (no necesariamente el beneficiario final).
-- **XChainBridge** — qué puente (par de cuentas puerta y monedas en ambas cadenas) usa esta reclamación.
-- **XChainClaimID** — número asignado secuencialmente por la cadena de destino; junto con `XChainBridge` forma la clave del objeto.
-- **OtherChainSource** — la cuenta que se espera que deposite en la cadena de origen; solo sus atestaciones de depósito son válidas para este claim ID.
-- **XChainClaimAttestations** — array de firmas de testigos recibidas hasta ahora, cada una con el testigo, el importe observado y su firma.
-- **SignatureReward** — recompensa pagada por adelantado, repartida entre los testigos cuyas atestaciones se usan para completar el quórum.
+- **Account** — who created the claim ID on the destination chain (not necessarily the final beneficiary).
+- **XChainBridge** — which bridge (pair of door accounts and currencies on both chains) this claim uses.
+- **XChainClaimID** — number assigned sequentially by the destination chain; together with `XChainBridge` it forms the object's key.
+- **OtherChainSource** — the account expected to deposit on the source chain; only its deposit attestations are valid for this claim ID.
+- **XChainClaimAttestations** — array of witness signatures received so far, each with the witness, the observed amount and its signature.
+- **SignatureReward** — reward paid in advance, distributed among the witnesses whose attestations are used to complete the quorum.
 
 ## Flags
 
-No tiene flags `lsf*`.
+It has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "xchain_owned_claim_id"` lo devuelve para `Account`. Con `ledger_entry`, `xchain_owned_claim_id` acepta los campos del `bridge` (`locking_chain_door`, `locking_chain_issue`, `issuing_chain_door`, `issuing_chain_issue`) más `xchain_owned_claim_id` con el número:
+`account_objects` with `type: "xchain_owned_claim_id"` returns it for `Account`. With `ledger_entry`, `xchain_owned_claim_id` accepts the `bridge` fields (`locking_chain_door`, `locking_chain_issue`, `issuing_chain_door`, `issuing_chain_issue`) plus `xchain_owned_claim_id` with the number:
 
 ```json
 { "method": "ledger_entry", "params": [{ "xchain_owned_claim_id": { "locking_chain_door": "rLockingChainDoorAddress", "locking_chain_issue": { "currency": "XRP" }, "issuing_chain_door": "rIssuingChainDoorAddress", "issuing_chain_issue": { "currency": "XRP" }, "xchain_owned_claim_id": 1 }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x0051 || puerta_origen || activo_origen || puerta_destino || activo_destino || XChainClaimID)` (`keylet::xChainClaimID`, namespace `'Q'`). Respuesta típica:
+The index is `SHA512Half(0x0051 || source_door || source_asset || destination_door || destination_asset || XChainClaimID)` (`keylet::xChainClaimID`, namespace `'Q'`). Typical response:
 
 ```json
 {
@@ -59,11 +59,11 @@ El índice es `SHA512Half(0x0051 || puerta_origen || activo_origen || puerta_des
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 1 unidad de reserva de propietario (0,2 XRP en testnet) de `Account`.
+Consumes 1 owner reserve unit (0.2 XRP on testnet) from `Account`.
 
-## Relacionado
+## Related
 
 - [XChainCreateClaimID](/tx/XChainCreateClaimID), [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation), [XChainClaim](/tx/XChainClaim), [XChainCommit](/tx/XChainCommit)
 - [Bridge](/objects/Bridge), [XChainOwnedCreateAccountClaimID](/objects/XChainOwnedCreateAccountClaimID)

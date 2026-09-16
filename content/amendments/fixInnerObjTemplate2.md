@@ -1,19 +1,19 @@
 ---
 title: fixInnerObjTemplate2
-summary: Extiende a todos los objetos internos restantes la aplicación de su plantilla de campos al crearse.
+summary: Extends field template application at creation time to all remaining inner objects.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixinnerobjtemplate2
 ---
 
-## Qué cambia
+## What changes
 
-`fixInnerObjTemplate` ya había corregido la aplicación de plantillas a los objetos internos del slot de subasta de AMM, pero dejaba fuera al resto de objetos internos con plantilla registrada en `InnerObjectFormats` (por ejemplo `SignerEntry`, `Signer`, `Majority`, `DisabledValidator` o `NFToken`). En `STObject::makeInnerObject`, el código solo forzaba la plantilla cuando no había reglas de amendment disponibles o cuando el objeto era el de AMM; en el resto de casos, un objeto interno recién creado podía quedar sin sus campos por defecto (`SoeDefault`) fijados hasta que se le asignaran explícitamente.
+`fixInnerObjTemplate` had already fixed template application for the inner objects of the AMM auction slot, but left out the rest of the inner objects with a registered template in `InnerObjectFormats` (for example `SignerEntry`, `Signer`, `Majority`, `DisabledValidator`, or `NFToken`). In `STObject::makeInnerObject`, the code only forced the template when no amendment rules were available or when the object was the AMM one; in all other cases, a newly created inner object could end up without its default fields (`SoeDefault`) set until they were explicitly assigned.
 
-Con `fixInnerObjTemplate2` activo, `makeInnerObject` aplica la plantilla correspondiente a cualquier objeto interno con formato registrado, no solo a los de AMM. Esto estandariza el comportamiento: todo objeto interno nace ya con sus campos obligatorios y por defecto correctamente inicializados según su `SOTemplate`, evitando estados intermedios inconsistentes que podían provocar excepciones al leer campos no fijados.
+With `fixInnerObjTemplate2` active, `makeInnerObject` applies the corresponding template to any inner object with a registered format, not just AMM ones. This standardizes the behavior: every inner object is now created with its required and default fields correctly initialized according to its `SOTemplate`, avoiding inconsistent intermediate states that could cause exceptions when reading unset fields.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Objetos internos definidos en `InnerObjectFormats`: `SignerEntry` en [SignerListSet](/tx/SignerListSet) y [SignerList](/objects/SignerList), `Majority` y `DisabledValidator` en el [Amendments](/objects/Amendments), `NFToken` en las páginas de NFT, y las entradas de atestación en los puentes cross-chain.
+- Inner objects defined in `InnerObjectFormats`: `SignerEntry` in [SignerListSet](/tx/SignerListSet) and [SignerList](/objects/SignerList), `Majority` and `DisabledValidator` in [Amendments](/objects/Amendments), `NFToken` in NFT pages, and the attestation entries in cross-chain bridges.
 
-## Estado y contexto
+## Status and context
 
-Es el segundo de dos fixes consecutivos sobre el mismo problema estructural en `STObject`. Corrige un descuido de cobertura del primer fix: no todos los objetos internos recibían el mismo tratamiento. El amendment ya está retirado en el código; la aplicación universal de plantillas a objetos internos es hoy el comportamiento único.
+This is the second of two consecutive fixes for the same structural problem in `STObject`. It fixes a coverage gap left by the first fix: not all inner objects received the same treatment. The amendment is already retired in the code; universal template application to inner objects is now the only behavior.

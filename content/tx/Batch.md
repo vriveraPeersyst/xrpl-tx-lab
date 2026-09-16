@@ -89,7 +89,7 @@ Two amendment-related nuances: the envelope cannot carry `spfSponsorReserve` and
         "TransactionType": "Payment",
         "Flags": 1073741824,
         "Account": "rXXXX_YOUR_ACCOUNT",
-        "Destination": "rZZZZ_EMISOR",
+        "Destination": "rZZZZ_ISSUER",
         "Amount": "1000000",
         "Sequence": 12347,
         "Fee": "0",

@@ -1,22 +1,22 @@
 ---
 title: fixNonFungibleTokensV1_2
-summary: Agrupa varias correcciones al soporte original de NFT, entre ellas evitar tokens imposibles de quemar y errores en el brokering de ofertas.
+summary: Bundles several fixes to the original NFT support, including preventing tokens that could not be burned and errors in offer brokering.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixnonfungibletokensv1_2
 ---
 
-## Qué cambia
+## What changes
 
-Tras la primera versión del soporte de NFT en XRPL (NonFungibleTokensV1_1), se detectaron varios fallos que este fix corrige de forma conjunta: NFT que quedaban en la práctica imposibles de quemar bajo ciertas condiciones de ofertas asociadas, errores en la lógica de brokering al hacer coincidir una oferta de compra y una de venta a través de un tercero, un tratamiento incorrecto de las comisiones de transferencia (`TransferRate`) del emisor en algunos flujos de venta, y la imposibilidad de que un emisor comerciara con sus propios NFT. También cierra la posibilidad de que, mediante brokering, una misma cuenta ejecutara una operación consigo misma para manipular el estado de sus ofertas.
+After the first version of NFT support on XRPL (NonFungibleTokensV1_1), several issues were found that this fix addresses together: NFTs that became effectively impossible to burn under certain associated-offer conditions, errors in the brokering logic when matching a buy offer and a sell offer through a third party, incorrect handling of the issuer's transfer fees (`TransferRate`) in some sale flows, and the inability of an issuer to trade its own NFTs. It also closes the possibility that, through brokering, the same account could execute an operation with itself to manipulate the state of its offers.
 
-Al ser un paquete de fixes sobre el mismo subsistema, no introduce campos u objetos nuevos: ajusta la lógica interna de [NFTokenBurn](/tx/NFTokenBurn), [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer) y [NFTokenCreateOffer](/tx/NFTokenCreateOffer) para que se comporten según lo previsto en los casos límite descritos.
+Being a package of fixes to the same subsystem, it does not introduce new fields or objects: it adjusts the internal logic of [NFTokenBurn](/tx/NFTokenBurn), [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), and [NFTokenCreateOffer](/tx/NFTokenCreateOffer) so they behave as intended in the edge cases described.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [NFTokenBurn](/tx/NFTokenBurn): garantiza que un NFT con ofertas activas se pueda quemar correctamente.
-- [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): corrige el brokering (emparejamiento de oferta de compra y venta por un tercero) y la aplicación de `TransferRate`.
-- [NFTokenCreateOffer](/tx/NFTokenCreateOffer): permite al emisor operar con sus propios tokens y evita el auto-trading vía brokering.
-- [NFTokenOffer](/objects/NFTokenOffer): objeto sobre el que actúan estas correcciones.
+- [NFTokenBurn](/tx/NFTokenBurn): ensures an NFT with active offers can be burned correctly.
+- [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): fixes brokering (matching a buy and a sell offer through a third party) and the application of `TransferRate`.
+- [NFTokenCreateOffer](/tx/NFTokenCreateOffer): allows the issuer to trade its own tokens and prevents self-trading via brokering.
+- [NFTokenOffer](/objects/NFTokenOffer): object affected by these fixes.
 
-## Estado y contexto
+## Status and context
 
-Es un fix de consolidación: llegó poco después del lanzamiento de las NFT en mainnet para resolver de golpe varios bugs de comportamiento descubiertos en producción, antes de que el ecosistema de marketplaces y wallets se asentara sobre un comportamiento defectuoso.
+This is a consolidation fix: it arrived shortly after NFTs launched on mainnet to resolve several behavioral bugs discovered in production all at once, before the marketplace and wallet ecosystem settled on faulty behavior.

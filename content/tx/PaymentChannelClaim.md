@@ -1,84 +1,84 @@
 ---
 title: PaymentChannelClaim
-summary: Cobra XRP de un canal de pago presentando un claim firmado, o solicita su cierre (tfClose) o la retirada de su expiración (tfRenew).
+summary: Claims XRP from a payment channel by presenting a signed claim, or requests its closure (tfClose) or the removal of its expiration (tfRenew).
 category: canales
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/paymentchannelclaim
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-`PaymentChannelClaim` es la transacción con la que se liquida un [PayChannel](/objects/PayChannel). Tiene tres usos que se pueden combinar:
+`PaymentChannelClaim` is the transaction used to settle a [PayChannel](/objects/PayChannel). It has three uses that can be combined:
 
-1. **Cobrar**: el destinatario presenta `Balance` (el total acumulado autorizado) junto con la `Signature` que el propietario generó off-ledger y la `PublicKey` del canal. El ledger paga la diferencia entre ese `Balance` y lo ya cobrado. El propietario también puede enviar `Balance` sin firma para pagar directamente.
-2. **Cerrar** (`tfClose`): el destinatario cierra el canal al instante; el propietario solo puede programar el cierre para dentro de `SettleDelay` segundos.
-3. **Renovar** (`tfRenew`): el propietario elimina la `Expiration` que hubiese fijado.
+1. **Claim**: the recipient presents `Balance` (the total accumulated authorized amount) together with the `Signature` the owner generated off-ledger and the channel's `PublicKey`. The ledger pays the difference between that `Balance` and what's already been claimed. The owner can also send `Balance` without a signature to pay directly.
+2. **Close** (`tfClose`): the recipient closes the channel instantly; the owner can only schedule the close for `SettleDelay` seconds later.
+3. **Renew** (`tfRenew`): the owner removes any `Expiration` that had been set.
 
-Al cerrarse el canal, el XRP no reclamado vuelve al propietario y el objeto se borra de los directorios de ambas cuentas.
+When the channel closes, the unclaimed XRP returns to the owner and the object is removed from both accounts' directories.
 
-Cualquiera de estas acciones sobre un canal ya expirado lo cierra sin hacer nada más.
+Any of these actions on an already-expired channel simply closes it without doing anything else.
 
-## Cuándo usarlo
+## When to use it
 
-- El destinatario quiere liquidar lo acumulado en claims sin esperar a que el canal se cierre.
-- El propietario quiere pagar directamente por el canal sin generar una firma.
-- Cualquiera de los dos quiere terminar la relación: el receptor cerrando en el acto, el propietario iniciando la cuenta atrás.
+- The recipient wants to settle what's accumulated in claims without waiting for the channel to close.
+- The owner wants to pay directly through the channel without generating a signature.
+- Either party wants to end the relationship: the recipient by closing on the spot, the owner by starting the countdown.
 
-## Cómo funciona por dentro
+## How it works inside
 
 **`PaymentChannelClaim::preflight`**:
-- `Channel` a cero → `temMALFORMED` (con `fixCleanup3_2_0`, activo).
-- `Balance` y `Amount`, si aparecen, deben ser XRP positivos, y `Balance ≤ Amount`; si no, `temBAD_AMOUNT`.
-- `tfClose` y `tfRenew` a la vez → `temMALFORMED`.
-- Si hay `Signature`, exige `PublicKey` y `Balance`; verifica criptográficamente la firma sobre el mensaje `serializePayChanAuthorization(channelID, Amount o Balance)`. Una firma que no valida devuelve `temBAD_SIGNATURE`. Nótese que aquí se firma el importe `Amount` (si lo das) y se cobra `Balance`; por eso `Balance` no puede superar `Amount`.
-- Valida el formato de `CredentialIDs` si se incluyen.
+- `Channel` set to zero → `temMALFORMED` (with `fixCleanup3_2_0`, active).
+- `Balance` and `Amount`, if present, must be positive XRP amounts, with `Balance ≤ Amount`; otherwise `temBAD_AMOUNT`.
+- `tfClose` and `tfRenew` together → `temMALFORMED`.
+- If `Signature` is present, it requires `PublicKey` and `Balance`; it cryptographically verifies the signature over the message `serializePayChanAuthorization(channelID, Amount or Balance)`. A signature that doesn't validate returns `temBAD_SIGNATURE`. Note that the amount signed here is `Amount` (if you provide it) while what's claimed is `Balance`; that's why `Balance` can't exceed `Amount`.
+- Validates the format of `CredentialIDs` if included.
 
-**`PaymentChannelClaim::preclaim`**: con [Credentials](/amendments/Credentials) activo, comprueba que las credenciales indicadas existen, están aceptadas y pertenecen al firmante (`credentials::valid`).
+**`PaymentChannelClaim::preclaim`**: with [Credentials](/amendments/Credentials) active, checks that the given credentials exist, are accepted, and belong to the signer (`credentials::valid`).
 
 **`PaymentChannelClaim::doApply`**:
-1. Busca el canal; si no existe, `tecNO_TARGET`.
-2. Si ha expirado por `CancelAfter` o `Expiration`, lo cierra (`closeChannel`) y termina.
-3. Si `Account` no es ni el propietario ni el destinatario → `tecNO_PERMISSION`.
-4. Si hay `Balance`:
-   - El destinatario sin `Signature` recibe `tecNO_PERMISSION`.
-   - La `PublicKey` de la transacción debe coincidir con la del canal; si no, `tecNO_PERMISSION` (antes de `fixCleanup3_2_0` eran `temBAD_SIGNATURE`/`temBAD_SIGNER`).
-   - `Balance` mayor que los fondos del canal → `tecUNFUNDED_PAYMENT`. `Balance` menor o igual que lo ya cobrado → también `tecUNFUNDED_PAYMENT`: un claim viejo no sirve.
-   - El destinatario debe existir (`tecNO_DST`) y aceptar el depósito: `verifyDepositPreauth` aplica [DepositAuth](/amendments/DepositAuth); si el receptor tiene `lsfDepositAuth`, el propietario necesita preautorización o credenciales válidas, salvo que sea el propio receptor quien cobra.
-   - Actualiza `Balance` del canal y abona la diferencia al destinatario.
-5. `tfRenew`: solo el propietario (`tecNO_PERMISSION` en otro caso); borra `Expiration`.
-6. `tfClose`: si lo envía el destinatario, o si el canal está seco (`Balance == Amount`), se cierra de inmediato. Si lo envía el propietario, fija `Expiration = cierre del ledger padre + SettleDelay` (salvo que ya hubiese una anterior). El cierre real ocurre en la siguiente transacción que toque el canal después de esa fecha.
+1. Looks up the channel; if it doesn't exist, `tecNO_TARGET`.
+2. If it has expired via `CancelAfter` or `Expiration`, it closes it (`closeChannel`) and stops there.
+3. If `Account` is neither the owner nor the recipient → `tecNO_PERMISSION`.
+4. If `Balance` is present:
+   - The recipient without `Signature` gets `tecNO_PERMISSION`.
+   - The transaction's `PublicKey` must match the channel's; otherwise `tecNO_PERMISSION` (before `fixCleanup3_2_0` these were `temBAD_SIGNATURE`/`temBAD_SIGNER`).
+   - `Balance` greater than the channel's funds → `tecUNFUNDED_PAYMENT`. `Balance` less than or equal to what's already claimed → also `tecUNFUNDED_PAYMENT`: a stale claim doesn't work.
+   - The recipient must exist (`tecNO_DST`) and accept the deposit: `verifyDepositPreauth` applies [DepositAuth](/amendments/DepositAuth); if the recipient has `lsfDepositAuth`, the owner needs preauthorization or valid credentials, unless it's the recipient itself doing the claiming.
+   - Updates the channel's `Balance` and pays the difference to the recipient.
+5. `tfRenew`: owner only (`tecNO_PERMISSION` otherwise); clears `Expiration`.
+6. `tfClose`: if sent by the recipient, or if the channel is drained (`Balance == Amount`), it closes immediately. If sent by the owner, it sets `Expiration = parent ledger close + SettleDelay` (unless one was already set earlier). The actual close happens on the next transaction that touches the channel after that date.
 
-Amendments que influyen: [fixCleanup3_2_0](/amendments/fixCleanup3_2_0) (códigos `tec` en vez de `tem` para fallos de firma en `doApply`), [Credentials](/amendments/Credentials), [DepositAuth](/amendments/DepositAuth), [DepositPreauth](/amendments/DepositPreauth).
+Amendments that affect this: [fixCleanup3_2_0](/amendments/fixCleanup3_2_0) (`tec` codes instead of `tem` for signature failures in `doApply`), [Credentials](/amendments/Credentials), [DepositAuth](/amendments/DepositAuth), [DepositPreauth](/amendments/DepositPreauth).
 
-## Campos clave
+## Key fields
 
-- **Channel** — ID del canal (64 hex).
-- **Balance** — total acumulado que se reclama, no el incremento. El ledger abona `Balance − balance_anterior`. Debe ser mayor que lo ya cobrado y no superar `Amount` del canal.
-- **Amount** — importe que cubre la firma. Si lo omites, la firma se verifica sobre `Balance`. Permite reutilizar una firma de X para cobrar menos de X.
-- **Signature** — firma hex del claim generada off-ledger (`channel_authorize` en un nodo propio, o una librería cliente). No es la firma de la transacción.
-- **PublicKey** — debe ser exactamente la `PublicKey` del canal.
-- **CredentialIDs** — credenciales para superar el `DepositAuth` del destinatario.
+- **Channel** — the channel's ID (64 hex characters).
+- **Balance** — the total accumulated amount being claimed, not the increment. The ledger pays `Balance − previous_balance`. Must be greater than what's already claimed and not exceed the channel's `Amount`.
+- **Amount** — the amount the signature covers. If omitted, the signature is verified against `Balance`. Lets you reuse a signature for X to claim less than X.
+- **Signature** — the hex signature of the claim generated off-ledger (`channel_authorize` on your own node, or a client library). Not the transaction's own signature.
+- **PublicKey** — must exactly match the channel's `PublicKey`.
+- **CredentialIDs** — credentials to satisfy the recipient's `DepositAuth`.
 
 ## Flags
 
-- **tfRenew** — elimina `Expiration`. Solo el propietario.
-- **tfClose** — cierre inmediato si lo pide el destinatario o el canal está seco; cierre diferido `SettleDelay` segundos si lo pide el propietario.
+- **tfRenew** — removes `Expiration`. Owner only.
+- **tfClose** — immediate close if requested by the recipient or if the channel is drained; deferred close (`SettleDelay` seconds) if requested by the owner.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_TARGET** — el `Channel` no existe o ya se cerró.
-- **tecNO_PERMISSION** — no eres parte del canal, `PublicKey` no coincide, el destinatario reclama sin `Signature`, o `tfRenew` desde el destinatario.
-- **tecUNFUNDED_PAYMENT** — `Balance` supera los fondos del canal o no es mayor que lo ya cobrado.
-- **temBAD_SIGNATURE** — la firma no valida contra `PublicKey` y el importe (`Amount` o `Balance`). Suele ser un `Amount` distinto del firmado.
-- **temBAD_AMOUNT** — importes no XRP, cero, o `Balance > Amount`.
-- **tecNO_DST** — el destinatario borró su cuenta.
+- **tecNO_TARGET** — the `Channel` doesn't exist or has already closed.
+- **tecNO_PERMISSION** — you're not party to the channel, `PublicKey` doesn't match, the recipient is claiming without `Signature`, or `tfRenew` was sent by the recipient.
+- **tecUNFUNDED_PAYMENT** — `Balance` exceeds the channel's funds or isn't greater than what's already claimed.
+- **temBAD_SIGNATURE** — the signature doesn't validate against `PublicKey` and the amount (`Amount` or `Balance`). Usually caused by an `Amount` different from the one signed.
+- **temBAD_AMOUNT** — non-XRP amounts, zero, or `Balance > Amount`.
+- **tecNO_DST** — the recipient deleted their account.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "PaymentChannelClaim",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "Channel": "C1AE6DDDEEC05CF2978C0BAD6FE302948E9533691DC749DCDD3B9E5992CA6198",
   "Balance": "1000000",
   "Amount": "1000000",
@@ -87,17 +87,17 @@ Amendments que influyen: [fixCleanup3_2_0](/amendments/fixCleanup3_2_0) (código
 }
 ```
 
-Es la forma que usa el destinatario: rellena `Signature` con la firma real del claim. Si eres el **propietario** y pagas directamente, elimina `Signature`, `PublicKey` y `Amount`: una `Signature` presente (aunque esté vacía) se verifica en `preflight` y, si no valida, la transacción se rechaza con `temBAD_SIGNATURE`.
+This is the form used by the recipient: fill `Signature` with the actual claim signature. If you're the **owner** paying directly, remove `Signature`, `PublicKey`, and `Amount`: a present `Signature` (even an empty one) is verified in `preflight` and, if it doesn't validate, the transaction is rejected with `temBAD_SIGNATURE`.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Abre un canal de 5 XRP con [PaymentChannelCreate](/tx/PaymentChannelCreate) desde tu cuenta y copia el `channel_id`.
-2. **Pago directo del propietario**: envía `PaymentChannelClaim` con `Channel` y `Balance: "1000000"`, sin `Signature` ni `PublicKey`. En `account_channels` verás `balance: 1000000` y en `account_info` de la otra cuenta +1 XRP.
-3. Reenvía el mismo `Balance`: `tecUNFUNDED_PAYMENT`, porque el claim no aumenta lo ya cobrado.
-4. **Cobro por el destinatario**: genera la firma con `channel_authorize` (nodo propio) o una librería, y envía desde la otra cuenta `Balance`, `Amount`, `Signature` y `PublicKey`. Verifica antes con `channel_verify`.
-5. **Cierre**: desde la otra cuenta, envía `Flags: 131072` (`tfClose`) sin `Balance`: el canal desaparece de `account_channels` y tu saldo recupera los 4 XRP restantes. Desde tu cuenta, `tfClose` solo añade `expiration` al canal.
+1. Open a 5 XRP channel with [PaymentChannelCreate](/tx/PaymentChannelCreate) from your account and copy the `channel_id`.
+2. **Direct payment by the owner**: submit `PaymentChannelClaim` with `Channel` and `Balance: "1000000"`, without `Signature` or `PublicKey`. In `account_channels` you'll see `balance: 1000000` and in the other account's `account_info` a +1 XRP.
+3. Resubmit the same `Balance`: `tecUNFUNDED_PAYMENT`, because the claim doesn't increase what's already been claimed.
+4. **Claim by the recipient**: generate the signature with `channel_authorize` (your own node) or a library, and submit from the other account `Balance`, `Amount`, `Signature`, and `PublicKey`. Verify first with `channel_verify`.
+5. **Closing**: from the other account, submit `Flags: 131072` (`tfClose`) without `Balance`: the channel disappears from `account_channels` and your balance recovers the remaining 4 XRP. From your account, `tfClose` only adds an `expiration` to the channel.
 
-## Relacionado
+## Related
 
 - [PaymentChannelCreate](/tx/PaymentChannelCreate)
 - [PaymentChannelFund](/tx/PaymentChannelFund)

@@ -1,67 +1,67 @@
 ---
 title: UNLModify
-summary: Pseudo-transacción de la Negative UNL con la que la red marca a un validador como inactivo o lo rehabilita.
+summary: Negative UNL pseudo-transaction with which the network marks a validator as inactive or reinstates it.
 category: sistema
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/pseudo-transaction-types/unlmodify
 amendment: NegativeUNL
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-El XRPL necesita que más del 80 % de los validadores de confianza (la UNL) estén de acuerdo para validar un ledger. Si varios validadores se caen a la vez, la red podría dejar de avanzar. La *Negative UNL* es la solución: la propia red lleva una lista de validadores que llevan tiempo sin votar y los descuenta temporalmente del quórum, para que la ausencia de unos pocos no bloquee a todos.
+The XRPL needs more than 80% of the trusted validators (the UNL) to agree in order to validate a ledger. If several validators go down at once, the network could stop making progress. The *Negative UNL* is the solution: the network itself keeps a list of validators that have gone a while without voting, and temporarily excludes them from the quorum, so that the absence of a few doesn't block everyone else.
 
-`UNLModify` es la pseudo-transacción que actualiza esa lista, guardada en el objeto [NegativeUNL](/objects/NegativeUNL). Con `UNLModifyDisabling: 1` propone deshabilitar a un validador; con `0` propone rehabilitarlo. La propuesta no surte efecto de inmediato: se anota como `ValidatorToDisable` o `ValidatorToReEnable` y se hace efectiva en el siguiente flag ledger, 256 ledgers después.
+`UNLModify` is the pseudo-transaction that updates that list, stored in the [NegativeUNL](/objects/NegativeUNL) object. With `UNLModifyDisabling: 1` it proposes disabling a validator; with `0` it proposes re-enabling it. The proposal doesn't take effect immediately: it's recorded as `ValidatorToDisable` or `ValidatorToReEnable` and becomes effective at the next flag ledger, 256 ledgers later.
 
-Como todas las pseudo-transacciones, la emite el sistema con la cuenta nula, sin fee y sin firma; ninguna cuenta puede enviarla.
+Like all pseudo-transactions, it's issued by the system with the null account, no fee and no signature; no account can send it.
 
-## Cuándo usarlo
+## When to use it
 
-No se puede usar. Conviene entenderla para:
+It can't be used. It's worth understanding it in order to:
 
-- Interpretar `server_info` o `ledger_entry` (`nunl: true`) cuando ves validadores en `DisabledValidators`.
-- Saber que un validador deshabilitado sigue pudiendo validar; simplemente no cuenta para el quórum hasta que se rehabilite.
-- Entender la robustez de la red frente a caídas parciales: las reglas de voto (`NegativeUNLVote`) solo permiten listar hasta el 25 % de la UNL (`kNegativeUnlMaxListed`), deshabilitar a quien haya validado menos del 50 % de los últimos 256 ledgers y rehabilitar a quien vuelva a superar el 80 %.
+- Interpret `server_info` or `ledger_entry` (`nunl: true`) when you see validators in `DisabledValidators`.
+- Know that a disabled validator can still validate; it simply doesn't count toward the quorum until it's re-enabled.
+- Understand the network's robustness against partial outages: the voting rules (`NegativeUNLVote`) only allow listing up to 25% of the UNL (`kNegativeUnlMaxListed`), disabling anyone who has validated less than 50% of the last 256 ledgers, and re-enabling anyone who exceeds 80% again.
 
-## Cómo funciona por dentro
+## How it works inside
 
-Comparte el transactor `Change` (`src/libxrpl/tx/transactors/system/Change.cpp`) con [EnableAmendment](/tx/EnableAmendment) y [SetFee](/tx/SetFee).
+It shares the `Change` transactor (`src/libxrpl/tx/transactors/system/Change.cpp`) with [EnableAmendment](/tx/EnableAmendment) and [SetFee](/tx/SetFee).
 
-`Transactor::invokePreflight<Change>` impone la forma de toda pseudo-transacción: `Account` cero (`temBAD_SRC_ACCOUNT`), `Fee` 0 (`temBAD_FEE`), sin firma ni `Signers` (`temBAD_SIGNATURE`), `Sequence` 0 y sin `PreviousTxnID` (`temBAD_SEQUENCE`).
+`Transactor::invokePreflight<Change>` enforces the shape of every pseudo-transaction: `Account` zero (`temBAD_SRC_ACCOUNT`), `Fee` 0 (`temBAD_FEE`), no signature or `Signers` (`temBAD_SIGNATURE`), `Sequence` 0 and no `PreviousTxnID` (`temBAD_SEQUENCE`).
 
-`Change::preclaim` devuelve `temINVALID` si se intenta aplicar contra el ledger abierto; para `ttUNL_MODIFY` no valida nada más.
+`Change::preclaim` returns `temINVALID` if an attempt is made to apply it against the open ledger; for `ttUNL_MODIFY` it doesn't validate anything else.
 
-`Change::doApply` llama a `Change::applyUNLModify`, que hace todas las comprobaciones y responde `tefFAILURE` ante cualquier problema:
+`Change::doApply` calls `Change::applyUNLModify`, which performs all the checks and responds with `tefFAILURE` for any problem:
 
-1. El ledger debe ser un flag ledger (`isFlagLedger(view().seq())`, múltiplo de 256).
-2. Deben estar presentes `UNLModifyDisabling` (solo 0 o 1), `LedgerSequence` y `UNLModifyValidator`.
-3. `LedgerSequence` debe coincidir exactamente con el índice del ledger que se está cerrando.
-4. `UNLModifyValidator` debe ser una clave pública válida (`publicKeyType`).
-5. Lee (o crea) el objeto `NegativeUNL` y mira si el validador ya está en `DisabledValidators`.
-6. Para deshabilitar: no puede haber ya un `ValidatorToDisable` pendiente, el validador no puede ser el mismo que un `ValidatorToReEnable` pendiente y no puede estar ya en la lista. Si todo cuadra, escribe `ValidatorToDisable`.
-7. Para rehabilitar: simétrico. No puede haber ya un `ValidatorToReEnable`, no puede coincidir con `ValidatorToDisable` y el validador **debe** estar en la lista. Escribe `ValidatorToReEnable`.
+1. The ledger must be a flag ledger (`isFlagLedger(view().seq())`, a multiple of 256).
+2. `UNLModifyDisabling` (only 0 or 1), `LedgerSequence` and `UNLModifyValidator` must be present.
+3. `LedgerSequence` must exactly match the index of the ledger being closed.
+4. `UNLModifyValidator` must be a valid public key (`publicKeyType`).
+5. It reads (or creates) the `NegativeUNL` object and checks whether the validator is already in `DisabledValidators`.
+6. To disable: there can't already be a pending `ValidatorToDisable`, the validator can't be the same as a pending `ValidatorToReEnable`, and it can't already be in the list. If everything checks out, it writes `ValidatorToDisable`.
+7. To re-enable: symmetric. There can't already be a `ValidatorToReEnable`, it can't match `ValidatorToDisable`, and the validator **must** be in the list. It writes `ValidatorToReEnable`.
 
-De aquí se deduce que en cada flag ledger solo puede haber, como mucho, una propuesta de deshabilitar y una de rehabilitar. La aplicación efectiva (mover el validador a o desde `DisabledValidators`) ocurre al cerrar el siguiente flag ledger, fuera de este transactor.
+From this it follows that at each flag ledger there can be, at most, one proposal to disable and one to re-enable. The actual application (moving the validator to or from `DisabledValidators`) happens when the next flag ledger closes, outside this transactor.
 
-El amendment [NegativeUNL](/amendments/NegativeUNL) que introdujo todo esto está activo en testnet y el transactor ya no lo consulta.
+The [NegativeUNL](/amendments/NegativeUNL) amendment that introduced all of this is active on testnet, and the transactor no longer checks for it.
 
-## Campos clave
+## Key fields
 
-- **UNLModifyDisabling** — 1 para proponer deshabilitar, 0 para proponer rehabilitar. Cualquier otro valor es `tefFAILURE`.
-- **UNLModifyValidator** — clave pública del validador (hex, la misma que ves en `validators` o en `server_info`), no su dirección ni su dominio.
-- **LedgerSequence** — debe ser el índice del flag ledger en el que se incluye.
+- **UNLModifyDisabling** — 1 to propose disabling, 0 to propose re-enabling. Any other value is `tefFAILURE`.
+- **UNLModifyValidator** — the validator's public key (hex, the same one you see in `validators` or `server_info`), not its address or domain.
+- **LedgerSequence** — must be the index of the flag ledger it's included in.
 
-## Errores habituales
+## Common errors
 
-Solo aparecen en los logs de un validador (`N-UNL: applyUNLModify, ...`):
+These only appear in a validator's logs (`N-UNL: applyUNLModify, ...`):
 
-- **tefFAILURE** — cualquiera de las siete comprobaciones anteriores falla: no es flag ledger, `LedgerSequence` incorrecto, clave inválida, propuesta duplicada, deshabilitar a quien ya está listado o rehabilitar a quien no lo está.
-- **temINVALID** — se intentó aplicar contra el ledger abierto.
-- **temBAD_SRC_ACCOUNT, temBAD_FEE, temBAD_SIGNATURE, temBAD_SEQUENCE** — alguien intentó enviarla desde una cuenta normal.
+- **tefFAILURE** — any of the seven checks above fails: it's not a flag ledger, `LedgerSequence` is incorrect, the key is invalid, the proposal is duplicated, disabling someone already listed, or re-enabling someone who isn't.
+- **temINVALID** — an attempt was made to apply it against the open ledger.
+- **temBAD_SRC_ACCOUNT, temBAD_FEE, temBAD_SIGNATURE, temBAD_SEQUENCE** — someone tried to send it from a regular account.
 
-## Ejemplo
+## Example
 
-Así aparece en un flag ledger una propuesta de deshabilitar a un validador:
+This is how a proposal to disable a validator appears in a flag ledger:
 
 ```json
 {
@@ -76,10 +76,10 @@ Así aparece en un flag ledger una propuesta de deshabilitar a un validador:
 }
 ```
 
-No se puede enviar. Para observar la Negative UNL de testnet usa `ledger_entry` con `nunl: true` o mira el campo `validated_ledger` de `server_info`; lo habitual es que el objeto no exista o esté vacío, porque solo se crea cuando algún validador falla de forma sostenida.
+It can't be sent. To observe testnet's Negative UNL, use `ledger_entry` with `nunl: true` or check the `validated_ledger` field of `server_info`; typically the object doesn't exist or is empty, because it's only created when some validator fails in a sustained way.
 
-## Relacionado
+## Related
 
-- [NegativeUNL](/objects/NegativeUNL) — el objeto que modifica.
-- [EnableAmendment](/tx/EnableAmendment) y [SetFee](/tx/SetFee) — las otras pseudo-transacciones del transactor `Change`.
-- [NegativeUNL](/amendments/NegativeUNL) — amendment que introdujo el mecanismo.
+- [NegativeUNL](/objects/NegativeUNL) — the object it modifies.
+- [EnableAmendment](/tx/EnableAmendment) and [SetFee](/tx/SetFee) — the other pseudo-transactions of the `Change` transactor.
+- [NegativeUNL](/amendments/NegativeUNL) — the amendment that introduced this mechanism.

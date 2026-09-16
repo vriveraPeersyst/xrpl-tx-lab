@@ -1,44 +1,44 @@
 ---
 title: DepositPreauth
-summary: Autorización previa para que una cuenta concreta, o quien presente ciertas credenciales, pueda enviarte fondos aunque tengas DepositAuth activo.
+summary: Pre-authorization for a specific account, or for whoever presents certain credentials, to send you funds even though you have DepositAuth enabled.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/depositpreauth
 createdBy: DepositPreauth
 modifiedBy: DepositPreauth
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Cuando una cuenta activa `lsfDepositAuth` en su [AccountRoot](/objects/AccountRoot), nadie puede ingresarle fondos salvo ella misma. Un `DepositPreauth` es la excepción: una lista blanca. Hay dos variantes, según el campo que tenga:
+When an account enables `lsfDepositAuth` on its [AccountRoot](/objects/AccountRoot), no one can deposit funds into it except itself. A `DepositPreauth` is the exception: an allowlist. There are two variants, depending on which field is set:
 
-- **Por cuenta**: `Authorize` indica una dirección que sí puede pagarte.
-- **Por credenciales**: `AuthorizeCredentials` indica un conjunto de pares (`Issuer`, `CredentialType`). Cualquier cuenta que tenga todas esas credenciales aceptadas y no caducadas ([Credential](/objects/Credential)) puede pagarte, aportando sus `CredentialIDs` en la transacción.
+- **By account**: `Authorize` indicates an address that is allowed to pay you.
+- **By credentials**: `AuthorizeCredentials` indicates a set of (`Issuer`, `CredentialType`) pairs. Any account that holds all of those accepted, non-expired credentials ([Credential](/objects/Credential)) can pay you, supplying its `CredentialIDs` in the transaction.
 
-Lo consultan `Payment`, `EscrowFinish`, `PaymentChannelClaim`, `CheckCash` y `AccountDelete` cuando el destino tiene `lsfDepositAuth`.
+It's checked by `Payment`, `EscrowFinish`, `PaymentChannelClaim`, `CheckCash`, and `AccountDelete` when the destination has `lsfDepositAuth`.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [DepositPreauth](/tx/DepositPreauth) con `Authorize` o con `AuthorizeCredentials` (de 1 a 8 entradas, sin duplicados). `preclaim` comprueba que la cuenta autorizada exista y que no exista ya la misma preautorización; con credenciales, que cada emisor exista. `doApply` crea el objeto y suma 1 al `OwnerCount`.
-- **Modificación**: no existe. Para cambiarla la borras y la vuelves a crear.
-- **Borrado**: la misma transacción con `Unauthorize` o `UnauthorizeCredentials`. [AccountDelete](/tx/AccountDelete) la borra en cascada.
+- **Creation**: [DepositPreauth](/tx/DepositPreauth) with `Authorize` or with `AuthorizeCredentials` (1 to 8 entries, no duplicates). `preclaim` checks that the authorized account exists and that the same preauthorization doesn't already exist; with credentials, that each issuer exists. `doApply` creates the object and adds 1 to `OwnerCount`.
+- **Modification**: doesn't exist. To change it you delete it and create it again.
+- **Deletion**: the same transaction with `Unauthorize` or `UnauthorizeCredentials`. [AccountDelete](/tx/AccountDelete) deletes it in cascade.
 
-No hace falta tener `lsfDepositAuth` activo para crear preautorizaciones; puedes prepararlas antes de activar el flag.
+You don't need `lsfDepositAuth` enabled to create preauthorizations; you can set them up before enabling the flag.
 
-## Campos clave
+## Key fields
 
-- **Account** — quien concede la autorización (el receptor de los futuros pagos).
-- **Authorize** — la cuenta autorizada. Presente solo en la variante por cuenta.
-- **AuthorizeCredentials** — array de `Credential` con `Issuer` y `CredentialType`. Presente solo en la variante por credenciales. El orden no importa: la clave se calcula sobre los hashes ordenados.
+- **Account** — who grants the authorization (the recipient of the future payments).
+- **Authorize** — the authorized account. Present only in the account variant.
+- **AuthorizeCredentials** — array of `Credential` with `Issuer` and `CredentialType`. Present only in the credentials variant. Order doesn't matter: the key is computed over the sorted hashes.
 
-Las dos variantes tienen claves distintas (`keylet::depositPreauth` con dos parámetros o con el vector de credenciales), así que pueden coexistir.
+The two variants have different keys (`keylet::depositPreauth` with two parameters or with the credential vector), so they can coexist.
 
 ## Flags
 
-No tiene flags `lsf*`.
+Has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "deposit_preauth"`. Con `ledger_entry` pasa `owner` más `authorized` o `authorized_credentials` (exactamente uno de los dos):
+`account_objects` with `type: "deposit_preauth"`. With `ledger_entry`, pass `owner` plus `authorized` or `authorized_credentials` (exactly one of the two):
 
 ```json
 { "method": "ledger_entry", "params": [{ "deposit_preauth": { "owner": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "authorized": "rfkE1aSy9G8Upk4JssnwBxhEv5p4mn2KTy" }, "ledger_index": "validated" }] }
@@ -48,7 +48,7 @@ No tiene flags `lsf*`.
 { "method": "ledger_entry", "params": [{ "deposit_preauth": { "owner": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "authorized_credentials": [ { "issuer": "rIssuerKYCxxxxxxxxxxxxxxxxxxxxxxxxx", "credential_type": "4B5943" } ] }, "ledger_index": "validated" }] }
 ```
 
-La clave por cuenta es `SHA512Half(0x0070 || Account || Authorize)`; la clave por credenciales es `SHA512Half(0x0071 || Account || hashes_ordenados)`. Respuesta típica de la variante por cuenta:
+The account-based key is `SHA512Half(0x0070 || Account || Authorize)`; the credentials-based key is `SHA512Half(0x0071 || Account || sorted_hashes)`. Typical response for the account variant:
 
 ```json
 {
@@ -64,12 +64,15 @@ La clave por cuenta es `SHA512Half(0x0070 || Account || Authorize)`; la clave po
 }
 ```
 
-## Reserva
+## Reserve
 
-1 unidad de reserva de propietario por cada preautorización.
+1 owner reserve unit for each preauthorization.
 
-## Relacionado
+## Related
 
 - [DepositPreauth](/tx/DepositPreauth), [AccountSet](/tx/AccountSet), [Payment](/tx/Payment)
 - [Credential](/objects/Credential), [AccountRoot](/objects/AccountRoot), [PermissionedDomain](/objects/PermissionedDomain)
 - [DepositAuth](/amendments/DepositAuth), [DepositPreauth](/amendments/DepositPreauth), [Credentials](/amendments/Credentials)
+</content>
+</invoke>
+<parameter name="file_path">/Users/vrc-mini/Projects/Peersyst/peersyst-Workspace/xrpl-tx-lab/content/objects/DirectoryNode.md

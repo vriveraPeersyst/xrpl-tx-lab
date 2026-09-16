@@ -1,20 +1,20 @@
 ---
 title: fixTrustLinesToSelf
-summary: Borra dos trustlines de una cuenta consigo misma creadas por un bug antiguo y evita que puedan volver a crearse.
+summary: Deletes two trustlines from an account to itself created by an old bug and prevents them from being created again.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixtrustlinestoself
 ---
 
-## Qué cambia
+## What changes
 
-Una trustline (objeto [RippleState](/objects/RippleState)) representa una relación de confianza entre dos cuentas distintas para un token; no tiene sentido que una cuenta tenga una trustline consigo misma. Un bug antiguo permitió, en un número muy reducido de casos concretos, que llegaran a crearse trustlines de ese tipo, con la propia cuenta como emisor y como titular a la vez.
+A trustline (a [RippleState](/objects/RippleState) object) represents a trust relationship between two distinct accounts for a token; it makes no sense for an account to have a trustline with itself. An old bug allowed, in a very small number of specific cases, trustlines of that kind to be created, with the account itself as both issuer and holder.
 
-fixTrustLinesToSelf hace dos cosas al activarse: borra directamente del ledger las trustlines conocidas afectadas por ese bug (identificadas por su clave de objeto), y refuerza la validación en [TrustSet](/tx/TrustSet) para que una transacción que intente crear o modificar una trustline en la que `Account` y el emisor de `LimitAmount` coinciden se rechace, cerrando la vía que permitió el problema original.
+fixTrustLinesToSelf does two things when enabled: it directly deletes from the ledger the known trustlines affected by that bug (identified by their object key), and it strengthens validation in [TrustSet](/tx/TrustSet) so that a transaction attempting to create or modify a trustline where `Account` and the issuer of `LimitAmount` coincide is rejected, closing the avenue that allowed the original problem.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [TrustSet](/tx/TrustSet): rechaza trustlines donde la cuenta y el emisor del límite son la misma cuenta.
-- [RippleState](/objects/RippleState): elimina del ledger las entradas concretas afectadas por el bug.
+- [TrustSet](/tx/TrustSet): rejects trustlines where the account and the limit's issuer are the same account.
+- [RippleState](/objects/RippleState): removes from the ledger the specific entries affected by the bug.
 
-## Estado y contexto
+## Status and context
 
-Es un fix de saneamiento puntual: corrige un estado inconsistente heredado de un bug histórico y cierra la vía que lo permitió, sin cambiar el comportamiento de trustlines normales entre cuentas distintas.
+This is a one-off cleanup fix: it corrects an inconsistent state inherited from a historical bug and closes the avenue that allowed it, without changing the behavior of normal trustlines between distinct accounts.

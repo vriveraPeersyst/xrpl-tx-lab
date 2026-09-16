@@ -1,59 +1,59 @@
 ---
 title: DelegateSet
-summary: Autoriza a otra cuenta a enviar en tu nombre transacciones concretas, sin darle tus claves.
+summary: Authorizes another account to send specific transactions on your behalf, without giving it your keys.
 category: permisos
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/delegateset
 amendment: PermissionDelegationV1_1
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-`DelegateSet` crea o actualiza un objeto `Delegate`: una lista de permisos que tu cuenta concede a otra cuenta (`Authorize`) para operar en tu nombre. En lugar de compartir tu clave privada o configurar un [SignerList](/objects/SignerList) completo, delegas selectivamente qué tipos de transacción —o qué permisos granulares— puede firmar esa otra cuenta como si fuera tuya.
+`DelegateSet` creates or updates a `Delegate` object: a list of permissions your account grants to another account (`Authorize`) to operate on your behalf. Instead of sharing your private key or setting up a full [SignerList](/objects/SignerList), you selectively delegate which transaction types —or which granular permissions— that other account can sign as if it were you.
 
-Enviar la transacción con una lista de permisos vacía (`Permissions: []`) sobre una delegación existente la elimina; no hay una transacción `DelegateDelete` separada.
+Sending the transaction with an empty permissions list (`Permissions: []`) on an existing delegation removes it; there's no separate `DelegateDelete` transaction.
 
-**Este tipo de transacción depende del amendment `PermissionDelegationV1_1`, que hoy no está activo en testnet.** Cualquier intento de enviarla falla con `temDISABLED` hasta que se active.
+**This transaction type depends on the `PermissionDelegationV1_1` amendment, which is not currently active on testnet.** Any attempt to send it fails with `temDISABLED` until it's activated.
 
-## Cuándo usarlo (cuando el amendment esté activo)
+## When to use it (once the amendment is active)
 
-- Dar a un servicio automatizado (un bot, un backend) permiso para enviar `Payment` en tu nombre sin exponerle tu clave maestra.
-- Delegar operaciones concretas del DEX (crear/cancelar ofertas) a una cuenta de trading separada de tu cuenta de custodia.
-- Conceder permisos granulares (p. ej. `TrustlineAuthorize`) sin delegar la totalidad de un tipo de transacción.
+- Giving an automated service (a bot, a backend) permission to send `Payment` on your behalf without exposing your master key to it.
+- Delegating specific DEX operations (creating/canceling offers) to a separate trading account from your custody account.
+- Granting granular permissions (e.g., `TrustlineAuthorize`) without delegating an entire transaction type.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`DelegateSet::preflight`** limita `Permissions` a un máximo de entradas (`temARRAY_TOO_LARGE`), impide autorizarte a ti mismo (`Account == Authorize` da `temMALFORMED`), rechaza permisos repetidos en la misma lista y comprueba, vía `Permission::getInstance().isDelegable`, que cada valor es un tipo de transacción o permiso realmente delegable (algunas transacciones sensibles, como las de cuenta o de gobernanza, no se pueden delegar).
+**`DelegateSet::preflight`** caps `Permissions` at a maximum number of entries (`temARRAY_TOO_LARGE`), prevents authorizing yourself (`Account == Authorize` gives `temMALFORMED`), rejects repeated permissions in the same list, and checks, via `Permission::getInstance().isDelegable`, that each value is a transaction type or permission that is actually delegable (some sensitive transactions, such as account or governance ones, cannot be delegated).
 
-**`DelegateSet::preclaim`** exige que la cuenta `Authorize` exista (`tecNO_TARGET` si no) y que no sea una pseudo-cuenta como un AMM o Vault (`tecPSEUDO_ACCOUNT`). Si envías `Permissions` vacío para borrar una delegación que no existe, falla con `tecNO_ENTRY`.
+**`DelegateSet::preclaim`** requires that the `Authorize` account exist (`tecNO_TARGET` if not) and that it not be a pseudo-account such as an AMM or Vault (`tecPSEUDO_ACCOUNT`). If you send an empty `Permissions` to delete a delegation that doesn't exist, it fails with `tecNO_ENTRY`.
 
-**`DelegateSet::doApply`** busca un objeto `Delegate` existente para el par (tu cuenta, `Authorize`): si existe y la lista de permisos que envías está vacía, lo borra; si existe y la lista no está vacía, la sustituye entera; si no existe, crea el objeto (comprobando reserva de propietario, `tecDIR_FULL` si algún directorio está lleno) y lo enlaza tanto en tu directorio de propietario como en el de la cuenta autorizada, para que `AccountDelete` pueda limpiarlo si esa cuenta se borra más adelante.
+**`DelegateSet::doApply`** looks for an existing `Delegate` object for the pair (your account, `Authorize`): if it exists and the permissions list you send is empty, it deletes it; if it exists and the list isn't empty, it replaces it entirely; if it doesn't exist, it creates the object (checking owner reserve, `tecDIR_FULL` if any directory is full) and links it in both your owner directory and the authorized account's directory, so `AccountDelete` can clean it up if that account is deleted later.
 
-## Campos clave
+## Key fields
 
-- **Authorize** — la cuenta a la que concedes permisos. No puede ser tu propia cuenta ni una pseudo-cuenta.
-- **Permissions** — lista de permisos delegados, cada uno como `{ Permission: { PermissionValue: "..." } }`. Puede ser el nombre de un tipo de transacción (p. ej. `"Payment"`) o un permiso granular más específico (ver `/permissions`). Una lista vacía elimina la delegación existente.
+- **Authorize** — the account you grant permissions to. It cannot be your own account or a pseudo-account.
+- **Permissions** — list of delegated permissions, each as `{ Permission: { PermissionValue: "..." } }`. It can be the name of a transaction type (e.g., `"Payment"`) or a more specific granular permission (see `/permissions`). An empty list removes the existing delegation.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment `PermissionDelegationV1_1` no está activo (el caso actual en testnet).
-- **temMALFORMED** — intentas delegar en tu propia cuenta, repites un permiso en la lista, o incluyes un permiso no delegable.
-- **tecNO_TARGET** — la cuenta `Authorize` no existe.
-- **tecPSEUDO_ACCOUNT** — `Authorize` es una pseudo-cuenta (AMM, Vault, LoanBroker).
-- **tecNO_ENTRY** — envías una lista de permisos vacía sobre una delegación que no existía.
-- **tecDIR_FULL** — el directorio de propietario de alguna de las dos cuentas está lleno.
+- **temDISABLED** — the `PermissionDelegationV1_1` amendment isn't active (the current case on testnet).
+- **temMALFORMED** — you're trying to delegate to your own account, you repeat a permission in the list, or you include a non-delegable permission.
+- **tecNO_TARGET** — the `Authorize` account doesn't exist.
+- **tecPSEUDO_ACCOUNT** — `Authorize` is a pseudo-account (AMM, Vault, LoanBroker).
+- **tecNO_ENTRY** — you send an empty permissions list on a delegation that didn't exist.
+- **tecDIR_FULL** — the owner directory of one of the two accounts is full.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-Como el amendment `PermissionDelegationV1_1` no está activo hoy en testnet, cualquier `DelegateSet` que envíes desde el builder de esta página devolverá `temDISABLED`. Puedes comprobarlo igualmente: firma y envía el ejemplo y observa el código de resultado. Cuando la red active el amendment, el mismo flujo creará el objeto `Delegate` y podrás consultarlo con `account_objects` (`type: "delegate"`).
+Since the `PermissionDelegationV1_1` amendment isn't active on testnet today, any `DelegateSet` you send from this page's builder will return `temDISABLED`. You can still check it: sign and send the example and observe the result code. When the network activates the amendment, the same flow will create the `Delegate` object and you'll be able to query it with `account_objects` (`type: "delegate"`).
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "DelegateSet",
-  "Account": "rXXXX_TU_CUENTA",
-  "Authorize": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Authorize": "rYYYY_OTHER_ACCOUNT",
   "Permissions": [
     { "Permission": { "PermissionValue": "Payment" } },
     { "Permission": { "PermissionValue": "TrustlineAuthorize" } }
@@ -61,10 +61,10 @@ Como el amendment `PermissionDelegationV1_1` no está activo hoy en testnet, cua
 }
 ```
 
-Delegaría en `rYYYY_OTRA_CUENTA` la capacidad de enviar `Payment` y autorizar trust lines en tu nombre, una vez el amendment esté activo.
+Would delegate to `rYYYY_OTHER_ACCOUNT` the ability to send `Payment` and authorize trust lines on your behalf, once the amendment is active.
 
-## Relacionado
+## Related
 
-- [SignerListSet](/tx/SignerListSet) — multifirma completa, alternativa más pesada a la delegación selectiva.
-- [AccountDelete](/tx/AccountDelete) — limpia las delegaciones entrantes y salientes al borrar una cuenta.
+- [SignerListSet](/tx/SignerListSet) — full multi-signing, a heavier alternative to selective delegation.
+- [AccountDelete](/tx/AccountDelete) — cleans up incoming and outgoing delegations when deleting an account.
 - Amendments: [PermissionDelegationV1_1](/amendments/PermissionDelegationV1_1).

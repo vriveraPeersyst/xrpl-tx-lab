@@ -1,20 +1,20 @@
 ---
 title: fixTakerDryOfferRemoval
-summary: Corrige el autobridging para que retire del libro las ofertas secas en vez de dejarlas.
+summary: Fixes autobridging so it removes dry offers from the book instead of leaving them there.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixtakerdryofferremoval
 ---
 
-## Qué cambia
+## What changes
 
-El motor de cruce de ofertas usa autobridging para encadenar dos ofertas a través de XRP cuando no hay una oferta directa igual de buena entre dos tokens. Al recorrer el libro, puede encontrarse con una oferta "seca" (dry): una oferta cuyo emisor ya no tiene fondos o línea de confianza suficiente para entregar lo que ofrece, aunque el objeto siga en el ledger. Antes de este fix, el taker podía tratar esas ofertas secas como simplemente no cruzables y saltárselas sin retirarlas del libro.
+The offer-crossing engine uses autobridging to chain two offers through XRP when there is no direct offer between two tokens that is just as good. While traversing the book, it can encounter a "dry" offer: an offer whose issuer no longer has sufficient funds or trust line to deliver what it offers, even though the object is still on the ledger. Before this fix, the taker could treat those dry offers as simply not crossable and skip them without removing them from the book.
 
-Con fixTakerDryOfferRemoval activo, el taker retira del libro las ofertas secas que encuentra al recorrerlo durante el autobridging, igual que ya se hace en el cruce normal de ofertas cuando se detecta que una oferta no puede entregar fondos.
+With fixTakerDryOfferRemoval enabled, the taker removes from the book the dry offers it encounters while traversing it during autobridging, the same way it already does during normal offer crossing when an offer is detected as unable to deliver funds.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [OfferCreate](/tx/OfferCreate) y [Payment](/tx/Payment) con paths que usan autobridging a través de XRP.
-- [Offer](/objects/Offer): las ofertas sin fondos encontradas durante ese recorrido se eliminan del ledger en vez de quedar como ruido.
+- [OfferCreate](/tx/OfferCreate) and [Payment](/tx/Payment) with paths that use autobridging through XRP.
+- [Offer](/objects/Offer): unfunded offers found during that traversal are removed from the ledger instead of remaining as noise.
 
-## Estado y contexto
+## Status and context
 
-Sin este fix, el libro de ofertas podía acumular ofertas secas que el autobridging identificaba pero no limpiaba, obligando a recorrerlas una y otra vez en cruces sucesivos sin que aportaran liquidez real. El fix alinea el comportamiento del autobridging con el del cruce directo de ofertas.
+Without this fix, the offer book could accumulate dry offers that autobridging identified but did not clean up, forcing them to be traversed again and again in successive crossings without providing real liquidity. The fix aligns autobridging's behavior with that of direct offer crossing.

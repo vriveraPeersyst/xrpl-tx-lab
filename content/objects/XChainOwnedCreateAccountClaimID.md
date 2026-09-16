@@ -1,44 +1,44 @@
 ---
 title: XChainOwnedCreateAccountClaimID
-summary: Como XChainOwnedClaimID, pero para crear una cuenta nueva en la cadena de destino a partir de un depósito en la de origen, vía puente.
+summary: Like XChainOwnedClaimID, but for creating a new account on the destination chain from a deposit on the source chain, via a bridge.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/xchainownedcreateaccountclaimid
 createdBy: sistema (XChainAddAccountCreateAttestation)
 modifiedBy: XChainAddAccountCreateAttestation
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Cuando alguien usa un [Bridge](/objects/Bridge) para enviar fondos a una cuenta que **todavía no existe** en la cadena de destino, no basta con reclamar un pago: hay que crear la cuenta primero. `XChainOwnedCreateAccountClaimID` es el equivalente de [XChainOwnedClaimID](/objects/XChainOwnedClaimID) para ese caso: acumula atestaciones de los testigos sobre un depósito de tipo "crear cuenta", y cuando se alcanza el quórum, la propia cadena de destino crea la cuenta y le acredita los fondos automáticamente. A diferencia del flujo normal, aquí no hace falta una transacción de reclamación por parte del beneficiario: el proceso se completa solo, por eso `modifiedBy` no incluye una transacción de "claim" final.
+When someone uses a [Bridge](/objects/Bridge) to send funds to an account that **does not exist yet** on the destination chain, claiming a payment is not enough: the account has to be created first. `XChainOwnedCreateAccountClaimID` is the equivalent of [XChainOwnedClaimID](/objects/XChainOwnedClaimID) for that case: it accumulates witness attestations about an "account create" type deposit, and when the quorum is reached, the destination chain itself creates the account and credits the funds to it automatically. Unlike the normal flow, no claim transaction from the beneficiary is needed here: the process completes on its own, which is why `modifiedBy` does not include a final "claim" transaction.
 
-El número de secuencia (`XChainAccountCreateCount`) es un contador estrictamente creciente por puente, para garantizar que las creaciones de cuenta se procesan en el mismo orden en que se depositaron en origen.
+The sequence number (`XChainAccountCreateCount`) is a strictly increasing counter per bridge, to guarantee that account creations are processed in the same order in which they were deposited on the source chain.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: automática, disparada por la primera [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation) que un testigo envía sobre un depósito de tipo "crear cuenta" observado en la cadena de origen (originado por [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit)). No existe una transacción de usuario que lo cree de forma explícita, a diferencia de `XChainCreateClaimID`.
-- **Acumulación de firmas**: sucesivas [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation) de distintos testigos van añadiendo entradas a `XChainCreateAccountAttestations`.
-- **Resolución automática**: al alcanzar el quórum configurado en el `Bridge`, la cadena de destino crea la `AccountRoot` de destino (si no existía) y le acredita el importe depositado menos la comisión de creación del puente. El objeto se borra en el mismo paso.
+- **Creation**: automatic, triggered by the first [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation) that a witness sends about an "account create" type deposit observed on the source chain (originated by [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit)). There is no user transaction that creates it explicitly, unlike `XChainCreateClaimID`.
+- **Signature accumulation**: successive [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation) transactions from different witnesses keep adding entries to `XChainCreateAccountAttestations`.
+- **Automatic resolution**: upon reaching the quorum configured on the `Bridge`, the destination chain creates the destination `AccountRoot` (if it did not exist) and credits it with the deposited amount minus the bridge's account creation fee. The object is deleted in the same step.
 
-## Campos clave
+## Key fields
 
-- **Account** — la cuenta puerta (door account) del puente en la cadena de destino, dueña técnica del objeto.
-- **XChainBridge** — el puente al que pertenece esta creación de cuenta.
-- **XChainAccountCreateCount** — contador secuencial estricto: las creaciones de cuenta se resuelven en este orden, no en el orden en que llegan las atestaciones.
-- **XChainCreateAccountAttestations** — array de firmas de testigos, cada una con la cuenta a crear, el importe depositado y la firma del testigo.
+- **Account** — the bridge's door account on the destination chain, the technical owner of the object.
+- **XChainBridge** — the bridge this account creation belongs to.
+- **XChainAccountCreateCount** — strict sequential counter: account creations are resolved in this order, not in the order attestations arrive.
+- **XChainCreateAccountAttestations** — array of witness signatures, each with the account to create, the deposited amount, and the witness's signature.
 
 ## Flags
 
-No tiene flags `lsf*`.
+It has no `lsf*` flags.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "xchain_owned_create_account_claim_id"` lo devuelve para la cuenta puerta. Con `ledger_entry`, acepta los mismos campos de `bridge` que `XChainOwnedClaimID`, más `xchain_owned_create_account_claim_id` con el contador:
+`account_objects` with `type: "xchain_owned_create_account_claim_id"` returns it for the door account. With `ledger_entry`, it accepts the same `bridge` fields as `XChainOwnedClaimID`, plus `xchain_owned_create_account_claim_id` with the counter:
 
 ```json
 { "method": "ledger_entry", "params": [{ "xchain_owned_create_account_claim_id": { "locking_chain_door": "rLockingChainDoorAddress", "locking_chain_issue": { "currency": "XRP" }, "issuing_chain_door": "rIssuingChainDoorAddress", "issuing_chain_issue": { "currency": "XRP" }, "xchain_owned_create_account_claim_id": 1 }, "ledger_index": "validated" }] }
 ```
 
-El índice es `SHA512Half(0x004B || puerta_origen || activo_origen || puerta_destino || activo_destino || XChainAccountCreateCount)` (`keylet::xChainCreateAccountClaimID`, namespace `'K'`). Respuesta típica (mientras está pendiente de quórum):
+The index is `SHA512Half(0x004B || source_door || source_asset || destination_door || destination_asset || XChainAccountCreateCount)` (`keylet::xChainCreateAccountClaimID`, namespace `'K'`). Typical response (while pending quorum):
 
 ```json
 {
@@ -54,11 +54,11 @@ El índice es `SHA512Half(0x004B || puerta_origen || activo_origen || puerta_des
 }
 ```
 
-## Reserva
+## Reserve
 
-Consume 1 unidad de reserva de propietario (0,2 XRP en testnet) de la cuenta puerta mientras está pendiente.
+Consumes 1 owner reserve unit (0.2 XRP on testnet) from the door account while pending.
 
-## Relacionado
+## Related
 
 - [XChainAccountCreateCommit](/tx/XChainAccountCreateCommit), [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation)
 - [Bridge](/objects/Bridge), [XChainOwnedClaimID](/objects/XChainOwnedClaimID)

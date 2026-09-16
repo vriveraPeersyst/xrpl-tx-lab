@@ -1,78 +1,78 @@
 ---
 title: VaultClawback
-summary: Permite al emisor del activo recuperar fondos depositados por un holder en una bóveda, o al owner quemar shares huérfanas.
+summary: Lets the issuer of the asset claw back funds deposited by a holder in a vault, or lets the owner burn orphaned shares.
 category: vault
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/vaultclawback
 xls: XLS-0065
 amendment: SingleAssetVault
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-**Aviso: el amendment [SingleAssetVault](/amendments/SingleAssetVault) NO está activo en la testnet.** Cualquier `VaultClawback` que envíes hoy falla con `temDISABLED`. Esta página describe el código que se activará cuando el amendment se vote.
+**Notice: the [SingleAssetVault](/amendments/SingleAssetVault) amendment is NOT active on testnet.** Any `VaultClawback` you send today fails with `temDISABLED`. This page describes the code that will activate once the amendment is voted in.
 
-`VaultClawback` extiende el clawback de tokens a los fondos guardados en un [Vault](/objects/Vault). Un holder que deposita un IOU o un MPT en una bóveda ya no lo tiene en su cuenta (lo tiene la pseudo-cuenta), así que un [Clawback](/tx/Clawback) normal no lo alcanza. Con esta transacción el **emisor del activo** quema las shares del `Holder` y recibe de la pseudo-cuenta el activo equivalente. XRP no se puede recuperar nunca.
+`VaultClawback` extends token clawback to funds held in a [Vault](/objects/Vault). A holder who deposits an IOU or an MPT into a vault no longer has it in their account (the pseudo-account holds it), so a normal [Clawback](/tx/Clawback) doesn't reach it. With this transaction, the **issuer of the asset** burns the `Holder`'s shares and receives the equivalent asset back from the pseudo-account. XRP can never be clawed back.
 
-Tiene un segundo uso, distinto, para el **owner de la bóveda**: cuando el vault se ha quedado sin activos (`AssetsTotal` y `AssetsAvailable` a 0, por ejemplo tras una pérdida total en préstamos) pero siguen existiendo shares, el owner puede quemar todas las shares de un holder para poder llegar a [VaultDelete](/tx/VaultDelete).
+It has a second, different use for the **vault's owner**: when the vault has run out of assets (`AssetsTotal` and `AssetsAvailable` at 0, for example after a total loss on loans) but shares still exist, the owner can burn all of a holder's shares in order to reach [VaultDelete](/tx/VaultDelete).
 
-## Cuándo usarlo
+## When to use it
 
-- Cumplimiento normativo: el emisor de un stablecoin debe inmovilizar/recuperar fondos de una cuenta aunque estén dentro de una bóveda.
-- Emisores de MPT con `lsfMPTCanClawback` que necesitan revertir un depósito.
-- Limpieza por el owner: eliminar shares sin valor de una bóveda vacía antes de borrarla.
+- Regulatory compliance: a stablecoin issuer must freeze/recover funds from an account even when they're inside a vault.
+- MPT issuers with `lsfMPTCanClawback` who need to reverse a deposit.
+- Cleanup by the owner: removing worthless shares from an empty vault before deleting it.
 
-## Cómo funciona por dentro
+## How it works inside
 
-`VaultClawback::preflight` (validación estática): `temMALFORMED` si `VaultID` es cero o si `Amount` es XRP; `temBAD_AMOUNT` si `Amount` es negativo. Un `Amount` de cero es válido y significa "todo".
+`VaultClawback::preflight` (static validation): `temMALFORMED` if `VaultID` is zero or if `Amount` is XRP; `temBAD_AMOUNT` if `Amount` is negative. An `Amount` of zero is valid and means "all".
 
-`VaultClawback::preclaim` (contra el ledger):
-- Busca el Vault (`tecNO_ENTRY`) y su emisión de shares. Con [fixCleanup3_4_0](/amendments/fixCleanup3_4_0), si `Holder` es una pseudo-cuenta, `tecPSEUDO_ACCOUNT`.
-- Si omites `Amount`, `clawbackAmount` lo deduce: si eres el `Owner` del vault, quiere decir "shares"; si no, "el activo". Caso ambiguo: si el emisor del activo es también el owner debes indicar `Amount` (`tecWRONG_ASSET`).
-- **Vía shares** (`Amount` en shares o implícito para el owner): solo el `Owner` (`tecNO_PERMISSION`); solo si hay shares en circulación y `AssetsTotal` = `AssetsAvailable` = 0 (`tecNO_PERMISSION`); y si indicas un `Amount` distinto de 0 debe ser exactamente todas las shares del holder (`tecLIMIT_EXCEEDED`).
-- **Vía activo** (`Amount` en el activo de la bóveda): `tecNO_PERMISSION` si el activo es XRP, si no eres su emisor, o si `Holder` eres tú. Para MPT, la emisión debe tener `lsfMPTCanClawback`; para IOU, tu cuenta debe tener `lsfAllowTrustLineClawback` y no `lsfNoFreeze` (en ambos casos `tecNO_PERMISSION` si no se cumple).
-- Cualquier otro activo: `tecWRONG_ASSET`.
+`VaultClawback::preclaim` (against the ledger):
+- Looks up the Vault (`tecNO_ENTRY`) and its share issuance. With [fixCleanup3_4_0](/amendments/fixCleanup3_4_0), if `Holder` is a pseudo-account, `tecPSEUDO_ACCOUNT`.
+- If you omit `Amount`, `clawbackAmount` infers it: if you're the vault's `Owner`, it means "shares"; if not, "the asset". Ambiguous case: if the asset's issuer is also the owner you must specify `Amount` (`tecWRONG_ASSET`).
+- **Shares path** (`Amount` in shares, or implicit for the owner): only the `Owner` (`tecNO_PERMISSION`); only if shares are outstanding and `AssetsTotal` = `AssetsAvailable` = 0 (`tecNO_PERMISSION`); and if you specify a nonzero `Amount` it must be exactly the holder's full share balance (`tecLIMIT_EXCEEDED`).
+- **Asset path** (`Amount` in the vault's asset): `tecNO_PERMISSION` if the asset is XRP, if you're not its issuer, or if `Holder` is yourself. For MPT, the issuance must have `lsfMPTCanClawback`; for IOU, your account must have `lsfAllowTrustLineClawback` and not `lsfNoFreeze` (in both cases `tecNO_PERMISSION` if not met).
+- Any other asset: `tecWRONG_ASSET`.
 
-`VaultClawback::doApply`: en la vía owner, quema todo el saldo de shares del holder sin mover activos. En la vía emisor, `assetsToClawback` calcula el par (activos recuperados, shares destruidas): con `Amount` = 0 usa todas las shares del holder y las convierte a activos con `sharesToAssetsWithdraw`; con un importe concreto convierte activos → shares (truncando con fixCleanup3_4_0) y vuelve a activos. El resultado se **limita a `AssetsAvailable`**: si parte del capital está prestado por un [LoanBroker](/objects/LoanBroker), solo recuperas lo que hay en caja y se re-derivan las shares. Si el holder es el único accionista no se descuenta `LossUnrealized`. Si las shares a destruir son 0, `tecPRECISION_LOSS`. Después resta lo recuperado de `AssetsTotal` y `AssetsAvailable`, mueve las shares del holder a la pseudo-cuenta (borrando su `MPToken` si queda vacío y no es el owner) y envía los activos de la pseudo-cuenta al emisor, siempre sin transfer fee. Un desbordamiento numérico produce `tecPATH_DRY`.
+`VaultClawback::doApply`: in the owner path, it burns the holder's entire share balance without moving assets. In the issuer path, `assetsToClawback` computes the pair (assets recovered, shares destroyed): with `Amount` = 0 it uses all of the holder's shares and converts them to assets with `sharesToAssetsWithdraw`; with a specific amount it converts assets → shares (truncating with fixCleanup3_4_0) and back to assets. The result is **capped at `AssetsAvailable`**: if part of the capital is lent out by a [LoanBroker](/objects/LoanBroker), you only recover what's in the till, and the shares are re-derived. If the holder is the sole shareholder, `LossUnrealized` isn't deducted. If the shares to be destroyed come out to 0, `tecPRECISION_LOSS`. It then subtracts what was recovered from `AssetsTotal` and `AssetsAvailable`, moves the holder's shares to the pseudo-account (deleting their `MPToken` if it's left empty and they're not the owner), and sends the assets from the pseudo-account to the issuer, always without a transfer fee. A numeric overflow produces `tecPATH_DRY`.
 
-## Campos clave
+## Key fields
 
-- **VaultID** — `index` del Vault.
-- **Holder** — cuenta cuyas shares se queman. No puede ser el emisor ni una pseudo-cuenta.
-- **Amount** — opcional. En el activo de la bóveda (solo emisor): cantidad a recuperar, `0` o ausente = todo lo que respalden las shares del holder, siempre limitado a `AssetsAvailable`. En shares (solo owner, bóveda sin activos): `0` o el saldo exacto del holder.
+- **VaultID** — the Vault's `index`.
+- **Holder** — the account whose shares are burned. Can't be the issuer or a pseudo-account.
+- **Amount** — optional. In the vault's asset (issuer only): amount to recover, `0` or omitted = everything backed by the holder's shares, always capped at `AssetsAvailable`. In shares (owner only, empty vault): `0` or the holder's exact balance.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo en testnet; hoy es el único resultado posible.
-- **temMALFORMED** — `Amount` es XRP o `VaultID` a ceros.
-- **tecNO_PERMISSION** — no eres el emisor del activo (o el activo es XRP); el emisor no tiene `lsfAllowTrustLineClawback` / la emisión MPT no tiene `lsfMPTCanClawback`; o intentas quemar shares sin ser owner o con activos aún en la bóveda.
-- **tecWRONG_ASSET** — `Amount` de otra moneda, o eres emisor y owner a la vez y no has indicado `Amount`.
-- **tecLIMIT_EXCEEDED** — como owner, `Amount` en shares no coincide con el saldo total del holder.
-- **tecPRECISION_LOSS** — el holder no tiene shares o el importe equivale a 0 shares.
-- **tecPSEUDO_ACCOUNT** — `Holder` es una pseudo-cuenta.
+- **temDISABLED** — the amendment isn't active on testnet; today it's the only possible result.
+- **temMALFORMED** — `Amount` is XRP or `VaultID` is all zeros.
+- **tecNO_PERMISSION** — you're not the asset's issuer (or the asset is XRP); the issuer lacks `lsfAllowTrustLineClawback` / the MPT issuance lacks `lsfMPTCanClawback`; or you're trying to burn shares without being the owner or while assets remain in the vault.
+- **tecWRONG_ASSET** — `Amount` in a different currency, or you're both issuer and owner and haven't specified `Amount`.
+- **tecLIMIT_EXCEEDED** — as owner, the `Amount` in shares doesn't match the holder's total balance.
+- **tecPRECISION_LOSS** — the holder has no shares, or the amount amounts to 0 shares.
+- **tecPSEUDO_ACCOUNT** — `Holder` is a pseudo-account.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "VaultClawback",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "VaultID": "0000000000000000000000000000000000000000000000000000000000000000",
-  "Holder": "rYYYY_OTRA_CUENTA"
+  "Holder": "rYYYY_OTHER_ACCOUNT"
 }
 ```
 
-Sustituye el `VaultID` de ceros por el `index` real. Este ejemplo, sin `Amount`, funciona como emisor de un IOU/MPT que es el activo de la bóveda (recupera todo lo que respaldan las shares del holder) o, si eres el owner de una bóveda vacía, quema todas las shares del holder. Para una bóveda de XRP el clawback siempre falla.
+Replace the all-zero `VaultID` with the real `index`. This example, without `Amount`, works either as the issuer of an IOU/MPT that is the vault's asset (recovers everything backed by the holder's shares) or, if you're the owner of an empty vault, burns all the holder's shares. For an XRP vault, clawback always fails.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Hoy: envía el ejemplo desde el builder y obtendrás `temDISABLED`, porque `SingleAssetVault` no está habilitado en la red.
-2. Cuando el amendment se active: desde una cuenta emisora activa `asfAllowTrustLineClawback` con [AccountSet](/tx/AccountSet) (antes de emitir nada), emite un token USD a otra cuenta y crea con esa emisora un `VaultCreate` de `{currency: "USD", issuer: rXXXX_TU_CUENTA}`. Nota: como serás emisor y owner a la vez, tendrás que indicar `Amount` explícito.
-3. Que la otra cuenta deposite USD con [VaultDeposit](/tx/VaultDeposit).
-4. Envía `VaultClawback` con `Holder` = esa cuenta y `Amount: {currency: "USD", issuer: rXXXX_TU_CUENTA, value: "0"}`. En los metadatos verás el `MPToken` de shares del holder borrado, el `Vault` con `AssetsTotal` reducido y la trust line entre pseudo-cuenta y emisor con menos saldo.
-5. Prueba lo mismo contra una bóveda de XRP: con `Amount` en drops falla en `preflight` con `temMALFORMED`; sin `Amount` y sin ser el owner, `preclaim` deduce "el activo" y responde `tecNO_PERMISSION` porque XRP no tiene emisor. En bóvedas de XRP solo existe la vía owner (quemar shares cuando no quedan activos).
+1. Today: send the example from the builder and you'll get `temDISABLED`, because `SingleAssetVault` isn't enabled on the network.
+2. Once the amendment is active: from an issuing account, enable `asfAllowTrustLineClawback` with [AccountSet](/tx/AccountSet) (before issuing anything), issue a USD token to another account, and use that issuer to create a `VaultCreate` for `{currency: "USD", issuer: rXXXX_YOUR_ACCOUNT}`. Note: since you'll be both issuer and owner, you'll need to specify an explicit `Amount`.
+3. Have the other account deposit USD with [VaultDeposit](/tx/VaultDeposit).
+4. Send `VaultClawback` with `Holder` = that account and `Amount: {currency: "USD", issuer: rXXXX_YOUR_ACCOUNT, value: "0"}`. In the metadata you'll see the holder's shares `MPToken` deleted, the `Vault`'s `AssetsTotal` reduced, and the trust line between the pseudo-account and the issuer with a lower balance.
+5. Try the same against an XRP vault: with `Amount` in drops it fails in `preflight` with `temMALFORMED`; without `Amount` and not being the owner, `preclaim` infers "the asset" and responds `tecNO_PERMISSION` because XRP has no issuer. In XRP vaults only the owner path exists (burning shares once no assets remain).
 
-## Relacionado
+## Related
 
 - [Vault](/objects/Vault), [MPToken](/objects/MPToken), [RippleState](/objects/RippleState)
 - [Clawback](/tx/Clawback), [AMMClawback](/tx/AMMClawback), [VaultDeposit](/tx/VaultDeposit), [VaultWithdraw](/tx/VaultWithdraw), [VaultDelete](/tx/VaultDelete)

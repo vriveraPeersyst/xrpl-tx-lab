@@ -1,21 +1,21 @@
 ---
 title: RequireFullyCanonicalSig
-summary: Exige que las firmas ECDSA secp256k1 sean estrictamente canónicas, cerrando una vía de maleabilidad de transacciones.
+summary: Requires ECDSA secp256k1 signatures to be strictly canonical, closing a transaction malleability vector.
 xrplDocs: https://xrpl.org/resources/known-amendments#requirefullycanonicalsig
 introducedIn: 0.30.1
 ---
 
-## Qué cambia
+## What changes
 
-Las firmas ECDSA sobre la curva secp256k1 (el esquema usado por defecto en XRPL antes de que Ed25519 estuviera disponible) tienen una propiedad de maleabilidad: para una misma firma válida `(r, s)`, el valor `(r, n - s)` (donde `n` es el orden de la curva) también es una firma válida sobre el mismo mensaje y la misma clave. Eso significa que un tercero, sin conocer la clave privada, puede tomar una transacción ya firmada y producir una variante con una firma distinta pero igualmente válida, cambiando el hash de la transacción sin invalidarla.
+ECDSA signatures over the secp256k1 curve (the scheme used by default on XRPL before Ed25519 became available) have a malleability property: for a given valid signature `(r, s)`, the value `(r, n - s)` (where `n` is the order of the curve) is also a valid signature over the same message and the same key. This means a third party, without knowing the private key, can take an already-signed transaction and produce a variant with a different but equally valid signature, changing the transaction's hash without invalidating it.
 
-RequireFullyCanonicalSig obliga a que las firmas ECDSA presentadas sean "fully canonical": de las dos variantes matemáticamente válidas de cada firma, solo se acepta la que cumple `s <= n/2` (la de menor valor). El transactor rechaza en la validación de la transacción cualquier firma que no cumpla esta forma, aunque sea criptográficamente correcta. Las firmas Ed25519 no tienen este problema y no se ven afectadas.
+RequireFullyCanonicalSig requires that the ECDSA signatures submitted be "fully canonical": of the two mathematically valid variants of each signature, only the one that satisfies `s <= n/2` (the one with the smaller value) is accepted. The transactor rejects, during transaction validation, any signature that does not meet this form, even if it is cryptographically correct. Ed25519 signatures do not have this issue and are not affected.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Afecta a la validación de firma de cualquier transacción firmada con una clave secp256k1 (prácticamente todos los tipos de transacción, ya que la comprobación ocurre en la capa común de verificación de firmas del motor de transacciones, no en un transactor concreto).
-- No introduce ni modifica objetos del ledger.
+- Affects signature validation for any transaction signed with a secp256k1 key (practically all transaction types, since the check occurs in the common signature verification layer of the transaction engine, not in a specific transactor).
+- Does not introduce or modify ledger objects.
 
-## Estado y contexto
+## Status and context
 
-La maleabilidad de firmas fue un problema conocido en varios protocolos basados en ECDSA (Bitcoin lo resolvió con BIP-62/SegWit de forma análoga). En XRPL, aunque el identificador de secuencia y otros mecanismos ya mitigaban el doble gasto, una transacción con hash mutable complicaba a las aplicaciones que dependían de rastrear una transacción por su hash antes de que fuera validada (por ejemplo, para detectar si había sido incluida en un ledger). RequireFullyCanonicalSig elimina esa ambigüedad forzando una única representación válida por firma, de modo que el hash de una transacción firmada no pueda alterarse por un tercero sin invalidar la firma.
+Signature malleability was a known issue in several ECDSA-based protocols (Bitcoin resolved it analogously with BIP-62/SegWit). On XRPL, although the sequence identifier and other mechanisms already mitigated double-spending, a transaction with a mutable hash complicated matters for applications that relied on tracking a transaction by its hash before it was validated (for example, to detect whether it had been included in a ledger). RequireFullyCanonicalSig eliminates that ambiguity by enforcing a single valid representation per signature, so that the hash of a signed transaction cannot be altered by a third party without invalidating the signature.

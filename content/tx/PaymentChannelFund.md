@@ -1,81 +1,81 @@
 ---
 title: PaymentChannelFund
-summary: Añade XRP a un canal de pago abierto y, opcionalmente, fija o retrasa su expiración; solo puede enviarla el propietario del canal.
+summary: Adds XRP to an open payment channel and, optionally, sets or delays its expiration; only the channel's owner can send it.
 category: canales
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/paymentchannelfund
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`PaymentChannelFund` recarga un [PayChannel](/objects/PayChannel) existente: suma `Amount` a los fondos bloqueados del canal (campo `Amount` del objeto) y resta esa misma cantidad de tu saldo. Además permite establecer una `Expiration` mutable: una fecha a partir de la cual el canal se cierra si alguien lo toca, siempre que respete el `SettleDelay` pactado.
+`PaymentChannelFund` tops up an existing [PayChannel](/objects/PayChannel): it adds `Amount` to the channel's locked funds (the object's `Amount` field) and subtracts that same amount from your balance. It also lets you set a mutable `Expiration`: a date after which the channel closes if anyone touches it, as long as it respects the agreed `SettleDelay`.
 
-Es la operación de "ampliar el depósito" del canal. No crea ni borra objetos, así que no cambia tu `OwnerCount`, pero sí tiene un efecto colateral importante: si el canal ya ha expirado (por `CancelAfter` o por `Expiration`), la transacción **no recarga nada y lo cierra**, devolviendo al propietario el XRP no reclamado.
+It's the "top up the deposit" operation for the channel. It doesn't create or delete objects, so it doesn't change your `OwnerCount`, but it does have an important side effect: if the channel has already expired (via `CancelAfter` or `Expiration`), the transaction **doesn't add any funds and closes it instead**, returning the unclaimed XRP to the owner.
 
-## Cuándo usarlo
+## When to use it
 
-- El destinatario ha consumido casi todo el saldo autorizable y quieres seguir pagando por el mismo canal en vez de abrir otro.
-- Quieres poner una fecha límite al canal (`Expiration`) sin cerrarlo de inmediato.
-- Retrasar una expiración que fijaste antes (solo hacia el futuro).
+- The recipient has consumed almost all the claimable balance and you want to keep paying through the same channel instead of opening a new one.
+- You want to set a deadline on the channel (`Expiration`) without closing it immediately.
+- Delaying an expiration you set earlier (only into the future).
 
-## Cómo funciona por dentro
+## How it works inside
 
 **`PaymentChannelFund::preflight`**:
-- Con `fixCleanup3_2_0` (activo en testnet) un `Channel` a cero es `temMALFORMED`.
-- `Amount` debe ser XRP positivo; si no, `temBAD_AMOUNT`.
+- With `fixCleanup3_2_0` (active on testnet) a `Channel` set to zero is `temMALFORMED`.
+- `Amount` must be positive XRP; otherwise `temBAD_AMOUNT`.
 
-No hay `preclaim` propio: todas las comprobaciones contra el ledger se hacen en `doApply`, por lo que los errores de estado son `tec` (pagas la tasa).
+There's no dedicated `preclaim`: all checks against the ledger happen in `doApply`, so state-related errors are `tec` codes (you pay the fee).
 
-**`PaymentChannelFund::doApply`**, en este orden:
-1. Busca el canal por su ID (`Keylet(ltPAYCHAN, Channel)`). Si no existe, `tecNO_ENTRY`.
-2. Si el canal ha expirado (`isChannelExpired` con `CancelAfter` o con `Expiration` respecto al cierre del ledger padre), llama a `closeChannel`: retira el objeto de los dos directorios de propietario, devuelve `Amount − Balance` al propietario, baja su `OwnerCount` y borra el canal. La transacción termina en `tesSUCCESS` **sin haber añadido fondos**.
-3. Si `Account` no es el propietario del canal, `tecNO_PERMISSION`. Esta comprobación va después de la anterior: cualquiera puede usar un `PaymentChannelFund` para cerrar un canal ya expirado.
-4. Si envías `Expiration`, calcula el mínimo permitido: `cierre del ledger padre + SettleDelay`, o la expiración actual si es anterior. Un valor por debajo de ese mínimo devuelve `tecNO_PERMISSION` (con `fixCleanup3_2_0`; antes era `temBAD_EXPIRATION`). Si es válido, lo guarda.
-5. Comprueba la reserva y los fondos: `checkReserve` verifica que tu saldo cubre la reserva actual, y después se exige `Balance ≥ reserva + Amount`, si no `tecUNFUNDED`. No hay incremento de `OwnerCount` porque no se crea ningún objeto.
-6. El destinatario del canal debe seguir existiendo (`tecNO_DST`): no se puede recargar un canal cuyo receptor borró su cuenta.
-7. Suma `Amount` al canal y lo resta de tu `Balance`.
+**`PaymentChannelFund::doApply`**, in this order:
+1. Looks up the channel by its ID (`Keylet(ltPAYCHAN, Channel)`). If it doesn't exist, `tecNO_ENTRY`.
+2. If the channel has expired (`isChannelExpired`, via `CancelAfter` or `Expiration` relative to the parent ledger's close), it calls `closeChannel`: removes the object from both owner directories, returns `Amount − Balance` to the owner, lowers their `OwnerCount`, and deletes the channel. The transaction ends in `tesSUCCESS` **without having added any funds**.
+3. If `Account` isn't the channel's owner, `tecNO_PERMISSION`. This check comes after the previous one: anyone can use a `PaymentChannelFund` to close an already-expired channel.
+4. If you send `Expiration`, it calculates the minimum allowed: `parent ledger close + SettleDelay`, or the current expiration if that's earlier. A value below that minimum returns `tecNO_PERMISSION` (with `fixCleanup3_2_0`; previously it was `temBAD_EXPIRATION`). If it's valid, it's stored.
+5. Checks the reserve and funds: `checkReserve` verifies that your balance covers the current reserve, and then `Balance ≥ reserve + Amount` is required, otherwise `tecUNFUNDED`. There's no increase to `OwnerCount` because no object is created.
+6. The channel's recipient must still exist (`tecNO_DST`): you can't top up a channel whose recipient deleted their account.
+7. Adds `Amount` to the channel and subtracts it from your `Balance`.
 
-El transactor no tiene flags. La comparación de expiración usa [fixCleanup3_2_0](/amendments/fixCleanup3_2_0) para tratar el instante exacto de forma consistente con el resto de objetos con caducidad.
+The transactor has no flags. The expiration comparison uses [fixCleanup3_2_0](/amendments/fixCleanup3_2_0) to handle the exact instant consistently with other objects that expire.
 
-## Campos clave
+## Key fields
 
-- **Channel** — ID del canal: 64 caracteres hex. Lo obtienes en `account_channels` (`channel_id`) o en `account_objects` (`index`).
-- **Amount** — drops de XRP que se añaden al total del canal. No puede ser 0.
-- **Expiration** — segundos Ripple Epoch (desde 2000-01-01). Debe ser al menos `ahora + SettleDelay` y no puede adelantar una expiración ya fijada. Es distinta de `CancelAfter`, que es inmutable desde la creación. Para quitar una `Expiration` existente usa [PaymentChannelClaim](/tx/PaymentChannelClaim) con `tfRenew`.
+- **Channel** — the channel's ID: 64 hex characters. You get it from `account_channels` (`channel_id`) or `account_objects` (`index`).
+- **Amount** — drops of XRP added to the channel's total. Can't be 0.
+- **Expiration** — Ripple Epoch seconds (since 2000-01-01). Must be at least `now + SettleDelay` and can't move an already-set expiration earlier. It's different from `CancelAfter`, which is immutable from creation. To remove an existing `Expiration` use [PaymentChannelClaim](/tx/PaymentChannelClaim) with `tfRenew`.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_ENTRY** — el `Channel` no existe (ID mal copiado o canal ya cerrado).
-- **tecNO_PERMISSION** — no eres el propietario del canal, o `Expiration` es más temprana que `ahora + SettleDelay`.
-- **tecUNFUNDED** — no tienes `Amount` de sobra por encima de tu reserva.
-- **tecNO_DST** — la cuenta destinataria del canal ya no existe.
-- **temBAD_AMOUNT** — `Amount` no es XRP o es cero.
-- **temMALFORMED** — `Channel` es todo ceros.
-- **tesSUCCESS pero el canal desaparece** — el canal estaba expirado; la transacción lo cerró y te devolvió el resto. Comprueba `CancelAfter`/`Expiration` antes de recargar.
+- **tecNO_ENTRY** — the `Channel` doesn't exist (ID copied wrong, or channel already closed).
+- **tecNO_PERMISSION** — you're not the channel's owner, or `Expiration` is earlier than `now + SettleDelay`.
+- **tecUNFUNDED** — you don't have `Amount` to spare above your reserve.
+- **tecNO_DST** — the channel's recipient account no longer exists.
+- **temBAD_AMOUNT** — `Amount` isn't XRP or is zero.
+- **temMALFORMED** — `Channel` is all zeros.
+- **tesSUCCESS but the channel disappears** — the channel had expired; the transaction closed it and returned the remainder to you. Check `CancelAfter`/`Expiration` before topping up.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "PaymentChannelFund",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "Channel": "C1AE6DDDEEC05CF2978C0BAD6FE302948E9533691DC749DCDD3B9E5992CA6198",
   "Amount": "1000000"
 }
 ```
 
-Añade 1 XRP al canal indicado.
+Adds 1 XRP to the given channel.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Abre un canal con [PaymentChannelCreate](/tx/PaymentChannelCreate) y copia su `channel_id` de `account_channels`.
-2. Pega el ID en `Channel`, pon `Amount: "1000000"` y envía desde la **misma** cuenta que creó el canal.
-3. Consulta `account_channels`: `amount` ha pasado de 5000000 a 6000000 y `balance` sigue igual.
-4. Repite la transacción desde la otra cuenta (la destinataria) y observa `tecNO_PERMISSION`.
-5. Prueba a fijar `Expiration` con un valor menor que ahora + `SettleDelay`: `tecNO_PERMISSION`. Con un valor válido, el campo `expiration` aparece en `account_channels`.
-6. Si quieres ver el cierre automático, crea un canal con `CancelAfter` a unos minutos vista, espera, y envía un `PaymentChannelFund`: el canal desaparece y tu saldo recupera los fondos.
+1. Open a channel with [PaymentChannelCreate](/tx/PaymentChannelCreate) and copy its `channel_id` from `account_channels`.
+2. Paste the ID into `Channel`, set `Amount: "1000000"`, and submit from the **same** account that created the channel.
+3. Query `account_channels`: `amount` will have gone from 5000000 to 6000000 while `balance` stays the same.
+4. Repeat the transaction from the other account (the recipient) and observe `tecNO_PERMISSION`.
+5. Try setting `Expiration` to a value less than now + `SettleDelay`: `tecNO_PERMISSION`. With a valid value, the `expiration` field appears in `account_channels`.
+6. If you want to see the automatic close, create a channel with `CancelAfter` a few minutes out, wait, and submit a `PaymentChannelFund`: the channel disappears and your balance recovers the funds.
 
-## Relacionado
+## Related
 
 - [PaymentChannelCreate](/tx/PaymentChannelCreate)
 - [PaymentChannelClaim](/tx/PaymentChannelClaim)

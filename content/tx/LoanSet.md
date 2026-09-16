@@ -1,81 +1,81 @@
 ---
 title: LoanSet
-summary: Crea un préstamo entre un LoanBroker y un prestatario, firmado por ambas partes, y transfiere el principal desde el Vault.
+summary: Creates a loan between a LoanBroker and a borrower, signed by both parties, and transfers the principal from the Vault.
 category: prestamos
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/loanset
 xls: XLS-0066
 amendment: LendingProtocol
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-**Aviso:** el amendment [LendingProtocol](/amendments/LendingProtocol) **no está activo en la testnet** (ni [SingleAssetVault](/amendments/SingleAssetVault), del que depende). Hoy esta transacción falla con `temDISABLED`. Lo siguiente describe su comportamiento cuando se active.
+**Notice:** the [LendingProtocol](/amendments/LendingProtocol) amendment **is not active on testnet** (nor is [SingleAssetVault](/amendments/SingleAssetVault), which it depends on). Today this transaction fails with `temDISABLED`. What follows describes its behavior once it's active.
 
-`LoanSet` crea un objeto [Loan](/objects/Loan): un préstamo amortizable con pagos periódicos fijos. Es una transacción **bilateral**: la firma el prestatario y el propietario del [LoanBroker](/objects/LoanBroker) (o al revés). Uno de los dos envía la transacción como `Account` y el otro aporta `CounterpartySignature`, una firma sobre la misma transacción. Así ambas partes aceptan explícitamente los términos.
+`LoanSet` creates a [Loan](/objects/Loan) object: an amortizing loan with fixed periodic payments. It's a **bilateral** transaction: it's signed by the borrower and by the [LoanBroker](/objects/LoanBroker)'s owner (or vice versa). One of the two sends the transaction as `Account`, and the other contributes `CounterpartySignature`, a signature over that same transaction. This way both parties explicitly accept the terms.
 
-En `doApply` el principal sale de la pseudo-cuenta del [Vault](/objects/Vault) hacia el prestatario (menos la comisión de apertura, que va al broker), se reduce `AssetsAvailable` del Vault, sube `DebtTotal` del broker y se crea el Loan con su calendario: `PeriodicPayment`, `NextPaymentDueDate = StartDate + PaymentInterval`, `PaymentRemaining = PaymentTotal`. El préstamo queda en el directorio del prestatario (que paga la reserva) y en el de la pseudo-cuenta del broker.
+In `doApply`, the principal leaves the [Vault](/objects/Vault)'s pseudo-account for the borrower (minus the origination fee, which goes to the broker), the Vault's `AssetsAvailable` decreases, the broker's `DebtTotal` rises, and the Loan is created with its schedule: `PeriodicPayment`, `NextPaymentDueDate = StartDate + PaymentInterval`, `PaymentRemaining = PaymentTotal`. The loan ends up in the borrower's directory (who pays the reserve) and in the broker's pseudo-account directory.
 
-## Cuándo usarlo
+## When to use it
 
-- Un broker quiere prestar activos del Vault a un cliente con un calendario de amortización acordado fuera de la cadena.
-- El prestatario quiere formalizar on-chain ese acuerdo con términos verificables (tipo, fees, plazos).
+- A broker wants to lend Vault assets to a client under an amortization schedule agreed off-chain.
+- The borrower wants to formalize that agreement on-chain with verifiable terms (rate, fees, terms).
 
-## Cómo funciona por dentro
+## How it works inside
 
 **preflight** (`LoanSet::preflight`):
-- No se admite patrocinio de reserva (`temINVALID_FLAG`). Fuera de un Batch, `CounterpartySignature` es obligatoria (`temBAD_SIGNER`); dentro de un Batch con [BatchV1_1](/amendments/BatchV1_1) hay que indicar `Counterparty`.
-- `Data` ≤ 256 bytes. `PrincipalRequested` > 0. `LoanOriginationFee` ≤ principal. Todos los rates (`InterestRate`, `LateInterestRate`, `CloseInterestRate`, `OverpaymentInterestRate`, `OverpaymentFee`) ≤ 100 000 (1/10 pb, es decir 100 %). `PaymentTotal` > 0 si se indica. `PaymentInterval` ≥ 60 s. `GracePeriod` entre 60 y `PaymentInterval`.
+- Reserve sponsorship isn't supported (`temINVALID_FLAG`). Outside a Batch, `CounterpartySignature` is mandatory (`temBAD_SIGNER`); inside a Batch with [BatchV1_1](/amendments/BatchV1_1), `Counterparty` must be specified.
+- `Data` ≤ 256 bytes. `PrincipalRequested` > 0. `LoanOriginationFee` ≤ principal. All rates (`InterestRate`, `LateInterestRate`, `CloseInterestRate`, `OverpaymentInterestRate`, `OverpaymentFee`) ≤ 100,000 (1/10 bp, i.e. 100%). `PaymentTotal` > 0 if specified. `PaymentInterval` ≥ 60 s. `GracePeriod` between 60 and `PaymentInterval`.
 
-**checkSign** (`LoanSet::checkSign`): además de la firma normal, verifica `CounterpartySignature` con la cuenta `Counterparty` o, si falta, con el `Owner` del broker. Soporta multifirma. `calculateBaseFee` añade un fee base por cada firmante de la contraparte.
+**checkSign** (`LoanSet::checkSign`): besides the normal signature, it verifies `CounterpartySignature` against the `Counterparty` account or, if missing, against the broker's `Owner`. It supports multisigning. `calculateBaseFee` adds a base fee for each counterparty signer.
 
 **preclaim** (`LoanSet::preclaim`):
-- El calendario completo (`StartDate + PaymentInterval × PaymentTotal + GracePeriod`) tiene que caber en un `uint32` de Ripple Epoch; si no, `tecKILLED`.
-- El broker debe existir (`tecNO_ENTRY`) y **una de las dos partes** ser su owner (`tecNO_PERMISSION`). El prestatario es la otra.
-- Con [LendingProtocolV1_1](/amendments/LendingProtocolV1_1): el Vault no puede estar en fase de suscripción (`tecTOO_SOON`) ni de redención (`tecEXPIRED`), y el último pago debe caer al menos 60 s antes de `RedemptionDate`.
-- Si el Vault (modelo *accrual*) ya está en `AssetsMaximum`, `tecLIMIT_EXCEEDED`.
-- Valores representables en el activo (`tecPRECISION_LOSS`); `canAddHolding` para crear la trust line o MPToken del prestatario; la pseudo-cuenta del Vault y el prestatario no pueden estar congelados; la pseudo-cuenta del broker y el owner no deep frozen.
+- The full schedule (`StartDate + PaymentInterval × PaymentTotal + GracePeriod`) must fit in a `uint32` of Ripple Epoch; otherwise `tecKILLED`.
+- The broker must exist (`tecNO_ENTRY`) and **one of the two parties** must be its owner (`tecNO_PERMISSION`). The borrower is the other party.
+- With [LendingProtocolV1_1](/amendments/LendingProtocolV1_1): the Vault cannot be in the subscription phase (`tecTOO_SOON`) nor in the redemption phase (`tecEXPIRED`), and the last payment must fall at least 60 s before `RedemptionDate`.
+- If the Vault (accrual model) is already at `AssetsMaximum`, `tecLIMIT_EXCEEDED`.
+- Values must be representable in the asset (`tecPRECISION_LOSS`); `canAddHolding` to create the borrower's trust line or MPToken; the Vault's pseudo-account and the borrower cannot be frozen; the broker's pseudo-account and owner cannot be deep frozen.
 
 **doApply** (`LoanSet::doApply`):
 - `AssetsAvailable ≥ PrincipalRequested` (`tecINSUFFICIENT_FUNDS`).
-- `computeLoanProperties` calcula la cuota periódica con la fórmula de amortización (tasa periódica = `InterestRate × PaymentInterval / segundos_año`), el `LoanScale`, el interés total y la parte del broker (`ManagementFeeRate`).
-- El nuevo `DebtTotal` no puede superar `DebtMaximum` (`tecLIMIT_EXCEEDED`) y `CoverAvailable ≥ minimumBrokerCover(DebtTotal nuevo)` (`tecINSUFFICIENT_FUNDS`).
-- Sube en 1 el `OwnerCount` del prestatario y comprueba su reserva.
-- `accountSendMulti` desde la pseudo-cuenta del Vault: `principal − LoanOriginationFee` al prestatario y la fee al owner del broker.
-- Crea el Loan con `keylet::loan(LoanBrokerID, LoanSequence)`, incrementa `LoanSequence` del broker y actualiza Vault (`AssetsAvailable −= principal`, `AssetsTotal += interés` en modo accrual) y broker (`DebtTotal`).
+- `computeLoanProperties` calculates the periodic installment using the amortization formula (periodic rate = `InterestRate × PaymentInterval / seconds_per_year`), the `LoanScale`, the total interest, and the broker's share (`ManagementFeeRate`).
+- The new `DebtTotal` can't exceed `DebtMaximum` (`tecLIMIT_EXCEEDED`), and `CoverAvailable ≥ minimumBrokerCover(new DebtTotal)` (`tecINSUFFICIENT_FUNDS`).
+- Raises the borrower's `OwnerCount` by 1 and checks their reserve.
+- `accountSendMulti` from the Vault's pseudo-account: `principal − LoanOriginationFee` to the borrower and the fee to the broker's owner.
+- Creates the Loan with `keylet::loan(LoanBrokerID, LoanSequence)`, increments the broker's `LoanSequence`, and updates the Vault (`AssetsAvailable −= principal`, `AssetsTotal += interest` in accrual mode) and the broker (`DebtTotal`).
 
-## Campos clave
+## Key fields
 
-- **LoanBrokerID** — broker que financia el préstamo.
-- **Counterparty / CounterpartySignature** — la otra parte y su firma (`Account`, `SigningPubKey`, `TxnSignature` o `Signers`). Si `Counterparty` falta se asume el owner del broker.
-- **PrincipalRequested** — principal en unidades del activo del Vault (número, no objeto Amount).
-- **InterestRate** — tipo anual en 1/10 pb (500 = 0,5 %).
-- **PaymentInterval / PaymentTotal** — segundos entre cuotas (por defecto 60) y número de cuotas (por defecto 1).
-- **GracePeriod** — segundos tras la fecha de vencimiento antes de poder declarar default (por defecto 60, ≤ intervalo).
-- **LoanOriginationFee** — se descuenta del principal entregado y va al owner del broker.
-- **LoanServiceFee / LatePaymentFee / ClosePaymentFee** — fees fijas por cuota, por pago tardío y por cancelación anticipada.
-- **LateInterestRate / CloseInterestRate / OverpaymentInterestRate / OverpaymentFee** — penalizaciones usadas por [LoanPay](/tx/LoanPay).
+- **LoanBrokerID** — broker funding the loan.
+- **Counterparty / CounterpartySignature** — the other party and their signature (`Account`, `SigningPubKey`, `TxnSignature`, or `Signers`). If `Counterparty` is missing, the broker's owner is assumed.
+- **PrincipalRequested** — principal in units of the Vault's asset (a number, not an Amount object).
+- **InterestRate** — annual rate in 1/10 bp (500 = 0.5%).
+- **PaymentInterval / PaymentTotal** — seconds between installments (default 60) and number of installments (default 1).
+- **GracePeriod** — seconds after the due date before default can be declared (default 60, ≤ interval).
+- **LoanOriginationFee** — deducted from the principal delivered and paid to the broker's owner.
+- **LoanServiceFee / LatePaymentFee / ClosePaymentFee** — fixed fees per installment, per late payment, and per early cancellation.
+- **LateInterestRate / CloseInterestRate / OverpaymentInterestRate / OverpaymentFee** — penalties used by [LoanPay](/tx/LoanPay).
 
 ## Flags
 
-- **tfLoanOverpayment** (0x00010000) — fija `lsfLoanOverpayment` en el Loan: permite que [LoanPay](/tx/LoanPay) acepte pagos superiores a la cuota.
+- **tfLoanOverpayment** (0x00010000) — sets `lsfLoanOverpayment` on the Loan: allows [LoanPay](/tx/LoanPay) to accept payments above the installment.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo (situación actual en testnet).
-- **temBAD_SIGNER** — falta `CounterpartySignature` o no corresponde a la contraparte.
-- **temINVALID** — algún rate, fee o plazo fuera de rango.
-- **tecNO_PERMISSION** — ninguna de las partes es el owner del broker.
-- **tecINSUFFICIENT_FUNDS** — el Vault no tiene liquidez o el broker no tiene cover suficiente.
-- **tecLIMIT_EXCEEDED** — superarías `DebtMaximum` o `AssetsMaximum`.
-- **tecINSUFFICIENT_RESERVE** — el prestatario no cubre la reserva del nuevo objeto.
+- **temDISABLED** — the amendment is not active (current situation on testnet).
+- **temBAD_SIGNER** — `CounterpartySignature` is missing or doesn't correspond to the counterparty.
+- **temINVALID** — some rate, fee, or term is out of range.
+- **tecNO_PERMISSION** — neither party is the broker's owner.
+- **tecINSUFFICIENT_FUNDS** — the Vault lacks liquidity, or the broker doesn't have enough cover.
+- **tecLIMIT_EXCEEDED** — you'd exceed `DebtMaximum` or `AssetsMaximum`.
+- **tecINSUFFICIENT_RESERVE** — the borrower doesn't cover the reserve for the new object.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "LoanSet",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "LoanBrokerID": "0000000000000000000000000000000000000000000000000000000000000000",
   "PrincipalRequested": "10000000",
   "InterestRate": 500,
@@ -83,7 +83,7 @@ En `doApply` el principal sale de la pseudo-cuenta del [Vault](/objects/Vault) h
   "PaymentTotal": 4,
   "CounterpartySignature": {
     "CounterpartySignature": {
-      "Account": "rYYYY_OTRA_CUENTA",
+      "Account": "rYYYY_OTHER_ACCOUNT",
       "SigningPubKey": "",
       "TxnSignature": ""
     }
@@ -91,16 +91,16 @@ En `doApply` el principal sale de la pseudo-cuenta del [Vault](/objects/Vault) h
 }
 ```
 
-Aquí tú eres el prestatario y rYYYY_OTRA_CUENTA el owner del broker: 10 XRP a 4 cuotas semanales al 0,5 % anual. `SigningPubKey` y `TxnSignature` deben rellenarse con la firma real de la contraparte sobre esta misma transacción; el builder no puede generarla por ti. Nota: el objeto anidado repite el nombre `CounterpartySignature` porque así está definido en el formato binario.
+Here you're the borrower and rYYYY_OTHER_ACCOUNT is the broker's owner: 10 XRP over 4 weekly installments at 0.5% annual. `SigningPubKey` and `TxnSignature` must be filled with the counterparty's actual signature over this same transaction; the builder can't generate it for you. Note: the nested object repeats the name `CounterpartySignature` because that's how it's defined in the binary format.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Hoy el builder devolverá `temDISABLED`: `LendingProtocol` y `SingleAssetVault` no están activos en la testnet.
-2. Cuando se active: rYYYY_OTRA_CUENTA crea Vault y broker, deposita cover y un tercero deposita activos en el Vault ([VaultDeposit](/tx/VaultDeposit)).
-3. Prepara la transacción sin firmar, haz que la contraparte la firme y pega su firma en `CounterpartySignature`; luego firma tú con Xaman.
-4. Tras validar, `account_objects` de tu cuenta con `type: "loan"` mostrará el Loan con `PeriodicPayment`, `NextPaymentDueDate` y `PaymentRemaining: 4`; tu saldo de XRP habrá subido 10 XRP y `AssetsAvailable` del Vault habrá bajado en la misma cantidad.
+1. Today the builder will return `temDISABLED`: `LendingProtocol` and `SingleAssetVault` are not active on testnet.
+2. Once active: rYYYY_OTHER_ACCOUNT creates a Vault and broker, deposits cover, and a third party deposits assets into the Vault ([VaultDeposit](/tx/VaultDeposit)).
+3. Prepare the unsigned transaction, have the counterparty sign it, and paste their signature into `CounterpartySignature`; then sign it yourself with Xaman.
+4. After validation, your account's `account_objects` with `type: "loan"` will show the Loan with `PeriodicPayment`, `NextPaymentDueDate`, and `PaymentRemaining: 4`; your XRP balance will have risen by 10 XRP, and the Vault's `AssetsAvailable` will have dropped by the same amount.
 
-## Relacionado
+## Related
 
 - [LoanPay](/tx/LoanPay), [LoanManage](/tx/LoanManage), [LoanDelete](/tx/LoanDelete), [LoanBrokerSet](/tx/LoanBrokerSet), [LoanBrokerCoverDeposit](/tx/LoanBrokerCoverDeposit), [VaultDeposit](/tx/VaultDeposit)
 - [Loan](/objects/Loan), [LoanBroker](/objects/LoanBroker), [Vault](/objects/Vault)

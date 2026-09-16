@@ -1,18 +1,18 @@
 ---
 title: fixEnforceNFTokenTrustlineV2
-summary: Amplía fixEnforceNFTokenTrustline comprobando también que el emisor del token de pago autoriza recibirlo, y ajusta el cálculo de fees rotas.
+summary: Extends fixEnforceNFTokenTrustline by also checking that the payment token's issuer authorizes receiving it, and adjusts the calculation of broker fees.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixenforcenftokentrustlinev2
 ---
 
-## Qué cambia
+## What changes
 
-Sobre la base de [fixEnforceNFTokenTrustline](/amendments/fixEnforceNFTokenTrustline), este amendment añade en [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer) una llamada a `checkTrustlineAuthorized` sobre el minter del NFT: si el emisor del token de pago exige autorización (`lsfRequireAuth`) y el minter no está autorizado, la transacción falla igual que fallaría un pago normal a una cuenta no autorizada, en vez de forzar igualmente el cobro de la comisión. También aplica esta comprobación al calcular y repartir el `brokerFee` en ofertas casadas ("brokered"), y ajusta `NFTokenHelpers` para que el reparto de fees no nativas tenga en cuenta si el amendment está activo.
+Building on [fixEnforceNFTokenTrustline](/amendments/fixEnforceNFTokenTrustline), this amendment adds a call to `checkTrustlineAuthorized` in [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer) for the NFT minter: if the payment token's issuer requires authorization (`lsfRequireAuth`) and the minter is not authorized, the transaction fails just as a regular payment to an unauthorized account would, instead of still forcing the fee to be collected. It also applies this check when calculating and distributing the `brokerFee` in brokered (matched) offers, and adjusts `NFTokenHelpers` so that the distribution of non-native fees takes into account whether the amendment is active.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): valida autorización del minter además de la existencia de trustline, tanto en el pago directo como en el `brokerFee`.
-- [RippleState](/objects/RippleState): respeta `lsfRequireAuth` también en el cobro automático del `TransferFee` de un NFT.
+- [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): validates minter authorization in addition to the existence of the trustline, both in the direct payment and in the `brokerFee`.
+- [RippleState](/objects/RippleState): honors `lsfRequireAuth` also for the automatic collection of an NFT's `TransferFee`.
 
-## Estado y contexto
+## Status and context
 
-V1 cerró el hueco de trustlines creadas sin consentimiento, pero dejaba abierto un caso relacionado: un emisor podía exigir autorización explícita (`RequireAuth`) para recibir su propio token, y el cobro automático de la comisión de transferencia de un NFT lo saltaba igualmente. V2 alinea ese cobro con las mismas reglas de autorización que ya se aplican a cualquier pago normal en ese token, cerrando la vía que quedaba para acreditar fondos a una cuenta sin su autorización.
+V1 closed the gap of trustlines created without consent, but left open a related case: an issuer could require explicit authorization (`RequireAuth`) to receive its own token, and the automatic collection of an NFT's transfer fee would bypass that requirement anyway. V2 aligns this collection with the same authorization rules that already apply to any regular payment in that token, closing the remaining path for crediting funds to an account without its authorization.

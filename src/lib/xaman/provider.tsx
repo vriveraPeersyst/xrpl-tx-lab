@@ -50,7 +50,7 @@ export function XamanProvider({ children }: { children: ReactNode }) {
         xumm.on("retrieved", () => void sync(xumm));
         xumm.on("logout", () => { setAccount(null); setNetwork(null); });
         xumm.on("error", (e) => setError(e instanceof Error ? e.message : String(e)));
-        void sync(xumm); // restaura una sesión PKCE previa
+        void sync(xumm); // restores a previous PKCE session
       })
       .catch((e) => alive && setError(e instanceof Error ? e.message : String(e)));
     return () => { alive = false; };
@@ -80,6 +80,6 @@ export function XamanProvider({ children }: { children: ReactNode }) {
 
 export function useXaman(): XamanSession {
   const v = useContext(Ctx);
-  if (!v) throw new Error("useXaman fuera de XamanProvider");
+  if (!v) throw new Error("useXaman outside of XamanProvider");
   return v;
 }

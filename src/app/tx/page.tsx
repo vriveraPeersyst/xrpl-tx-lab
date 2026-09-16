@@ -4,7 +4,7 @@ import { CATEGORIES, txByCategory, registry } from "@/lib/tx/registry";
 import { readDoc } from "@/lib/content";
 import { AmendmentBadge } from "@/components/protocol";
 
-export const metadata = { title: "Transacciones" };
+export const metadata = { title: "Transactions" };
 
 export default function TxIndex() {
   const names = testnetTxNames();
@@ -12,14 +12,14 @@ export default function TxIndex() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="display-lg">Tipos de transacción en testnet ({names.length})</h1>
-        <p className="text-muted">Los que existen en el <code>xrpld</code> de testnet. Los que dependen de un amendment no activo se pueden construir, pero el nodo los rechazará con <code>temDISABLED</code>.</p>
+        <h1 className="display-lg">Transaction types on testnet ({names.length})</h1>
+        <p className="text-muted">Those that exist in testnet&apos;s <code>xrpld</code>. Those that depend on an inactive amendment can be built, but the node will reject them with <code>temDISABLED</code>.</p>
       </div>
       {(Object.keys(CATEGORIES) as (keyof typeof CATEGORIES)[]).filter((c) => byCat[c].length).map((c) => (
         <section key={c}>
           <h2 className="mb-2 display-md">{CATEGORIES[c].label} <span className="text-sm font-normal text-muted">· {CATEGORIES[c].blurb}</span></h2>
           <table className="tbl">
-            <thead><tr><th>Tipo</th><th>Resumen</th><th>Amendment</th><th className="text-right">Campos</th></tr></thead>
+            <thead><tr><th>Type</th><th>Summary</th><th>Amendment</th><th className="text-right">Fields</th></tr></thead>
             <tbody>
               {byCat[c].map((n) => {
                 const t = getTx(n);

@@ -1,92 +1,92 @@
 ---
 title: TrustSet
-summary: Crea o modifica una trust line hacia un emisor: límite que aceptas, No Ripple, autorización y congelación.
+summary: Creates or modifies a trust line to an issuer: the limit you accept, No Ripple, authorization and freeze.
 category: tokens
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/trustset
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-En el XRPL nadie puede enviarte un token emitido (IOU) si tú no has declarado antes que lo aceptas. Esa declaración es una **trust line**, un objeto [RippleState](/objects/RippleState) compartido entre tu cuenta y el emisor. `TrustSet` es la transacción que la crea, la ajusta o la deja en estado "por defecto" para que se borre.
+On the XRPL, no one can send you an issued token (IOU) unless you've first declared that you accept it. That declaration is a **trust line**, a [RippleState](/objects/RippleState) object shared between your account and the issuer. `TrustSet` is the transaction that creates it, adjusts it, or leaves it in a "default" state so it gets deleted.
 
-La trust line guarda el límite que estás dispuesto a mantener (`LimitAmount`), el saldo actual, las calidades de entrada/salida y varios flags de cada lado: No Ripple, autorización (`Auth`) y congelación (`Freeze`/`DeepFreeze`). Como el objeto es compartido, cada cuenta solo modifica "su" mitad (la parte *low* o *high*, según el orden numérico de las direcciones).
+The trust line stores the limit you're willing to hold (`LimitAmount`), the current balance, the in/out qualities, and several flags for each side: No Ripple, authorization (`Auth`) and freeze (`Freeze`/`DeepFreeze`). Since the object is shared, each account only modifies "its" half (the *low* or *high* side, based on the numeric order of the addresses).
 
-El emisor también usa `TrustSet`: para autorizar a un tenedor cuando exige `RequireAuth`, o para congelar una línea concreta.
+The issuer also uses `TrustSet`: to authorize a holder when it requires `RequireAuth`, or to freeze a specific line.
 
-## Cuándo usarlo
+## When to use it
 
-- Antes de recibir cualquier token IOU (USD, EUR, stablecoins de testnet…).
-- Ajustar el límite máximo que aceptas de un emisor.
-- Activar `tfSetNoRipple` para que tu cuenta no sirva de puente entre dos trust lines del mismo token.
-- Como emisor: autorizar a un tenedor (`tfSetfAuth`) o congelar/descongelar su línea.
-- Cerrar una trust line: pon límite 0, sin calidades ni flags, con saldo 0.
+- Before receiving any IOU token (USD, EUR, testnet stablecoins…).
+- Adjusting the maximum limit you accept from an issuer.
+- Enabling `tfSetNoRipple` so your account doesn't act as a bridge between two trust lines of the same token.
+- As an issuer: authorizing a holder (`tfSetfAuth`) or freezing/unfreezing their line.
+- Closing a trust line: set the limit to 0, with no qualities or flags, and a balance of 0.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`TrustSet::preflight`**: `LimitAmount` no puede ser XRP (`temBAD_LIMIT`), ni negativo, ni la moneda inválida (`temBAD_CURRENCY`), y debe llevar un `issuer` (`temDST_NEEDED`). Los flags `tfSetDeepFreeze` y `tfClearDeepFreeze` solo se admiten con [DeepFreeze](/amendments/DeepFreeze), que está activo en testnet.
+**`TrustSet::preflight`**: `LimitAmount` can't be XRP (`temBAD_LIMIT`), can't be negative, and can't have an invalid currency (`temBAD_CURRENCY`), and it must carry an `issuer` (`temDST_NEEDED`). The `tfSetDeepFreeze` and `tfClearDeepFreeze` flags are only allowed with [DeepFreeze](/amendments/DeepFreeze), which is active on testnet.
 
-**`TrustSet::preclaim`**: el emisor no puedes ser tú mismo (`temDST_IS_SRC`). `tfSetfAuth` solo tiene sentido si tu cuenta tiene `lsfRequireAuth`; si no, `tefNO_AUTH_REQUIRED`. Como el amendment AMM está activo, el emisor debe existir (`tecNO_DST`). Si el emisor tiene `lsfDisallowIncomingTrustline` y aún no existe la línea, `tecNO_PERMISSION`. Con los pseudo-accounts hay reglas propias: hacia un AMM solo puedes abrir línea de sus LP tokens y si el pool no está vacío (`tecAMM_EMPTY`). Con DeepFreeze: una cuenta con `lsfNoFreeze` no puede congelar (`tecNO_PERMISSION`); no puedes congelar y descongelar en la misma tx; y el resultado no puede quedar con deep freeze sin freeze normal.
+**`TrustSet::preclaim`**: the issuer can't be yourself (`temDST_IS_SRC`). `tfSetfAuth` only makes sense if your account has `lsfRequireAuth`; otherwise, `tefNO_AUTH_REQUIRED`. Since the AMM amendment is active, the issuer must exist (`tecNO_DST`). If the issuer has `lsfDisallowIncomingTrustline` and the line doesn't exist yet, `tecNO_PERMISSION`. There are dedicated rules for pseudo-accounts: toward an AMM you can only open a line for its LP tokens, and only if the pool isn't empty (`tecAMM_EMPTY`). With DeepFreeze: an account with `lsfNoFreeze` can't freeze (`tecNO_PERMISSION`); you can't freeze and unfreeze in the same tx; and the result can't end up with deep freeze without a regular freeze.
 
-**`TrustSet::doApply`** distingue dos casos:
+**`TrustSet::doApply`** distinguishes two cases:
 
-- *La línea ya existe*: actualiza tu límite, tus `QualityIn`/`QualityOut` (0 o `QUALITY_ONE` = quitar el campo), aplica No Ripple (solo puedes activarlo si tu saldo en la línea es ≥ 0; si no, `tecNO_PERMISSION`), Auth y los flags de congelación. Luego calcula si cada lado "necesita reserva": tiene límite > 0, saldo positivo, calidad, freeze o No Ripple distinto del `DefaultRipple` de su cuenta. Sube o baja el `OwnerCount` de cada parte según cambie eso (`lsfLowReserve`/`lsfHighReserve`). Si ambos lados quedan en estado por defecto, la línea se borra con `trustDelete`. Si tu lado pasa a necesitar reserva y no la cubres, `tecINSUF_RESERVE_LINE`.
-- *La línea no existe*: si `LimitAmount` es 0 y no pones calidades ni `tfSetfAuth`, no hay nada que crear: `tecNO_LINE_REDUNDANT`. Si no cubres la reserva incremental, `tecNO_LINE_INSUF_RESERVE`. Nota curiosa del código: las dos primeras trust lines (`ownerCount < 2`) no exigen reserva adicional en el momento de crearse (`reserveCreate` es 0), aunque sí cuentan en `OwnerCount`. Si todo va bien, `trustCreate` inserta el `RippleState` en los directorios de las dos cuentas.
+- *The line already exists*: it updates your limit, your `QualityIn`/`QualityOut` (0 or `QUALITY_ONE` = remove the field), applies No Ripple (you can only enable it if your balance on the line is ≥ 0; otherwise, `tecNO_PERMISSION`), Auth, and the freeze flags. It then calculates whether each side "needs reserve": it has a limit > 0, a positive balance, a quality, a freeze, or a No Ripple value different from its account's `DefaultRipple`. It raises or lowers each party's `OwnerCount` according to that change (`lsfLowReserve`/`lsfHighReserve`). If both sides end up in the default state, the line is deleted with `trustDelete`. If your side moves to needing reserve and you don't cover it, `tecINSUF_RESERVE_LINE`.
+- *The line doesn't exist*: if `LimitAmount` is 0 and you don't set qualities or `tfSetfAuth`, there's nothing to create: `tecNO_LINE_REDUNDANT`. If you don't cover the incremental reserve, `tecNO_LINE_INSUF_RESERVE`. A curious detail in the code: the first two trust lines (`ownerCount < 2`) don't require additional reserve at creation time (`reserveCreate` is 0), even though they do count toward `OwnerCount`. If everything checks out, `trustCreate` inserts the `RippleState` into both accounts' directories.
 
-Delegación: la tx es delegable con permiso granular `TrustlineAuthorize`, `TrustlineFreeze`, etc.; `checkGranularSemantics` exige que el `LimitAmount` coincida con el límite actual para que el delegado no lo cambie de paso.
+Delegation: the tx is delegable with granular permissions `TrustlineAuthorize`, `TrustlineFreeze`, etc.; `checkGranularSemantics` requires that `LimitAmount` match the current limit so that the delegate can't change it in the same step.
 
-## Campos clave
+## Key fields
 
-- **LimitAmount** — `{currency, issuer, value}`. El `issuer` es la contraparte de la línea; `value` es tu límite. El código lo vuelve a etiquetar internamente con tu cuenta como `account`.
-- **QualityIn / QualityOut** — porcentaje en partes por mil millones (1e9 = 100 %) que aplicas a lo que entra/sale por la línea. `0` o `1000000000` elimina el campo.
+- **LimitAmount** — `{currency, issuer, value}`. The `issuer` is the counterparty of the line; `value` is your limit. The code re-tags it internally with your account as `account`.
+- **QualityIn / QualityOut** — percentage in parts per billion (1e9 = 100%) applied to what comes in/out through the line. `0` or `1000000000` removes the field.
 
 ## Flags
 
-- **tfSetfAuth** — como emisor con `RequireAuth`, autorizas a la contraparte a mantener tu token.
-- **tfSetNoRipple / tfClearNoRipple** — activa o quita No Ripple en tu lado. Activarlo exige saldo ≥ 0 en la línea.
-- **tfSetFreeze / tfClearFreeze** — congela o descongela la línea desde tu lado (útil para emisores). Bloqueado si tienes `lsfNoFreeze`.
-- **tfSetDeepFreeze / tfClearDeepFreeze** — congelación profunda: además de no poder enviar, la contraparte tampoco puede recibir. Requiere que la línea esté ya congelada (o congelarla en la misma tx).
+- **tfSetfAuth** — as an issuer with `RequireAuth`, authorizes the counterparty to hold your token.
+- **tfSetNoRipple / tfClearNoRipple** — enables or removes No Ripple on your side. Enabling it requires a balance ≥ 0 on the line.
+- **tfSetFreeze / tfClearFreeze** — freezes or unfreezes the line from your side (useful for issuers). Blocked if you have `lsfNoFreeze`.
+- **tfSetDeepFreeze / tfClearDeepFreeze** — deep freeze: in addition to being unable to send, the counterparty also can't receive. Requires the line to already be frozen (or freezing it in the same tx).
 
-## Errores habituales
+## Common errors
 
-- **tecNO_LINE_REDUNDANT** — intentas crear una línea con límite 0 y sin más cambios. Pon un límite > 0.
-- **tecNO_LINE_INSUF_RESERVE** / **tecINSUF_RESERVE_LINE** — no tienes XRP para la reserva incremental (0,2 XRP en testnet). Añade fondos.
-- **tecNO_DST** — el emisor indicado no existe en el ledger.
-- **tecNO_PERMISSION** — el emisor rechaza trust lines entrantes, intentas No Ripple con saldo negativo, o combinaciones de freeze inválidas.
-- **tefNO_AUTH_REQUIRED** — usas `tfSetfAuth` sin tener `asfRequireAuth` activado.
-- **temDST_IS_SRC** — el `issuer` es tu propia cuenta.
-- **temBAD_LIMIT** — `LimitAmount` es XRP o negativo.
+- **tecNO_LINE_REDUNDANT** — you're trying to create a line with limit 0 and no other changes. Set a limit > 0.
+- **tecNO_LINE_INSUF_RESERVE** / **tecINSUF_RESERVE_LINE** — you don't have XRP for the incremental reserve (0.2 XRP on testnet). Add funds.
+- **tecNO_DST** — the specified issuer doesn't exist on the ledger.
+- **tecNO_PERMISSION** — the issuer rejects incoming trust lines, you're trying No Ripple with a negative balance, or invalid freeze combinations.
+- **tefNO_AUTH_REQUIRED** — you use `tfSetfAuth` without having `asfRequireAuth` enabled.
+- **temDST_IS_SRC** — the `issuer` is your own account.
+- **temBAD_LIMIT** — `LimitAmount` is XRP or negative.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "TrustSet",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "LimitAmount": {
     "currency": "USD",
-    "issuer": "rZZZZ_EMISOR",
+    "issuer": "rZZZZ_ISSUER",
     "value": "1000"
   },
   "Flags": 131072
 }
 ```
 
-Acepta hasta 1000 USD del emisor y activa `tfSetNoRipple` (131072).
+Accepts up to 1000 USD from the issuer and enables `tfSetNoRipple` (131072).
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Necesitas una segunda cuenta que haga de emisor; el builder puede usar la cuenta de demostración `{{issuer}}`.
-2. Envía el ejemplo. Verifica con `account_lines` (cuenta = la tuya): aparece una línea con `limit: "1000"`, `balance: "0"` y `no_ripple: true`.
-3. Consulta `account_info`: tu `OwnerCount` ha subido en 1 y la reserva exigida en 0,2 XRP.
-4. Desde el emisor, envía un [Payment](/tx/Payment) de `{currency: "USD", issuer: emisor, value: "10"}` a tu cuenta: el `balance` de la línea pasa a 10.
-5. Para cerrarla: devuelve los 10 USD al emisor, envía `TrustSet` con `value: "0"` y `Flags: 262144` (`tfClearNoRipple`) si tu cuenta no tiene `DefaultRipple`; la línea desaparece de `account_lines`.
+1. You need a second account to act as issuer; the builder can use the demo account `{{issuer}}`.
+2. Send the example. Check with `account_lines` (account = yours): a line appears with `limit: "1000"`, `balance: "0"` and `no_ripple: true`.
+3. Query `account_info`: your `OwnerCount` has increased by 1 and the required reserve by 0.2 XRP.
+4. From the issuer, send a [Payment](/tx/Payment) of `{currency: "USD", issuer: issuer, value: "10"}` to your account: the line's `balance` becomes 10.
+5. To close it: return the 10 USD to the issuer, send `TrustSet` with `value: "0"` and `Flags: 262144` (`tfClearNoRipple`) if your account doesn't have `DefaultRipple`; the line disappears from `account_lines`.
 
-## Relacionado
+## Related
 
-- [Payment](/tx/Payment) — mueve tokens por la trust line.
+- [Payment](/tx/Payment) — moves tokens over the trust line.
 - [AccountSet](/tx/AccountSet) — `asfRequireAuth`, `asfDefaultRipple`, `asfNoFreeze`, `asfGlobalFreeze`, `asfDisallowIncomingTrustline`.
-- [Clawback](/tx/Clawback) — el emisor recupera tokens de una línea.
-- [OfferCreate](/tx/OfferCreate) — intercambiar el token en el DEX.
-- Objetos: [RippleState](/objects/RippleState), [AccountRoot](/objects/AccountRoot).
+- [Clawback](/tx/Clawback) — the issuer claws back tokens from a line.
+- [OfferCreate](/tx/OfferCreate) — trade the token on the DEX.
+- Objects: [RippleState](/objects/RippleState), [AccountRoot](/objects/AccountRoot).
 - Amendments: [DeepFreeze](/amendments/DeepFreeze), [DisallowIncoming](/amendments/DisallowIncoming), [fixTrustLinesToSelf](/amendments/fixTrustLinesToSelf).

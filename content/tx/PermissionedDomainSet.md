@@ -1,73 +1,73 @@
 ---
 title: PermissionedDomainSet
-summary: Crea o modifica un dominio permisionado: un conjunto de credenciales que da acceso a operar en él.
+summary: Creates or modifies a permissioned domain: a set of credentials that grants access to operate within it.
 category: permisos
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/permissioneddomainset
 amendment: PermissionedDomains
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-`PermissionedDomainSet` crea (o modifica) un objeto [PermissionedDomain](/objects/PermissionedDomain): una lista de hasta diez pares emisor/tipo de credencial que definen quién puede entrar en ese dominio. Cualquier cuenta que tenga al menos una de esas credenciales [aceptadas](/tx/CredentialAccept) cumple el requisito de acceso.
+`PermissionedDomainSet` creates (or modifies) a [PermissionedDomain](/objects/PermissionedDomain) object: a list of up to ten issuer/credential-type pairs that define who can enter that domain. Any account that has at least one of those credentials [accepted](/tx/CredentialAccept) meets the access requirement.
 
-Los dominios permisionados son la pieza que conecta el sistema de identidad ([Credentials](/amendments/Credentials)) con mercados restringidos: un [PermissionedDEX](/objects/Offer) puede exigir pertenecer a un dominio concreto para operar en él (`DomainID` en `OfferCreate` o `Payment`), igual que ciertos [Vault](/objects/Vault) privados. El dueño del dominio (`Owner`) es siempre quien lo crea; solo él puede modificarlo después.
+Permissioned domains are the piece that connects the identity system ([Credentials](/amendments/Credentials)) with restricted markets: a [PermissionedDEX](/objects/Offer) can require belonging to a specific domain in order to operate in it (`DomainID` on `OfferCreate` or `Payment`), just like certain private [Vault](/objects/Vault) instances. The domain's owner (`Owner`) is always whoever created it; only they can modify it afterward.
 
-## Cuándo usarlo
+## When to use it
 
-- Un exchange regulado crea un dominio "clientes verificados" aceptando credenciales de uno o varios proveedores KYC.
-- Restringir el acceso a un libro de órdenes o a un vault a cuentas con una credencial concreta (residencia, acreditación de inversor, etc.).
-- Actualizar la lista de credenciales aceptadas en un dominio ya existente, por ejemplo para añadir un nuevo proveedor KYC de confianza.
+- A regulated exchange creates a "verified customers" domain accepting credentials from one or more KYC providers.
+- Restricting access to an order book or a vault to accounts holding a specific credential (residency, accredited-investor status, etc.).
+- Updating the list of accepted credentials on an existing domain, for example to add a new trusted KYC provider.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`PermissionedDomainSet::checkExtraFeatures`** exige que [Credentials](/amendments/Credentials) esté activo, ya que el dominio se define en términos de credenciales.
+**`PermissionedDomainSet::checkExtraFeatures`** requires [Credentials](/amendments/Credentials) to be active, since the domain is defined in terms of credentials.
 
-**`PermissionedDomainSet::preflight`** valida que `AcceptedCredentials` no esté vacío ni supere el máximo de entradas (10) ni tenga pares emisor/tipo duplicados. Si incluyes `DomainID`, no puede ser el hash cero (`temMALFORMED`).
+**`PermissionedDomainSet::preflight`** validates that `AcceptedCredentials` isn't empty, doesn't exceed the maximum number of entries (10), and has no duplicate issuer/type pairs. If you include `DomainID`, it can't be the zero hash (`temMALFORMED`).
 
-**`PermissionedDomainSet::preclaim`** comprueba que cada `Issuer` de las credenciales aceptadas existe como cuenta (`tecNO_ISSUER`). Si estás modificando un dominio existente (`DomainID` presente), este debe existir (`tecNO_ENTRY`) y tú debes ser su propietario (`tecNO_PERMISSION` si no).
+**`PermissionedDomainSet::preclaim`** checks that each `Issuer` among the accepted credentials exists as an account (`tecNO_ISSUER`). If you're modifying an existing domain (`DomainID` present), it must exist (`tecNO_ENTRY`) and you must be its owner (`tecNO_PERMISSION` if not).
 
-**`PermissionedDomainSet::doApply`** crea el objeto la primera vez (consumiendo reserva de propietario, `tecINSUFFICIENT_RESERVE` si no te alcanza, `tecDIR_FULL` si tu directorio está lleno) o sustituye por completo la lista `AcceptedCredentials` del dominio existente por la que envías — no es un añadido incremental, reemplaza toda la lista.
+**`PermissionedDomainSet::doApply`** creates the object the first time (consuming owner reserve, `tecINSUFFICIENT_RESERVE` if you can't afford it, `tecDIR_FULL` if your directory is full) or completely replaces the existing domain's `AcceptedCredentials` list with the one you send — it's not an incremental addition, it replaces the whole list.
 
-## Campos clave
+## Key fields
 
-- **DomainID** — omítelo para crear un dominio nuevo; inclúyelo (el hash del dominio existente) para modificar uno tuyo. El builder de esta página lo calcula al crear.
-- **AcceptedCredentials** — lista de hasta 10 objetos `Credential` con `Issuer` y `CredentialType`. Basta con que el usuario tenga aceptada una de ellas para entrar en el dominio; no hace falta que las tenga todas.
+- **DomainID** — omit it to create a new domain; include it (the hash of the existing domain) to modify one of yours. This page's builder computes it on creation.
+- **AcceptedCredentials** — a list of up to 10 `Credential` objects with `Issuer` and `CredentialType`. It's enough for the user to have one of them accepted to enter the domain; they don't need all of them.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_ISSUER** — alguno de los `Issuer` en `AcceptedCredentials` no existe como cuenta.
-- **tecNO_ENTRY** — intentas modificar un `DomainID` que no existe.
-- **tecNO_PERMISSION** — intentas modificar un dominio que no te pertenece.
-- **tecINSUFFICIENT_RESERVE** — no te queda XRP por encima de la reserva para crear el dominio.
-- **temMALFORMED** — `AcceptedCredentials` vacío, con duplicados o supera el máximo permitido.
+- **tecNO_ISSUER** — one of the `Issuer` values in `AcceptedCredentials` doesn't exist as an account.
+- **tecNO_ENTRY** — you're trying to modify a `DomainID` that doesn't exist.
+- **tecNO_PERMISSION** — you're trying to modify a domain that doesn't belong to you.
+- **tecINSUFFICIENT_RESERVE** — you don't have enough XRP above the reserve to create the domain.
+- **temMALFORMED** — `AcceptedCredentials` is empty, has duplicates, or exceeds the allowed maximum.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "PermissionedDomainSet",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "AcceptedCredentials": [
-    { "Credential": { "Issuer": "rYYYY_OTRA_CUENTA", "CredentialType": "4B5943" } }
+    { "Credential": { "Issuer": "rYYYY_OTHER_ACCOUNT", "CredentialType": "4B5943" } }
   ]
 }
 ```
 
-Crea un dominio que acepta a cualquier cuenta con una credencial "KYC" emitida por `rYYYY_OTRA_CUENTA`.
+Creates a domain that accepts any account with a "KYC" credential issued by `rYYYY_OTHER_ACCOUNT`.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Asegúrate de tener al menos un emisor de credenciales de prueba (ver [CredentialCreate](/tx/CredentialCreate)).
-2. Firma y envía el ejemplo desde la cuenta que será propietaria del dominio.
-3. Consulta `account_objects` con `type: "permissioned_domain"`: verás el objeto con su `DomainID` (el hash del índice del ledger).
-4. Envía un segundo `PermissionedDomainSet` con ese `DomainID` y una lista `AcceptedCredentials` distinta: comprueba que la lista se sustituye por completo.
-5. Borra el dominio con [PermissionedDomainDelete](/tx/PermissionedDomainDelete) cuando termines.
+1. Make sure you have at least one test credential issuer (see [CredentialCreate](/tx/CredentialCreate)).
+2. Sign and submit the example from the account that will own the domain.
+3. Query `account_objects` with `type: "permissioned_domain"`: you'll see the object with its `DomainID` (the hash of the ledger index).
+4. Submit a second `PermissionedDomainSet` with that `DomainID` and a different `AcceptedCredentials` list: check that the list is fully replaced.
+5. Delete the domain with [PermissionedDomainDelete](/tx/PermissionedDomainDelete) when you're done.
 
-## Relacionado
+## Related
 
-- [PermissionedDomainDelete](/tx/PermissionedDomainDelete) — elimina el dominio.
-- [CredentialCreate](/tx/CredentialCreate) y [CredentialAccept](/tx/CredentialAccept) — las credenciales que da acceso al dominio.
-- [VaultCreate](/tx/VaultCreate) — un vault privado puede restringirse a un dominio.
-- Objetos: [PermissionedDomain](/objects/PermissionedDomain), [Credential](/objects/Credential).
+- [PermissionedDomainDelete](/tx/PermissionedDomainDelete) — deletes the domain.
+- [CredentialCreate](/tx/CredentialCreate) and [CredentialAccept](/tx/CredentialAccept) — the credentials that grant access to the domain.
+- [VaultCreate](/tx/VaultCreate) — a private vault can be restricted to a domain.
+- Objects: [PermissionedDomain](/objects/PermissionedDomain), [Credential](/objects/Credential).
 - Amendments: [PermissionedDomains](/amendments/PermissionedDomains), [Credentials](/amendments/Credentials).

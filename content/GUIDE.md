@@ -1,92 +1,92 @@
-# Guía de redacción de contenido (content/)
+# Content writing guide (content/)
 
-Esta web es educativa: cada página debe permitir a alguien que no conoce el XRPL entender
-**qué hace** una transacción u objeto, **cuándo usarlo**, **qué puede fallar** y **cómo
-probarlo en testnet** desde el builder de la propia página. Todo en **español**, con
-ortografía completa (tildes, ñ). Los identificadores técnicos (nombres de campos, flags,
-códigos TER, nombres de amendments) se dejan en inglés tal cual aparecen en rippled.
+This site is educational: every page must let someone who doesn't know the XRPL understand
+**what** a transaction or object does, **when to use it**, **what can go wrong**, and **how
+to try it on testnet** from the page's own builder. Everything in **English**, with
+correct spelling and grammar. Technical identifiers (field names, flags,
+TER codes, amendment names) are left in English exactly as they appear in rippled.
 
-## Fuentes de verdad, por orden
+## Sources of truth, in order
 
-1. `src/data/testnet.json` → qué existe HOY en la testnet (tipos, campos, flags, TER, amendments activos).
-2. `src/data/protocol.json` → cómo funciona (campos con opcionalidad, transactor: TER por fase,
-   amendments consultados, flags, privilegios, delegabilidad). Extraído del código.
-3. `vendor/rippled/src/libxrpl/tx/transactors/**` → el código real. Léelo para explicar reglas
-   (preflight = validación estática, preclaim = validación contra el ledger, doApply = efectos).
-4. Documentación: https://xrpl.org/docs/references/protocol/transactions/types/<nombre-en-minúsculas>
-   y las XLS en https://github.com/XRPLF/XRPL-Standards (útiles para entender; NO son la verdad
-   si contradicen el código).
+1. `src/data/testnet.json` → what exists TODAY on testnet (types, fields, flags, TER, active amendments).
+2. `src/data/protocol.json` → how it works (fields with optionality, transactor: TER by phase,
+   amendments consulted, flags, privileges, delegability). Extracted from the code.
+3. `vendor/rippled/src/libxrpl/tx/transactors/**` → the actual code. Read it to explain rules
+   (preflight = static validation, preclaim = validation against the ledger, doApply = effects).
+4. Documentation: https://xrpl.org/docs/references/protocol/transactions/types/<lowercase-name>
+   and the XLS at https://github.com/XRPLF/XRPL-Standards (useful for understanding; NOT the source
+   of truth if they contradict the code).
 
-Lo que la UI ya genera automáticamente desde protocol.json (NO lo repitas en el markdown):
-tabla de campos con tipos/opcionalidad, lista de flags con valores hex, lista completa de códigos
-TER que devuelve el transactor, amendments consultados y enlaces al código fuente.
+What the UI already generates automatically from protocol.json (do NOT repeat it in the markdown):
+a table of fields with types/optionality, the list of flags with hex values, the full list of
+TER codes the transactor returns, amendments consulted, and links to the source code.
 
 ## content/tx/<Name>.md
 
 ```
 ---
 title: Payment
-summary: Envía XRP, tokens emitidos o MPT a otra cuenta, con enrutado (paths) y conversión entre monedas.   # 1 frase
-category: pagos          # una de: cuenta | pagos | dex | tokens | nft | mpt | escrow | canales | cheques | multifirma | identidad | permisos | amm | puente | vault | prestamos | confidencial | batch | oraculos | sistema | otros
+summary: Sends XRP, issued tokens, or MPT to another account, with routing (paths) and currency conversion.   # 1 sentence
+category: pagos          # one of: cuenta | pagos | dex | tokens | nft | mpt | escrow | canales | cheques | multifirma | identidad | permisos | amm | puente | vault | prestamos | confidencial | batch | oraculos | sistema | otros
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/payment
-xls: XLS-0033   # opcional, la XLS que lo introdujo (formato XLS-00NN)
-amendment: MPTokensV1   # opcional, amendment que introdujo el tipo (si aplica)
-level: básico   # básico | intermedio | avanzado
+xls: XLS-0033   # optional, the XLS that introduced it (format XLS-00NN)
+amendment: MPTokensV1   # optional, amendment that introduced the type (if applicable)
+level: basic   # basic | intermediate | advanced
 ---
 
-## Qué hace
-2-4 párrafos claros. Analogía si ayuda. Qué objetos del ledger crea/modifica/borra (enlaza como [Escrow](/objects/Escrow)).
+## What it does
+2-4 clear paragraphs. An analogy if it helps. Which ledger objects it creates/modifies/deletes (link as [Escrow](/objects/Escrow)).
 
-## Cuándo usarlo
-Casos de uso reales, viñetas.
+## When to use it
+Real-world use cases, as bullet points.
 
-## Cómo funciona por dentro
-Explica las tres fases del transactor con lo relevante del código: qué valida `preflight`
-(estático), qué comprueba `preclaim` contra el ledger, qué hace `doApply`. Cita reglas
-concretas (p.ej. "si el destino no existe y Amount es XRP ≥ reserva base, se crea la cuenta").
-Menciona qué amendments cambian el comportamiento (enlaza como [Credentials](/amendments/Credentials)).
+## How it works internally
+Explain the transactor's three phases with the relevant parts of the code: what `preflight`
+validates (static), what `preclaim` checks against the ledger, what `doApply` does. Cite
+concrete rules (e.g. "if the destination doesn't exist and Amount is XRP ≥ the base reserve, the account is created").
+Mention which amendments change the behavior (link as [Credentials](/amendments/Credentials)).
 
-## Campos clave
-Explica solo los campos con semántica no obvia (no repitas la tabla). Usa una lista `**Campo** — explicación`.
+## Key fields
+Explain only the fields with non-obvious semantics (don't repeat the table). Use a `**Field** — explanation` list.
 
 ## Flags
-Solo si el tipo tiene flags: explica el efecto de cada uno en una lista. Si no, omite la sección.
+Only if the type has flags: explain the effect of each one in a list. If not, omit this section.
 
-## Errores habituales
-Los 4-8 códigos TER más frecuentes con su causa y cómo evitarlos: `**tecNO_DST** — …`.
+## Common errors
+The 4-8 most frequent TER codes with their cause and how to avoid them: `**tecNO_DST** — …`.
 
-## Ejemplo
-Un JSON completo y válido para testnet dentro de ```json. Debe coincidir con el `example` del registro (src/lib/tx/registry.ts) o mejorarlo.
+## Example
+A complete, valid JSON for testnet inside ```json. It should match the `example` in the registry (src/lib/tx/registry.ts) or improve on it.
 
-## Pruébalo en testnet
-Pasos concretos (numerados) para probarlo con el builder de esta página y qué observar después
-(p.ej. "consulta account_objects y verás un objeto Escrow").
+## Try it on testnet
+Concrete (numbered) steps to try it with this page's builder and what to observe afterward
+(e.g. "query account_objects and you'll see an Escrow object").
 
-## Relacionado
-Lista de enlaces a otras tx/objetos/amendments de esta web.
+## Related
+List of links to other tx/objects/amendments on this site.
 ```
 
-Longitud orientativa: 400-1200 palabras. Los pseudo-tipos (EnableAmendment, SetFee, UNLModify)
-se documentan igual pero sin "Pruébalo": explica que los emite el sistema y no se pueden enviar.
+Suggested length: 400-1200 words. Pseudo-types (EnableAmendment, SetFee, UNLModify)
+are documented the same way but without "Try it": explain that the system issues them and they cannot be submitted.
 
 ## content/objects/<Name>.md
 
 ```
 ---
 title: Escrow
-summary: Retiene XRP o tokens hasta que se cumple una condición o un tiempo.
+summary: Holds XRP or tokens until a condition or a time is met.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/escrow
-createdBy: EscrowCreate          # tx que lo crean (coma-separado)
+createdBy: EscrowCreate          # tx that create it (comma-separated)
 modifiedBy: EscrowFinish, EscrowCancel
-reserve: 1                       # unidades de owner reserve que consume (0 si no cuenta)
+reserve: 1                       # units of owner reserve it consumes (0 if it doesn't count)
 ---
 
-## Qué representa
-## Ciclo de vida (qué tx lo crea, modifica, borra; enlaza a /tx/<Name>)
-## Campos clave (solo semántica no obvia)
-## Flags (si tiene lsf*)
-## Cómo consultarlo (método RPC: account_objects con type=..., ledger_entry con qué parámetros, ejemplo de respuesta JSON)
-## Relacionado
+## What it represents
+## Lifecycle (which tx creates it, modifies it, deletes it; link to /tx/<Name>)
+## Key fields (only non-obvious semantics)
+## Flags (if it has lsf*)
+## How to query it (RPC method: account_objects with type=..., ledger_entry with which parameters, example JSON response)
+## Related
 ```
 
 ## content/amendments/<Name>.md
@@ -94,25 +94,25 @@ reserve: 1                       # unidades de owner reserve que consume (0 si n
 ```
 ---
 title: Credentials
-summary: Añade credenciales verificables on-chain (CredentialCreate/Accept/Delete) y su uso en DepositPreauth y pagos.
+summary: Adds verifiable on-chain credentials (CredentialCreate/Accept/Delete) and their use in DepositPreauth and payments.
 xls: XLS-0070
-xlsUrl: https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0070-credentials   # si existe
+xlsUrl: https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0070-credentials   # if it exists
 xrplDocs: https://xrpl.org/resources/known-amendments#credentials
-introducedIn: 2.3.0    # versión de rippled, si se sabe
+introducedIn: 2.3.0    # rippled version, if known
 ---
 
-## Qué cambia
-## Transacciones y objetos afectados (enlaces a /tx y /objects)
-## Estado y contexto (para qué sirve, por qué se propuso; para los fix*: qué bug corrige)
+## What it changes
+## Affected transactions and objects (links to /tx and /objects)
+## Status and context (what it's for, why it was proposed; for fix*: what bug it fixes)
 ```
 
-El estado (activo en testnet, votación, veto) lo pinta la UI desde testnet.json; no lo escribas.
-Longitud: 150-500 palabras. Para los `fix*` basta con 150.
+The status (active on testnet, voting, veto) is rendered by the UI from testnet.json; don't write it.
+Length: 150-500 words. For `fix*`, 150 is enough.
 
-## Estilo
+## Style
 
-- Tono claro y directo, segunda persona ("puedes", "envías").
-- Frases cortas. Nada de relleno ni de marketing.
-- Números y unidades exactos: drops vs XRP, segundos Ripple Epoch (2000-01-01) vs Unix.
-- Cuando cites código: ruta y función (`Payment::preclaim`), no líneas.
-- No inventes campos ni reglas: si no está en el código o en protocol.json, no existe.
+- Clear, direct tone, second person ("you can", "you send").
+- Short sentences. No filler, no marketing language.
+- Exact numbers and units: drops vs XRP, Ripple Epoch seconds (2000-01-01) vs Unix.
+- When citing code: path and function (`Payment::preclaim`), not line numbers.
+- Don't invent fields or rules: if it's not in the code or in protocol.json, it doesn't exist.

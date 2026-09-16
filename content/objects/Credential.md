@@ -1,48 +1,48 @@
 ---
 title: Credential
-summary: Una credencial verificable on-chain: un emisor afirma algo sobre un sujeto, y el sujeto la acepta para poder usarla.
+summary: A verifiable on-chain credential: an issuer asserts something about a subject, and the subject accepts it in order to use it.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/credential
 createdBy: CredentialCreate
 modifiedBy: CredentialAccept, CredentialDelete
 reserve: 1
 ---
 
-## Qué representa
+## What it represents
 
-Un `Credential` es una afirmación firmada en el ledger: la cuenta `Issuer` declara que la cuenta `Subject` cumple algo identificado por `CredentialType` (por ejemplo, "KYC verificado" o "residente en la UE"). El contenido real de la verificación no se guarda en cadena; el objeto solo apunta a él mediante `URI` y deja constancia de quién lo afirma, sobre quién, y hasta cuándo.
+A `Credential` is a signed assertion in the ledger: the `Issuer` account declares that the `Subject` account satisfies something identified by `CredentialType` (for example, "KYC verified" or "EU resident"). The actual content of the verification is not stored on chain; the object only points to it via `URI` and records who is asserting it, about whom, and until when.
 
-Su utilidad práctica está en otros objetos: un [DepositPreauth](/objects/DepositPreauth) puede autorizar a "quien tenga estas credenciales" en vez de a una cuenta concreta, y un [PermissionedDomain](/objects/PermissionedDomain) se define por la lista de credenciales que acepta. Un [Payment](/tx/Payment) a una cuenta con `lsfDepositAuth` puede llevar `CredentialIDs` para demostrar que cumple.
+Its practical use lies in other objects: a [DepositPreauth](/objects/DepositPreauth) can authorize "whoever holds these credentials" instead of a specific account, and a [PermissionedDomain](/objects/PermissionedDomain) is defined by the list of credentials it accepts. A [Payment](/tx/Payment) to an account with `lsfDepositAuth` can carry `CredentialIDs` to prove it qualifies.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: [CredentialCreate](/tx/CredentialCreate) por el emisor. `preclaim` exige que el sujeto exista y que no haya ya una credencial con la misma tripleta (`Subject`, `Issuer`, `CredentialType`). `doApply` crea el objeto sin el flag `lsfAccepted`, lo enlaza en el directorio del emisor (`IssuerNode`) y en el del sujeto (`SubjectNode`), y cobra la reserva al emisor. Si el emisor se emite a sí mismo, nace aceptada.
-- **Aceptación**: [CredentialAccept](/tx/CredentialAccept) por el sujeto. Marca `lsfAccepted` y traslada la reserva: `CredentialAccept::doApply` resta 1 al `OwnerCount` del emisor y suma 1 al del sujeto. Si la credencial ya ha expirado, aceptar la borra en lugar de activarla (`tecEXPIRED`).
-- **Borrado**: [CredentialDelete](/tx/CredentialDelete). La pueden borrar el emisor o el sujeto en cualquier momento; cualquiera puede borrarla si ha pasado `Expiration`. [AccountDelete](/tx/AccountDelete) de cualquiera de los dos también la elimina.
+- **Creation**: [CredentialCreate](/tx/CredentialCreate) by the issuer. `preclaim` requires the subject to exist and that there isn't already a credential with the same triple (`Subject`, `Issuer`, `CredentialType`). `doApply` creates the object without the `lsfAccepted` flag, links it in the issuer's directory (`IssuerNode`) and in the subject's (`SubjectNode`), and charges the reserve to the issuer. If the issuer issues it to itself, it's born accepted.
+- **Acceptance**: [CredentialAccept](/tx/CredentialAccept) by the subject. It sets `lsfAccepted` and transfers the reserve: `CredentialAccept::doApply` subtracts 1 from the issuer's `OwnerCount` and adds 1 to the subject's. If the credential has already expired, accepting it deletes it instead of activating it (`tecEXPIRED`).
+- **Deletion**: [CredentialDelete](/tx/CredentialDelete). It can be deleted by the issuer or the subject at any time; anyone can delete it once `Expiration` has passed. [AccountDelete](/tx/AccountDelete) of either one also removes it.
 
-Una credencial no aceptada no sirve para nada: `checkCredentials` en `CredentialHelpers.cpp` ignora las que no tienen `lsfAccepted` o han caducado.
+An unaccepted credential is useless: `checkCredentials` in `CredentialHelpers.cpp` ignores those that don't have `lsfAccepted` or have expired.
 
-## Campos clave
+## Key fields
 
-- **Subject** — cuenta sobre la que se afirma algo.
-- **Issuer** — cuenta que la emite. Quien la consume (un `DepositPreauth`, un dominio) confía en este emisor, no en el sujeto.
-- **CredentialType** — blob hex de 1 a 64 bytes elegido por el emisor. Forma parte de la clave, así que el mismo emisor puede dar varias credenciales distintas a la misma persona.
-- **Expiration** — segundos desde el Ripple Epoch. Una vez pasado, la credencial no cuenta aunque siga en el ledger.
-- **URI** — hasta 256 bytes hex, normalmente apunta al documento que respalda la afirmación.
-- **IssuerNode / SubjectNode** — páginas de los directorios donde está enlazada.
+- **Subject** — the account something is being asserted about.
+- **Issuer** — the account issuing it. Whoever consumes it (a `DepositPreauth`, a domain) trusts this issuer, not the subject.
+- **CredentialType** — a hex blob of 1 to 64 bytes chosen by the issuer. It's part of the key, so the same issuer can give several distinct credentials to the same person.
+- **Expiration** — seconds since the Ripple Epoch. Once past, the credential no longer counts even though it remains in the ledger.
+- **URI** — up to 256 hex bytes, normally pointing to the document backing the assertion.
+- **IssuerNode / SubjectNode** — pages of the directories where it's linked.
 
 ## Flags
 
-- **lsfAccepted** — el sujeto la ha aceptado con `CredentialAccept`. Sin este flag la credencial no se considera válida en ninguna comprobación.
+- **lsfAccepted** — the subject has accepted it with `CredentialAccept`. Without this flag, the credential is not considered valid in any check.
 
-## Cómo consultarlo
+## How to query it
 
-`account_objects` con `type: "credential"` la lista tanto para el emisor como para el sujeto. Con `ledger_entry`:
+`account_objects` with `type: "credential"` lists it for both the issuer and the subject. With `ledger_entry`:
 
 ```json
 { "method": "ledger_entry", "params": [{ "credential": { "subject": "rfkE1aSy9G8Upk4JssnwBxhEv5p4mn2KTy", "issuer": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "credential_type": "4B5943" }, "ledger_index": "validated" }] }
 ```
 
-La clave es `SHA512Half(0x0044 || Subject || Issuer || CredentialType)` (`keylet::credential`). Respuesta típica:
+The key is `SHA512Half(0x0044 || Subject || Issuer || CredentialType)` (`keylet::credential`). Typical response:
 
 ```json
 {
@@ -62,11 +62,11 @@ La clave es `SHA512Half(0x0044 || Subject || Issuer || CredentialType)` (`keylet
 }
 ```
 
-## Reserva
+## Reserve
 
-1 unidad de reserva de propietario. La paga el emisor hasta que el sujeto acepta; a partir de ahí la paga el sujeto.
+1 unit of owner reserve. Paid by the issuer until the subject accepts it; from then on, paid by the subject.
 
-## Relacionado
+## Related
 
 - [CredentialCreate](/tx/CredentialCreate), [CredentialAccept](/tx/CredentialAccept), [CredentialDelete](/tx/CredentialDelete)
 - [DepositPreauth](/objects/DepositPreauth), [PermissionedDomain](/objects/PermissionedDomain), [DID](/objects/DID)

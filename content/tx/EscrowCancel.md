@@ -1,74 +1,74 @@
 ---
 title: EscrowCancel
-summary: Devuelve al creador los fondos de un Escrow cuyo CancelAfter ya ha pasado y elimina el objeto del ledger.
+summary: Returns the funds of an Escrow whose CancelAfter has already passed to the creator, and removes the object from the ledger.
 category: escrow
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/escrowcancel
 amendment: Escrow
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-`EscrowCancel` deshace un [Escrow](/objects/Escrow) que ha caducado: devuelve el importe bloqueado a la cuenta que lo creó (`Owner`) y borra el objeto. Solo es posible si el escrow tenía `CancelAfter` y ese instante ya ha pasado según el tiempo de cierre del ledger. Un escrow sin `CancelAfter` no se puede cancelar nunca: solo puede terminar con [EscrowFinish](/tx/EscrowFinish).
+`EscrowCancel` undoes an [Escrow](/objects/Escrow) that has expired: it returns the locked amount to the account that created it (`Owner`) and deletes the object. This is only possible if the escrow had `CancelAfter` and that moment has already passed according to the ledger's close time. An escrow without `CancelAfter` can never be cancelled: it can only end with [EscrowFinish](/tx/EscrowFinish).
 
-Como en `EscrowFinish`, cualquier cuenta puede enviar la transacción; no hace falta ser el creador ni el destinatario. El escrow se identifica por `Owner` y `OfferSequence` (el `Sequence` o Ticket de la [EscrowCreate](/tx/EscrowCreate) original). Al cancelar, el creador recupera los fondos y una unidad de owner reserve.
+As with `EscrowFinish`, any account can send the transaction; it doesn't need to be the creator or the recipient. The escrow is identified by `Owner` and `OfferSequence` (the `Sequence` or Ticket of the original [EscrowCreate](/tx/EscrowCreate)). Upon cancellation, the creator recovers the funds and one unit of owner reserve.
 
-## Cuándo usarlo
+## When to use it
 
-- Recuperar una fianza o un pago condicionado que el destinatario no reclamó a tiempo.
-- Limpiar escrows vencidos para liberar reserva (0,2 XRP por objeto en testnet).
-- Cualquier servicio de "housekeeping" puede cancelar escrows caducados de terceros, ya que la transacción no exige ser el propietario.
+- Recovering a bond or a conditional payment that the recipient didn't claim in time.
+- Cleaning up expired escrows to free up reserve (0.2 XRP per object on testnet).
+- Any "housekeeping" service can cancel expired escrows belonging to third parties, since the transaction doesn't require you to be the owner.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`EscrowCancel::preflight`** no valida nada específico: solo se aplican las comprobaciones comunes a toda transacción (firma, fee, flags universales).
+**`EscrowCancel::preflight`** doesn't validate anything specific: only the common checks apply to any transaction (signature, fee, universal flags).
 
-**`EscrowCancel::preclaim`** (contra el ledger). Con [TokenEscrow](/amendments/TokenEscrow) activo, como en testnet, busca el escrow por `keylet::escrow(Owner, OfferSequence)`; si no existe, `tecNO_TARGET`. Si el importe es un token IOU, `escrowCancelPreclaimHelper<Issue>` comprueba que el creador sigue autorizado por el emisor (`requireAuth`), para poder devolverle los fondos. Para MPT, comprueba además que la emisión existe (`tecOBJECT_NOT_FOUND`). Nota: no se comprueba la congelación, a diferencia de `EscrowFinish`; la devolución al creador se permite aunque la línea esté congelada.
+**`EscrowCancel::preclaim`** (against the ledger). With [TokenEscrow](/amendments/TokenEscrow) active, as on testnet, it looks up the escrow by `keylet::escrow(Owner, OfferSequence)`; if it doesn't exist, `tecNO_TARGET`. If the amount is an IOU token, `escrowCancelPreclaimHelper<Issue>` checks that the creator is still authorized by the issuer (`requireAuth`), so the funds can be returned. For MPT, it also checks that the issuance still exists (`tecOBJECT_NOT_FOUND`). Note: freezing is not checked, unlike in `EscrowFinish`; the refund to the creator is allowed even if the trust line is frozen.
 
-**`EscrowCancel::doApply`** (efectos). Si el escrow no tiene `CancelAfter`, `tecNO_PERMISSION`. Si el tiempo de cierre del ledger padre aún no ha superado `CancelAfter`, también `tecNO_PERMISSION`. A partir de ahí: elimina el escrow del owner directory del creador y, si existe `DestinationNode`, del directorio del destinatario. Devuelve el importe: si es XRP, lo suma al `Balance` del creador; si es token, llama a `escrowUnlockApplyHelper` con tasa de paridad (`kParityRate`), es decir, sin aplicar `TransferRate` al devolver, y borra el enlace del directorio del emisor. Si el creador borró su trust line mientras el escrow estaba pendiente, la devolución la vuelve a crear (`createAsset` es verdadero cuando quien cancela es el creador). Por último decrementa el `OwnerCount` del creador y borra el objeto. El amendment [fixCleanup3_4_0](/amendments/fixCleanup3_4_0) (no activo en testnet) solo cambia el orden en que se descuenta el owner count respecto a la posible recreación de la trust line, para que el escrow eliminado no cuente contra la reserva.
+**`EscrowCancel::doApply`** (effects). If the escrow has no `CancelAfter`, `tecNO_PERMISSION`. If the parent ledger's close time hasn't yet passed `CancelAfter`, also `tecNO_PERMISSION`. From there: it removes the escrow from the creator's owner directory and, if a `DestinationNode` exists, from the recipient's directory. It returns the amount: if XRP, it's added to the creator's `Balance`; if a token, it calls `escrowUnlockApplyHelper` with parity rate (`kParityRate`), i.e. without applying `TransferRate` on the refund, and removes the link from the issuer's directory. If the creator deleted their trust line while the escrow was pending, the refund recreates it (`createAsset` is true when the one cancelling is the creator). Finally it decrements the creator's `OwnerCount` and deletes the object. The [fixCleanup3_4_0](/amendments/fixCleanup3_4_0) amendment (not active on testnet) only changes the order in which the owner count is decremented relative to the possible recreation of the trust line, so that the deleted escrow doesn't count against the reserve.
 
-A diferencia de `EscrowFinish`, aquí no hay condición criptográfica ni comprobación de `DepositAuth`: el dinero vuelve a su dueño, no entra en ninguna cuenta ajena.
+Unlike `EscrowFinish`, there's no cryptographic condition or `DepositAuth` check here: the money goes back to its owner, not into any other account.
 
-## Campos clave
+## Key fields
 
-- **Owner** — Cuenta que creó el escrow y que recibirá los fondos de vuelta.
-- **OfferSequence** — `Sequence` (o `TicketSequence`) de la transacción `EscrowCreate`. Con `Owner`, identifica el objeto.
+- **Owner** — account that created the escrow and will receive the funds back.
+- **OfferSequence** — `Sequence` (or `TicketSequence`) of the `EscrowCreate` transaction. Together with `Owner`, it identifies the object.
 
-No hay más campos propios. La cuenta que firma (`Account`) puede ser cualquiera.
+There are no other fields specific to this transaction. The signing account (`Account`) can be anyone.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_PERMISSION** — El escrow no tiene `CancelAfter`, o aún no ha llegado ese instante. Recuerda que se compara con el tiempo de cierre del ledger padre, no con tu reloj.
-- **tecNO_TARGET** — No hay escrow con ese `Owner` + `OfferSequence`; quizá ya fue finalizado o cancelado.
-- **tecNO_AUTH** — Escrow de tokens con emisor `RequireAuth` que ha retirado la autorización al creador.
-- **tecOBJECT_NOT_FOUND** — Escrow de MPT cuya emisión ya no existe.
-- **tefBAD_LEDGER** — Fallo interno al quitar el objeto de un directorio; no debería ocurrir.
+- **tecNO_PERMISSION** — The escrow has no `CancelAfter`, or that moment hasn't arrived yet. Remember it's compared against the parent ledger's close time, not your local clock.
+- **tecNO_TARGET** — There's no escrow with that `Owner` + `OfferSequence`; it may have already been finished or cancelled.
+- **tecNO_AUTH** — Token escrow whose issuer has `RequireAuth` and has withdrawn authorization from the creator.
+- **tecOBJECT_NOT_FOUND** — MPT escrow whose issuance no longer exists.
+- **tefBAD_LEDGER** — Internal failure removing the object from a directory; shouldn't happen.
 
-## Ejemplo
+## Example
 
-Cancela un escrow que creaste tú con `Sequence` 12345:
+Cancel an escrow you created yourself with `Sequence` 12345:
 
 ```json
 {
   "TransactionType": "EscrowCancel",
-  "Account": "rXXXX_TU_CUENTA",
-  "Owner": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Owner": "rXXXX_YOUR_ACCOUNT",
   "OfferSequence": 12345
 }
 ```
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Crea un escrow con [EscrowCreate](/tx/EscrowCreate) usando `FinishAfter` a +60 s y `CancelAfter` a +180 s (el builder admite `{{time+180}}`). Anota su `Sequence`.
-2. Envía `EscrowCancel` de inmediato: obtendrás `tecNO_PERMISSION` porque `CancelAfter` aún no ha pasado.
-3. Espera a que el ledger supere `CancelAfter` y reenvía. El resultado debe ser `tesSUCCESS`.
-4. Consulta `account_objects` con `type: "escrow"`: el objeto ya no está. En `account_info`, tu `Balance` ha recuperado el importe (menos las fees) y tu `OwnerCount` ha bajado en uno.
-5. Prueba también a cancelar desde otra cuenta (`Account` distinta de `Owner`): funciona igual, porque cualquiera puede cancelar un escrow vencido.
+1. Create an escrow with [EscrowCreate](/tx/EscrowCreate) using `FinishAfter` at +60 s and `CancelAfter` at +180 s (the builder supports `{{time+180}}`). Note its `Sequence`.
+2. Send `EscrowCancel` immediately: you'll get `tecNO_PERMISSION` because `CancelAfter` hasn't passed yet.
+3. Wait until the ledger passes `CancelAfter` and resend. The result should be `tesSUCCESS`.
+4. Query `account_objects` with `type: "escrow"`: the object is gone. In `account_info`, your `Balance` has recovered the amount (minus fees) and your `OwnerCount` has decreased by one.
+5. Also try cancelling from another account (`Account` different from `Owner`): it works the same way, since anyone can cancel an expired escrow.
 
-## Relacionado
+## Related
 
-- [EscrowCreate](/tx/EscrowCreate) — crea el escrow y fija `CancelAfter`.
-- [EscrowFinish](/tx/EscrowFinish) — la vía alternativa: entregar al destinatario.
-- [Escrow](/objects/Escrow) — el objeto que se elimina.
-- [TokenEscrow](/amendments/TokenEscrow) — escrow de IOU y MPT.
-- [fixTokenEscrowV1](/amendments/fixTokenEscrowV1) — correcciones al escrow de tokens.
+- [EscrowCreate](/tx/EscrowCreate) — creates the escrow and sets `CancelAfter`.
+- [EscrowFinish](/tx/EscrowFinish) — the alternative path: delivering to the recipient.
+- [Escrow](/objects/Escrow) — the object that gets deleted.
+- [TokenEscrow](/amendments/TokenEscrow) — escrow for IOU and MPT.
+- [fixTokenEscrowV1](/amendments/fixTokenEscrowV1) — fixes to token escrow.

@@ -1,72 +1,72 @@
 ---
 title: DIDSet
-summary: Crea o actualiza el identificador descentralizado (DID) de una cuenta.
+summary: Creates or updates an account's decentralized identifier (DID).
 category: identidad
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/didset
 amendment: DID
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-`DIDSet` publica o actualiza el objeto [DID](/objects/DID) asociado a tu cuenta: como máximo uno por cuenta, con la forma `did:xrpl:1:<tu-dirección>`. Es la implementación en el XRPL del estándar W3C de identificadores descentralizados (DID): un identificador que tú controlas, sin depender de un registrador central, al que puedes anclar un documento DID, una URI a documentación externa o datos arbitrarios.
+`DIDSet` publishes or updates the [DID](/objects/DID) object associated with your account: at most one per account, in the form `did:xrpl:1:<your-address>`. It's the XRPL's implementation of the W3C decentralized identifiers (DID) standard: an identifier you control, without depending on a central registrar, to which you can anchor a DID document, a URI to external documentation, or arbitrary data.
 
-Piensa en él como una tarjeta de identidad mínima que vive en tu cuenta: no contiene por sí misma ninguna afirmación verificada (eso lo aportan las [Credential](/objects/Credential) del amendment [Credentials](/amendments/Credentials)), pero da una raíz estable a la que enlazar esa información. La primera vez que envías `DIDSet` crea el objeto; las siguientes lo actualizan campo a campo.
+Think of it as a minimal ID card living in your account: it doesn't by itself contain any verified claim (that's provided by the [Credential](/objects/Credential) objects from the [Credentials](/amendments/Credentials) amendment), but it gives a stable root to link that information to. The first time you send `DIDSet` it creates the object; subsequent times it updates it field by field.
 
-## Cuándo usarlo
+## When to use it
 
-- Publicar un documento DID completo (`DIDDocument`) siguiendo la especificación W3C, para que aplicaciones externas lo resuelvan.
-- Apuntar con `URI` a un documento DID alojado fuera de cadena (IPFS, un servidor propio) en lugar de incrustarlo.
-- Guardar `Data` arbitraria vinculada a tu identidad on-chain (atestaciones, metadatos de una organización).
-- Sentar la base de identidad antes de emitir o recibir [Credential](/objects/Credential).
+- Publishing a complete DID document (`DIDDocument`) following the W3C specification, so external applications can resolve it.
+- Pointing with `URI` to a DID document hosted off-chain (IPFS, your own server) instead of embedding it.
+- Storing arbitrary `Data` linked to your on-chain identity (attestations, organizational metadata).
+- Laying the identity foundation before issuing or receiving [Credential](/objects/Credential) objects.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`DIDSet::preflight`** exige que al menos uno de `URI`, `DIDDocument` o `Data` esté presente; si ninguno lo está, `temEMPTY_DID`. Si los tres campos están presentes pero todos vacíos, también `temEMPTY_DID`. Cada campo tiene un límite de longitud propio; superarlo da `temMALFORMED`.
+**`DIDSet::preflight`** requires at least one of `URI`, `DIDDocument`, or `Data` to be present; if none is, `temEMPTY_DID`. If all three fields are present but all empty, also `temEMPTY_DID`. Each field has its own length limit; exceeding it gives `temMALFORMED`.
 
-**`DIDSet::doApply`** distingue dos caminos. Si ya existe un `DID` para tu cuenta, lo actualiza: por cada campo (`URI`, `DIDDocument`, `Data`) que envíes vacío, lo elimina del objeto; si lo envías con contenido, lo sobrescribe; si no lo envías, lo deja tal cual estaba. Con [fixEmptyDID](/amendments/fixEmptyDID) activo, si la actualización resultante deja el objeto sin ningún campo, falla con `tecEMPTY_DID` en lugar de dejar un DID vacío en el ledger. Si no existía, crea el objeto: comprueba que tu cuenta tiene reserva suficiente para un objeto más (`tecINSUFFICIENT_RESERVE` si no), lo inserta en tu directorio de propietario y aumenta tu owner count en 1.
+**`DIDSet::doApply`** distinguishes two paths. If a `DID` already exists for your account, it updates it: for each field (`URI`, `DIDDocument`, `Data`) you send empty, it removes it from the object; if you send it with content, it overwrites it; if you don't send it, it leaves it as is. With [fixEmptyDID](/amendments/fixEmptyDID) active, if the resulting update leaves the object with no fields at all, it fails with `tecEMPTY_DID` instead of leaving an empty DID on the ledger. If it didn't exist, it creates the object: it checks that your account has sufficient reserve for one more object (`tecINSUFFICIENT_RESERVE` if not), inserts it into your owner directory, and increases your owner count by 1.
 
-## Campos clave
+## Key fields
 
-- **DIDDocument** — hex del documento DID completo, siguiendo el formato W3C. Pensado para documentos pequeños; para documentos grandes usa `URI`.
-- **URI** — hex de una dirección (IPFS, HTTPS...) donde se aloja el documento DID fuera de cadena.
-- **Data** — hex libre para cualquier dato adicional que quieras asociar a tu identidad (atestaciones, metadatos).
+- **DIDDocument** — hex of the complete DID document, following the W3C format. Intended for small documents; for large documents use `URI`.
+- **URI** — hex of an address (IPFS, HTTPS...) where the DID document is hosted off-chain.
+- **Data** — free-form hex for any additional data you want to associate with your identity (attestations, metadata).
 
-Los tres son opcionales de forma individual, pero al menos uno debe tener contenido en cada `DIDSet` (ya sea al crear o, tras una actualización, en el resultado final).
+All three are individually optional, but at least one must have content in every `DIDSet` (whether creating it, or, after an update, in the final result).
 
-## Errores habituales
+## Common errors
 
-- **temEMPTY_DID** — no incluiste ningún campo con contenido, o los tres van vacíos.
-- **tecEMPTY_DID** — una actualización que borra todos los campos existentes dejaría el DID vacío; añade o mantén al menos uno.
-- **temMALFORMED** — algún campo supera su longitud máxima.
-- **tecINSUFFICIENT_RESERVE** — no te queda XRP por encima de la reserva para crear el objeto `DID` (solo aplica a la primera vez).
-- **tecDIR_FULL** — tu directorio de propietario está al límite (muy raro en la práctica).
+- **temEMPTY_DID** — you didn't include any field with content, or all three are empty.
+- **tecEMPTY_DID** — an update that clears all existing fields would leave the DID empty; add or keep at least one.
+- **temMALFORMED** — some field exceeds its maximum length.
+- **tecINSUFFICIENT_RESERVE** — you don't have XRP above the reserve to create the `DID` object (only applies the first time).
+- **tecDIR_FULL** — your owner directory is at its limit (very rare in practice).
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "DIDSet",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "URI": "697066733A2F2F6578616D706C65",
   "Data": "7B7D"
 }
 ```
 
-Crea (o actualiza) tu DID apuntando con `URI` a un recurso IPFS y con `Data` a un objeto JSON vacío de ejemplo.
+Creates (or updates) your DID, pointing with `URI` to an IPFS resource and with `Data` to an example empty JSON object.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Firma y envía el ejemplo tal cual.
-2. Consulta `account_objects` con `type: "did"` en tu cuenta: verás el objeto `DID` con `URI` y `Data` decodificables desde hex.
-3. Envía un segundo `DIDSet` cambiando solo `Data` (sin repetir `URI`): comprueba que `URI` se mantiene y `Data` se actualiza.
-4. Envía un tercer `DIDSet` con `URI: ""` y sin los otros campos: si es el único campo presente en el objeto, fallará con `tecEMPTY_DID`.
-5. Borra el objeto con [DIDDelete](/tx/DIDDelete) y confirma con `account_objects` que ya no aparece.
+1. Sign and send the example as-is.
+2. Query `account_objects` with `type: "did"` on your account: you'll see the `DID` object with `URI` and `Data` decodable from hex.
+3. Send a second `DIDSet` changing only `Data` (without repeating `URI`): check that `URI` stays the same and `Data` gets updated.
+4. Send a third `DIDSet` with `URI: ""` and no other fields: if it's the only field present in the object, it will fail with `tecEMPTY_DID`.
+5. Delete the object with [DIDDelete](/tx/DIDDelete) and confirm with `account_objects` that it no longer appears.
 
-## Relacionado
+## Related
 
-- [DIDDelete](/tx/DIDDelete) — elimina el DID.
-- [CredentialCreate](/tx/CredentialCreate) — añade afirmaciones verificables que pueden enlazarse a tu identidad.
-- [AccountDelete](/tx/AccountDelete) — requiere borrar el DID antes de eliminar la cuenta.
-- Objetos: [DID](/objects/DID).
+- [DIDDelete](/tx/DIDDelete) — deletes the DID.
+- [CredentialCreate](/tx/CredentialCreate) — adds verifiable claims that can be linked to your identity.
+- [AccountDelete](/tx/AccountDelete) — requires deleting the DID before removing the account.
+- Objects: [DID](/objects/DID).
 - Amendments: [DID](/amendments/DID).

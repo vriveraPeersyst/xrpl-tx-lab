@@ -1,20 +1,20 @@
 ---
 title: fixRmSmallIncreasedQOffers
-summary: Elimina del libro las ofertas residuales minúsculas cuya calidad quedaba anormalmente alta tras un cruce parcial.
+summary: Removes from the book tiny residual offers whose quality ended up abnormally high after a partial crossing.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixrmsmallincreasedqoffers
 ---
 
-## Qué cambia
+## What changes
 
-Cuando una [Offer](/objects/Offer) se cruza parcialmente, puede quedar en el libro un resto con una cantidad muy pequeña. Antes de este fix, ese resto podía tener una calidad (tasa `TakerPays`/`TakerGets`) muy distinta, y notablemente peor, que la de la oferta original, como consecuencia del redondeo al reducir sus cantidades. Al ser una cantidad ínfima, ni las transacciones normales de cruce ni los pagos con paths la retiraban del libro por el cauce habitual con el que se eliminan ofertas totalmente consumidas o sin fondos: quedaba ahí, ocupando ese nivel de precio sin aportar liquidez real.
+When an [Offer](/objects/Offer) is partially crossed, a remainder with a very small amount can be left in the book. Before this fix, that remainder could have a quality (the `TakerPays`/`TakerGets` rate) very different from, and notably worse than, that of the original offer, as a consequence of rounding when reducing its amounts. Being a tiny amount, neither normal crossing transactions nor pathfinding payments removed it from the book through the usual channel used to remove fully consumed or unfunded offers: it stayed there, occupying that price level without providing real liquidity.
 
-Con fixRmSmallIncreasedQOffers activo, este tipo de ofertas residuales se detecta y se retira del libro de la misma forma en que ya se retiran las ofertas completamente consumidas o sin fondos, en vez de dejarlas huérfanas en el ledger.
+With fixRmSmallIncreasedQOffers enabled, this type of residual offer is detected and removed from the book the same way fully consumed or unfunded offers already are, instead of leaving them orphaned on the ledger.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [OfferCreate](/tx/OfferCreate) y [Payment](/tx/Payment) con paths: al cruzar una oferta, el motor comprueba si el resto resultante entra en este caso y lo elimina.
-- [Offer](/objects/Offer): deja de acumular entradas fantasma de cantidad mínima y calidad degradada.
+- [OfferCreate](/tx/OfferCreate) and [Payment](/tx/Payment) with paths: when crossing an offer, the engine checks whether the resulting remainder falls into this case and removes it.
+- [Offer](/objects/Offer): no longer accumulates phantom entries with minimal amount and degraded quality.
 
-## Estado y contexto
+## Status and context
 
-Es un fix de higiene del libro de ofertas: sin él, cruces parciales sucesivos podían dejar el DEX salpicado de ofertas minúsculas con calidad anómala que no se limpiaban solas, complicando la lectura del libro y el cálculo de rutas de pago sobre él.
+This is an offer book hygiene fix: without it, successive partial crossings could leave the DEX dotted with tiny offers with anomalous quality that did not clean themselves up, complicating reading the book and computing payment routes over it.

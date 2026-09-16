@@ -3,7 +3,7 @@ title: Ticket
 summary: Reserves a sequence number for later use, out of order, instead of spending the account's normal Sequence.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/ticket
 createdBy: TicketCreate
-modifiedBy: (ninguna; se consume al usarse en cualquier transacción)
+modifiedBy: (none; consumed when used by any transaction)
 reserve: 1
 ---
 

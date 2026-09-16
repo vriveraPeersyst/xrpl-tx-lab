@@ -1,21 +1,21 @@
 ---
 title: TickSize
-summary: Permite a un emisor fijar TickSize en AccountSet para redondear la calidad de las ofertas de su token a un número de dígitos significativos.
+summary: Allows an issuer to set TickSize in AccountSet to round the quality of offers on its token to a number of significant digits.
 xrplDocs: https://xrpl.org/resources/known-amendments#ticksize
 ---
 
-## Qué cambia
+## What changes
 
-Añade el campo `TickSize` a [AccountSet](/tx/AccountSet): un emisor de tokens puede fijar entre 3 y 15 dígitos significativos (o 0 para desactivarlo) como la precisión con la que se expresa la "calidad" (el precio, `TakerPays`/`TakerGets`) de las ofertas que involucran su token en el libro de órdenes. El valor se guarda en el `AccountRoot` del emisor.
+Adds the `TickSize` field to [AccountSet](/tx/AccountSet): a token issuer can set between 3 and 15 significant digits (or 0 to disable it) as the precision with which the "quality" (the price, `TakerPays`/`TakerGets`) of offers involving its token is expressed in the order book. The value is stored in the issuer's `AccountRoot`.
 
-Cuando una oferta se cruza o se inserta en el libro, el motor del DEX redondea la calidad de la oferta al número de dígitos significativos que marca el `TickSize` del emisor del token implicado (si hay dos tokens emitidos por cuentas distintas con `TickSize` diferente en la misma oferta, se usa el más restrictivo, el de menos dígitos). Esto agrupa ofertas que antes tendrían precios distintos por diferencias mínimas en el último decimal dentro del mismo "tick" de precio, de modo que compiten por orden de llegada en vez de por fracciones de precio insignificantes.
+When an offer crosses or is inserted into the book, the DEX engine rounds the offer's quality to the number of significant digits set by the `TickSize` of the token's issuer involved (if two tokens issued by different accounts with different `TickSize` values appear in the same offer, the more restrictive one, i.e. the one with fewer digits, is used). This groups together offers that would previously have had different prices due to minimal differences in the last decimal, within the same price "tick," so that they compete by arrival order instead of by insignificant price fractions.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [AccountSet](/tx/AccountSet): nuevo campo `TickSize`.
-- [AccountRoot](/objects/AccountRoot): almacena el `TickSize` configurado por el emisor.
-- [OfferCreate](/tx/OfferCreate): la calidad de la oferta se redondea según el `TickSize` del emisor del token antes de insertarse en el libro de ofertas.
+- [AccountSet](/tx/AccountSet): new `TickSize` field.
+- [AccountRoot](/objects/AccountRoot): stores the `TickSize` configured by the issuer.
+- [OfferCreate](/tx/OfferCreate): the offer's quality is rounded according to the token issuer's `TickSize` before being inserted into the order book.
 
-## Estado y contexto
+## Status and context
 
-Sin un tick mínimo, los market makers pueden mejorar una oferta existente con una diferencia de precio arbitrariamente pequeña (por ejemplo, una unidad en el último decimal representable), lo que en la práctica es una "guerra de céntimos" que no aporta liquidez real y satura el libro de órdenes con ofertas casi idénticas compitiendo por microscópicas ventajas de precio. Fijar un `TickSize` razonable obliga a que una oferta nueva mejore la anterior en un salto de precio significativo para adelantarla, lo que favorece libros de órdenes más profundos y estables sobre el token del emisor.
+Without a minimum tick, market makers can improve an existing offer by an arbitrarily small price difference (for example, one unit in the last representable decimal), which in practice amounts to a "penny war" that adds no real liquidity and clutters the order book with nearly identical offers competing for microscopic price advantages. Setting a reasonable `TickSize` forces a new offer to improve on the previous one by a significant price step in order to move ahead of it, which favors deeper, more stable order books for the issuer's token.

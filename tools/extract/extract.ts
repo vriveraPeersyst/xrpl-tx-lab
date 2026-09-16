@@ -1,16 +1,16 @@
 /**
- * Extractor de protocolo: lee el código fuente de rippled (vendor/rippled)
- * y genera src/data/protocol.json con todo lo que la UI y los docs necesitan:
- *   - transacciones (campos, opcionalidad, soporte MPT, delegabilidad, amendment, privilegios)
- *   - análisis de cada transactor (códigos TER por fase, amendments consultados, flags, campos)
- *   - flags de transacción (tf*), de AccountSet (asf*) y de objetos del ledger (lsf*)
- *   - objetos del ledger (ledger entries) con sus campos
- *   - amendments (features/fixes) con soporte y voto por defecto
- *   - códigos de resultado (TER) con descripción
- *   - campos serializados (sfields) con tipo
- *   - permisos granulares (delegación)
+ * Protocol extractor: reads the rippled source code (vendor/rippled)
+ * and generates src/data/protocol.json with everything the UI and docs need:
+ *   - transactions (fields, optionality, MPT support, delegability, amendment, privileges)
+ *   - analysis of each transactor (TER codes by phase, amendments checked, flags, fields)
+ *   - transaction flags (tf*), AccountSet flags (asf*) and ledger object flags (lsf*)
+ *   - ledger objects (ledger entries) with their fields
+ *   - amendments (features/fixes) with support and default vote
+ *   - result codes (TER) with description
+ *   - serialized fields (sfields) with type
+ *   - granular permissions (delegation)
  *
- * Uso: pnpm extract   (requiere vendor/rippled; ver pnpm rippled:fetch)
+ * Usage: pnpm extract   (requires vendor/rippled; see pnpm rippled:fetch)
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -22,9 +22,9 @@ const OUT = path.join(ROOT, "src/data/protocol.json");
 
 const read = (rel: string) => fs.readFileSync(path.join(RIPPLED, rel), "utf8");
 
-// ---------- utilidades de parseo ----------
+// ---------- parsing utilities ----------
 
-/** Devuelve el texto de una llamada macro `NAME(` hasta el paréntesis de cierre balanceado. */
+/** Returns the text of a `NAME(` macro call up to the balanced closing parenthesis. */
 function* scanMacroCalls(src: string, name: string) {
   const re = new RegExp(`^\\s*${name}\\(`, "gm");
   let m: RegExpExecArray | null;
@@ -43,11 +43,11 @@ function* scanMacroCalls(src: string, name: string) {
   }
 }
 
-/** Comentario de documentación `/** ... *\/` inmediatamente anterior a `index` (ignorando #if/#include). */
+/** Documentation comment `/** ... *\/` immediately preceding `index` (ignoring #if/#include). */
 function docCommentBefore(src: string, index: number): string | undefined {
   const before = src.slice(0, index);
   const tail = before.slice(-2500);
-  // eliminar bloques #if TRANSACTION_INCLUDE ... #endif y líneas vacías al final
+  // remove #if TRANSACTION_INCLUDE ... #endif blocks and trailing empty lines
   const stripped = tail
     .replace(/#if [^\n]*\n(?:#[^\n]*\n)*#endif\s*$/g, "")
     .replace(/(?:\/\/[^\n]*\n\s*)+$/g, "")
@@ -70,7 +70,7 @@ function includeBefore(src: string, index: number): string | undefined {
   return m?.[1];
 }
 
-/** Parsea una lista de campos `({ {sfX, SoeRequired, SoeMptSupported}, ... })`. */
+/** Parses a field list `({ {sfX, SoeRequired, SoeMptSupported}, ... })`. */
 function parseFieldList(body: string) {
   const fields: { name: string; optionality: "required" | "optional" | "default"; mptSupported: boolean }[] = [];
   const re = /\{\s*sf(\w+)\s*,\s*Soe(Required|Optional|Default)\s*(?:,\s*Soe(MptSupported|MptNotSupported))?\s*\}/g;
@@ -85,7 +85,7 @@ function parseFieldList(body: string) {
   return fields;
 }
 
-/** Divide los argumentos de nivel superior de una macro respetando paréntesis y llaves. */
+/** Splits a macro's top-level arguments while respecting parentheses and braces. */
 function splitTopLevelArgs(body: string): string[] {
   const args: string[] = [];
   let depth = 0;
@@ -102,7 +102,7 @@ function splitTopLevelArgs(body: string): string[] {
   return args;
 }
 
-// ---------- 1. Transacciones ----------
+// ---------- 1. Transactions ----------
 
 type Optionality = "required" | "optional" | "default";
 interface TxField { name: string; optionality: Optionality; mptSupported: boolean }
@@ -116,11 +116,11 @@ interface TransactorAnalysis {
   allFlags: string[];
   allFields: string[];
   lines: number;
-  /** Cobra el owner reserve incremental como fee (calculateOwnerReserveFee). */
+  /** Charges the incremental owner reserve as a fee (calculateOwnerReserveFee). */
   ownerReserveFee: boolean;
-  /** Define su propio calculateBaseFee (fee distinto del base). */
+  /** Defines its own calculateBaseFee (fee different from the base). */
   customBaseFee: boolean;
-  /** Llamadas a increaseOwnerCount/decreaseOwnerCount/adjustOwnerCount encontradas (evidencia de reserva). */
+  /** increaseOwnerCount/decreaseOwnerCount/adjustOwnerCount calls found (evidence of reserve). */
   ownerCountCalls: string[];
 }
 
@@ -164,7 +164,7 @@ function extractTransactions(): Transaction[] {
   return out;
 }
 
-// ---------- 2. Análisis de transactores ----------
+// ---------- 2. Transactor analysis ----------
 
 const TER_RE = /\b(tem|tef|tel|ter|tec|tes)[A-Z][A-Z_0-9]*\b/g;
 const FEATURE_RE = /\b(?:feature|fix)[A-Z][A-Za-z0-9_]*\b/g;
@@ -178,7 +178,7 @@ function stripComments(s: string) {
   return s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
 }
 
-/** Busca el .cpp que define `Name::preflight` cuando la macro no lleva #include (XChain*, pseudo-tx). */
+/** Finds the .cpp that defines `Name::preflight` when the macro has no #include (XChain*, pseudo-tx). */
 function findTransactorHeader(className: string): string | undefined {
   const dir = path.join(RIPPLED, "src/libxrpl/tx/transactors");
   const walk = (d: string): string[] => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : e.name.endsWith(".cpp") ? [path.join(d, e.name)] : []));
@@ -190,7 +190,7 @@ function findTransactorHeader(className: string): string | undefined {
     const txt = fs.readFileSync(f, "utf8");
     if (re.test(txt) || re2.test(txt)) return "xrpl/" + path.relative(path.join(RIPPLED, "src/libxrpl"), f).replace(/\.cpp$/, ".h");
   }
-  // Alias en cabeceras (p.ej. `using XChainModifyBridge = BridgeModify;`).
+  // Aliases in headers (e.g. `using XChainModifyBridge = BridgeModify;`).
   const hdir = path.join(RIPPLED, "include/xrpl/tx/transactors");
   const walkH = (d: string): string[] => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walkH(path.join(d, e.name)) : e.name.endsWith(".h") ? [path.join(d, e.name)] : []));
   const aliasRe = new RegExp(`(using\\s+${className}\\s*=|class\\s+${className}\\b)`);
@@ -209,11 +209,11 @@ function analyzeTransactor(header: string | undefined, className: string): Trans
   const cpp = read(cppPath);
   const h = fs.existsSync(path.join(RIPPLED, hPath)) ? read(hPath) : "";
   const code = stripComments(cpp);
-  // Alias `using XChainModifyBridge = BridgeModify;` en la cabecera: analizamos la clase real.
+  // Alias `using XChainModifyBridge = BridgeModify;` in the header: analyze the real class.
   const alias = h.match(new RegExp(`using\\s+${className}\\s*=\\s*(\\w+)\\s*;`))?.[1];
   if (alias) className = alias;
 
-  // Localiza definiciones `ClassName::fn(` y toma el cuerpo hasta la siguiente definición.
+  // Locates `ClassName::fn(` definitions and takes the body up to the next definition.
   const fnRe = new RegExp(`^${className}::(\\w+)\\(`, "gm");
   const positions: { name: string; start: number; line: number }[] = [];
   let m: RegExpExecArray | null;
@@ -234,7 +234,7 @@ function analyzeTransactor(header: string | undefined, className: string): Trans
     };
     functions[p.name] = entry;
   });
-  // Las funciones sólo declaradas en el .h (p.ej. checkExtraFeatures inline) también cuentan.
+  // Functions only declared in the .h (e.g. checkExtraFeatures inline) also count.
   const all = code + "\n" + stripComments(h);
   return {
     file: cppPath,
@@ -258,7 +258,7 @@ interface FlagDef { name: string; value: number; hex: string; doc?: string }
 function extractTxFlags() {
   const src = read("include/xrpl/protocol/TxFlags.h");
   const byTx: Record<string, { flags: FlagDef[]; maskAdj: string[] }> = {};
-  // Bloque XMACRO principal
+  // Main XMACRO block
   const block = src.slice(src.indexOf("#define XMACRO(TRANSACTION, TF_FLAG, TF_FLAG2, MASK_ADJ)"), src.indexOf("// clang-format on", src.indexOf("#define XMACRO(TRANSACTION")));
   const cleaned = block.replace(/\\\s*\n/g, "\n");
   const txRe = /TRANSACTION\((\w+),([\s\S]*?)MASK_ADJ\(([^)]*)\)\)/g;
@@ -274,11 +274,11 @@ function extractTxFlags() {
     }
     byTx[tx] = { flags, maskAdj: m[3].trim() === "0" ? [] : m[3].split("|").map((s) => s.trim()) };
   }
-  // asf
+  // asf flags
   const asf: FlagDef[] = [...src.matchAll(/ASF_FLAG\((\w+),\s*(\d+)\)/g)].map((a) => ({ name: a[1], value: Number(a[2]), hex: a[2] }));
   const universal: FlagDef[] = [
-    { name: "tfFullyCanonicalSig", value: 0x80000000, hex: "0x80000000", doc: "Requiere firma totalmente canónica (obsoleto, siempre implícito desde RequireFullyCanonicalSig)." },
-    { name: "tfInnerBatchTxn", value: 0x40000000, hex: "0x40000000", doc: "Marca una transacción interna de un Batch." },
+    { name: "tfFullyCanonicalSig", value: 0x80000000, hex: "0x80000000", doc: "Requires a fully canonical signature (obsolete, always implicit since RequireFullyCanonicalSig)." },
+    { name: "tfInnerBatchTxn", value: 0x40000000, hex: "0x40000000", doc: "Marks a transaction as an inner transaction of a Batch." },
   ];
   return { byTx, asf, universal };
 }
@@ -339,7 +339,7 @@ function extractFeatures() {
   return out;
 }
 
-// ---------- 6. Códigos TER ----------
+// ---------- 6. TER codes ----------
 
 function extractResults() {
   const h = read("include/xrpl/protocol/TER.h");
@@ -347,7 +347,7 @@ function extractResults() {
   const descriptions: Record<string, string> = {};
   for (const m of cpp.matchAll(/MAKE_ERROR\((\w+),\s*"((?:[^"\\]|\\.)*)"\)/g)) descriptions[m[1]] = m[2];
   const out: { code: string; category: string; value: number; description?: string; comment?: string; unused: boolean }[] = [];
-  // Recorre los enums; cada enum reinicia el contador con su primer `= N`.
+  // Walks the enums; each enum resets the counter with its first `= N`.
   let current = 0;
   for (const line of h.split("\n")) {
     const m = line.match(/^\s+((?:tem|tef|tel|ter|tec|tes)[A-Z][A-Z_0-9]*)\s*(?:=\s*(-?\d+))?\s*,?\s*(?:\/\/\s*(.*))?$/);
@@ -371,7 +371,7 @@ function extractSFields() {
   return out;
 }
 
-// ---------- 8. Permisos granulares ----------
+// ---------- 8. Granular permissions ----------
 
 function extractPermissions() {
   const src = read("include/xrpl/protocol/detail/permissions.macro");
@@ -383,7 +383,7 @@ function extractPermissions() {
   return out;
 }
 
-// ---------- 8b. Objetos internos y campos comunes ----------
+// ---------- 8b. Inner objects and common fields ----------
 
 function extractInnerObjects() {
   const src = read("src/libxrpl/protocol/InnerObjectFormats.cpp");
@@ -400,7 +400,7 @@ function extractCommonFields() {
   return parseFieldList(block);
 }
 
-// ---------- 9. Metadatos de la fuente ----------
+// ---------- 9. Source metadata ----------
 
 function sourceMeta() {
   const buildInfo = read("src/libxrpl/protocol/BuildInfo.cpp");
@@ -435,5 +435,5 @@ const protocol = {
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify(protocol, null, 2));
 console.log(
-  `protocol.json: ${protocol.transactions.length} tx, ${protocol.ledgerEntries.length} ledger entries, ${protocol.features.length} amendments, ${protocol.results.length} TER, ${protocol.sfields.length} sfields, ${protocol.permissions.length} permisos, ${Object.keys(protocol.txFlags.byTx).length} tx con flags, ${Object.keys(protocol.ledgerFlags).length} objetos con flags (rippled ${protocol.source.version} @ ${protocol.source.commit?.slice(0, 8)})`,
+  `protocol.json: ${protocol.transactions.length} tx, ${protocol.ledgerEntries.length} ledger entries, ${protocol.features.length} amendments, ${protocol.results.length} TER, ${protocol.sfields.length} sfields, ${protocol.permissions.length} permissions, ${Object.keys(protocol.txFlags.byTx).length} tx with flags, ${Object.keys(protocol.ledgerFlags).length} objects with flags (rippled ${protocol.source.version} @ ${protocol.source.commit?.slice(0, 8)})`,
 );

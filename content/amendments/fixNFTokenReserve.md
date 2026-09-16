@@ -1,21 +1,21 @@
 ---
 title: fixNFTokenReserve
-summary: Hace que los NFTokenPage de una cuenta cuenten para su owner reserve y valida la reserva al aceptar ofertas.
+summary: Makes an account's NFTokenPages count toward its owner reserve and validates the reserve when accepting offers.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixnftokenreserve
 ---
 
-## Qué cambia
+## What changes
 
-Cada objeto que posee una cuenta en el ledger —líneas de confianza, ofertas, páginas de NFT— incrementa su `OwnerCount` y, con ello, la reserva en XRP que la cuenta debe mantener bloqueada. El almacenamiento de NFT usa páginas (`NFTokenPage`) que agrupan varios tokens, y solo se crea o destruye una página nueva cuando hace falta más o menos espacio, no en cada mint o burn individual.
+Every object owned by an account on the ledger — trust lines, offers, NFT pages — increases its `OwnerCount` and, with it, the XRP reserve the account must keep locked. NFT storage uses pages (`NFTokenPage`) that group several tokens together, and a new page is only created or destroyed when more or less space is needed, not on every individual mint or burn.
 
-El fix asegura que ese `OwnerCount` se actualice correctamente al crear o consolidar páginas de NFT (`increaseOwnerCount`/`decreaseOwnerCount` en `NFTokenHelpers`), de modo que poseer NFT cuesta reserva real de forma consistente, y añade además una comprobación en [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): tras aceptar una oferta de compra, se verifica que el número de objetos que pasa a poseer el comprador siga cumpliendo su reserva, evitando que el comprador termine con una cuenta por debajo de la reserva mínima exigida.
+The fix ensures that `OwnerCount` is updated correctly when creating or consolidating NFT pages (`increaseOwnerCount`/`decreaseOwnerCount` in `NFTokenHelpers`), so that owning NFTs consistently costs a real reserve, and it also adds a check in [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): after accepting a buy offer, it verifies that the number of objects the buyer ends up owning still satisfies their reserve, preventing the buyer from ending up with an account below the minimum required reserve.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [NFTokenMint](/tx/NFTokenMint), [NFTokenBurn](/tx/NFTokenBurn): creación y consolidación de [NFTokenPage](/objects/NFTokenPage), con su correspondiente ajuste de `OwnerCount`.
-- [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): comprobación de reserva tras la transferencia del NFT al comprador.
-- [AccountRoot](/objects/AccountRoot): campo `OwnerCount`.
+- [NFTokenMint](/tx/NFTokenMint), [NFTokenBurn](/tx/NFTokenBurn): creation and consolidation of [NFTokenPage](/objects/NFTokenPage), with the corresponding `OwnerCount` adjustment.
+- [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer): reserve check after transferring the NFT to the buyer.
+- [AccountRoot](/objects/AccountRoot): `OwnerCount` field.
 
-## Estado y contexto
+## Status and context
 
-Sin esta reserva bien contabilizada, una cuenta podía acumular NFT sin que ello incrementara proporcionalmente el XRP bloqueado que exige el ledger, o aceptar una oferta de compra que la dejara con más objetos de los que su balance puede respaldar. El fix alinea el coste de poseer NFT con el resto de objetos del ledger.
+Without this reserve being properly accounted for, an account could accumulate NFTs without proportionally increasing the XRP the ledger requires to be locked, or accept a buy offer that left it with more objects than its balance can back. The fix aligns the cost of owning NFTs with the rest of the ledger's objects.

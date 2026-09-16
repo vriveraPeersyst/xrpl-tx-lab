@@ -1,9 +1,9 @@
 /**
- * Snapshot de la XRPL Testnet: versión del servidor, server_definitions (la verdad viva de
- * qué tipos/campos/flags/códigos existen en el binario que corre en testnet) y estado de
- * amendments (feature). Genera src/data/testnet.json.
+ * XRPL Testnet snapshot: server version, server_definitions (the live truth of
+ * which types/fields/flags/codes exist in the binary running on testnet) and
+ * amendment (feature) status. Generates src/data/testnet.json.
  *
- * Uso: pnpm testnet:snapshot   [TESTNET_RPC=https://...]
+ * Usage: pnpm testnet:snapshot   [TESTNET_RPC=https://...]
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -77,5 +77,5 @@ const snapshot = {
 fs.mkdirSync(path.dirname(OUT), { recursive: true });
 fs.writeFileSync(OUT, JSON.stringify(snapshot, null, 2));
 console.log(
-  `testnet.json: rippled ${snapshot.buildVersion}, ledger ${snapshot.validatedLedger.seq}, ${amendments.length} amendments (${amendments.filter((a) => a.enabled).length} activos), ${Object.keys(defs.TRANSACTION_TYPES).length} tx types, ${Object.keys(defs.LEDGER_ENTRY_TYPES).length} ledger entry types, definitions ${defs.hash.slice(0, 8)}`,
+  `testnet.json: rippled ${snapshot.buildVersion}, ledger ${snapshot.validatedLedger.seq}, ${amendments.length} amendments (${amendments.filter((a) => a.enabled).length} active), ${Object.keys(defs.TRANSACTION_TYPES).length} tx types, ${Object.keys(defs.LEDGER_ENTRY_TYPES).length} ledger entry types, definitions ${defs.hash.slice(0, 8)}`,
 );

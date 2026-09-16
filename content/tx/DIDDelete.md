@@ -1,63 +1,63 @@
 ---
 title: DIDDelete
-summary: Elimina el identificador descentralizado (DID) de tu cuenta y libera su reserva.
+summary: Removes the decentralized identifier (DID) from your account and frees up its reserve.
 category: identidad
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/diddelete
 amendment: DID
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-`DIDDelete` borra el objeto [DID](/objects/DID) de tu cuenta, si existe, y te devuelve la unidad de owner reserve que consumía. Es la transacción más simple del sistema de identidad: no lleva campos propios, actúa siempre sobre el (único) DID de quien la envía.
+`DIDDelete` deletes the [DID](/objects/DID) object from your account, if it exists, and returns the unit of owner reserve it consumed. It's the simplest transaction in the identity system: it carries no fields of its own, always operating on the (single) DID of whoever sends it.
 
-Úsala cuando ya no quieras mantener un identificador descentralizado publicado, cuando el documento DID se haya vuelto obsoleto sin intención de sustituirlo, o como paso previo obligatorio para poder borrar la cuenta con [AccountDelete](/tx/AccountDelete), que no procede mientras existan objetos que consuman reserva.
+Use it when you no longer want to maintain a published decentralized identifier, when the DID document has become obsolete with no intention of replacing it, or as a required prerequisite step for deleting the account with [AccountDelete](/tx/AccountDelete), which doesn't proceed while objects consuming reserve still exist.
 
-## Cuándo usarlo
+## When to use it
 
-- Retirar tu DID público porque ya no lo necesitas o quieres empezar de cero.
-- Liberar la reserva de un XRP que el objeto `DID` mantenía bloqueada.
-- Preparar tu cuenta para un `AccountDelete`, limpiando primero este objeto.
+- Withdrawing your public DID because you no longer need it or want to start fresh.
+- Freeing up the reserve of one XRP that the `DID` object was locking up.
+- Preparing your account for an `AccountDelete`, by cleaning up this object first.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`DIDDelete::preflight`** no valida nada: siempre devuelve `tesSUCCESS`, porque la transacción no tiene campos propios que comprobar.
+**`DIDDelete::preflight`** doesn't validate anything: it always returns `tesSUCCESS`, because the transaction has no fields of its own to check.
 
-**`DIDDelete::doApply`** localiza el `DID` de tu cuenta mediante `keylet::did(accountID_)`. Si no existe, falla con `tecNO_ENTRY`: no hay nada que borrar. Si existe, lo elimina de tu directorio de propietario (`dirRemove`); si esa operación no encuentra la entrada esperada en el directorio —un estado interno inconsistente que no debería darse en un ledger sano—, devuelve `tefBAD_LEDGER`. A continuación reduce tu owner count en 1 y borra el objeto del ledger.
+**`DIDDelete::doApply`** locates your account's `DID` via `keylet::did(accountID_)`. If it doesn't exist, it fails with `tecNO_ENTRY`: there's nothing to delete. If it exists, it removes it from your owner directory (`dirRemove`); if that operation doesn't find the expected entry in the directory —an internal inconsistent state that shouldn't happen on a healthy ledger— it returns `tefBAD_LEDGER`. It then reduces your owner count by 1 and deletes the object from the ledger.
 
-El resultado es determinista: o el `DID` desaparece y recuperas la reserva, o la transacción no tiene efecto porque no había nada que borrar.
+The result is deterministic: either the `DID` disappears and you recover the reserve, or the transaction has no effect because there was nothing to delete.
 
-## Campos clave
+## Key fields
 
-No lleva campos específicos más allá de los comunes a toda transacción (`Account`, `Fee`, `Sequence`...).
+It carries no specific fields beyond those common to every transaction (`Account`, `Fee`, `Sequence`...).
 
-## Errores habituales
+## Common errors
 
-- **tecNO_ENTRY** — tu cuenta no tiene ningún `DID` publicado; no hay nada que eliminar.
-- **tefBAD_LEDGER** — inconsistencia interna del directorio de propietario; indicativo de un problema de ledger, no de tu transacción.
+- **tecNO_ENTRY** — your account has no `DID` published; there's nothing to delete.
+- **tefBAD_LEDGER** — internal inconsistency in the owner directory; indicative of a ledger issue, not your transaction.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "DIDDelete",
-  "Account": "rXXXX_TU_CUENTA"
+  "Account": "rXXXX_YOUR_ACCOUNT"
 }
 ```
 
-Elimina el DID de tu cuenta, si existe.
+Deletes your account's DID, if it exists.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Si tu cuenta no tiene DID todavía, créalo primero con [DIDSet](/tx/DIDSet).
-2. Confirma con `account_objects` (`type: "did"`) que el objeto existe.
-3. Firma y envía el `DIDDelete` del ejemplo.
-4. Repite `account_objects`: el objeto ya no aparece, y `account_info` mostrará que tu `OwnerCount` ha bajado en uno y la reserva efectiva disminuye en consecuencia.
-5. Envía el mismo `DIDDelete` otra vez: recibirás `tecNO_ENTRY`, porque ya no queda nada que borrar.
+1. If your account doesn't have a DID yet, create one first with [DIDSet](/tx/DIDSet).
+2. Confirm with `account_objects` (`type: "did"`) that the object exists.
+3. Sign and send the `DIDDelete` from the example.
+4. Repeat `account_objects`: the object no longer appears, and `account_info` will show your `OwnerCount` has dropped by one and the effective reserve decreases accordingly.
+5. Send the same `DIDDelete` again: you'll get `tecNO_ENTRY`, since there's nothing left to delete.
 
-## Relacionado
+## Related
 
-- [DIDSet](/tx/DIDSet) — crea o actualiza el DID.
-- [AccountDelete](/tx/AccountDelete) — exige eliminar antes el DID (y otros objetos) de la cuenta.
-- Objetos: [DID](/objects/DID).
+- [DIDSet](/tx/DIDSet) — creates or updates the DID.
+- [AccountDelete](/tx/AccountDelete) — requires deleting the DID (and other objects) from the account first.
+- Objects: [DID](/objects/DID).
 - Amendments: [DID](/amendments/DID).

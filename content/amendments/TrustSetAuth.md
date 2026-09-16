@@ -1,22 +1,22 @@
 ---
 title: TrustSetAuth
-summary: Permite a un emisor exigir autorización explícita para cada trustline abierta hacia su token.
+summary: Allows an issuer to require explicit authorization for each trustline opened toward its token.
 xrplDocs: https://xrpl.org/resources/known-amendments#trustsetauth
 ---
 
-## Qué cambia
+## What changes
 
-Introduce el flag `lsfRequireAuth` en `AccountRoot`, activable con `AccountSet` (`asfRequireAuth`). Cuando una cuenta emisora lo activa, cualquier trustline nueva que otra cuenta abra hacia su token nace sin autorizar por defecto: el emisor no puede recibir pagos en ese token a través de esa línea hasta que la autorice explícitamente. Para autorizarla, el propio emisor envía un `TrustSet` con el flag `tfSetAuth` sobre la trustline en cuestión, lo que marca la línea como autorizada (`lsfLowAuth`/`lsfHighAuth` según el lado) de forma permanente: una vez autorizada, no se puede desautorizar.
+Introduces the `lsfRequireAuth` flag on `AccountRoot`, enabled via `AccountSet` (`asfRequireAuth`). When an issuing account enables it, any new trustline another account opens toward its token starts out unauthorized by default: the issuer cannot receive payments in that token through that line until it explicitly authorizes it. To authorize it, the issuer itself sends a `TrustSet` with the `tfSetAuth` flag on the trustline in question, which marks the line as authorized (`lsfLowAuth`/`lsfHighAuth` depending on the side) permanently: once authorized, it cannot be de-authorized.
 
-El código en `TrustSet::doApply` comprueba, cuando `bSetAuth` está presente, que la cuenta emisora tenga `lsfRequireAuth` activo antes de aceptar el flag; si no lo tiene, no tiene sentido autorizar nada porque las líneas ya nacen operativas. Esto le da a un emisor control total sobre quién puede sostener su token en el ledger, en vez de que cualquiera pueda simplemente crear una trustline y empezar a operar.
+The code in `TrustSet::doApply` checks, when `bSetAuth` is present, that the issuing account has `lsfRequireAuth` enabled before accepting the flag; if it does not, authorizing anything makes no sense because lines are already operative by default. This gives an issuer full control over who can hold its token on the ledger, instead of anyone being able to simply create a trustline and start operating.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [AccountSet](/tx/AccountSet): flag `asfRequireAuth` para activar `lsfRequireAuth`.
-- [TrustSet](/tx/TrustSet): flag `tfSetAuth` para que el emisor autorice una línea concreta.
-- [AccountRoot](/objects/AccountRoot): flag `lsfRequireAuth`.
-- [RippleState](/objects/RippleState): flags `lsfLowAuth`/`lsfHighAuth` que marcan una línea como autorizada.
+- [AccountSet](/tx/AccountSet): `asfRequireAuth` flag to enable `lsfRequireAuth`.
+- [TrustSet](/tx/TrustSet): `tfSetAuth` flag for the issuer to authorize a specific line.
+- [AccountRoot](/objects/AccountRoot): `lsfRequireAuth` flag.
+- [RippleState](/objects/RippleState): `lsfLowAuth`/`lsfHighAuth` flags that mark a line as authorized.
 
-## Estado y contexto
+## Status and context
 
-Es uno de los amendments históricos del protocolo, pensado para emisores regulados o permisionados (por ejemplo, tokens que representan activos del mundo real) que necesitan aprobar individualmente a cada contraparte antes de que pueda mantener saldo en su token, en vez de operar en modo abierto donde cualquiera puede crear una trustline sin permiso previo. Es la base sobre la que amendments posteriores, como [DepositAuth](/amendments/DepositAuth) o [Credentials](/amendments/Credentials), construyen mecanismos de autorización más flexibles.
+This is one of the protocol's historical amendments, designed for regulated or permissioned issuers (for example, tokens representing real-world assets) who need to individually approve each counterparty before it can hold a balance in their token, instead of operating in an open mode where anyone can create a trustline without prior permission. It is the foundation on which later amendments, such as [DepositAuth](/amendments/DepositAuth) or [Credentials](/amendments/Credentials), build more flexible authorization mechanisms.

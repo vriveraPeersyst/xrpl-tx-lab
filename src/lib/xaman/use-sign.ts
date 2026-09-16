@@ -13,8 +13,8 @@ export interface SignState {
 }
 
 /**
- * Firma (y envía, Xaman hace submit) una transacción con Xaman: payload.createAndSubscribe.
- * Devuelve QR + deep link para escritorio/móvil y espera la resolución por WebSocket.
+ * Signs (and submits, Xaman does the submit) a transaction with Xaman: payload.createAndSubscribe.
+ * Returns QR + deep link for desktop/mobile and waits for resolution over WebSocket.
  */
 export function useXamanSign() {
   const [state, setState] = useState<SignState>({ status: "idle", created: null, resolved: null, txid: null, error: null });
@@ -22,7 +22,7 @@ export function useXamanSign() {
 
   const sign = useCallback(async (txjson: Record<string, unknown>, instruction?: string) => {
     const xumm = getXummInstance();
-    if (!xumm?.payload) { setState({ status: "error", created: null, resolved: null, txid: null, error: "Conecta una cuenta de Xaman primero" }); return null; }
+    if (!xumm?.payload) { setState({ status: "error", created: null, resolved: null, txid: null, error: "Connect a Xaman account first" }); return null; }
     setState({ status: "creating", created: null, resolved: null, txid: null, error: null });
     try {
       const { created, resolved } = await xumm.payload.createAndSubscribe(
@@ -33,8 +33,8 @@ export function useXamanSign() {
       setState({ status: "awaiting", created, resolved: null, txid: null, error: null });
       const result = await resolved;
       if (result.meta.signed && result.response.txid) setState({ status: "signed", created, resolved: result, txid: result.response.txid, error: null });
-      else if (result.meta.expired) setState({ status: "expired", created, resolved: result, txid: null, error: "El payload caducó sin firmarse" });
-      else setState({ status: "rejected", created, resolved: result, txid: null, error: "Firma rechazada en Xaman" });
+      else if (result.meta.expired) setState({ status: "expired", created, resolved: result, txid: null, error: "The payload expired without being signed" });
+      else setState({ status: "rejected", created, resolved: result, txid: null, error: "Signature rejected in Xaman" });
       return result;
     } catch (e) {
       setState({ status: "error", created: null, resolved: null, txid: null, error: e instanceof Error ? e.message : String(e) });

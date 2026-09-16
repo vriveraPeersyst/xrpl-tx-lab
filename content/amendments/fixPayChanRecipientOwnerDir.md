@@ -1,20 +1,20 @@
 ---
 title: fixPayChanRecipientOwnerDir
-summary: Añade el PayChannel también al owner directory del destinatario del canal, no solo al del remitente.
+summary: Adds the PayChannel to the channel recipient's owner directory as well, not just the sender's.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixpaychanrecipientownerdir
 ---
 
-## Qué cambia
+## What changes
 
-Al crear un [PayChannel](/objects/PayChannel) con [PaymentChannelCreate](/tx/PaymentChannelCreate), el objeto se enlaza en el owner directory de la cuenta que lo crea (`Account`), lo que permite listar y contar sus objetos poseídos. Antes del fix, el destinatario del canal (`Destination`) no tenía ninguna referencia a ese `PayChannel` en su propio directorio: no había forma de recorrer desde la cuenta destinataria los canales de pago que otros habían abierto hacia ella, ni ese objeto contaba en su lado para operaciones como el borrado de cuenta.
+When a [PayChannel](/objects/PayChannel) is created with [PaymentChannelCreate](/tx/PaymentChannelCreate), the object is linked into the owner directory of the account that creates it (`Account`), which allows listing and counting its owned objects. Before the fix, the channel's recipient (`Destination`) had no reference to that `PayChannel` in its own directory: there was no way to traverse from the destination account the payment channels that others had opened toward it, nor did that object count on its side for operations such as account deletion.
 
-Con `fixPayChanRecipientOwnerDir` activo, `PaymentChannelCreate::doApply` inserta el `PayChannel` también en el owner directory de `Destination`, guardando la página resultante en el nuevo campo `DestinationNode` del objeto. Así, tanto el remitente como el destinatario pueden enumerar el canal desde su propio directorio de propietario.
+With `fixPayChanRecipientOwnerDir` active, `PaymentChannelCreate::doApply` also inserts the `PayChannel` into the owner directory of `Destination`, storing the resulting page in the object's new `DestinationNode` field. This way, both the sender and the recipient can enumerate the channel from their own owner directory.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [PaymentChannelCreate](/tx/PaymentChannelCreate): inserta el canal en dos directorios en lugar de uno.
-- [PayChannel](/objects/PayChannel): nuevo campo `DestinationNode`, junto al ya existente `OwnerNode`.
+- [PaymentChannelCreate](/tx/PaymentChannelCreate): inserts the channel into two directories instead of one.
+- [PayChannel](/objects/PayChannel): new `DestinationNode` field, alongside the already-existing `OwnerNode`.
 
-## Estado y contexto
+## Status and context
 
-Corrige una asimetría en cómo se indexan los canales de pago: sin este fix, un servicio que dependiera del owner directory para descubrir los `PayChannel` asociados a una cuenta se perdía todos los canales en los que esa cuenta era solo destinataria. El amendment está retirado en el código; el enlazado por ambos lados es hoy el único comportamiento existente.
+Fixes an asymmetry in how payment channels are indexed: without this fix, a service relying on the owner directory to discover the `PayChannel` objects associated with an account would miss all the channels in which that account was only the recipient. The amendment is retired in the code; two-sided linking is now the only existing behavior.

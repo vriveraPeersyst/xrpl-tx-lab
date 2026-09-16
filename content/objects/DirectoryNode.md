@@ -1,56 +1,56 @@
 ---
 title: DirectoryNode
-summary: Página de un índice interno del ledger: lista los IDs de los objetos de una cuenta o las ofertas de un libro a un mismo precio.
+summary: Page of an internal ledger index: lists the IDs of an account's objects or the offers in a book at a given price.
 xrplDocs: https://xrpl.org/docs/references/protocol/ledger-data/ledger-entry-types/directorynode
 createdBy: Payment, OfferCreate, TrustSet, EscrowCreate, NFTokenCreateOffer
 modifiedBy: OfferCancel, EscrowFinish, AccountDelete
 reserve: 0
 ---
 
-## Qué representa
+## What it represents
 
-El ledger es un árbol de objetos indexados por hash; no tiene una forma nativa de responder "¿qué objetos tiene esta cuenta?" o "¿qué ofertas hay a este precio?". Los `DirectoryNode` son el índice que resuelve eso: cada uno es una página con hasta 32 IDs de objetos (`Indexes`) y punteros a la página anterior y siguiente. Tres usos:
+The ledger is a tree of objects indexed by hash; it has no native way to answer "what objects does this account have?" or "what offers exist at this price?". `DirectoryNode`s are the index that resolves that: each one is a page with up to 32 object IDs (`Indexes`) and pointers to the previous and next page. Three uses:
 
-- **Directorio de propietario** (`Owner` presente): lista todo lo que posee una cuenta. Es lo que recorre `account_objects`.
-- **Directorio de libro** (`TakerPays*`/`TakerGets*` presentes): todas las [Offer](/objects/Offer) de un par de activos a una misma calidad (precio). El precio va incrustado en los últimos 64 bits de la clave.
-- **Directorios de ofertas NFT** (`NFTokenID` presente): las ofertas de compra o de venta de un NFT concreto ([NFTokenOffer](/objects/NFTokenOffer)).
+- **Owner directory** (`Owner` present): lists everything an account owns. This is what `account_objects` traverses.
+- **Book directory** (`TakerPays*`/`TakerGets*` present): all the [Offer](/objects/Offer) objects for an asset pair at the same quality (price). The price is embedded in the last 64 bits of the key.
+- **NFT offer directories** (`NFTokenID` present): the buy or sell offers for a specific NFT ([NFTokenOffer](/objects/NFTokenOffer)).
 
-Es un objeto de infraestructura: nunca lo creas ni lo borras directamente.
+It's an infrastructure object: you never create or delete it directly.
 
-## Ciclo de vida
+## Lifecycle
 
-- **Creación**: la primera vez que una cuenta obtiene un objeto (una línea de confianza con [TrustSet](/tx/TrustSet), una oferta con [OfferCreate](/tx/OfferCreate), un escrow…), `dirInsert` en `View.cpp` crea la página raíz de su directorio. Cuando la raíz se llena, crea la siguiente página y la enlaza con `IndexNext`/`IndexPrevious`. Un libro se crea con la primera oferta a ese precio.
-- **Modificación**: cada alta o baja de objeto añade o quita un ID de `Indexes`.
-- **Borrado**: `dirRemove` borra una página cuando se queda vacía. Un directorio de propietario desaparece del todo con [AccountDelete](/tx/AccountDelete). El límite de páginas es 262 144 ([fixDirectoryLimit](/amendments/fixDirectoryLimit)); al llegar, las altas fallan con `tecDIR_FULL`.
+- **Creation**: the first time an account acquires an object (a trust line via [TrustSet](/tx/TrustSet), an offer via [OfferCreate](/tx/OfferCreate), an escrow…), `dirInsert` in `View.cpp` creates the root page of its directory. When the root fills up, it creates the next page and links it with `IndexNext`/`IndexPrevious`. A book is created with the first offer at that price.
+- **Modification**: every object addition or removal adds or removes an ID from `Indexes`.
+- **Deletion**: `dirRemove` deletes a page once it becomes empty. An owner directory disappears entirely with [AccountDelete](/tx/AccountDelete). The page limit is 262,144 ([fixDirectoryLimit](/amendments/fixDirectoryLimit)); once reached, additions fail with `tecDIR_FULL`.
 
-## Campos clave
+## Key fields
 
-- **RootIndex** — clave de la página raíz del directorio. En la raíz coincide con `index`.
-- **Indexes** — hasta 32 IDs de objetos. En las páginas que no son la raíz el orden es de inserción; en los libros, el orden dentro de una misma calidad es cronológico.
-- **IndexNext / IndexPrevious** — número de página (no hash) de las páginas vecinas; la clave de una página N es `SHA512Half(0x0064 || RootIndex || N)` (`keylet::page`). Faltan si solo hay una página.
-- **Owner** — la cuenta dueña, solo en directorios de propietario.
-- **TakerPaysCurrency / TakerPaysIssuer / TakerGetsCurrency / TakerGetsIssuer** — el par del libro. Con MPT se usan `TakerPaysMPT` / `TakerGetsMPT`.
-- **ExchangeRate** — la calidad del libro codificada en 64 bits, la misma que va en los últimos 8 bytes de la clave.
-- **DomainID** — presente en los libros de un dominio permisionado ([PermissionedDEX](/amendments/PermissionedDEX)).
-- **NFTokenID** — el NFT cuyas ofertas lista, en directorios `nftBuys` / `nftSells`.
-- **PreviousTxnID / PreviousTxnLgrSeq** — solo en directorios de propietario y desde [fixPreviousTxnID](/amendments/fixPreviousTxnID).
+- **RootIndex** — key of the directory's root page. At the root it matches `index`.
+- **Indexes** — up to 32 object IDs. On non-root pages the order is insertion order; in books, the order within the same quality is chronological.
+- **IndexNext / IndexPrevious** — page number (not hash) of neighboring pages; the key of page N is `SHA512Half(0x0064 || RootIndex || N)` (`keylet::page`). Absent if there's only one page.
+- **Owner** — the owning account, only in owner directories.
+- **TakerPaysCurrency / TakerPaysIssuer / TakerGetsCurrency / TakerGetsIssuer** — the book's pair. With MPT, `TakerPaysMPT` / `TakerGetsMPT` are used instead.
+- **ExchangeRate** — the book's quality encoded in 64 bits, the same value that goes in the last 8 bytes of the key.
+- **DomainID** — present in the books of a permissioned domain ([PermissionedDEX](/amendments/PermissionedDEX)).
+- **NFTokenID** — the NFT whose offers it lists, in `nftBuys` / `nftSells` directories.
+- **PreviousTxnID / PreviousTxnLgrSeq** — only in owner directories and since [fixPreviousTxnID](/amendments/fixPreviousTxnID).
 
 ## Flags
 
-- **lsfNFTokenBuyOffers** — directorio de ofertas de compra de un NFT.
-- **lsfNFTokenSellOffers** — directorio de ofertas de venta de un NFT.
+- **lsfNFTokenBuyOffers** — buy-offer directory for an NFT.
+- **lsfNFTokenSellOffers** — sell-offer directory for an NFT.
 
-En el resto de directorios `Flags` es 0.
+In all other directories `Flags` is 0.
 
-## Cómo consultarlo
+## How to query it
 
-No aparece en `account_objects` (no cuenta como objeto propio). Con `ledger_entry` usa `directory` con `owner` o con `dir_root`, y opcionalmente `sub_index` para páginas posteriores:
+It doesn't appear in `account_objects` (it doesn't count as an object of its own). With `ledger_entry`, use `directory` with `owner` or with `dir_root`, and optionally `sub_index` for later pages:
 
 ```json
 { "method": "ledger_entry", "params": [{ "directory": { "owner": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", "sub_index": 0 }, "ledger_index": "validated" }] }
 ```
 
-La raíz de un propietario es `SHA512Half(0x004F || AccountID)` (`keylet::ownerDir`). Para libros, `book_offers` es más práctico. Respuesta típica:
+An owner's root is `SHA512Half(0x004F || AccountID)` (`keylet::ownerDir`). For books, `book_offers` is more practical. Typical response:
 
 ```json
 {
@@ -70,12 +70,14 @@ La raíz de un propietario es `SHA512Half(0x004F || AccountID)` (`keylet::ownerD
 }
 ```
 
-## Reserva
+## Reserve
 
-Ninguna. Las páginas de directorio no suman a `OwnerCount`; pagas por los objetos que contienen, no por el índice.
+None. Directory pages don't count toward `OwnerCount`; you pay for the objects they contain, not for the index.
 
-## Relacionado
+## Related
 
 - [OfferCreate](/tx/OfferCreate), [TrustSet](/tx/TrustSet), [AccountDelete](/tx/AccountDelete)
 - [AccountRoot](/objects/AccountRoot), [Offer](/objects/Offer), [NFTokenOffer](/objects/NFTokenOffer)
 - [fixDirectoryLimit](/amendments/fixDirectoryLimit), [fixPreviousTxnID](/amendments/fixPreviousTxnID), [SortedDirectories](/amendments/SortedDirectories)
+</content>
+</invoke>

@@ -1,18 +1,18 @@
 ---
 title: fixFillOrKill
-summary: Corrige el cruce de ofertas con la flag tfFillOrKill para que no se anulen indebidamente cuando el TakerGets no se gasta por completo.
+summary: Fixes offer crossing with the tfFillOrKill flag so it is not wrongly killed when the TakerGets is not fully spent.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixfillorkill
 ---
 
-## Qué cambia
+## What changes
 
-Una [OfferCreate](/tx/OfferCreate) con `tfFillOrKill` debe ejecutarse por completo o no ejecutarse en absoluto. El motor de cruce de ofertas (`flowCross`, en `StrandFlow`) manejaba mal esta combinación cuando también estaba presente `tfSell`: la implementación previa exigía que se gastase la totalidad del `TakerGets` de la oferta entrante para darla por satisfecha, aunque con `tfFillOrKill` sin `tfSell` lo único obligatorio es que el propietario de la oferta contraria reciba la totalidad de su `TakerPays`, sin necesidad de agotar el `TakerGets`. Eso provocaba que ofertas `FillOrKill` válidas se anulasen (`tecPATH_PARTIAL` o eliminación de la oferta) cuando en realidad se habían podido completar. Con `fixFillOrKill` activo, el motor distingue ambos casos: sin `tfSell`, basta con entregar el `TakerPays` completo; con `tfSell`, sigue exigiéndose gastar el `TakerGets` completo.
+An [OfferCreate](/tx/OfferCreate) with `tfFillOrKill` must be executed in full or not at all. The offer-crossing engine (`flowCross`, in `StrandFlow`) mishandled this combination when `tfSell` was also present: the previous implementation required the incoming offer's entire `TakerGets` to be spent for it to be considered satisfied, even though with `tfFillOrKill` and without `tfSell` the only requirement is that the owner of the opposing offer receives the full amount of their `TakerPays`, without needing to exhaust the `TakerGets`. This caused valid `FillOrKill` offers to be killed (`tecPATH_PARTIAL` or offer removal) when they could actually have been completed. With `fixFillOrKill` active, the engine distinguishes both cases: without `tfSell`, it is enough to deliver the full `TakerPays`; with `tfSell`, spending the full `TakerGets` is still required.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [OfferCreate](/tx/OfferCreate): cambia la condición de éxito/fracaso al cruzar una oferta con `tfFillOrKill`.
-- [Offer](/objects/Offer): afecta a qué ofertas sobreviven o se retiran durante el cruce.
+- [OfferCreate](/tx/OfferCreate): changes the success/failure condition when crossing an offer with `tfFillOrKill`.
+- [Offer](/objects/Offer): affects which offers survive or are removed during crossing.
 
-## Estado y contexto
+## Status and context
 
-Corrige un bug de interpretación de las flags `tfFillOrKill`/`tfSell` en el motor de pagos (`flowCross`), que podía rechazar de forma incorrecta ofertas "todo o nada" perfectamente ejecutables cuando no se combinaban con `tfSell`. El fix hace que el comportamiento coincida con la semántica documentada de la flag.
+Fixes a bug in the interpretation of the `tfFillOrKill`/`tfSell` flags in the payment engine (`flowCross`), which could incorrectly reject perfectly executable "all or nothing" offers when they were not combined with `tfSell`. The fix makes the behavior match the documented semantics of the flag.

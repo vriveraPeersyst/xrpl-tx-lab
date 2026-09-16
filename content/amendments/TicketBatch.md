@@ -1,21 +1,21 @@
 ---
 title: TicketBatch
-summary: Introduce los Tickets, que reservan un número de secuencia para usarlo más adelante fuera del orden estricto del Sequence de la cuenta.
+summary: Introduces Tickets, which reserve a sequence number to be used later outside the account's strict Sequence order.
 xrplDocs: https://xrpl.org/resources/known-amendments#ticketbatch
 ---
 
-## Qué cambia
+## What changes
 
-Normalmente, cada transacción de una cuenta debe llevar el valor exacto de `Sequence` que le toca, uno más que la última transacción aplicada, así que solo se puede firmar y enviar la siguiente en orden estricto. TicketBatch añade la transacción `TicketCreate`, que consume uno o varios números de secuencia consecutivos de la cuenta (entre 1 y 250 por llamada, limitado por `kMinValidCount`/`kMaxValidCount`) y crea un objeto `Ticket` por cada uno, identificado por su propio `TicketSequence`.
+Normally, each transaction from an account must carry the exact `Sequence` value that is next in line, one more than the last applied transaction, so only the next one in strict order can be signed and submitted. TicketBatch adds the `TicketCreate` transaction, which consumes one or more consecutive sequence numbers from the account (between 1 and 250 per call, limited by `kMinValidCount`/`kMaxValidCount`) and creates a `Ticket` object for each one, identified by its own `TicketSequence`.
 
-Una vez creado, un Ticket puede usarse en cualquier transacción posterior en lugar del `Sequence` normal: la transacción pone `TicketSequence` en vez de incrementar `Sequence`, y el Ticket se consume (se borra del ledger) al aplicarse. Esto desacopla el momento de "reservar hueco" del momento de "firmar y enviar la transacción concreta", permitiendo por ejemplo pre-firmar varias transacciones para ejecutarlas en un orden distinto al que tenían al firmarlas, o coordinar transacciones entre varias partes (como un `SignerListSet` multi-firma) sin bloquearse por la secuencia estricta de la cuenta.
+Once created, a Ticket can be used in any later transaction in place of the normal `Sequence`: the transaction sets `TicketSequence` instead of incrementing `Sequence`, and the Ticket is consumed (deleted from the ledger) when applied. This decouples the moment of "reserving a slot" from the moment of "signing and submitting the specific transaction," allowing, for example, pre-signing several transactions to be executed in an order different from the one they had when signed, or coordinating transactions among several parties (such as a multi-signed `SignerListSet`) without being blocked by the account's strict sequence.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nueva: [TicketCreate](/tx/TicketCreate).
-- Objeto nuevo: [Ticket](/objects/Ticket), con el campo `TicketSequence`.
-- Todas las transacciones pueden usar `TicketSequence` en lugar de `Sequence` para ejecutarse fuera de orden.
+- New: [TicketCreate](/tx/TicketCreate).
+- New object: [Ticket](/objects/Ticket), with the `TicketSequence` field.
+- All transactions can use `TicketSequence` instead of `Sequence` to execute out of order.
 
-## Estado y contexto
+## Status and context
 
-Antes de TicketBatch, cualquier flujo que necesitara ejecutar transacciones en un orden distinto al de su creación (transacciones diferidas, cambios de lista de firmantes coordinados entre varias cuentas, o simplemente reservar un hueco para usarlo más tarde) tenía que gestionar manualmente el `Sequence` y arriesgarse a que una transacción intermedia rompiera el orden. Los Tickets resuelven esto separando "reservar el turno" de "usar el turno", y son especialmente útiles junto con listas de firmantes y transacciones multi-firma donde coordinar un `Sequence` exacto entre varios firmantes es poco práctico.
+Before TicketBatch, any flow that needed to execute transactions in an order different from their creation order (deferred transactions, signer-list changes coordinated among several accounts, or simply reserving a slot for later use) had to manually manage `Sequence` and risk having an intermediate transaction break the order. Tickets solve this by separating "reserving the turn" from "using the turn," and are especially useful together with signer lists and multi-signed transactions, where coordinating an exact `Sequence` among several signers is impractical.

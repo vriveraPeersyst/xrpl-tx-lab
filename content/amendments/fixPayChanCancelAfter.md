@@ -1,20 +1,20 @@
 ---
 title: fixPayChanCancelAfter
-summary: Rechaza crear un PaymentChannel cuyo CancelAfter ya esté en el pasado en el momento de la creación.
+summary: Rejects creating a PaymentChannel whose CancelAfter is already in the past at creation time.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixpaychancancelafter
 ---
 
-## Qué cambia
+## What changes
 
-[PaymentChannelCreate](/tx/PaymentChannelCreate) admite un campo opcional `CancelAfter`: una marca de tiempo a partir de la cual cualquiera puede cerrar el canal. Antes del fix, no se comprobaba esa fecha en el momento de crear el canal, así que era posible abrir un [PayChannel](/objects/PayChannel) con un `CancelAfter` ya vencido respecto al `parentCloseTime` del ledger: un canal que nacía ya "caducado", sin haber podido usarse nunca para nada.
+[PaymentChannelCreate](/tx/PaymentChannelCreate) accepts an optional `CancelAfter` field: a timestamp after which anyone can close the channel. Before the fix, this date was not checked at channel creation time, so it was possible to open a [PayChannel](/objects/PayChannel) with a `CancelAfter` already expired relative to the ledger's `parentCloseTime`: a channel that was already "expired" at birth, without ever having been usable for anything.
 
-Con `fixPayChanCancelAfter` activo, `PaymentChannelCreate::doApply` compara el `CancelAfter` de la transacción con el `parentCloseTime` del ledger en el momento de aplicarse; si `CancelAfter` ya ha pasado, la transacción falla con `tecEXPIRED` en lugar de crear un canal inútil desde el primer momento.
+With `fixPayChanCancelAfter` active, `PaymentChannelCreate::doApply` compares the transaction's `CancelAfter` with the ledger's `parentCloseTime` at the time it is applied; if `CancelAfter` has already passed, the transaction fails with `tecEXPIRED` instead of creating a useless channel from the very first moment.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [PaymentChannelCreate](/tx/PaymentChannelCreate): comprobación añadida en `doApply` antes de insertar el objeto.
-- [PayChannel](/objects/PayChannel): evita que se lleguen a crear instancias con `CancelAfter` ya vencido.
+- [PaymentChannelCreate](/tx/PaymentChannelCreate): check added in `doApply` before inserting the object.
+- [PayChannel](/objects/PayChannel): prevents instances from being created with an already-expired `CancelAfter`.
 
-## Estado y contexto
+## Status and context
 
-Es un fix defensivo de validación: sin él, un cliente podía gastar la reserva y la comisión de una transacción en abrir un canal de pago que, por un `CancelAfter` mal calculado o ya pasado, era inservible desde el instante de su creación y solo podía cerrarse. El amendment está retirado en el código; la comprobación forma hoy parte permanente de `PaymentChannelCreate`.
+This is a defensive validation fix: without it, a client could spend the reserve and fee of a transaction opening a payment channel that, due to a miscalculated or already-past `CancelAfter`, was unusable from the moment of creation and could only be closed. The amendment is retired in the code; the check is now a permanent part of `PaymentChannelCreate`.

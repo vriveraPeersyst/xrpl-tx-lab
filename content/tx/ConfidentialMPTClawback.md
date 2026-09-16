@@ -1,68 +1,68 @@
 ---
 title: ConfidentialMPTClawback
-summary: El emisor recupera (clawback) saldo confidencial de un tenedor de MPT, sin necesidad de conocer el importe exacto.
+summary: The issuer claws back confidential balance from an MPT holder, without needing to know the exact amount.
 category: confidencial
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/confidentialmptclawback
 amendment: ConfidentialTransfer
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-`ConfidentialMPTClawback` es la versión confidencial de [Clawback](/tx/Clawback): permite al emisor de un MPT recuperar el saldo (o parte de él) que un tenedor mantiene en modo confidencial, siempre que la emisión se creara con la capacidad `lsfMPTCanClawback`. Al igual que el resto de operaciones sobre saldos confidenciales, viaja con una prueba de conocimiento cero (`ZKProof`) que demuestra que la operación es consistente con el estado cifrado del tenedor, sin que el emisor necesite conocer de antemano el saldo exacto que tiene.
+`ConfidentialMPTClawback` is the confidential version of [Clawback](/tx/Clawback): it lets an MPT's issuer reclaim the balance (or part of it) that a holder keeps in confidential mode, as long as the issuance was created with the `lsfMPTCanClawback` capability. Like the rest of the operations on confidential balances, it travels with a zero-knowledge proof (`ZKProof`) that demonstrates the operation is consistent with the holder's encrypted state, without the issuer needing to know the exact balance beforehand.
 
-Este mecanismo es imprescindible para emisores regulados: la privacidad de los saldos no puede ser una vía para evadir una orden de embargo o una corrección de un error operativo, así que el amendment conserva esta puerta trasera controlada exclusivamente por el emisor.
+This mechanism is essential for regulated issuers: balance privacy can't be a way to evade a garnishment order or the correction of an operational error, so the amendment keeps this backdoor under the exclusive control of the issuer.
 
-**Este tipo de transacción depende del amendment `ConfidentialTransfer`, que hoy no está activo en testnet.** Cualquier intento de enviarla falla mientras el amendment no esté activo.
+**This transaction type depends on the `ConfidentialTransfer` amendment, which is not currently active on testnet.** Any attempt to send it fails while the amendment isn't active.
 
-## Cuándo usarlo (cuando el amendment esté activo)
+## When to use it (once the amendment is active)
 
-- Cumplir una orden judicial o regulatoria de embargo sobre los activos confidenciales de un tenedor concreto.
-- Corregir una emisión errónea de MPT confidencial sin depender de la colaboración del tenedor.
-- Cualquier escenario donde ya usarías `Clawback` sobre saldo público, pero el tenedor mantiene su posición en modo confidencial.
+- Complying with a court or regulatory garnishment order over a specific holder's confidential assets.
+- Correcting an erroneous confidential MPT issuance without depending on the holder's cooperation.
+- Any scenario where you'd already use `Clawback` on a public balance, but the holder keeps their position in confidential mode.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`ConfidentialMPTClawback::preflight`** valida forma: `MPTAmount` distinto de cero (`temBAD_AMOUNT`) y campos criptográficos con formato válido (`temMALFORMED`).
+**`ConfidentialMPTClawback::preflight`** validates form: `MPTAmount` other than zero (`temBAD_AMOUNT`) and cryptographic fields with a valid format (`temMALFORMED`).
 
-**`ConfidentialMPTClawback::preclaim`** exige que la emisión tenga habilitado `lsfMPTCanClawback` (`tecNO_PERMISSION` si no) y `lsfMPTCanHoldConfidentialBalance`, que el tenedor (`Holder`) tenga saldo confidencial suficiente para cubrir el `MPTAmount` reclamado (`tecINSUFFICIENT_FUNDS`), y que tanto la emisión como el `MPToken` del tenedor existan (`tecOBJECT_NOT_FOUND`, `tecNO_TARGET`).
+**`ConfidentialMPTClawback::preclaim`** requires the issuance to have `lsfMPTCanClawback` enabled (`tecNO_PERMISSION` if not) and `lsfMPTCanHoldConfidentialBalance`, that the holder (`Holder`) has enough confidential balance to cover the claimed `MPTAmount` (`tecINSUFFICIENT_FUNDS`), and that both the issuance and the holder's `MPToken` exist (`tecOBJECT_NOT_FOUND`, `tecNO_TARGET`).
 
-**`ConfidentialMPTClawback::doApply`** descuenta el compromiso correspondiente del saldo confidencial del tenedor y reduce el total cifrado en circulación de la emisión (`ConfidentialOutstandingAmount`); el importe recuperado no vuelve a ti como saldo visible, sino que se elimina de la circulación cifrada, igual que un `Clawback` normal reduce el `OutstandingAmount` público.
+**`ConfidentialMPTClawback::doApply`** subtracts the corresponding commitment from the holder's confidential balance and reduces the issuance's total encrypted supply in circulation (`ConfidentialOutstandingAmount`); the reclaimed amount doesn't come back to you as a visible balance — it's removed from encrypted circulation, just as a normal `Clawback` reduces the public `OutstandingAmount`.
 
-## Campos clave
+## Key fields
 
-- **Holder** — la cuenta a la que se le retira saldo confidencial. Nunca puede ser el propio emisor.
-- **MPTAmount** — el importe, en claro dentro de la transacción del emisor, que se reclama del saldo cifrado del tenedor.
-- **ZKProof** — prueba de que la operación es consistente con el saldo cifrado del tenedor, sin que el emisor necesite conocer ese saldo de antemano.
+- **Holder** — the account whose confidential balance is being clawed back. Can never be the issuer itself.
+- **MPTAmount** — the amount, in clear text within the issuer's transaction, claimed from the holder's encrypted balance.
+- **ZKProof** — proof that the operation is consistent with the holder's encrypted balance, without the issuer needing to know that balance beforehand.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_PERMISSION** — la emisión no tiene habilitado `lsfMPTCanClawback`, o quien envía la transacción no es el emisor.
-- **tecINSUFFICIENT_FUNDS** — el saldo confidencial del tenedor no cubre el `MPTAmount` reclamado.
-- **tecNO_TARGET** — el `Holder` indicado no existe o no tiene `MPToken` para esa emisión.
-- **tecOBJECT_NOT_FOUND** — la emisión no existe.
-- **temBAD_AMOUNT** — `MPTAmount` es cero o inválido.
+- **tecNO_PERMISSION** — the issuance doesn't have `lsfMPTCanClawback` enabled, or whoever sends the transaction isn't the issuer.
+- **tecINSUFFICIENT_FUNDS** — the holder's confidential balance doesn't cover the claimed `MPTAmount`.
+- **tecNO_TARGET** — the indicated `Holder` doesn't exist or doesn't have an `MPToken` for that issuance.
+- **tecOBJECT_NOT_FOUND** — the issuance doesn't exist.
+- **temBAD_AMOUNT** — `MPTAmount` is zero or invalid.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-El amendment `ConfidentialTransfer` no está activo hoy en testnet, así que cualquier envío de `ConfidentialMPTClawback` desde el builder devolverá un error de tipo `temDISABLED`. El campo `ZKProof` del ejemplo queda vacío porque generarlo requiere herramientas criptográficas externas que esta web no implementa.
+The `ConfidentialTransfer` amendment isn't active on testnet today, so any `ConfidentialMPTClawback` submission from the builder will return a `temDISABLED` error. The `ZKProof` field in the example is left empty because generating it requires external cryptographic tools this site doesn't implement.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "ConfidentialMPTClawback",
-  "Account": "rXXXX_TU_CUENTA",
-  "Holder": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Holder": "rYYYY_OTHER_ACCOUNT",
   "MPTokenIssuanceID": "000000000000000000000000000000000000000000000000",
   "MPTAmount": "100"
 }
 ```
 
-Como emisor, intentaría recuperar 100 unidades del saldo confidencial de `rYYYY_OTRA_CUENTA`; hoy falla con `temDISABLED`.
+As the issuer, this would attempt to reclaim 100 units from `rYYYY_OTHER_ACCOUNT`'s confidential balance; today it fails with `temDISABLED`.
 
-## Relacionado
+## Related
 
-- [Clawback](/tx/Clawback) — el equivalente para saldo público (IOU y MPT).
-- [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) — cómo se genera el saldo confidencial que aquí se recupera.
+- [Clawback](/tx/Clawback) — the equivalent for public balance (IOU and MPT).
+- [ConfidentialMPTConvert](/tx/ConfidentialMPTConvert) — how the confidential balance reclaimed here is generated.
 - Amendments: [ConfidentialTransfer](/amendments/ConfidentialTransfer), [MPTokensV1](/amendments/MPTokensV1).

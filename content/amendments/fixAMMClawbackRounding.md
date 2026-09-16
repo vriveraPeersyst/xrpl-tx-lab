@@ -1,20 +1,20 @@
 ---
 title: fixAMMClawbackRounding
-summary: Corrige el redondeo del retiro proporcional de un pool AMM al hacer clawback de los LP tokens de un holder congelado.
+summary: Fixes the rounding of the proportional withdrawal from an AMM pool when clawing back LP tokens from a frozen holder.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixammclawbackrounding
 ---
 
-## Qué cambia
+## What changes
 
-[AMMClawback](/tx/AMMClawback) permite a un emisor con `lsfAllowTrustLineClawback` recuperar los LP tokens de un holder y retirarle su parte proporcional del pool. Antes de este fix, el cálculo de esa parte proporcional podía arrastrar errores de redondeo que dejaban al `AMM` con un `LPTokenBalance` inconsistente respecto a la suma real de los saldos de los LP restantes, sobre todo cuando el holder afectado era el único proveedor de liquidez o quedaba con un saldo residual mínimo.
+[AMMClawback](/tx/AMMClawback) lets an issuer with `lsfAllowTrustLineClawback` recover a holder's LP tokens and withdraw their proportional share of the pool. Before this fix, the calculation of that proportional share could accumulate rounding errors that left the `AMM` with an `LPTokenBalance` inconsistent with the actual sum of the remaining LPs' balances, especially when the affected holder was the sole liquidity provider or was left with a minimal residual balance.
 
-Con el amendment activo, `AMMClawback::preclaim` calcula el `lpTokenBalance` real del holder dentro de la propia rama del amendment y llama a `verifyAndAdjustLPTokenBalance`, que compara ese saldo con el `LPTokenBalance` del objeto `AMM` y lo ajusta si la diferencia es pequeña (dentro de una distancia relativa de `10^-3`), o rechaza con `tecAMM_INVALID_TOKENS` si la discrepancia es demasiado grande. En el retiro final, `getRoundedLPTokens` redondea explícitamente los tokens a retirar y ajusta la fracción retirada (`adjustFracByTokens`) antes de calcular los importes de cada activo.
+With the amendment active, `AMMClawback::preclaim` calculates the holder's actual `lpTokenBalance` within the amendment's own branch and calls `verifyAndAdjustLPTokenBalance`, which compares that balance against the `AMM` object's `LPTokenBalance` and adjusts it if the difference is small (within a relative distance of `10^-3`), or rejects with `tecAMM_INVALID_TOKENS` if the discrepancy is too large. In the final withdrawal, `getRoundedLPTokens` explicitly rounds the tokens to be withdrawn and adjusts the withdrawn fraction (`adjustFracByTokens`) before calculating each asset's amounts.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [AMMClawback](/tx/AMMClawback): recalcula y ajusta el `LPTokenBalance` antes de ejecutar el retiro.
-- [AMM](/objects/AMM): su `LPTokenBalance` queda corregido para reflejar el saldo real tras el clawback.
+- [AMMClawback](/tx/AMMClawback): recalculates and adjusts the `LPTokenBalance` before performing the withdrawal.
+- [AMM](/objects/AMM): its `LPTokenBalance` is corrected to reflect the actual balance after the clawback.
 
-## Estado y contexto
+## Status and context
 
-Es una corrección puntual de precisión numérica en el motor de AMM: sin ella, un clawback repetido o con saldos residuales muy pequeños podía dejar el pool con un `LPTokenBalance` que no cuadraba con los tokens realmente en circulación, un estado que las invariant checks del AMM podían llegar a rechazar.
+This is a targeted numerical-precision fix in the AMM engine: without it, a repeated clawback or one with very small residual balances could leave the pool with an `LPTokenBalance` that didn't match the tokens actually in circulation — a state the AMM's invariant checks could end up rejecting.

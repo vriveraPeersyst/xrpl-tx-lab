@@ -1,18 +1,18 @@
 ---
 title: fixPriceOracleOrder
-summary: Ordena de forma canónica los pares de activos al crear un oráculo de precios.
+summary: Canonically orders asset pairs when creating a price oracle.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixpriceoracleorder
 ---
 
-## Qué cambia
+## What changes
 
-Al crear un objeto Oracle con [OracleSet](/tx/OracleSet), `PriceDataSeries` es un array de pares `BaseAsset`/`QuoteAsset` con su precio. Antes de este fix, la creación guardaba el array en el mismo orden en que llegaba en la transacción. Con fixPriceOracleOrder activo, `OracleSet` construye internamente un mapa ordenado por la clave `(BaseAsset, QuoteAsset)` de cada entrada y vuelca ese mapa al array `PriceDataSeries`, de modo que los pares quedan siempre en el mismo orden canónico con independencia de cómo los envió el cliente. Las actualizaciones de un oráculo ya existente no se ven afectadas por este cambio: siguen combinando entradas nuevas y existentes por clave, como hacían antes.
+When creating an Oracle object with [OracleSet](/tx/OracleSet), `PriceDataSeries` is an array of `BaseAsset`/`QuoteAsset` pairs with their price. Before this fix, creation stored the array in the same order in which it arrived in the transaction. With fixPriceOracleOrder enabled, `OracleSet` internally builds a map ordered by the `(BaseAsset, QuoteAsset)` key of each entry and dumps that map into the `PriceDataSeries` array, so the pairs always end up in the same canonical order regardless of how the client sent them. Updates to an already existing oracle are not affected by this change: they continue to merge new and existing entries by key, as they did before.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [OracleSet](/tx/OracleSet): cambia el orden en que se serializa `PriceDataSeries` al crear el objeto.
-- Objeto Oracle (creado por `OracleSet`, borrado por `OracleDelete`): su array `PriceDataSeries` queda ordenado de forma determinista.
+- [OracleSet](/tx/OracleSet): changes the order in which `PriceDataSeries` is serialized on creation.
+- Oracle object (created by `OracleSet`, deleted by `OracleDelete`): its `PriceDataSeries` array ends up deterministically ordered.
 
-## Estado y contexto
+## Status and context
 
-Sin este fix, dos oráculos creados con los mismos pares de activos pero en distinto orden de envío almacenaban `PriceDataSeries` con distinto orden interno, lo que complicaba comparar oráculos o buscar un par concreto sin recorrer todo el array. El fix hace que el orden sea predecible y dependa solo del contenido, no de cómo llegó la transacción.
+Without this fix, two oracles created with the same asset pairs but submitted in a different order stored `PriceDataSeries` with a different internal order, which made it harder to compare oracles or look up a specific pair without scanning the whole array. The fix makes the order predictable and dependent only on the content, not on how the transaction arrived.

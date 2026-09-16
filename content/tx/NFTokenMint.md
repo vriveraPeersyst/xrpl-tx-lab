@@ -1,81 +1,81 @@
 ---
 title: NFTokenMint
-summary: Acuña un NFToken nuevo en la cuenta que firma (o en nombre de un emisor que la haya autorizado) y, opcionalmente, publica en el mismo paso una oferta de venta.
+summary: Mints a new NFToken in the signing account (or on behalf of an issuer that has authorized it) and, optionally, publishes a sell offer in the same step.
 category: nft
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/nftokenmint
 xls: XLS-0020
 amendment: NonFungibleTokensV1_1
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-`NFTokenMint` crea un token no fungible y lo guarda en una [NFTokenPage](/objects/NFTokenPage) del acuñador. El NFT no es un objeto del ledger independiente: es una entrada de 32 bytes de identificador (más la `URI` opcional) dentro de una página que agrupa hasta 32 tokens. Por eso la reserva se paga por página, no por token: solo cuando la acuñación obliga a abrir una página nueva sube el `OwnerCount`.
+`NFTokenMint` creates a non-fungible token and stores it in an [NFTokenPage](/objects/NFTokenPage) of the minter. The NFT isn't an independent ledger object: it's a 32-byte identifier entry (plus the optional `URI`) inside a page that groups up to 32 tokens. That's why the reserve is paid per page, not per token: only when minting forces a new page to open does `OwnerCount` go up.
 
-El `NFTokenID` que se genera codifica, en este orden: los flags (16 bits), el `TransferFee`, la cuenta emisora, el `NFTokenTaxon` cifrado con la secuencia y el número de secuencia del token del emisor. Eso hace que los flags y la comisión de reventa sean **inmutables** desde el momento de la acuñación.
+The generated `NFTokenID` encodes, in this order: the flags (16 bits), the `TransferFee`, the issuing account, the `NFTokenTaxon` encrypted with the sequence, and the issuer's token sequence number. This makes the flags and the resale fee **immutable** from the moment of minting.
 
-Si la tx incluye `Amount` (y opcionalmente `Destination` y `Expiration`), además del token crea una [NFTokenOffer](/objects/NFTokenOffer) de venta en la misma transacción. Esto lo permite el amendment [NFTokenMintOffer](/amendments/NFTokenMintOffer), activo en testnet.
+If the tx includes `Amount` (and optionally `Destination` and `Expiration`), it creates an [NFTokenOffer](/objects/NFTokenOffer) sell offer in the same transaction, in addition to the token. This is enabled by the [NFTokenMintOffer](/amendments/NFTokenMintOffer) amendment, active on testnet.
 
-## Cuándo usarlo
+## When to use it
 
-- Emitir coleccionables, entradas, certificados o cualquier activo único.
-- Acuñar en nombre de un tercero: el emisor te nombra `NFTokenMinter` con AccountSet y tú pones su cuenta en `Issuer`.
-- Poner a la venta en el mismo paso con `Amount` para ahorrar una transacción.
+- Issuing collectibles, tickets, certificates, or any unique asset.
+- Minting on behalf of a third party: the issuer names you `NFTokenMinter` with AccountSet and you put their account in `Issuer`.
+- Putting it up for sale in the same step with `Amount` to save one transaction.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`NFTokenMint::checkExtraFeatures`**: si envías `Amount`, `Destination` o `Expiration` y el amendment `NFTokenMintOffer` no estuviera activo, la tx se rechaza con `temDISABLED`. En testnet está activo.
+**`NFTokenMint::checkExtraFeatures`**: if you send `Amount`, `Destination`, or `Expiration` and the `NFTokenMintOffer` amendment weren't active, the tx would be rejected with `temDISABLED`. It's active on testnet.
 
-**`NFTokenMint::getFlagsMask`**: el conjunto de flags admitido depende de dos amendments. Con [fixRemoveNFTokenAutoTrustLine](/amendments/fixRemoveNFTokenAutoTrustLine) activo (como en testnet) el flag `tfTrustLine` (4) queda prohibido; con [DynamicNFT](/amendments/DynamicNFT) activo se admite `tfMutable` (16). Un flag fuera de la máscara devuelve `temINVALID_FLAG`.
+**`NFTokenMint::getFlagsMask`**: the set of admissible flags depends on two amendments. With [fixRemoveNFTokenAutoTrustLine](/amendments/fixRemoveNFTokenAutoTrustLine) active (as on testnet), the `tfTrustLine` flag (4) is forbidden; with [DynamicNFT](/amendments/DynamicNFT) active, `tfMutable` (16) is admitted. A flag outside the mask returns `temINVALID_FLAG`.
 
-**`NFTokenMint::preflight`** (estático):
-- `TransferFee` mayor que 50000 → `temBAD_NFTOKEN_TRANSFER_FEE`. Si es mayor que 0 sin `tfTransferable` → `temMALFORMED`.
-- `Issuer` igual a `Account` → `temMALFORMED` (si acuñas para ti, simplemente omítelo).
-- `URI` vacía o de más de 256 bytes → `temMALFORMED`.
-- Si hay campos de oferta, `Amount` es obligatorio y se aplican las reglas de `nft::tokenOfferCreatePreflight`: importe no negativo, `Destination` distinta de tu cuenta, `Expiration` distinta de 0, y si el NFT lleva `tfOnlyXRP` el importe debe ser XRP.
+**`NFTokenMint::preflight`** (static):
+- `TransferFee` greater than 50000 → `temBAD_NFTOKEN_TRANSFER_FEE`. If greater than 0 without `tfTransferable` → `temMALFORMED`.
+- `Issuer` equal to `Account` → `temMALFORMED` (if minting for yourself, simply omit it).
+- `URI` empty or longer than 256 bytes → `temMALFORMED`.
+- If there are offer fields, `Amount` is required and the rules from `nft::tokenOfferCreatePreflight` apply: non-negative amount, `Destination` different from your account, `Expiration` different from 0, and if the NFT carries `tfOnlyXRP` the amount must be XRP.
 
-**`NFTokenMint::preclaim`** (contra el ledger):
-- Con `Issuer`: la cuenta emisora debe existir (`tecNO_ISSUER`) y su campo `NFTokenMinter` debe ser exactamente tu cuenta (`tecNO_PERMISSION`).
-- Con `Amount`: una `Expiration` ya pasada devuelve `tecEXPIRED`; `nft::tokenOfferCreatePreclaim` comprueba además que el `Destination` exista y no tenga `lsfDisallowIncomingNFTokenOffer`, y que, si el precio es un token emitido con `TransferFee` > 0, el emisor del NFT tenga trust line con esa moneda.
+**`NFTokenMint::preclaim`** (against the ledger):
+- With `Issuer`: the issuing account must exist (`tecNO_ISSUER`) and its `NFTokenMinter` field must be exactly your account (`tecNO_PERMISSION`).
+- With `Amount`: an `Expiration` already past returns `tecEXPIRED`; `nft::tokenOfferCreatePreclaim` also checks that `Destination` exists and doesn't have `lsfDisallowIncomingNFTokenOffer`, and that, if the price is an issued token with `TransferFee` > 0, the NFT's issuer has a trust line for that currency.
 
 **`NFTokenMint::doApply`**:
-1. Toma el `AccountRoot` del emisor (tú o `Issuer`), inicializa `FirstNFTokenSequence` si es la primera acuñación y aumenta `MintedNFTokens`. Si el contador da la vuelta → `tecMAX_SEQUENCE_REACHED`.
-2. Calcula el `NFTokenID` con `createNFTokenID` e inserta el token en tus páginas (`nft::insertToken`). Nota: el token siempre va a la cuenta que firma, aunque `Issuer` sea otra.
-3. Si hay `Amount`, crea la oferta de venta con `nft::tokenOfferCreateApply` (exige reserva para un objeto más).
-4. Si tu `OwnerCount` ha subido (nueva página), comprueba que el saldo previo a la fee cubra la reserva; si no, `tecINSUFFICIENT_RESERVE`.
+1. Takes the `AccountRoot` of the issuer (you or `Issuer`), initializes `FirstNFTokenSequence` if it's the first mint, and increases `MintedNFTokens`. If the counter wraps around → `tecMAX_SEQUENCE_REACHED`.
+2. Computes the `NFTokenID` with `createNFTokenID` and inserts the token into your pages (`nft::insertToken`). Note: the token always goes to the signing account, even if `Issuer` is different.
+3. If there's an `Amount`, creates the sell offer with `nft::tokenOfferCreateApply` (requires reserve for one more object).
+4. If your `OwnerCount` has risen (new page), checks that the balance prior to the fee covers the reserve; if not, `tecINSUFFICIENT_RESERVE`.
 
-## Campos clave
+## Key fields
 
-- **NFTokenTaxon** — número entero que agrupa tokens de una misma colección. Se guarda cifrado dentro del ID, pero `account_nfts` lo devuelve en claro.
-- **TransferFee** — comisión de reventa en unidades de 0,001 % (500 = 0,5 %, máximo 50000 = 50 %). Solo tiene sentido con `tfTransferable` y solo se cobra en ventas con precio distinto de cero entre cuentas que no sean el emisor.
-- **Issuer** — cuenta en cuyo nombre acuñas. Ella debe haberte designado con `NFTokenMinter`. El ID llevará su dirección, no la tuya.
-- **URI** — hasta 256 bytes en hex. Suele apuntar a los metadatos (ipfs://, https://).
-- **Amount / Destination / Expiration** — si los pones, la tx también crea una oferta de venta de ese token (ver [NFTokenCreateOffer](/tx/NFTokenCreateOffer)).
+- **NFTokenTaxon** — integer that groups tokens from the same collection. It's stored encrypted inside the ID, but `account_nfts` returns it in plain text.
+- **TransferFee** — resale fee in units of 0.001% (500 = 0.5%, maximum 50000 = 50%). Only meaningful with `tfTransferable`, and only charged on sales with a nonzero price between accounts other than the issuer.
+- **Issuer** — the account on whose behalf you're minting. It must have named you with `NFTokenMinter`. The ID will carry its address, not yours.
+- **URI** — up to 256 bytes in hex. Usually points to the metadata (ipfs://, https://).
+- **Amount / Destination / Expiration** — if you set them, the tx also creates a sell offer for that token (see [NFTokenCreateOffer](/tx/NFTokenCreateOffer)).
 
 ## Flags
 
-- **tfBurnable** (1) — permite al emisor (o a su `NFTokenMinter`) quemar el token aunque ya no lo posea.
-- **tfOnlyXRP** (2) — el token solo puede venderse por XRP, nunca por tokens emitidos.
-- **tfTrustLine** (4) — obsoleto; con `fixRemoveNFTokenAutoTrustLine` activo devuelve `temINVALID_FLAG`.
-- **tfTransferable** (8) — sin él, el token solo puede transferirse entre emisor y terceros, no entre terceros (ver `tefNFTOKEN_IS_NOT_TRANSFERABLE` en las ofertas).
-- **tfMutable** (16) — la `URI` puede cambiarse después con [NFTokenModify](/tx/NFTokenModify). Requiere `DynamicNFT`.
+- **tfBurnable** (1) — allows the issuer (or their `NFTokenMinter`) to burn the token even if they no longer hold it.
+- **tfOnlyXRP** (2) — the token can only be sold for XRP, never for issued tokens.
+- **tfTrustLine** (4) — obsolete; with `fixRemoveNFTokenAutoTrustLine` active it returns `temINVALID_FLAG`.
+- **tfTransferable** (8) — without it, the token can only be transferred between the issuer and third parties, not between third parties (see `tefNFTOKEN_IS_NOT_TRANSFERABLE` in offers).
+- **tfMutable** (16) — the `URI` can be changed afterward with [NFTokenModify](/tx/NFTokenModify). Requires `DynamicNFT`.
 
-## Errores habituales
+## Common errors
 
 - **temBAD_NFTOKEN_TRANSFER_FEE** — `TransferFee` > 50000.
-- **temMALFORMED** — `TransferFee` sin `tfTransferable`, `Issuer` igual a `Account`, `URI` vacía o demasiado larga, o campos de oferta sin `Amount`.
-- **temINVALID_FLAG** — has usado `tfTrustLine` o un bit fuera de la máscara.
-- **tecNO_ISSUER** — la cuenta de `Issuer` no existe.
-- **tecNO_PERMISSION** — `Issuer` existe pero no te ha nombrado `NFTokenMinter`.
-- **tecINSUFFICIENT_RESERVE** — la acuñación abre una página nueva (o crea la oferta) y no te llega el saldo para la reserva.
-- **tecEXPIRED** — has incluido `Amount` con una `Expiration` ya pasada.
+- **temMALFORMED** — `TransferFee` without `tfTransferable`, `Issuer` equal to `Account`, `URI` empty or too long, or offer fields without `Amount`.
+- **temINVALID_FLAG** — you used `tfTrustLine` or a bit outside the mask.
+- **tecNO_ISSUER** — the `Issuer` account doesn't exist.
+- **tecNO_PERMISSION** — `Issuer` exists but hasn't named you `NFTokenMinter`.
+- **tecINSUFFICIENT_RESERVE** — the mint opens a new page (or creates the offer) and you don't have enough balance for the reserve.
+- **tecEXPIRED** — you included `Amount` with an `Expiration` that has already passed.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "NFTokenMint",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "NFTokenTaxon": 0,
   "Flags": 8,
   "TransferFee": 500,
@@ -83,20 +83,20 @@ Si la tx incluye `Amount` (y opcionalmente `Destination` y `Expiration`), ademá
 }
 ```
 
-`Flags: 8` es `tfTransferable`; añade `+1` si quieres `tfBurnable` y `+16` si quieres poder cambiar la URI después.
+`Flags: 8` is `tfTransferable`; add `+1` if you want `tfBurnable` and `+16` if you want to be able to change the URI later.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Conecta tu cuenta y carga el ejemplo. Deja `TransferFee` en 500 y `Flags` en 8.
-2. Firma y envía. El resultado debe ser `tesSUCCESS`.
-3. Consulta `account_nfts` con tu cuenta: verás el token con su `NFTokenID`, `Issuer`, `NFTokenTaxon` en claro y la `URI`.
-4. Consulta `account_objects` con `type: "nft_page"`: aparece la [NFTokenPage](/objects/NFTokenPage) que lo contiene. Fíjate en que `OwnerCount` en `account_info` ha subido en 1 solo si es tu primera página.
-5. Repite el envío cambiando `Flags` a 12 (incluye `tfTrustLine`) y comprueba que el nodo rechaza con `temINVALID_FLAG`.
-6. Prueba la variante con oferta: añade `"Amount": "1000000"` y consulta luego `nft_sell_offers` con el nuevo `NFTokenID`.
+1. Connect your account and load the example. Leave `TransferFee` at 500 and `Flags` at 8.
+2. Sign and submit. The result should be `tesSUCCESS`.
+3. Query `account_nfts` with your account: you'll see the token with its `NFTokenID`, `Issuer`, `NFTokenTaxon` in plain text, and the `URI`.
+4. Query `account_objects` with `type: "nft_page"`: the [NFTokenPage](/objects/NFTokenPage) that contains it appears. Notice that `OwnerCount` in `account_info` has risen by 1 only if it's your first page.
+5. Repeat the submission changing `Flags` to 12 (includes `tfTrustLine`) and check that the node rejects it with `temINVALID_FLAG`.
+6. Try the offer variant: add `"Amount": "1000000"` and then query `nft_sell_offers` with the new `NFTokenID`.
 
-## Relacionado
+## Related
 
 - [NFTokenBurn](/tx/NFTokenBurn), [NFTokenCreateOffer](/tx/NFTokenCreateOffer), [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), [NFTokenModify](/tx/NFTokenModify)
-- [AccountSet](/tx/AccountSet) para fijar `NFTokenMinter`
+- [AccountSet](/tx/AccountSet) to set `NFTokenMinter`
 - [NFTokenPage](/objects/NFTokenPage), [NFTokenOffer](/objects/NFTokenOffer)
 - [NonFungibleTokensV1_1](/amendments/NonFungibleTokensV1_1), [DynamicNFT](/amendments/DynamicNFT), [NFTokenMintOffer](/amendments/NFTokenMintOffer), [fixRemoveNFTokenAutoTrustLine](/amendments/fixRemoveNFTokenAutoTrustLine)

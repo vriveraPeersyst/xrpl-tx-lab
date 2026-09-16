@@ -77,7 +77,7 @@ Only one AMM can exist per asset pair. The creator becomes the first fee voter a
   "Amount": "10000000",
   "Amount2": {
     "currency": "USD",
-    "issuer": "rZZZZ_EMISOR",
+    "issuer": "rZZZZ_ISSUER",
     "value": "10"
   },
   "TradingFee": 500
@@ -88,7 +88,7 @@ Creates an XRP/USD pool with 10 XRP and 10 USD and a 0.5% fee.
 
 ## Try it on testnet
 
-1. You need a trust line to `rZZZZ_EMISOR` for USD with a balance (the issuer must have `DefaultRipple`). If you don't have one yet, send a [TrustSet](/tx/TrustSet) first and request funds from the test issuer.
+1. You need a trust line to `rZZZZ_ISSUER` for USD with a balance (the issuer must have `DefaultRipple`). If you don't have one yet, send a [TrustSet](/tx/TrustSet) first and request funds from the test issuer.
 2. Check that you have at least 10 free XRP above the reserve plus 0.2 XRP for the special fee.
 3. Fill in the builder with the example and send it. Notice that `Fee` is set to 200000 drops.
 4. In the metadata you'll see three `CreatedNode` entries: `AMM`, `AccountRoot` (the pseudo-account), and `RippleState` (USD and LP token trust lines).

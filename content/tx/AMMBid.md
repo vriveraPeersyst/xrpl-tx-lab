@@ -57,7 +57,7 @@ All three amounts are expressed in the AMM's LP token: `{currency: "03…", issu
   "TransactionType": "AMMBid",
   "Account": "rXXXX_YOUR_ACCOUNT",
   "Asset": { "currency": "XRP" },
-  "Asset2": { "currency": "USD", "issuer": "rZZZZ_EMISOR" }
+  "Asset2": { "currency": "USD", "issuer": "rZZZZ_ISSUER" }
 }
 ```
 

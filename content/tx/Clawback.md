@@ -1,85 +1,85 @@
 ---
 title: Clawback
-summary: Permite al emisor recuperar tokens IOU o MPT de la cuenta de un tenedor, sin su consentimiento.
+summary: Lets the issuer reclaim IOU or MPT tokens from a holder's account, without their consent.
 category: tokens
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/clawback
 xls: XLS-0039
 amendment: Clawback
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`Clawback` es la herramienta del emisor regulado: retira tokens de la cuenta de un tenedor y los devuelve al emisor (donde, al ser su propia deuda, simplemente desaparecen). Es el equivalente a una orden judicial de bloqueo y recuperación de fondos en un banco.
+`Clawback` is the regulated issuer's tool: it withdraws tokens from a holder's account and returns them to the issuer (where, being the issuer's own debt, they simply disappear). It's the equivalent of a court order freezing and recovering funds at a bank.
 
-Solo funciona si el emisor optó por ello **antes de emitir**: para tokens IOU, la cuenta emisora debe tener el flag `lsfAllowTrustLineClawback`, que solo se puede activar con [AccountSet](/tx/AccountSet) mientras la cuenta no tenga ningún objeto (trust lines, ofertas…). Para MPT, la emisión debe haberse creado con `tfMPTCanClawback`.
+It only works if the issuer opted in **before issuing**: for IOU tokens, the issuing account must have the `lsfAllowTrustLineClawback` flag, which can only be turned on with [AccountSet](/tx/AccountSet) while the account has no objects yet (trust lines, offers, etc.). For MPT, the issuance must have been created with `tfMPTCanClawback`.
 
-Objetos afectados: la [RippleState](/objects/RippleState) entre emisor y tenedor (IOU) o el [MPToken](/objects/MPToken) del tenedor y la [MPTokenIssuance](/objects/MPTokenIssuance) (MPT).
+Objects affected: the [RippleState](/objects/RippleState) between issuer and holder (IOU), or the holder's [MPToken](/objects/MPToken) and the [MPTokenIssuance](/objects/MPTokenIssuance) (MPT).
 
-## Cuándo usarlo
+## When to use it
 
-- Cumplimiento normativo: recuperar activos de una cuenta comprometida o sancionada.
-- Corregir emisiones erróneas de stablecoins o tokens de activos reales.
-- Recuperar fondos de tenedores que perdieron sus claves, si el emisor asume esa política.
+- Regulatory compliance: reclaiming assets from a compromised or sanctioned account.
+- Correcting erroneous issuances of stablecoins or real-world asset tokens.
+- Recovering funds from holders who lost their keys, if the issuer adopts that policy.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`Clawback::preflight`** se especializa según el tipo de activo:
+**`Clawback::preflight`** specializes by asset type:
 
-- *IOU*: no puede llevar `Holder` (`temMALFORMED`). El `issuer` del `Amount` es el **tenedor**, no tú. Si coincide con tu cuenta, si es XRP o si el valor es ≤ 0, `temBAD_AMOUNT`.
-- *MPT*: requiere [MPTokensV1](/amendments/MPTokensV1) (activo en testnet). `Holder` es obligatorio y distinto de tu cuenta; el importe debe estar entre 1 y el máximo de MPT.
+- *IOU*: can't carry `Holder` (`temMALFORMED`). The `Amount`'s `issuer` is the **holder**, not you. If it matches your account, is XRP, or the value is ≤ 0, `temBAD_AMOUNT`.
+- *MPT*: requires [MPTokensV1](/amendments/MPTokensV1) (active on testnet). `Holder` is required and must differ from your account; the amount must be between 1 and the MPT maximum.
 
-**`Clawback::preclaim`** exige que existan emisor y tenedor. Un AMM no puede ser tenedor objetivo (`tecAMM_ACCOUNT`; para eso existe [AMMClawback](/tx/AMMClawback)). Luego:
+**`Clawback::preclaim`** requires both issuer and holder to exist. An AMM can't be the target holder (`tecAMM_ACCOUNT`; that's what [AMMClawback](/tx/AMMClawback) is for). Then:
 
-- *IOU*: tu cuenta debe tener `lsfAllowTrustLineClawback` y **no** tener `lsfNoFreeze` (`tecNO_PERMISSION`). La trust line debe existir (`tecNO_LINE`) y el signo del saldo debe indicar que el tenedor te debe a ti, no al revés (si no, `tecNO_PERMISSION`). Si el tenedor no tiene saldo positivo ignorando congelaciones, `tecINSUFFICIENT_FUNDS`.
-- *MPT*: la emisión debe existir, tener `lsfMPTCanClawback`, ser tuya, y el tenedor tener el objeto `MPToken` con saldo > 0.
+- *IOU*: your account must have `lsfAllowTrustLineClawback` and must **not** have `lsfNoFreeze` (`tecNO_PERMISSION`). The trust line must exist (`tecNO_LINE`) and the sign of the balance must indicate that the holder owes you, not the other way around (otherwise `tecNO_PERMISSION`). If the holder has no positive balance ignoring freezes, `tecINSUFFICIENT_FUNDS`.
+- *MPT*: the issuance must exist, have `lsfMPTCanClawback`, be yours, and the holder must have the `MPToken` object with a balance > 0.
 
-**`Clawback::doApply`** calcula lo que el tenedor realmente puede gastar (`accountHolds` con `IgnoreFreeze`, así que funciona aunque la línea esté congelada) y mueve `min(saldo, Amount)` del tenedor al emisor con `directSendNoFee`. Es decir: **si pides más de lo que tiene, recuperas todo lo que tiene y la transacción tiene éxito**; no falla por exceso.
+**`Clawback::doApply`** computes what the holder can actually spend (`accountHolds` with `IgnoreFreeze`, so it works even if the line is frozen) and moves `min(balance, Amount)` from the holder to the issuer with `directSendNoFee`. In other words: **if you request more than they have, you recover everything they have and the transaction succeeds**; it doesn't fail on excess.
 
-## Campos clave
+## Key fields
 
-- **Amount** — para IOU, `{currency, issuer, value}` donde `issuer` es la dirección del **tenedor** al que le retiras el token (el código lo reetiqueta después con tu cuenta). Para MPT, `{mpt_issuance_id, value}`.
-- **Holder** — solo para MPT: cuenta a la que se le retira. Prohibido en IOU.
+- **Amount** — for IOU, `{currency, issuer, value}` where `issuer` is the address of the **holder** the token is being clawed back from (the code relabels it afterward with your account). For MPT, `{mpt_issuance_id, value}`.
+- **Holder** — MPT only: the account being clawed back from. Forbidden for IOU.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_PERMISSION** — tu cuenta no tiene `asfAllowTrustLineClawback`, tiene `asfNoFreeze`, o el saldo de la línea no apunta en tu dirección (no eres el emisor real de ese saldo). Activa el flag antes de crear cualquier objeto.
-- **tecNO_LINE** — no existe trust line entre tú y ese tenedor para esa moneda.
-- **tecINSUFFICIENT_FUNDS** — el tenedor tiene saldo 0.
-- **tecAMM_ACCOUNT** — el tenedor es un AMM: usa `AMMClawback`.
-- **temBAD_AMOUNT** — el `issuer` del `Amount` es tu propia cuenta, es XRP o el valor es ≤ 0.
-- **temMALFORMED** — pusiste `Holder` en un clawback de IOU, o lo omitiste en uno de MPT.
+- **tecNO_PERMISSION** — your account doesn't have `asfAllowTrustLineClawback`, has `asfNoFreeze`, or the line's balance doesn't point in your direction (you're not the real issuer of that balance). Turn on the flag before creating any object.
+- **tecNO_LINE** — there's no trust line between you and that holder for that currency.
+- **tecINSUFFICIENT_FUNDS** — the holder's balance is 0.
+- **tecAMM_ACCOUNT** — the holder is an AMM: use `AMMClawback`.
+- **temBAD_AMOUNT** — the `Amount`'s `issuer` is your own account, it's XRP, or the value is ≤ 0.
+- **temMALFORMED** — you set `Holder` on an IOU clawback, or omitted it on an MPT one.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "Clawback",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "Amount": {
     "currency": "USD",
-    "issuer": "rYYYY_OTRA_CUENTA",
+    "issuer": "rYYYY_OTHER_ACCOUNT",
     "value": "10"
   }
 }
 ```
 
-Tu cuenta (emisora de USD) recupera hasta 10 USD de `rYYYY_OTRA_CUENTA`.
+Your account (the USD issuer) reclaims up to 10 USD from `rYYYY_OTHER_ACCOUNT`.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Con una cuenta **recién creada y sin objetos**, envía [AccountSet](/tx/AccountSet) con `SetFlag: 16` (`asfAllowTrustLineClawback`). Si ya tiene trust lines u ofertas recibirás `tecOWNERS`.
-2. Desde la otra cuenta, crea una trust line con [TrustSet](/tx/TrustSet) a tu cuenta para `USD`.
-3. Desde tu cuenta, envía un [Payment](/tx/Payment) de 25 USD a la otra cuenta. `account_lines` del tenedor mostrará `balance: "25"`.
-4. Envía el ejemplo de `Clawback` con `value: "10"`. Consulta de nuevo `account_lines`: `balance: "15"`.
-5. Repite con `value: "1000"`: verás `tesSUCCESS` y el saldo baja a 0 (no falla por exceder).
-6. Prueba `SetFlag: 6` (`asfNoFreeze`) en tu cuenta: obtendrás `tecNO_PERMISSION`, porque clawback y NoFreeze son excluyentes.
+1. With a **freshly created account with no objects**, send [AccountSet](/tx/AccountSet) with `SetFlag: 16` (`asfAllowTrustLineClawback`). If it already has trust lines or offers you'll get `tecOWNERS`.
+2. From the other account, create a trust line with [TrustSet](/tx/TrustSet) to your account for `USD`.
+3. From your account, send a [Payment](/tx/Payment) of 25 USD to the other account. `account_lines` for the holder will show `balance: "25"`.
+4. Send the `Clawback` example with `value: "10"`. Query `account_lines` again: `balance: "15"`.
+5. Repeat with `value: "1000"`: you'll see `tesSUCCESS` and the balance drops to 0 (it doesn't fail on exceeding).
+6. Try `SetFlag: 6` (`asfNoFreeze`) on your account: you'll get `tecNO_PERMISSION`, because clawback and NoFreeze are mutually exclusive.
 
-## Relacionado
+## Related
 
-- [AccountSet](/tx/AccountSet) — `asfAllowTrustLineClawback` y su incompatibilidad con `asfNoFreeze`.
-- [TrustSet](/tx/TrustSet) — congelar como alternativa menos drástica.
-- [AMMClawback](/tx/AMMClawback) — recuperar tokens depositados en un AMM.
+- [AccountSet](/tx/AccountSet) — `asfAllowTrustLineClawback` and its incompatibility with `asfNoFreeze`.
+- [TrustSet](/tx/TrustSet) — freezing as a less drastic alternative.
+- [AMMClawback](/tx/AMMClawback) — reclaiming tokens deposited in an AMM.
 - [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate) — `tfMPTCanClawback`.
-- Objetos: [RippleState](/objects/RippleState), [MPToken](/objects/MPToken).
+- Objects: [RippleState](/objects/RippleState), [MPToken](/objects/MPToken).
 - Amendments: [Clawback](/amendments/Clawback), [MPTokensV1](/amendments/MPTokensV1), [AMMClawback](/amendments/AMMClawback).

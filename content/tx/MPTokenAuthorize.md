@@ -1,74 +1,74 @@
 ---
 title: MPTokenAuthorize
-summary: Crea o elimina tu MPToken (el objeto que te habilita como tenedor) y, si el emisor lo requiere, lo autoriza.
+summary: Creates or removes your MPToken (the object that enables you as a holder) and, if the issuer requires it, authorizes it.
 category: mpt
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/mptokenauthorize
 amendment: MPTokensV1
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-Para un Multi-Purpose Token (MPT) no basta con recibir un pago: cada tenedor necesita antes un objeto [MPToken](/objects/MPToken) que lo vincula a la emisión concreta ([MPTokenIssuance](/objects/MPTokenIssuance)), algo parecido a lo que hace `TrustSet` con las trust lines de IOU, pero por-emisión y sin límites configurables. `MPTokenAuthorize` es la transacción que gestiona ese vínculo, y cumple dos papeles distintos según quién la envía y con qué flag.
+For a Multi-Purpose Token (MPT), receiving a payment isn't enough on its own: each holder first needs an [MPToken](/objects/MPToken) object that links them to the specific issuance ([MPTokenIssuance](/objects/MPTokenIssuance)) — something similar to what `TrustSet` does with IOU trust lines, but per-issuance and without configurable limits. `MPTokenAuthorize` is the transaction that manages that link, and it plays two distinct roles depending on who sends it and with which flag.
 
-Si la envía el propio tenedor sin `Holder`: crea su `MPToken` (para poder recibir el token) o, con el flag `tfMPTUnauthorize`, lo elimina (para dejar de sostenerlo). Si la envía el emisor con `Holder`: autoriza o desautoriza a ese tenedor concreto, pero solo tiene efecto sobre emisiones creadas con `lsfMPTRequireAuth` — un allowlist explícito, igual que `RequireAuth` en trust lines.
+If the holder themselves sends it without `Holder`: it creates their `MPToken` (so they can receive the token) or, with the `tfMPTUnauthorize` flag, deletes it (so they stop holding it). If the issuer sends it with `Holder`: it authorizes or deauthorizes that specific holder, but this only has effect on issuances created with `lsfMPTRequireAuth` — an explicit allowlist, just like `RequireAuth` on trust lines.
 
-## Cuándo usarlo
+## When to use it
 
-- Antes de poder recibir un MPT por primera vez, crea tu `MPToken` con esta transacción (análogo a crear la trust line para un IOU).
-- El emisor de una MPT con `lsfMPTRequireAuth` autoriza a un tenedor concreto tras verificarlo.
-- Un tenedor con saldo cero que ya no quiere sostener el token elimina su `MPToken` para recuperar la reserva.
-- El emisor revoca la autorización a un tenedor (`tfMPTUnauthorize` desde la cuenta emisora) sin necesidad de un clawback.
+- Before being able to receive an MPT for the first time, create your `MPToken` with this transaction (analogous to creating a trust line for an IOU).
+- The issuer of an MPT with `lsfMPTRequireAuth` authorizes a specific holder after verifying them.
+- A holder with a zero balance who no longer wants to hold the token deletes their `MPToken` to recover the reserve.
+- The issuer revokes a holder's authorization (`tfMPTUnauthorize` from the issuing account) without needing a clawback.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`MPTokenAuthorize::preflight`** solo rechaza el caso trivial de que `Account` y `Holder` sean la misma cuenta (`temMALFORMED`): no tiene sentido que el emisor se "autorice" a sí mismo con este campo.
+**`MPTokenAuthorize::preflight`** only rejects the trivial case where `Account` and `Holder` are the same account (`temMALFORMED`): it doesn't make sense for the issuer to "authorize" themselves with this field.
 
-**`MPTokenAuthorize::preclaim`** se ramifica según si `Holder` está presente. Sin `Holder` (lo envía el tenedor sobre sí mismo): con `tfMPTUnauthorize`, exige que el `MPToken` exista (`tecOBJECT_NOT_FOUND`), que su saldo público y bloqueado sean cero (`tecHAS_OBLIGATIONS` si no) y, si está bloqueado por el emisor, no permite eliminarlo (`tecNO_PERMISSION`); sin ese flag, exige que la emisión exista (`tecOBJECT_NOT_FOUND`), que no seas tú el emisor (`tecNO_PERMISSION`) y que no tengas ya un `MPToken` para ella (`tecDUPLICATE`). Con `Holder` (lo envía el emisor): la cuenta indicada debe existir (`tecNO_DST`), la emisión debe existir y tener `lsfMPTRequireAuth` (`tecNO_AUTH` si no lo requiere) y el tenedor debe haber creado ya su `MPToken` antes de que el emisor pueda autorizarlo (`tecOBJECT_NOT_FOUND` si no).
+**`MPTokenAuthorize::preclaim`** branches depending on whether `Holder` is present. Without `Holder` (sent by the holder about themselves): with `tfMPTUnauthorize`, it requires that the `MPToken` exist (`tecOBJECT_NOT_FOUND`), that its public and locked balances be zero (`tecHAS_OBLIGATIONS` if not), and, if it's locked by the issuer, it doesn't allow deleting it (`tecNO_PERMISSION`); without that flag, it requires that the issuance exist (`tecOBJECT_NOT_FOUND`), that you not be the issuer (`tecNO_PERMISSION`), and that you not already have an `MPToken` for it (`tecDUPLICATE`). With `Holder` (sent by the issuer): the specified account must exist (`tecNO_DST`), the issuance must exist and have `lsfMPTRequireAuth` (`tecNO_AUTH` if it doesn't require it), and the holder must have already created their `MPToken` before the issuer can authorize it (`tecOBJECT_NOT_FOUND` if not).
 
-**`MPTokenAuthorize::doApply`** crea, borra o cambia el flag `lsfMPTAuthorized` del `MPToken` según el camino anterior, ajustando la reserva de propietario correspondiente.
+**`MPTokenAuthorize::doApply`** creates, deletes, or changes the `lsfMPTAuthorized` flag of the `MPToken` following the path above, adjusting the corresponding owner reserve.
 
-## Campos clave
+## Key fields
 
-- **MPTokenIssuanceID** — el identificador de la emisión sobre la que operas.
-- **Holder** — solo lo usa el emisor, para autorizar o desautorizar a un tenedor concreto. Un tenedor gestionando su propio `MPToken` lo omite.
+- **MPTokenIssuanceID** — the identifier of the issuance you're operating on.
+- **Holder** — only used by the issuer, to authorize or deauthorize a specific holder. A holder managing their own `MPToken` omits it.
 
 ## Flags
 
-- **tfMPTUnauthorize** — invierte el sentido de la operación: el tenedor elimina su `MPToken` (sin `Holder`) o el emisor retira la autorización a un tenedor (con `Holder`).
+- **tfMPTUnauthorize** — reverses the direction of the operation: the holder deletes their `MPToken` (without `Holder`) or the issuer withdraws authorization from a holder (with `Holder`).
 
-## Errores habituales
+## Common errors
 
-- **tecOBJECT_NOT_FOUND** — intentas operar sobre una emisión o un `MPToken` que no existe.
-- **tecDUPLICATE** — ya tienes un `MPToken` para esa emisión; no hace falta crearlo de nuevo.
-- **tecHAS_OBLIGATIONS** — intentas eliminar tu `MPToken` con saldo (público o bloqueado) distinto de cero. Transfiere o quema el saldo antes.
-- **tecNO_AUTH** — el emisor intenta autorizar a un tenedor en una emisión que no tiene `lsfMPTRequireAuth`; no hace falta autorización.
-- **tecNO_PERMISSION** — el emisor intenta crear un `MPToken` para sí mismo, o el `MPToken` está bloqueado y no se puede eliminar.
-- **tecNO_DST** — el `Holder` indicado por el emisor no existe como cuenta.
+- **tecOBJECT_NOT_FOUND** — you're trying to operate on an issuance or an `MPToken` that doesn't exist.
+- **tecDUPLICATE** — you already have an `MPToken` for that issuance; no need to create it again.
+- **tecHAS_OBLIGATIONS** — you're trying to delete your `MPToken` while it has a nonzero balance (public or locked). Transfer or burn the balance first.
+- **tecNO_AUTH** — the issuer is trying to authorize a holder on an issuance that doesn't have `lsfMPTRequireAuth`; authorization isn't needed.
+- **tecNO_PERMISSION** — the issuer is trying to create an `MPToken` for themselves, or the `MPToken` is locked and can't be deleted.
+- **tecNO_DST** — the `Holder` specified by the issuer doesn't exist as an account.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "MPTokenAuthorize",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "MPTokenIssuanceID": "000000000000000000000000000000000000000000000000"
 }
 ```
 
-Crea tu `MPToken` para la emisión indicada, habilitándote a recibir ese MPT.
+Creates your `MPToken` for the specified issuance, enabling you to receive that MPT.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Necesitas una emisión existente: créala primero con `MPTokenIssuanceCreate` desde otra cuenta.
-2. Firma y envía el ejemplo con el `MPTokenIssuanceID` real de esa emisión.
-3. Consulta `account_objects` con `type: "mptoken"`: verás tu objeto `MPToken` con saldo cero.
-4. Pide a la cuenta emisora que te envíe un `Payment` con `Amount: { mpt_issuance_id, value }`: tu saldo subirá.
-5. Con saldo en cero de nuevo, envía `MPTokenAuthorize` con `Flags: 1` (`tfMPTUnauthorize`) para eliminar tu `MPToken` y recuperar la reserva.
+1. You need an existing issuance: create one first with `MPTokenIssuanceCreate` from another account.
+2. Sign and send the example with the real `MPTokenIssuanceID` of that issuance.
+3. Query `account_objects` with `type: "mptoken"`: you'll see your `MPToken` object with a zero balance.
+4. Ask the issuing account to send you a `Payment` with `Amount: { mpt_issuance_id, value }`: your balance will rise.
+5. With the balance back at zero, send `MPTokenAuthorize` with `Flags: 1` (`tfMPTUnauthorize`) to delete your `MPToken` and recover the reserve.
 
-## Relacionado
+## Related
 
-- [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet) — bloquea o desbloquea tenedores o la emisión completa.
-- [Payment](/tx/Payment) — mueve saldo de MPT entre `MPToken` ya creados.
-- Objetos: [MPToken](/objects/MPToken), [MPTokenIssuance](/objects/MPTokenIssuance).
+- [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet) — locks or unlocks holders or the entire issuance.
+- [Payment](/tx/Payment) — moves MPT balance between already-created `MPToken` objects.
+- Objects: [MPToken](/objects/MPToken), [MPTokenIssuance](/objects/MPTokenIssuance).
 - Amendments: [MPTokensV1](/amendments/MPTokensV1).

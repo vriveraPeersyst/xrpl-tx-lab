@@ -1,69 +1,69 @@
 ---
 title: SponsorshipTransfer
-summary: Crea, cierra o reasigna el patrocinio de fee/reserva de un objeto o cuenta a otro patrocinador.
+summary: Creates, closes or reassigns the fee/reserve sponsorship of an object or account to another sponsor.
 category: permisos
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/sponsorshiptransfer
 amendment: Sponsor
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-`SponsorshipTransfer` gestiona el ciclo de vida del patrocinio sobre un objeto concreto del ledger o sobre la cuenta patrocinada en general: puede crear un patrocinio nuevo (`tfSponsorshipCreate`), terminarlo (`tfSponsorshipEnd`) o reasignarlo de un patrocinador a otro (`tfSponsorshipReassign`). A diferencia de [SponsorshipSet](/tx/SponsorshipSet), que ajusta el presupuesto de un patrocinio existente, esta transacción actúa sobre la propia relación de patrocinio: quién es el patrocinador de un objeto u owner count concretos.
+`SponsorshipTransfer` manages the lifecycle of the sponsorship over a specific ledger object or over the sponsored account in general: it can create a new sponsorship (`tfSponsorshipCreate`), end one (`tfSponsorshipEnd`) or reassign it from one sponsor to another (`tfSponsorshipReassign`). Unlike [SponsorshipSet](/tx/SponsorshipSet), which adjusts the budget of an existing sponsorship, this transaction acts on the sponsorship relationship itself: who is the sponsor of a given object or owner count.
 
-**Este tipo de transacción depende del amendment `Sponsor`, que hoy no está activo en testnet.** Cualquier intento de enviarla falla mientras el amendment no esté activo.
+**This transaction type depends on the `Sponsor` amendment, which is not active on testnet today.** Any attempt to send it fails while the amendment isn't active.
 
-## Cuándo usarlo (cuando el amendment esté activo)
+## When to use it (once the amendment is active)
 
-- Traspasar el patrocinio de la reserva de un objeto (por ejemplo, un `TrustSet`) de una aplicación a otra cuando cambia el operador del servicio.
-- Terminar formalmente un patrocinio cuando la relación comercial acaba, liberando al patrocinador de la obligación.
-- Crear un patrocinio dirigido a un objeto concreto (`ObjectID`) en lugar de a la cuenta en general.
+- Transferring the sponsorship of an object's reserve (for example, a `TrustSet`) from one application to another when the service operator changes.
+- Formally ending a sponsorship when the business relationship ends, releasing the sponsor from the obligation.
+- Creating a sponsorship targeted at a specific object (`ObjectID`) rather than at the account in general.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`SponsorshipTransfer::preflight`** exige exactamente uno de los tres flags de acción (`tfSponsorshipCreate`, `tfSponsorshipEnd`, `tfSponsorshipReassign`) y valida la coherencia de los campos según la acción: crear requiere los datos del nuevo patrocinio, reasignar requiere identificar tanto el patrocinio existente como el nuevo patrocinador con su firma (`SponsorSignature`).
+**`SponsorshipTransfer::preflight`** requires exactly one of the three action flags (`tfSponsorshipCreate`, `tfSponsorshipEnd`, `tfSponsorshipReassign`) and validates field consistency according to the action: creating requires the data for the new sponsorship, reassigning requires identifying both the existing sponsorship and the new sponsor along with their signature (`SponsorSignature`).
 
-**`SponsorshipTransfer::preclaim`** comprueba que la cuenta o el objeto (`ObjectID`) existen y, según la acción, que el patrocinio referenciado existe (`tecNO_ENTRY`) y que quien envía la transacción tiene permiso para tocarlo (`tecNO_PERMISSION` si no).
+**`SponsorshipTransfer::preclaim`** checks that the account or object (`ObjectID`) exists and, depending on the action, that the referenced sponsorship exists (`tecNO_ENTRY`) and that whoever sends the transaction has permission to touch it (`tecNO_PERMISSION` if not).
 
-**`SponsorshipTransfer::doApply`** ajusta los contadores `SponsoredOwnerCount`, `SponsoringAccountCount` y `SponsoringOwnerCount` de las cuentas implicadas y, según el flag, crea, borra o traspasa el vínculo de patrocinio correspondiente.
+**`SponsorshipTransfer::doApply`** adjusts the `SponsoredOwnerCount`, `SponsoringAccountCount` and `SponsoringOwnerCount` counters of the accounts involved and, depending on the flag, creates, deletes or transfers the corresponding sponsorship link.
 
-## Campos clave
+## Key fields
 
-- **ObjectID** — el objeto concreto del ledger cuyo patrocinio se gestiona. Si lo omites, la operación afecta al patrocinio general de la cuenta.
-- **Sponsee** — la cuenta beneficiaria del patrocinio.
-- **Sponsor** / **SponsorFlags** / **SponsorSignature** — identifican al nuevo patrocinador y su autorización explícita para asumir el compromiso, necesaria en una reasignación.
+- **ObjectID** — the specific ledger object whose sponsorship is being managed. If omitted, the operation affects the account's general sponsorship.
+- **Sponsee** — the account benefiting from the sponsorship.
+- **Sponsor** / **SponsorFlags** / **SponsorSignature** — identify the new sponsor and their explicit authorization to take on the commitment, required in a reassignment.
 
 ## Flags
 
-- **tfSponsorshipCreate** — crea un nuevo vínculo de patrocinio.
-- **tfSponsorshipEnd** — termina un patrocinio existente.
-- **tfSponsorshipReassign** — traspasa un patrocinio existente a otro patrocinador.
+- **tfSponsorshipCreate** — creates a new sponsorship link.
+- **tfSponsorshipEnd** — ends an existing sponsorship.
+- **tfSponsorshipReassign** — transfers an existing sponsorship to another sponsor.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_ENTRY** — el patrocinio u objeto referenciado no existe.
-- **tecNO_PERMISSION** — no tienes autoridad sobre el patrocinio que intentas modificar.
-- **temINVALID_FLAG** — no indicaste ninguno de los tres flags de acción, o indicaste más de uno.
-- **temMALFORMED** — faltan campos requeridos para la acción elegida.
+- **tecNO_ENTRY** — the referenced sponsorship or object doesn't exist.
+- **tecNO_PERMISSION** — you don't have authority over the sponsorship you're trying to modify.
+- **temINVALID_FLAG** — you didn't set any of the three action flags, or set more than one.
+- **temMALFORMED** — required fields for the chosen action are missing.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "SponsorshipTransfer",
-  "Account": "rXXXX_TU_CUENTA",
-  "Sponsor": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Sponsor": "rYYYY_OTHER_ACCOUNT",
   "Flags": 65536
 }
 ```
 
-Intentaría crear un patrocinio (`Flags: 65536` = `tfSponsorshipCreate`) con `rYYYY_OTRA_CUENTA` como patrocinador; fallará mientras el amendment `Sponsor` no esté activo en testnet.
+This would attempt to create a sponsorship (`Flags: 65536` = `tfSponsorshipCreate`) with `rYYYY_OTHER_ACCOUNT` as sponsor; it will fail while the `Sponsor` amendment isn't active on testnet.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-El amendment `Sponsor` no está activo hoy en testnet, así que cualquier envío de esta transacción desde el builder de esta página fallará. Puedes comprobarlo con el ejemplo de arriba; cuando la red active el amendment, podrás repetir el flujo y verificar el cambio de patrocinador consultando el objeto correspondiente por `ledger_entry`.
+The `Sponsor` amendment isn't active on testnet today, so any submission of this transaction from this page's builder will fail. You can verify this with the example above; once the network activates the amendment, you'll be able to repeat the flow and verify the sponsor change by querying the corresponding object via `ledger_entry`.
 
-## Relacionado
+## Related
 
-- [SponsorshipSet](/tx/SponsorshipSet) — crea y ajusta el presupuesto de un patrocinio.
+- [SponsorshipSet](/tx/SponsorshipSet) — creates and adjusts a sponsorship's budget.
 - Amendments: [Sponsor](/amendments/Sponsor).

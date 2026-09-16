@@ -1,73 +1,73 @@
 ---
 title: LoanBrokerSet
-summary: Crea o modifica un LoanBroker, el intermediario que concede préstamos con el capital de un Vault y aporta capital de primera pérdida.
+summary: Creates or modifies a LoanBroker, the intermediary that grants loans using a Vault's capital and contributes first-loss capital.
 category: prestamos
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/loanbrokerset
 xls: XLS-0066
 amendment: LendingProtocol
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-**Aviso:** el amendment [LendingProtocol](/amendments/LendingProtocol) **no está activo en la testnet** (y tampoco [SingleAssetVault](/amendments/SingleAssetVault), del que depende). Hoy cualquier `LoanBrokerSet` falla en `preflight` con `temDISABLED`. Esta página describe lo que hará cuando se active.
+**Notice:** the [LendingProtocol](/amendments/LendingProtocol) amendment **is not active on testnet** (nor is [SingleAssetVault](/amendments/SingleAssetVault), which it depends on). Today any `LoanBrokerSet` fails in `preflight` with `temDISABLED`. This page describes what it will do once it's active.
 
-`LoanBrokerSet` crea un objeto [LoanBroker](/objects/LoanBroker) asociado a un [Vault](/objects/Vault) que ya posees, o modifica uno existente. El broker es el "banco" del protocolo de préstamos: usa los activos depositados en el Vault por los inversores para financiar préstamos ([LoanSet](/tx/LoanSet)) y, a cambio, cobra una comisión de gestión (`ManagementFeeRate`) sobre los intereses.
+`LoanBrokerSet` creates a [LoanBroker](/objects/LoanBroker) object associated with a [Vault](/objects/Vault) you already own, or modifies an existing one. The broker is the "bank" of the lending protocol: it uses the assets deposited in the Vault by investors to fund loans ([LoanSet](/tx/LoanSet)) and, in exchange, charges a management fee (`ManagementFeeRate`) on the interest.
 
-Para proteger a los depositantes del Vault, el broker debe mantener **capital de primera pérdida** (*first-loss capital* o *cover*) en una pseudo-cuenta propia. Si un préstamo entra en impago, ese cover se liquida antes de que el Vault absorba pérdidas. `CoverRateMinimum` fija cuánto cover debe haber en proporción a la deuda viva y `CoverRateLiquidation` qué fracción de ese mínimo se liquida en un default.
+To protect the Vault's depositors, the broker must hold **first-loss capital** (or *cover*) in its own pseudo-account. If a loan defaults, that cover is liquidated before the Vault absorbs losses. `CoverRateMinimum` sets how much cover must exist relative to outstanding debt, and `CoverRateLiquidation` sets what fraction of that minimum is liquidated on a default.
 
-Al crear el broker, `doApply` crea también una **pseudo-cuenta** (AccountRoot con `LoanBrokerID`) que custodia el cover y actúa como propietaria de los objetos [Loan](/objects/Loan). El broker se enlaza al directorio del propietario y al de la pseudo-cuenta del Vault.
+When creating the broker, `doApply` also creates a **pseudo-account** (an AccountRoot with `LoanBrokerID`) that holds the cover and acts as the owner of [Loan](/objects/Loan) objects. The broker is linked to the owner's directory and to the Vault's pseudo-account directory.
 
-## Cuándo usarlo
+## When to use it
 
-- Eres el propietario de un Vault y quieres ofrecer préstamos a terceros usando su liquidez.
-- Quieres ajustar el límite de deuda (`DebtMaximum`) o los metadatos (`Data`) de un broker que ya existe.
-- Como paso previo a [LoanBrokerCoverDeposit](/tx/LoanBrokerCoverDeposit) y [LoanSet](/tx/LoanSet).
+- You own a Vault and want to offer loans to third parties using its liquidity.
+- You want to adjust the debt limit (`DebtMaximum`) or metadata (`Data`) of an existing broker.
+- As a step before [LoanBrokerCoverDeposit](/tx/LoanBrokerCoverDeposit) and [LoanSet](/tx/LoanSet).
 
-## Cómo funciona por dentro
+## How it works inside
 
-**preflight** (`LoanBrokerSet::preflight`, validación estática):
-- `checkExtraFeatures` exige `SingleAssetVault` y `MPTokensV1` activos (y `PermissionedDomains` si hay `DomainID`); si no, `temDISABLED`.
-- `Data` de hasta 256 bytes; `ManagementFeeRate` ≤ 10 000 (unidades de 1/10 de punto básico, es decir, ≤ 10 %); `CoverRateMinimum` y `CoverRateLiquidation` ≤ 100 000 (100 %); `DebtMaximum` ≥ 0 y dentro del rango de un MPT.
-- Si llevas `LoanBrokerID` (modificación), **no** puedes incluir `ManagementFeeRate`, `CoverRateMinimum` ni `CoverRateLiquidation`: son fijos para toda la vida del broker.
-- `CoverRateMinimum` y `CoverRateLiquidation` deben ser ambos cero o ambos distintos de cero. `VaultID` y `LoanBrokerID` no pueden ser cero.
+**preflight** (`LoanBrokerSet::preflight`, static validation):
+- `checkExtraFeatures` requires `SingleAssetVault` and `MPTokensV1` to be active (and `PermissionedDomains` if there's a `DomainID`); otherwise `temDISABLED`.
+- `Data` up to 256 bytes; `ManagementFeeRate` ≤ 10,000 (units of 1/10 basis point, i.e. ≤ 10%); `CoverRateMinimum` and `CoverRateLiquidation` ≤ 100,000 (100%); `DebtMaximum` ≥ 0 and within an MPT's range.
+- If you include `LoanBrokerID` (modification), you **cannot** include `ManagementFeeRate`, `CoverRateMinimum`, or `CoverRateLiquidation`: these are fixed for the broker's entire lifetime.
+- `CoverRateMinimum` and `CoverRateLiquidation` must both be zero or both nonzero. `VaultID` and `LoanBrokerID` cannot be zero.
 
-**preclaim** (`LoanBrokerSet::preclaim`, contra el ledger):
-- El Vault debe existir (`tecNO_ENTRY`) y tú debes ser su `Owner` (`tecNO_PERMISSION`).
-- Si modificas: el broker debe existir, pertenecerte y apuntar al mismo `VaultID`. No puedes bajar `DebtMaximum` por debajo del `DebtTotal` actual (`tecLIMIT_EXCEEDED`), salvo poniéndolo a 0 (sin límite).
-- Si creas: con [LendingProtocolV1_1](/amendments/LendingProtocolV1_1) activo el Vault tiene que ser *closed-ended*; además el activo debe poder tener holdings nuevos (`canAddHolding`) y la pseudo-cuenta del Vault no puede estar congelada.
-- `DebtMaximum` tiene que ser representable en el activo del Vault (`tecPRECISION_LOSS`).
+**preclaim** (`LoanBrokerSet::preclaim`, against the ledger):
+- The Vault must exist (`tecNO_ENTRY`) and you must be its `Owner` (`tecNO_PERMISSION`).
+- If modifying: the broker must exist, belong to you, and point to the same `VaultID`. You cannot lower `DebtMaximum` below the current `DebtTotal` (`tecLIMIT_EXCEEDED`), except by setting it to 0 (no limit).
+- If creating: with [LendingProtocolV1_1](/amendments/LendingProtocolV1_1) active, the Vault must be *closed-ended*; additionally, the asset must be able to accept new holdings (`canAddHolding`), and the Vault's pseudo-account cannot be frozen.
+- `DebtMaximum` must be representable in the Vault's asset (`tecPRECISION_LOSS`).
 
 **doApply**:
-- Modificación: solo se escriben `Data` y `DebtMaximum`.
-- Creación: aumenta el `OwnerCount` del propietario en **2** (objeto + pseudo-cuenta) y comprueba la reserva (`tecINSUFFICIENT_RESERVE`); crea la pseudo-cuenta con un holding vacío del activo del Vault; inicializa `LoanSequence = 1`, `Sequence`, `VaultID`, `Owner`, `Account` (la pseudo-cuenta) y los campos opcionales del tx.
+- Modification: only `Data` and `DebtMaximum` are written.
+- Creation: increases the owner's `OwnerCount` by **2** (object + pseudo-account) and checks the reserve (`tecINSUFFICIENT_RESERVE`); creates the pseudo-account with an empty holding of the Vault's asset; initializes `LoanSequence = 1`, `Sequence`, `VaultID`, `Owner`, `Account` (the pseudo-account), and the transaction's optional fields.
 
-## Campos clave
+## Key fields
 
-- **VaultID** — ID del Vault cuyo activo se prestará. Obligatorio incluso al modificar (debe coincidir con el guardado).
-- **LoanBrokerID** — si está presente, modificas ese broker; si no, creas uno nuevo.
-- **ManagementFeeRate** — porcentaje de los intereses que se queda el broker, en 1/10 de punto básico (100 = 1 %). Máximo 10 000. Inmutable.
-- **CoverRateMinimum** — cover mínimo exigido como fracción de `DebtTotal`, en 1/10 pb (10 000 = 10 %). Inmutable. Si es 0, no se exige cover.
-- **CoverRateLiquidation** — fracción del cover mínimo que se liquida en un default, en 1/10 pb. Inmutable.
-- **DebtMaximum** — tope de `DebtTotal` del broker; 0 significa sin límite.
-- **Data** — hasta 256 bytes arbitrarios (hex).
+- **VaultID** — ID of the Vault whose asset will be lent. Required even when modifying (must match the stored value).
+- **LoanBrokerID** — if present, you're modifying that broker; if not, you're creating a new one.
+- **ManagementFeeRate** — percentage of interest kept by the broker, in 1/10 basis point (100 = 1%). Maximum 10,000. Immutable.
+- **CoverRateMinimum** — minimum cover required as a fraction of `DebtTotal`, in 1/10 bp (10,000 = 10%). Immutable. If 0, no cover is required.
+- **CoverRateLiquidation** — fraction of the minimum cover liquidated on a default, in 1/10 bp. Immutable.
+- **DebtMaximum** — cap on the broker's `DebtTotal`; 0 means no limit.
+- **Data** — up to 256 arbitrary bytes (hex).
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo (situación actual en testnet).
-- **temINVALID** — rate fuera de rango, `Data` demasiado largo, intentas cambiar un campo fijo al modificar, o solo uno de los dos `CoverRate*` es cero.
-- **tecNO_ENTRY** — el Vault (o el broker a modificar) no existe.
-- **tecNO_PERMISSION** — no eres el owner del Vault o del broker, el `VaultID` no coincide, o el Vault no es closed-ended (V1_1).
-- **tecLIMIT_EXCEEDED** — `DebtMaximum` menor que la deuda viva.
-- **tecINSUFFICIENT_RESERVE** — la creación consume dos unidades de owner reserve.
-- **tecPRECISION_LOSS** — `DebtMaximum` no representable en el activo.
+- **temDISABLED** — the amendment is not active (current situation on testnet).
+- **temINVALID** — a rate out of range, `Data` too long, you're trying to change a fixed field when modifying, or only one of the two `CoverRate*` fields is zero.
+- **tecNO_ENTRY** — the Vault (or the broker being modified) doesn't exist.
+- **tecNO_PERMISSION** — you're not the owner of the Vault or the broker, the `VaultID` doesn't match, or the Vault isn't closed-ended (V1_1).
+- **tecLIMIT_EXCEEDED** — `DebtMaximum` is lower than outstanding debt.
+- **tecINSUFFICIENT_RESERVE** — creation consumes two owner reserve units.
+- **tecPRECISION_LOSS** — `DebtMaximum` not representable in the asset.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "LoanBrokerSet",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "VaultID": "0000000000000000000000000000000000000000000000000000000000000000",
   "ManagementFeeRate": 100,
   "CoverRateMinimum": 1000,
@@ -75,17 +75,17 @@ Al crear el broker, `doApply` crea también una **pseudo-cuenta** (AccountRoot c
 }
 ```
 
-Sustituye `VaultID` por el ID del Vault que creaste con [VaultCreate](/tx/VaultCreate) (lo verás en `account_objects` con `type: "vault"`). Ojo: este ejemplo lleva `CoverRateMinimum` sin `CoverRateLiquidation`; `preflight` exige que ambos sean cero o ambos no cero, así que añade `"CoverRateLiquidation": 1000` (o quita el mínimo) para que sea válido.
+Replace `VaultID` with the ID of the Vault you created with [VaultCreate](/tx/VaultCreate) (you'll see it in `account_objects` with `type: "vault"`). Note: this example includes `CoverRateMinimum` without `CoverRateLiquidation`; `preflight` requires both to be zero or both nonzero, so add `"CoverRateLiquidation": 1000` (or remove the minimum) to make it valid.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Hoy, cualquier envío devuelve `temDISABLED`: `LendingProtocol` y `SingleAssetVault` no están activos en testnet. Puedes enviarlo desde el builder para verlo.
-2. Cuando se active: crea un Vault con [VaultCreate](/tx/VaultCreate) y anota su ID.
-3. Envía `LoanBrokerSet` con ese `VaultID`, `ManagementFeeRate`, `CoverRateMinimum` y `CoverRateLiquidation`.
-4. Consulta `account_objects` de tu cuenta: verás un objeto `LoanBroker` con `Account` (la pseudo-cuenta), `LoanSequence: 1`, `DebtTotal: 0` y `CoverAvailable: 0`. Tu `OwnerCount` habrá subido en 2.
-5. Deposita cover con [LoanBrokerCoverDeposit](/tx/LoanBrokerCoverDeposit) antes de conceder préstamos.
+1. Today, any submission returns `temDISABLED`: `LendingProtocol` and `SingleAssetVault` are not active on testnet. You can send it from the builder to see it.
+2. Once active: create a Vault with [VaultCreate](/tx/VaultCreate) and note its ID.
+3. Send `LoanBrokerSet` with that `VaultID`, `ManagementFeeRate`, `CoverRateMinimum`, and `CoverRateLiquidation`.
+4. Query your account's `account_objects`: you'll see a `LoanBroker` object with `Account` (the pseudo-account), `LoanSequence: 1`, `DebtTotal: 0`, and `CoverAvailable: 0`. Your `OwnerCount` will have risen by 2.
+5. Deposit cover with [LoanBrokerCoverDeposit](/tx/LoanBrokerCoverDeposit) before granting loans.
 
-## Relacionado
+## Related
 
 - [LoanBrokerDelete](/tx/LoanBrokerDelete), [LoanBrokerCoverDeposit](/tx/LoanBrokerCoverDeposit), [LoanBrokerCoverWithdraw](/tx/LoanBrokerCoverWithdraw), [LoanBrokerCoverClawback](/tx/LoanBrokerCoverClawback)
 - [LoanSet](/tx/LoanSet), [VaultCreate](/tx/VaultCreate)

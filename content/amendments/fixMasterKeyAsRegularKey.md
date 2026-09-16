@@ -1,20 +1,20 @@
 ---
 title: fixMasterKeyAsRegularKey
-summary: Prohíbe fijar la regular key de una cuenta igual a su propia master key, para evitar que la cuenta quede bloqueada.
+summary: Prohibits setting an account's regular key equal to its own master key, to prevent the account from becoming locked.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixmasterkeyasregularkey
 ---
 
-## Qué cambia
+## What changes
 
-[SetRegularKey](/tx/SetRegularKey) permite asociar a una cuenta un par de claves alternativo (`RegularKey`) con el que firmar transacciones sin exponer la master key. Antes del fix, nada impedía que el valor de `RegularKey` coincidiera con el `AccountID` derivado de la propia master key de la cuenta. Si después esa cuenta desactivaba la master key con `AccountSet` (`lsfDisableMaster`) y no tenía una `SignerList` configurada, se quedaba sin ninguna clave utilizable: la master key estaba desactivada y la regular key "alternativa" era, en realidad, la misma clave inservible.
+[SetRegularKey](/tx/SetRegularKey) allows an account to be associated with an alternate key pair (`RegularKey`) that can sign transactions without exposing the master key. Before the fix, nothing prevented the value of `RegularKey` from matching the `AccountID` derived from the account's own master key. If that account later disabled the master key with `AccountSet` (`lsfDisableMaster`) and had no `SignerList` configured, it would be left without any usable key: the master key was disabled and the "alternate" regular key was, in fact, the same unusable key.
 
-Con `fixMasterKeyAsRegularKey` activo, `SetRegularKey::preflight` rechaza con `temBAD_REGKEY` cualquier transacción cuyo campo `RegularKey` sea igual al `Account` (comparando el `AccountID`, que es como se deriva de la master key). Así se evita configurar de entrada una situación que podía bloquear (blackhole) la cuenta de forma no intencionada.
+With `fixMasterKeyAsRegularKey` active, `SetRegularKey::preflight` rejects with `temBAD_REGKEY` any transaction whose `RegularKey` field equals the `Account` (comparing the `AccountID`, which is how it is derived from the master key). This prevents setting up, from the outset, a situation that could unintentionally lock (blackhole) the account.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [SetRegularKey](/tx/SetRegularKey): validación añadida en `preflight`.
-- [AccountRoot](/objects/AccountRoot): protege indirectamente el campo `RegularKey` frente a esta configuración inválida.
+- [SetRegularKey](/tx/SetRegularKey): validation added in `preflight`.
+- [AccountRoot](/objects/AccountRoot): indirectly protects the `RegularKey` field against this invalid configuration.
 
-## Estado y contexto
+## Status and context
 
-Cierra una vía de auto-bloqueo de cuenta no deseado: antes de este fix, un usuario podía inutilizar por error su propia cuenta combinando `SetRegularKey` con `RegularKey` igual a su dirección y un posterior `AccountSet` con `lsfDisableMaster`. El amendment está retirado en el código: la comprobación forma hoy parte permanente de `SetRegularKey`.
+Closes an unwanted self-lockout path: before this fix, a user could accidentally disable their own account by combining `SetRegularKey` with a `RegularKey` equal to their address and a subsequent `AccountSet` with `lsfDisableMaster`. The amendment is retired in the code: the check is now a permanent part of `SetRegularKey`.

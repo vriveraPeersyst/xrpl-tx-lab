@@ -1,80 +1,80 @@
 ---
 title: LoanBrokerCoverDeposit
-summary: Deposita capital de primera pérdida (cover) en la pseudo-cuenta de un LoanBroker para respaldar sus préstamos.
+summary: Deposits first-loss capital (cover) into a LoanBroker's pseudo-account to back its loans.
 category: prestamos
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/loanbrokercoverdeposit
 xls: XLS-0066
 amendment: LendingProtocol
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-**Aviso:** el amendment [LendingProtocol](/amendments/LendingProtocol) **no está activo en la testnet** (ni [SingleAssetVault](/amendments/SingleAssetVault), del que depende). Hoy esta transacción falla con `temDISABLED`. Lo siguiente describe su comportamiento cuando se active.
+**Notice:** the [LendingProtocol](/amendments/LendingProtocol) amendment **is not active on testnet** (nor is [SingleAssetVault](/amendments/SingleAssetVault), which it depends on). Today this transaction fails with `temDISABLED`. What follows describes its behavior once it's activated.
 
-`LoanBrokerCoverDeposit` mueve activos desde la cuenta del propietario de un [LoanBroker](/objects/LoanBroker) a la pseudo-cuenta del broker y aumenta el campo `CoverAvailable` en esa misma cantidad. Ese saldo es el **capital de primera pérdida** (*first-loss capital*): en un default ([LoanManage](/tx/LoanManage) con `tfLoanDefault`) se liquida antes de que los depositantes del [Vault](/objects/Vault) pierdan nada.
+`LoanBrokerCoverDeposit` moves assets from a [LoanBroker](/objects/LoanBroker) owner's account to the broker's pseudo-account and increases the `CoverAvailable` field by that same amount. That balance is the **first-loss capital**: in a default ([LoanManage](/tx/LoanManage) with `tfLoanDefault`) it's liquidated before [Vault](/objects/Vault) depositors lose anything.
 
-El activo depositado tiene que ser exactamente el activo del Vault al que pertenece el broker (XRP, un IOU o un MPT). Solo el propietario del broker puede depositar.
+The deposited asset must be exactly the asset of the Vault the broker belongs to (XRP, an IOU, or an MPT). Only the broker's owner can deposit.
 
-## Cuándo usarlo
+## When to use it
 
-- Antes de conceder préstamos: [LoanSet](/tx/LoanSet) falla con `tecINSUFFICIENT_FUNDS` si `CoverAvailable` no alcanza `CoverRateMinimum × DebtTotal` tras añadir el nuevo préstamo.
-- Para reponer cover después de que un default lo haya consumido.
-- Para elevar la capacidad de deuda del broker sin tocar `DebtMaximum`.
+- Before granting loans: [LoanSet](/tx/LoanSet) fails with `tecINSUFFICIENT_FUNDS` if `CoverAvailable` doesn't reach `CoverRateMinimum × DebtTotal` after adding the new loan.
+- To replenish cover after a default has consumed it.
+- To raise the broker's debt capacity without touching `DebtMaximum`.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**preflight** (`LoanBrokerCoverDeposit::preflight`): `LoanBrokerID` distinto de cero (`temINVALID`); `Amount` estrictamente positivo y con formato legal (`temBAD_AMOUNT`).
+**preflight** (`LoanBrokerCoverDeposit::preflight`): `LoanBrokerID` different from zero (`temINVALID`); `Amount` strictly positive and correctly formatted (`temBAD_AMOUNT`).
 
 **preclaim** (`LoanBrokerCoverDeposit::preclaim`):
-- El broker debe existir (`tecNO_ENTRY`) y ser tuyo (`tecNO_PERMISSION`).
-- `Amount.asset()` debe coincidir con `Vault.Asset` (`tecWRONG_ASSET`).
-- `canTransfer`: el activo debe ser transferible entre tú y la pseudo-cuenta (para MPT, `lsfMPTCanTransfer`).
-- Congelaciones: con [fixCleanup3_3_0](/amendments/fixCleanup3_3_0) se usa `checkDepositFreeze`; antes, tu cuenta no puede estar congelada y la pseudo-cuenta no puede estar deep frozen.
-- `requireAuth` con `StrongAuth`: si el emisor exige autorización, tú debes estar autorizado.
-- Con [fixCleanup3_2_0](/amendments/fixCleanup3_2_0), el importe se redondea **hacia abajo** a la escala de `CoverAvailable`; si queda en cero, `tecPRECISION_LOSS`. Esto evita depósitos "de polvo" que no mueven nada.
-- Tu saldo disponible del activo (con congelación y autorización en cuenta) debe cubrir el importe redondeado (`tecINSUFFICIENT_FUNDS`).
+- The broker must exist (`tecNO_ENTRY`) and be yours (`tecNO_PERMISSION`).
+- `Amount.asset()` must match `Vault.Asset` (`tecWRONG_ASSET`).
+- `canTransfer`: the asset must be transferable between you and the pseudo-account (for MPT, `lsfMPTCanTransfer`).
+- Freezes: with [fixCleanup3_3_0](/amendments/fixCleanup3_3_0), `checkDepositFreeze` is used; before that, your account can't be frozen and the pseudo-account can't be deep frozen.
+- `requireAuth` with `StrongAuth`: if the issuer requires authorization, you must be authorized.
+- With [fixCleanup3_2_0](/amendments/fixCleanup3_2_0), the amount is rounded **down** to `CoverAvailable`'s scale; if it ends up at zero, `tecPRECISION_LOSS`. This prevents "dust" deposits that don't move anything.
+- Your available balance of the asset (accounting for freeze and authorization) must cover the rounded amount (`tecINSUFFICIENT_FUNDS`).
 
-**doApply** (`LoanBrokerCoverDeposit::doApply`): vuelve a calcular el importe redondeado, hace `accountSend` de tu cuenta a la pseudo-cuenta del broker sin cobrar transfer fee, y suma ese mismo valor a `CoverAvailable`.
+**doApply** (`LoanBrokerCoverDeposit::doApply`): recalculates the rounded amount, performs `accountSend` from your account to the broker's pseudo-account with no transfer fee, and adds that same value to `CoverAvailable`.
 
-## Campos clave
+## Key fields
 
-- **LoanBrokerID** — ID del broker (índice del objeto LoanBroker).
-- **Amount** — cantidad a depositar en el activo del Vault. En drops si es XRP; objeto `{currency, issuer, value}` para IOU; `{mpt_issuance_id, value}` para MPT. Con `fixCleanup3_2_0` los decimales que excedan la escala del cover se descartan (redondeo hacia abajo).
+- **LoanBrokerID** — ID of the broker (index of the LoanBroker object).
+- **Amount** — amount to deposit in the Vault's asset. In drops if XRP; `{currency, issuer, value}` object for IOU; `{mpt_issuance_id, value}` for MPT. With `fixCleanup3_2_0`, decimals exceeding the cover's scale are discarded (rounded down).
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo (situación actual en testnet).
-- **temBAD_AMOUNT** — `Amount` cero o negativo.
-- **tecNO_ENTRY** — el `LoanBrokerID` no existe.
-- **tecNO_PERMISSION** — no eres el `Owner` del broker.
-- **tecWRONG_ASSET** — el activo de `Amount` no es el del Vault.
-- **tecINSUFFICIENT_FUNDS** — no tienes saldo suficiente del activo.
-- **tecPRECISION_LOSS** — el importe redondeado a la escala del cover es cero.
-- **tecFROZEN / tecNO_AUTH** — la trust line está congelada o no estás autorizado por el emisor.
+- **temDISABLED** — the amendment isn't active (current situation on testnet).
+- **temBAD_AMOUNT** — `Amount` is zero or negative.
+- **tecNO_ENTRY** — the `LoanBrokerID` doesn't exist.
+- **tecNO_PERMISSION** — you're not the broker's `Owner`.
+- **tecWRONG_ASSET** — `Amount`'s asset isn't the Vault's.
+- **tecINSUFFICIENT_FUNDS** — you don't have enough balance of the asset.
+- **tecPRECISION_LOSS** — the amount rounded to the cover's scale is zero.
+- **tecFROZEN / tecNO_AUTH** — the trust line is frozen or you're not authorized by the issuer.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "LoanBrokerCoverDeposit",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "LoanBrokerID": "0000000000000000000000000000000000000000000000000000000000000000",
   "Amount": "1000000"
 }
 ```
 
-`Amount` en drops (1 XRP) presupone un Vault de XRP. Sustituye `LoanBrokerID` por el `index` del objeto creado con [LoanBrokerSet](/tx/LoanBrokerSet).
+`Amount` in drops (1 XRP) assumes an XRP Vault. Replace `LoanBrokerID` with the `index` of the object created with [LoanBrokerSet](/tx/LoanBrokerSet).
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Hoy recibirás `temDISABLED`: `LendingProtocol` y `SingleAssetVault` no están activos en la testnet.
-2. Cuando se active: crea un Vault de XRP con [VaultCreate](/tx/VaultCreate) y un broker con [LoanBrokerSet](/tx/LoanBrokerSet).
-3. Consulta `account_objects` con `type: "loan_broker"` y anota `index` y `Account` (la pseudo-cuenta).
-4. Envía `LoanBrokerCoverDeposit` con 1 000 000 drops.
-5. Vuelve a consultar el broker: `CoverAvailable` valdrá `1000000`. Un `account_info` de la pseudo-cuenta mostrará ese XRP; tu saldo habrá bajado en 1 XRP más el fee.
+1. Today you'll get `temDISABLED`: `LendingProtocol` and `SingleAssetVault` aren't active on testnet.
+2. Once activated: create an XRP Vault with [VaultCreate](/tx/VaultCreate) and a broker with [LoanBrokerSet](/tx/LoanBrokerSet).
+3. Query `account_objects` with `type: "loan_broker"` and note the `index` and `Account` (the pseudo-account).
+4. Send `LoanBrokerCoverDeposit` with 1,000,000 drops.
+5. Query the broker again: `CoverAvailable` will be `1000000`. An `account_info` of the pseudo-account will show that XRP; your balance will have dropped by 1 XRP plus the fee.
 
-## Relacionado
+## Related
 
 - [LoanBrokerSet](/tx/LoanBrokerSet), [LoanBrokerCoverWithdraw](/tx/LoanBrokerCoverWithdraw), [LoanBrokerCoverClawback](/tx/LoanBrokerCoverClawback), [LoanSet](/tx/LoanSet), [LoanManage](/tx/LoanManage)
 - [LoanBroker](/objects/LoanBroker), [Vault](/objects/Vault)

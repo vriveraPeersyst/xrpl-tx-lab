@@ -1,95 +1,95 @@
 ---
 title: NFTokenCreateOffer
-summary: Publica una oferta de venta (si tienes el NFT) o de compra (si lo tiene otro) por XRP o por un token emitido.
+summary: Publishes a sell offer (if you hold the NFT) or a buy offer (if someone else holds it) in XRP or an issued token.
 category: nft
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/nftokencreateoffer
 xls: XLS-0020
 amendment: NonFungibleTokensV1_1
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`NFTokenCreateOffer` crea un objeto [NFTokenOffer](/objects/NFTokenOffer) en el ledger. Hay dos modos, decididos por el flag `tfSellNFToken`:
+`NFTokenCreateOffer` creates an [NFTokenOffer](/objects/NFTokenOffer) object on the ledger. There are two modes, decided by the `tfSellNFToken` flag:
 
-- **Oferta de venta** (`Flags: 1`): tú posees el token y fijas el precio en `Amount`. Puede ser 0 para regalarlo.
-- **Oferta de compra** (sin flag): el token lo tiene otra cuenta, que indicas en `Owner`, y `Amount` es lo que ofreces pagar (debe ser mayor que 0).
+- **Sell offer** (`Flags: 1`): you own the token and set the price in `Amount`. It can be 0 to give it away.
+- **Buy offer** (no flag): another account holds the token, specified in `Owner`, and `Amount` is what you're offering to pay (must be greater than 0).
 
-La oferta no mueve nada por sí sola. Se ejecuta cuando la contraparte (o un intermediario) la acepta con [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer). Cada oferta consume una unidad de reserva de propietario (0,2 XRP en testnet).
+The offer moves nothing on its own. It's executed when the counterparty (or a broker) accepts it with [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer). Each offer consumes one owner reserve unit (0.2 XRP on testnet).
 
-## Cuándo usarlo
+## When to use it
 
-- Vender o regalar un NFT a una cuenta concreta (`Destination`) o a quien quiera aceptarla.
-- Pujar por un NFT ajeno.
-- Preparar una operación con intermediario: vendedor y comprador crean sus ofertas y un tercero las casa cobrando `NFTokenBrokerFee`.
+- Selling or gifting an NFT to a specific account (`Destination`) or to whoever wants to accept it.
+- Bidding on someone else's NFT.
+- Setting up a brokered operation: seller and buyer create their offers and a third party matches them while collecting `NFTokenBrokerFee`.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`NFTokenCreateOffer::preflight`** delega en `nft::tokenOfferCreatePreflight`, que lee los flags del propio `NFTokenID`:
-- `Amount` negativo → `temBAD_AMOUNT`.
-- Si el NFT tiene `tfOnlyXRP` y `Amount` no es XRP → `temBAD_AMOUNT`. Un importe en token emitido igual a 0 también es `temBAD_AMOUNT`.
-- Oferta de compra con `Amount` 0 → `temBAD_AMOUNT`.
-- `Expiration` igual a 0 → `temBAD_EXPIRATION`.
-- `Owner` es obligatorio en ofertas de compra y prohibido en las de venta; en ambos casos contrarios → `temMALFORMED`. `Owner` o `Destination` iguales a `Account` → `temMALFORMED`.
+**`NFTokenCreateOffer::preflight`** delegates to `nft::tokenOfferCreatePreflight`, which reads the flags from the `NFTokenID` itself:
+- Negative `Amount` → `temBAD_AMOUNT`.
+- If the NFT has `tfOnlyXRP` and `Amount` isn't XRP → `temBAD_AMOUNT`. An issued-token amount equal to 0 is also `temBAD_AMOUNT`.
+- Buy offer with `Amount` 0 → `temBAD_AMOUNT`.
+- `Expiration` equal to 0 → `temBAD_EXPIRATION`.
+- `Owner` is required on buy offers and forbidden on sell offers; the opposite in either case → `temMALFORMED`. `Owner` or `Destination` equal to `Account` → `temMALFORMED`.
 
 **`NFTokenCreateOffer::preclaim`**:
-- `Expiration` ya pasada → `tecEXPIRED`.
-- El token debe estar en las páginas de la cuenta correcta: la tuya si vendes, la de `Owner` si compras. Si no → `tecNO_ENTRY`.
+- `Expiration` already past → `tecEXPIRED`.
+- The token must be in the correct account's pages: yours if selling, `Owner`'s if buying. If not → `tecNO_ENTRY`.
 - `nft::tokenOfferCreatePreclaim`:
-  - Si el precio es un token emitido y el NFT tiene `TransferFee` > 0, el emisor del NFT debe tener trust line con esa moneda (`tecNO_LINE`) y no estar congelado (`tecFROZEN`). Esto garantiza que pueda cobrar su comisión.
-  - Si no eres el emisor del NFT y este no lleva `tfTransferable`, solo el `NFTokenMinter` del emisor puede crear la oferta; si no → `tefNFTOKEN_IS_NOT_TRANSFERABLE`.
-  - En ofertas de compra, debes tener fondos disponibles en esa moneda (`tecUNFUNDED_OFFER`).
-  - `Destination` debe existir (`tecNO_DST`) y no tener `lsfDisallowIncomingNFTokenOffer` (`tecNO_PERMISSION`). Lo mismo con `Owner` (`tecNO_TARGET` si no existe).
-  - Con [fixEnforceNFTokenTrustlineV2](/amendments/fixEnforceNFTokenTrustlineV2) activo (sí en testnet), si el precio es un token de un emisor con `lsfRequireAuth`, tu trust line debe estar autorizada (`tecNO_LINE` / `tecNO_AUTH`).
+  - If the price is an issued token and the NFT has `TransferFee` > 0, the NFT's issuer must have a trust line for that currency (`tecNO_LINE`) and not be frozen (`tecFROZEN`). This ensures they can collect their fee.
+  - If you're not the NFT's issuer and it doesn't carry `tfTransferable`, only the issuer's `NFTokenMinter` can create the offer; if not → `tefNFTOKEN_IS_NOT_TRANSFERABLE`.
+  - On buy offers, you must have available funds in that currency (`tecUNFUNDED_OFFER`).
+  - `Destination` must exist (`tecNO_DST`) and not have `lsfDisallowIncomingNFTokenOffer` (`tecNO_PERMISSION`). The same applies to `Owner` (`tecNO_TARGET` if it doesn't exist).
+  - With [fixEnforceNFTokenTrustlineV2](/amendments/fixEnforceNFTokenTrustlineV2) active (yes on testnet), if the price is a token from an issuer with `lsfRequireAuth`, your trust line must be authorized (`tecNO_LINE` / `tecNO_AUTH`).
 
-**`NFTokenCreateOffer::doApply`** (`nft::tokenOfferCreateApply`): comprueba la reserva para un objeto más (`tecINSUFFICIENT_RESERVE`), inserta la oferta en tu directorio y en el directorio de ventas o compras del token, y sube tu `OwnerCount` en 1. El objeto guarda `Owner`, `NFTokenID`, `Amount`, `Flags` (`lsfSellNFToken` si es venta), `Destination` y `Expiration`.
+**`NFTokenCreateOffer::doApply`** (`nft::tokenOfferCreateApply`): checks the reserve for one more object (`tecINSUFFICIENT_RESERVE`), inserts the offer into your directory and into the token's sell or buy directory, and raises your `OwnerCount` by 1. The object stores `Owner`, `NFTokenID`, `Amount`, `Flags` (`lsfSellNFToken` if a sale), `Destination`, and `Expiration`.
 
-## Campos clave
+## Key fields
 
-- **NFTokenID** — el token. El nodo extrae de él el emisor, los flags y el `TransferFee` sin buscar nada más.
-- **Amount** — precio en drops (string) o un objeto `{currency, issuer, value}`. En ventas puede ser `"0"`.
-- **Owner** — dueño actual del NFT; solo en ofertas de compra.
-- **Destination** — única cuenta que podrá aceptar la oferta. Útil para transferencias privadas.
-- **Expiration** — segundos desde el Ripple Epoch (2000-01-01). Pasado ese instante nadie podrá aceptarla, aunque el objeto siga en el ledger hasta que alguien la cancele.
+- **NFTokenID** — the token. The node extracts the issuer, the flags, and the `TransferFee` from it without looking up anything else.
+- **Amount** — price in drops (string) or a `{currency, issuer, value}` object. On sales it can be `"0"`.
+- **Owner** — the NFT's current owner; only on buy offers.
+- **Destination** — the only account allowed to accept the offer. Useful for private transfers.
+- **Expiration** — seconds since the Ripple Epoch (2000-01-01). After that instant no one can accept it, though the object remains on the ledger until someone cancels it.
 
 ## Flags
 
-- **tfSellNFToken** (1) — la oferta es de venta. Sin él es de compra y necesitas `Owner`.
+- **tfSellNFToken** (1) — the offer is a sale. Without it, it's a purchase and you need `Owner`.
 
-## Errores habituales
+## Common errors
 
-- **temMALFORMED** — has puesto `Owner` en una venta, lo has omitido en una compra, o `Destination`/`Owner` son tu propia cuenta.
-- **temBAD_AMOUNT** — compra con importe 0, o token emitido en un NFT con `tfOnlyXRP`.
-- **tecNO_ENTRY** — el NFT no está donde dices (no es tuyo si vendes, o `Owner` ya no lo tiene).
-- **tefNFTOKEN_IS_NOT_TRANSFERABLE** — el NFT no tiene `tfTransferable` y tú no eres el emisor ni su minter.
-- **tecUNFUNDED_OFFER** — oferta de compra sin saldo suficiente.
-- **tecNO_PERMISSION** — el `Destination` (o el `Owner`) bloquea ofertas entrantes con `asfDisallowIncomingNFTokenOffer`.
-- **tecINSUFFICIENT_RESERVE** — no cubres la reserva del nuevo objeto.
+- **temMALFORMED** — you set `Owner` on a sale, omitted it on a purchase, or `Destination`/`Owner` is your own account.
+- **temBAD_AMOUNT** — purchase with amount 0, or an issued token on an NFT with `tfOnlyXRP`.
+- **tecNO_ENTRY** — the NFT isn't where you say it is (it's not yours if selling, or `Owner` no longer holds it).
+- **tefNFTOKEN_IS_NOT_TRANSFERABLE** — the NFT doesn't have `tfTransferable` and you're neither the issuer nor its minter.
+- **tecUNFUNDED_OFFER** — buy offer without sufficient funds.
+- **tecNO_PERMISSION** — the `Destination` (or `Owner`) blocks incoming offers with `asfDisallowIncomingNFTokenOffer`.
+- **tecINSUFFICIENT_RESERVE** — you don't cover the reserve for the new object.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "NFTokenCreateOffer",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "NFTokenID": "0000000000000000000000000000000000000000000000000000000000000000",
   "Amount": "1000000",
   "Flags": 1
 }
 ```
 
-Oferta de venta por 1 XRP. Para una oferta de compra quita `Flags` y añade `"Owner": "rYYYY_OTRA_CUENTA"`.
+Sell offer for 1 XRP. For a buy offer, remove `Flags` and add `"Owner": "rYYYY_OTHER_ACCOUNT"`.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Acuña un NFT con [NFTokenMint](/tx/NFTokenMint) (`Flags: 8`) y copia su `NFTokenID` de `account_nfts`.
-2. Carga el ejemplo con ese ID y envía. Observa en el resultado el nodo `CreatedNode` de tipo `NFTokenOffer`; su `LedgerIndex` es el identificador de la oferta.
-3. Consulta `nft_sell_offers` con `nft_id`: verás la oferta con `amount`, `flags: 1` y `owner`.
-4. `account_info`: tu `OwnerCount` ha subido en 1.
-5. Prueba a añadir `"Destination": "rYYYY_OTRA_CUENTA"` y vuelve a enviar: ahora solo esa cuenta podrá aceptarla.
-6. Cancela lo que no vayas a usar con [NFTokenCancelOffer](/tx/NFTokenCancelOffer) para recuperar la reserva.
+1. Mint an NFT with [NFTokenMint](/tx/NFTokenMint) (`Flags: 8`) and copy its `NFTokenID` from `account_nfts`.
+2. Load the example with that ID and submit. Look at the result's `CreatedNode` of type `NFTokenOffer`; its `LedgerIndex` is the offer's identifier.
+3. Query `nft_sell_offers` with `nft_id`: you'll see the offer with `amount`, `flags: 1`, and `owner`.
+4. `account_info`: your `OwnerCount` has risen by 1.
+5. Try adding `"Destination": "rYYYY_OTHER_ACCOUNT"` and submit again: now only that account can accept it.
+6. Cancel anything you won't use with [NFTokenCancelOffer](/tx/NFTokenCancelOffer) to recover the reserve.
 
-## Relacionado
+## Related
 
 - [NFTokenAcceptOffer](/tx/NFTokenAcceptOffer), [NFTokenCancelOffer](/tx/NFTokenCancelOffer), [NFTokenMint](/tx/NFTokenMint)
 - [NFTokenOffer](/objects/NFTokenOffer), [NFTokenPage](/objects/NFTokenPage)

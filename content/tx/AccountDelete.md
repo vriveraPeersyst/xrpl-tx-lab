@@ -1,86 +1,86 @@
 ---
 title: AccountDelete
-summary: Borra tu cuenta del ledger y envía todo el XRP restante (incluida la reserva) a otra cuenta; cuesta una reserva incremental y exige no tener obligaciones pendientes.
+summary: Deletes your account from the ledger and sends all remaining XRP (including the reserve) to another account; costs an incremental reserve and requires having no pending obligations.
 category: cuenta
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/accountdelete
 amendment: DeletableAccounts
-level: avanzado
+level: advanced
 ---
 
-## Qué hace
+## What it does
 
-`AccountDelete` elimina el objeto [AccountRoot](/objects/AccountRoot) de tu cuenta y transfiere a `Destination` todo el XRP que quede después de pagar la tasa, incluida la reserva base que normalmente no puedes gastar. Es la única forma de recuperar esa reserva. La transacción está pensada para cuentas "vacías": antes de borrarla tienes que deshacerte de todo lo que constituya una obligación hacia terceros (trust lines con saldo, escrows, canales de pago, cheques, NFTs...). Los objetos que solo te afectan a ti (órdenes del DEX, tickets, lista de firmantes, preautorizaciones, ofertas de NFT, DID, oráculos, credenciales, delegaciones) se borran automáticamente en la misma transacción.
+`AccountDelete` removes the [AccountRoot](/objects/AccountRoot) object for your account and transfers to `Destination` all the XRP left after paying the fee, including the base reserve you normally can't spend. It's the only way to recover that reserve. The transaction is designed for "empty" accounts: before deleting it you have to get rid of everything that constitutes an obligation toward third parties (trust lines with a balance, escrows, payment channels, checks, NFTs...). Objects that only affect you (DEX offers, tickets, signer list, preauthorizations, NFT offers, DID, oracles, credentials, delegations) are deleted automatically in the same transaction.
 
-La tasa no es la habitual: `AccountDelete::calculateBaseFee` devuelve una **reserva incremental completa** (0,2 XRP en testnet) en lugar de 10 drops. Este coste disuade de crear y borrar cuentas en bucle.
+The fee isn't the usual one: `AccountDelete::calculateBaseFee` returns a **full incremental reserve** (0.2 XRP on testnet) instead of 10 drops. This cost discourages creating and deleting accounts in a loop.
 
-Una cuenta borrada puede volver a crearse recibiendo XRP, pero empezará con un `Sequence` nuevo derivado del ledger; por eso el protocolo exige una distancia mínima de 256 ledgers entre tu `Sequence` y el ledger actual, para que transacciones antiguas no puedan reproducirse.
+A deleted account can be recreated by receiving XRP, but it will start with a new `Sequence` derived from the ledger; that's why the protocol requires a minimum distance of 256 ledgers between your `Sequence` and the current ledger, so old transactions can't be replayed.
 
-## Cuándo usarlo
+## When to use it
 
-- Cerrar una cuenta de prueba o temporal y recuperar el XRP de la reserva.
-- Consolidar varias cuentas en una sola.
-- Retirar una cuenta comprometida después de mover fondos (aunque [SetRegularKey](/tx/SetRegularKey) o una lista de firmantes suelen ser mejor opción si quieres conservar la dirección).
+- Closing a test or temporary account and recovering the reserve's XRP.
+- Consolidating several accounts into one.
+- Retiring a compromised account after moving funds (though [SetRegularKey](/tx/SetRegularKey) or a signer list are usually a better option if you want to keep the address).
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`AccountDelete::preflight`**: `Destination` no puede ser la propia cuenta (`temDST_IS_SRC`) y, si incluyes `CredentialIDs`, deben tener formato válido (`credentials::checkFields`). Con `CredentialIDs` es necesario que [Credentials](/amendments/Credentials) esté activo.
+**`AccountDelete::preflight`**: `Destination` cannot be the account itself (`temDST_IS_SRC`) and, if you include `CredentialIDs`, they must have a valid format (`credentials::checkFields`). With `CredentialIDs` the [Credentials](/amendments/Credentials) amendment must be active.
 
-**`AccountDelete::preclaim`** (contra el ledger):
-- El destino debe existir (`tecNO_DST`) y, si tiene `lsfRequireDestTag`, necesitas `DestinationTag` (`tecDST_TAG_NEEDED`).
-- Si el destino tiene `lsfDepositAuth`, debe existir un objeto [DepositPreauth](/objects/DepositPreauth) del destino hacia ti; si no, `tecNO_PERMISSION`. Con `CredentialIDs` la comprobación se pospone a `doApply` (`verifyDepositPreauth`) para poder borrar credenciales caducadas. Las pseudo-cuentas (AMM, vault) tienen `lsfDepositAuth` por defecto, así que nunca pueden ser destino.
-- **NFTs**: si `MintedNFTokens ≠ BurnedNFTokens` (has emitido NFTs que siguen existiendo) o tienes alguna página de NFTs en propiedad → `tecHAS_OBLIGATIONS`.
-- **Sponsor**: si tu cuenta está patrocinada, `Destination` debe ser el patrocinador (`tecNO_SPONSOR_PERMISSION`); si patrocinas objetos o cuentas de otros → `tecHAS_OBLIGATIONS`. En testnet [Sponsor](/amendments/Sponsor) no está activo, así que estos campos no existen.
-- **Antigüedad**: `Sequence + 255 > ledger actual` → `tecTOO_SOON`. Misma regla con `FirstNFTokenSequence + MintedNFTokens` para evitar NFTokenIDs duplicados tras recrear la cuenta ([fixNFTokenRemint](/amendments/fixNFTokenRemint)).
-- Recorre tu directorio de propietario: cada entrada debe ser de un tipo que `nonObligationDeleter` sepa borrar (`Offer`, `SignerList`, `Ticket`, `DepositPreauth`, `NFTokenOffer`, `DID`, `Oracle`, `Credential`, `Delegate`). Cualquier otro tipo (RippleState, Escrow, PayChannel, Check, MPToken, AMM, Vault...) → `tecHAS_OBLIGATIONS`. Más de 1000 entradas borrables (`kMaxDeletableDirEntries`) → `tefTOO_BIG`.
+**`AccountDelete::preclaim`** (against the ledger):
+- The destination must exist (`tecNO_DST`) and, if it has `lsfRequireDestTag`, you need a `DestinationTag` (`tecDST_TAG_NEEDED`).
+- If the destination has `lsfDepositAuth`, a [DepositPreauth](/objects/DepositPreauth) object from the destination toward you must exist; otherwise `tecNO_PERMISSION`. With `CredentialIDs` the check is deferred to `doApply` (`verifyDepositPreauth`) so expired credentials can be deleted. Pseudo-accounts (AMM, vault) have `lsfDepositAuth` by default, so they can never be a destination.
+- **NFTs**: if `MintedNFTokens ≠ BurnedNFTokens` (you've minted NFTs that still exist) or you own any NFT page → `tecHAS_OBLIGATIONS`.
+- **Sponsor**: if your account is sponsored, `Destination` must be the sponsor (`tecNO_SPONSOR_PERMISSION`); if you sponsor objects or accounts belonging to others → `tecHAS_OBLIGATIONS`. On testnet [Sponsor](/amendments/Sponsor) isn't active, so these fields don't exist.
+- **Age**: `Sequence + 255 > current ledger` → `tecTOO_SOON`. Same rule with `FirstNFTokenSequence + MintedNFTokens` to avoid duplicate NFTokenIDs after recreating the account ([fixNFTokenRemint](/amendments/fixNFTokenRemint)).
+- Walks your owner directory: each entry must be of a type `nonObligationDeleter` knows how to delete (`Offer`, `SignerList`, `Ticket`, `DepositPreauth`, `NFTokenOffer`, `DID`, `Oracle`, `Credential`, `Delegate`). Any other type (RippleState, Escrow, PayChannel, Check, MPToken, AMM, Vault...) → `tecHAS_OBLIGATIONS`. More than 1000 deletable entries (`kMaxDeletableDirEntries`) → `tefTOO_BIG`.
 
 **`AccountDelete::doApply`**:
-1. Con `CredentialIDs`, verifica ahora la preautorización o las credenciales.
-2. `cleanupOnAccountDelete` recorre el directorio y llama al borrador de cada objeto (`offerDelete`, `SignerListSet::removeFromLedger`, `Transactor::ticketDelete`, etc.).
-3. Transfiere el `Balance` restante al destino y lo registra como `delivered_amount` (`ctx_.deliver`).
-4. Si tu cuenta tenía patrocinador, decrementa su `SponsoringAccountCount`.
-5. Borra el directorio de propietario (si no está vacío, `tecHAS_OBLIGATIONS`), limpia `lsfPasswordSpent` en el destino si recibe XRP, y elimina tu `AccountRoot`.
+1. With `CredentialIDs`, it now verifies the preauthorization or the credentials.
+2. `cleanupOnAccountDelete` walks the directory and calls the appropriate deleter for each object (`offerDelete`, `SignerListSet::removeFromLedger`, `Transactor::ticketDelete`, etc.).
+3. Transfers the remaining `Balance` to the destination and records it as `delivered_amount` (`ctx_.deliver`).
+4. If your account had a sponsor, decrements its `SponsoringAccountCount`.
+5. Deletes the owner directory (if not empty, `tecHAS_OBLIGATIONS`), clears `lsfPasswordSpent` on the destination if it receives XRP, and removes your `AccountRoot`.
 
-También bloquean los objetos creados por otros que apuntan a ti: `CheckCreate` inserta el cheque en el directorio del destinatario (`DestinationNode`) y, desde [fixPayChanRecipientOwnerDir](/amendments/fixPayChanRecipientOwnerDir), lo mismo hace `PaymentChannelCreate` con el canal. Un cheque o canal recibido impide borrar tu cuenta hasta que se cobre, cancele o cierre.
+Objects created by others that point at you also block deletion: `CheckCreate` inserts the check into the recipient's directory (`DestinationNode`), and since [fixPayChanRecipientOwnerDir](/amendments/fixPayChanRecipientOwnerDir), `PaymentChannelCreate` does the same with the channel. A received check or channel prevents deleting your account until it's cashed, canceled, or closed.
 
-## Campos clave
+## Key fields
 
-- **Destination** — cuenta que recibe el XRP restante. Debe existir ya; `AccountDelete` no crea cuentas.
-- **DestinationTag** — obligatorio si el destino tiene `lsfRequireDestTag`.
-- **CredentialIDs** — credenciales aceptadas que permiten superar el `DepositAuth` del destino sin preautorización explícita.
-- **Fee** — debe ser al menos la reserva incremental (200000 drops en testnet), no los 10 drops habituales. Un `Fee` insuficiente se rechaza como `telINSUF_FEE_P`.
+- **Destination** — account that receives the remaining XRP. It must already exist; `AccountDelete` doesn't create accounts.
+- **DestinationTag** — required if the destination has `lsfRequireDestTag`.
+- **CredentialIDs** — accepted credentials that let you bypass the destination's `DepositAuth` without an explicit preauthorization.
+- **Fee** — must be at least the incremental reserve (200000 drops on testnet), not the usual 10 drops. An insufficient `Fee` is rejected as `telINSUF_FEE_P`.
 
-## Errores habituales
+## Common errors
 
-- **tecHAS_OBLIGATIONS** — tienes trust lines, escrows, canales, cheques, NFTs, MPTokens u otros objetos no borrables. Consulta `account_objects` y elimínalos uno a uno (`TrustSet` con límite 0 y saldo 0, `EscrowCancel`, `CheckCancel`, `NFTokenBurn`...).
-- **tecTOO_SOON** — han pasado menos de 256 ledgers (unos 15 minutos) desde tu último `Sequence`. Espera.
-- **tecNO_DST** — el destino no existe.
-- **tecNO_PERMISSION** — el destino tiene `DepositAuth` y no te ha preautorizado.
-- **tecDST_TAG_NEEDED** — el destino exige `DestinationTag`.
-- **telINSUF_FEE_P** — `Fee` por debajo de la reserva incremental.
-- **temDST_IS_SRC** — has puesto tu propia cuenta como destino.
-- **tefTOO_BIG** — más de 1000 objetos borrables; cancélalos antes.
+- **tecHAS_OBLIGATIONS** — you have trust lines, escrows, channels, checks, NFTs, MPTokens, or other non-deletable objects. Check `account_objects` and remove them one by one (`TrustSet` with limit 0 and balance 0, `EscrowCancel`, `CheckCancel`, `NFTokenBurn`...).
+- **tecTOO_SOON** — fewer than 256 ledgers (about 15 minutes) have passed since your last `Sequence`. Wait.
+- **tecNO_DST** — the destination doesn't exist.
+- **tecNO_PERMISSION** — the destination has `DepositAuth` and hasn't preauthorized you.
+- **tecDST_TAG_NEEDED** — the destination requires a `DestinationTag`.
+- **telINSUF_FEE_P** — `Fee` below the incremental reserve.
+- **temDST_IS_SRC** — you set your own account as the destination.
+- **tefTOO_BIG** — more than 1000 deletable objects; cancel them first.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "AccountDelete",
-  "Account": "rXXXX_TU_CUENTA",
-  "Destination": "rYYYY_OTRA_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Destination": "rYYYY_OTHER_ACCOUNT",
   "Fee": "200000"
 }
 ```
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Usa una cuenta desechable (crea una nueva con el faucet), no tu cuenta principal del builder.
-2. Comprueba con `account_objects` que no tiene nada, o que solo tiene objetos borrables (por ejemplo, crea una orden con [OfferCreate](/tx/OfferCreate) para ver cómo se elimina sola).
-3. Consulta `account_info`: anota `Sequence` y compáralo con el ledger validado. Si la diferencia es menor de 256, espera; una cuenta recién creada por el faucet necesita unos 15 minutos.
-4. Envía `AccountDelete` con `Fee: "200000"` y la otra cuenta como `Destination`.
-5. Consulta `account_info` de la cuenta borrada: responde `actNotFound`. En la cuenta destino el `Balance` ha subido en el saldo restante, y en los metadatos verás `DeletedNode` para `AccountRoot`, `DirectoryNode` y la `Offer`.
-6. Para ver `tecHAS_OBLIGATIONS`, crea antes una trust line con [TrustSet](/tx/TrustSet) y repite.
+1. Use a disposable account (create a new one with the faucet), not your main builder account.
+2. Check with `account_objects` that it has nothing, or only deletable objects (for example, create an order with [OfferCreate](/tx/OfferCreate) to see how it gets removed on its own).
+3. Query `account_info`: note `Sequence` and compare it with the validated ledger. If the difference is less than 256, wait; an account just created by the faucet needs about 15 minutes.
+4. Send `AccountDelete` with `Fee: "200000"` and the other account as `Destination`.
+5. Query `account_info` for the deleted account: it responds `actNotFound`. On the destination account, `Balance` has increased by the remaining amount, and in the metadata you'll see `DeletedNode` entries for `AccountRoot`, `DirectoryNode`, and the `Offer`.
+6. To see `tecHAS_OBLIGATIONS`, create a trust line first with [TrustSet](/tx/TrustSet) and try again.
 
-## Relacionado
+## Related
 
 - [AccountSet](/tx/AccountSet)
 - [SetRegularKey](/tx/SetRegularKey)

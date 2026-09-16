@@ -1,22 +1,22 @@
 ---
 title: PermissionedDEX
-summary: Permite restringir una oferta del DEX a un dominio permisionado concreto, de modo que solo cruce con cuentas de ese dominio.
+summary: Allows restricting a DEX offer to a specific permissioned domain, so that it only crosses with accounts from that domain.
 xrplDocs: https://xrpl.org/resources/known-amendments#permissioneddex
 introducedIn: 3.0.0
 ---
 
-## Qué cambia
+## What changes
 
-Extiende `OfferCreate` con el campo opcional `DomainID`, que referencia un [PermissionedDomain](/amendments/PermissionedDomains) existente. Cuando se indica, la oferta solo puede cruzarse (o consultarse en el libro de órdenes) contra otras cuentas que satisfagan las credenciales aceptadas de ese dominio; el motor de emparejamiento del DEX usa un libro de órdenes distinto para las ofertas asociadas a un dominio frente al libro abierto general. También añade el flag `tfHybrid`, que crea una oferta "híbrida": visible y cruzable tanto en el libro abierto como en el del dominio, útil para proveedores de liquidez que quieren participar en ambos mercados con la misma oferta. Sin el amendment activo, `tfHybrid` queda prohibido (se añade a la máscara de flags rechazados) y usar `DomainID` hace fallar la transacción en `preflight`.
+Extends `OfferCreate` with the optional field `DomainID`, which references an existing [PermissionedDomain](/amendments/PermissionedDomains). When specified, the offer can only be crossed (or queried in the order book) against other accounts that satisfy that domain's accepted credentials; the DEX matching engine uses a separate order book for offers associated with a domain versus the general open book. It also adds the `tfHybrid` flag, which creates a "hybrid" offer: visible and crossable both in the open book and in the domain's book, useful for liquidity providers who want to participate in both markets with the same offer. Without the amendment active, `tfHybrid` is prohibited (it is added to the rejected flags mask), and using `DomainID` makes the transaction fail in `preflight`.
 
-`Payment` también gana soporte para `DomainID` en sus rutas de cross-currency, de modo que un pago puede exigir que el camino de conversión use únicamente ofertas de un dominio permisionado concreto, en vez de barrer todo el libro de órdenes abierto.
+`Payment` also gains support for `DomainID` in its cross-currency paths, so that a payment can require that the conversion path use only offers from a specific permissioned domain, instead of sweeping the entire open order book.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [OfferCreate](/tx/OfferCreate): nuevo campo `DomainID` y flag `tfHybrid`.
-- [Payment](/tx/Payment): admite `DomainID` para restringir el enrutamiento de pagos cross-currency a un dominio.
-- Objetos: [Offer](/objects/Offer) puede quedar asociada a un dominio; depende de [PermissionedDomain](/objects/PermissionedDomain) como referencia.
+- [OfferCreate](/tx/OfferCreate): new `DomainID` field and `tfHybrid` flag.
+- [Payment](/tx/Payment): supports `DomainID` to restrict cross-currency payment routing to a domain.
+- Objects: [Offer](/objects/Offer) can become associated with a domain; depends on [PermissionedDomain](/objects/PermissionedDomain) as a reference.
 
-## Estado y contexto
+## Status and context
 
-El DEX nativo de XRPL es, por defecto, completamente abierto: cualquier cuenta puede cruzar con cualquier oferta. Para casos de uso regulados —por ejemplo, un emisor de un activo tokenizado que solo puede operar entre cuentas verificadas por KYC/AML— eso es un problema de cumplimiento normativo. PermissionedDEX permite mantener mercados restringidos a un conjunto de cuentas acreditadas mediante [PermissionedDomains](/amendments/PermissionedDomains), sin necesitar un libro de órdenes ni una infraestructura separada, y es una pieza clave para llevar activos regulados al AMM y al DEX de XRPL.
+XRPL's native DEX is, by default, completely open: any account can cross with any offer. For regulated use cases—for example, an issuer of a tokenized asset that can only operate between KYC/AML-verified accounts—that is a regulatory compliance problem. PermissionedDEX allows keeping markets restricted to a set of accredited accounts via [PermissionedDomains](/amendments/PermissionedDomains), without needing a separate order book or separate infrastructure, and it is a key piece for bringing regulated assets to the XRPL AMM and DEX.

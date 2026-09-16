@@ -1,73 +1,73 @@
 ---
 title: AMMVote
-summary: Vota la comisión de trading de un AMM; el peso del voto es tu proporción de LP tokens.
+summary: Votes on an AMM's trading fee; vote weight is your share of LP tokens.
 category: amm
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/ammvote
 xls: XLS-0030
 amendment: AMM
-level: básico
+level: basic
 ---
 
-## Qué hace
+## What it does
 
-La comisión de trading de un [AMM](/objects/AMM) no la fija nadie de forma permanente: la deciden los proveedores de liquidez por votación ponderada. Con `AMMVote` propones un `TradingFee` y el AMM recalcula la comisión como la media de los votos vigentes, ponderada por los LP tokens de cada votante.
+An [AMM](/objects/AMM)'s trading fee isn't set permanently by anyone: it's decided by liquidity providers through weighted voting. With `AMMVote` you propose a `TradingFee`, and the AMM recalculates the fee as the average of the current votes, weighted by each voter's LP tokens.
 
-El objeto AMM guarda hasta 8 votos en `VoteSlots` (`kVoteMaxSlots`). Si los 8 están ocupados, solo puedes entrar si tienes más LP tokens que el votante con menos (o los mismos y propones una comisión más alta), y expulsas a ese votante. Cada `AMMVote` refresca además los pesos de todos los votos según los saldos actuales de LP tokens, y descarta a los que ya no son LP.
+The AMM object stores up to 8 votes in `VoteSlots` (`kVoteMaxSlots`). If all 8 are occupied, you can only get in if you have more LP tokens than the voter with the fewest (or the same amount and you propose a higher fee), and you bump that voter out. Every `AMMVote` also refreshes the weights of all votes based on current LP token balances, and discards voters who are no longer LPs.
 
-## Cuándo usarlo
+## When to use it
 
-- Como LP relevante, subir la comisión para ganar más por operación o bajarla para atraer volumen.
-- Refrescar los pesos de `VoteSlots` después de grandes depósitos o retiradas (cualquier voto los recalcula).
-- Devolver la comisión a 0 en un fondo que quieras usar como "puente" barato entre dos activos.
+- As a significant LP, raising the fee to earn more per trade or lowering it to attract volume.
+- Refreshing `VoteSlots` weights after large deposits or withdrawals (any vote recalculates them).
+- Bringing the fee back to 0 on a pool you want to use as a cheap "bridge" between two assets.
 
-## Cómo funciona por dentro
+## How it works inside
 
-`AMMVote::preflight`: `Asset` ≠ `Asset2` y ambos válidos (`temBAD_AMM_TOKENS`); `TradingFee` ≤ `kTradingFeeThreshold` = 1000 (`temBAD_FEE`).
+`AMMVote::preflight`: `Asset` ≠ `Asset2` and both valid (`temBAD_AMM_TOKENS`); `TradingFee` ≤ `kTradingFeeThreshold` = 1000 (`temBAD_FEE`).
 
-`AMMVote::preclaim`: sin AMM → `terNO_AMM`; `LPTokenBalance == 0` → `tecAMM_EMPTY`; si tu cuenta no tiene LP tokens de este AMM (`ammLPHolds == 0`) → `tecAMM_INVALID_TOKENS`.
+`AMMVote::preclaim`: no AMM → `terNO_AMM`; `LPTokenBalance == 0` → `tecAMM_EMPTY`; if your account has no LP tokens for this AMM (`ammLPHolds == 0`) → `tecAMM_INVALID_TOKENS`.
 
-`AMMVote::doApply` (en `applyVote`):
-1. Recorre `VoteSlots`. Para cada entrada consulta el saldo actual de LP tokens del votante; si es 0 la descarta. Si la entrada es la tuya, sustituye su `TradingFee` por el nuevo. Acumula `num += fee × tokens` y `den += tokens`, y recalcula `VoteWeight = tokens × 100000 / LPTokenBalance`.
-2. Localiza el voto "mínimo" (menos tokens; en empate, menor comisión; en empate, menor AccountID).
-3. Si no tenías voto: con menos de 8 entradas se añade el tuyo; con 8, se reemplaza el mínimo solo si `tus tokens > minTokens` o (`iguales` y `tu fee > minFee`). En caso contrario tu voto **no entra pero la transacción tiene éxito** (`tesSUCCESS`) y sirve únicamente para refrescar los pesos.
-4. La nueva comisión es `num / den` truncada a entero. Si resulta 0, se elimina el campo `TradingFee` del AMM y el `DiscountedFee` del auction slot. Si no, se fija `TradingFee` y `DiscountedFee = TradingFee / 10` (`kAuctionSlotDiscountedFeeFraction`).
+`AMMVote::doApply` (in `applyVote`):
+1. Walks `VoteSlots`. For each entry it looks up the voter's current LP token balance; if it's 0 it discards the entry. If the entry is yours, it replaces its `TradingFee` with the new one. It accumulates `num += fee × tokens` and `den += tokens`, and recalculates `VoteWeight = tokens × 100000 / LPTokenBalance`.
+2. Locates the "minimum" vote (fewest tokens; on a tie, lowest fee; on a further tie, lowest AccountID).
+3. If you had no vote: with fewer than 8 entries yours is added; with 8, the minimum one is replaced only if `your tokens > minTokens` or (`equal` and `your fee > minFee`). Otherwise your vote **doesn't get in but the transaction still succeeds** (`tesSUCCESS`) and only serves to refresh the weights.
+4. The new fee is `num / den` truncated to an integer. If it comes out 0, the AMM's `TradingFee` field and the auction slot's `DiscountedFee` are removed. Otherwise, `TradingFee` is set and `DiscountedFee = TradingFee / 10` (`kAuctionSlotDiscountedFeeFraction`).
 
-Los cambios afectan de inmediato a todas las operaciones que crucen el AMM, incluida la comisión descontada del titular del [auction slot](/tx/AMMBid).
+The changes immediately affect all operations that go through the AMM, including the discounted fee of the [auction slot](/tx/AMMBid) holder.
 
-## Campos clave
+## Key fields
 
-- **Asset** / **Asset2** — Par que identifica el AMM (sin importes).
-- **TradingFee** — Tu propuesta, en unidades de 1/100.000: `300` = 0,3 %. Rango 0–1000. Es lo que quieres que cobre el fondo, no lo que acabará cobrando: el valor final es la media ponderada de todos los `VoteSlots`.
+- **Asset** / **Asset2** — The pair identifying the AMM (no amounts).
+- **TradingFee** — Your proposal, in units of 1/100,000: `300` = 0.3%. Range 0–1000. This is what you want the pool to charge, not what it will end up charging: the final value is the weighted average of all `VoteSlots`.
 
-## Errores habituales
+## Common errors
 
-- **tecAMM_INVALID_TOKENS** — No tienes LP tokens de este AMM. Deposita primero con [AMMDeposit](/tx/AMMDeposit).
-- **terNO_AMM** — El par no tiene AMM (revisa `Asset`/`Asset2` e `issuer`).
-- **tecAMM_EMPTY** — El fondo está vacío; no hay nada que votar.
-- **temBAD_FEE** — `TradingFee` mayor que 1000.
-- **temBAD_AMM_TOKENS** — `Asset` y `Asset2` son iguales.
+- **tecAMM_INVALID_TOKENS** — You have no LP tokens for this AMM. Deposit first with [AMMDeposit](/tx/AMMDeposit).
+- **terNO_AMM** — The pair has no AMM (check `Asset`/`Asset2` and `issuer`).
+- **tecAMM_EMPTY** — The pool is empty; there's nothing to vote on.
+- **temBAD_FEE** — `TradingFee` greater than 1000.
+- **temBAD_AMM_TOKENS** — `Asset` and `Asset2` are the same.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "AMMVote",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "Asset": { "currency": "XRP" },
-  "Asset2": { "currency": "USD", "issuer": "rZZZZ_EMISOR" },
+  "Asset2": { "currency": "USD", "issuer": "rZZZZ_ISSUER" },
   "TradingFee": 300
 }
 ```
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Sé LP del AMM XRP/USD (si lo creaste tú con `TradingFee: 500`, ya tienes un voto en `VoteSlots`).
-2. Consulta `amm_info` y anota `trading_fee` y `vote_slots` (cada entrada muestra `account`, `trading_fee` y `vote_weight`).
-3. Envía el ejemplo con `TradingFee: 300`. Si eres el único LP, `trading_fee` pasa a 300 y `auction_slot.discounted_fee` a 30.
-4. Haz que otra cuenta deposite (por ejemplo la mitad de tu liquidez) y vote `TradingFee: 900`: la comisión resultante será la media ponderada (con pesos 2/3 y 1/3, quedaría en 500).
-5. Retira todo con una de las cuentas y vota de nuevo con la otra: la entrada del LP que salió desaparece de `vote_slots`.
+1. Be an LP of the XRP/USD AMM (if you created it yourself with `TradingFee: 500`, you already have a vote in `VoteSlots`).
+2. Query `amm_info` and note `trading_fee` and `vote_slots` (each entry shows `account`, `trading_fee`, and `vote_weight`).
+3. Send the example with `TradingFee: 300`. If you're the only LP, `trading_fee` becomes 300 and `auction_slot.discounted_fee` becomes 30.
+4. Have another account deposit (for example, half of your liquidity) and vote `TradingFee: 900`: the resulting fee will be the weighted average (with weights 2/3 and 1/3, it would land at 500).
+5. Withdraw everything with one of the accounts and vote again with the other: the entry for the LP that left disappears from `vote_slots`.
 
-## Relacionado
+## Related
 
 - [AMMCreate](/tx/AMMCreate), [AMMDeposit](/tx/AMMDeposit), [AMMBid](/tx/AMMBid), [AMMWithdraw](/tx/AMMWithdraw)
 - [AMM](/objects/AMM)

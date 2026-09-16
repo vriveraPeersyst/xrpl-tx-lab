@@ -1,21 +1,21 @@
 ---
 title: fixAMMv1_2
-summary: Obliga a comprobar y cubrir la reserva de trustline o MPToken al retirar de un AMM, y amplía cuándo el pool puede ofertar su tamaño máximo frente al libro central.
+summary: Requires checking and covering the trustline or MPToken reserve when withdrawing from an AMM, and expands when the pool can offer its maximum size against the central book.
 xrplDocs: https://xrpl.org/resources/known-amendments#fixammv1_2
 ---
 
-## Qué cambia
+## What changes
 
-Al ejecutar [AMMWithdraw](/tx/AMMWithdraw), el activo retirado puede requerir crear una trustline o un `MPToken` nuevo en la cuenta que retira si esta no lo tenía todavía. Antes de este fix, esa comprobación de reserva no se hacía de forma explícita para todos los casos; con el amendment activo, `sufficientReserve` verifica antes del retiro si hace falta crear una `RippleState` (trustline) o un `MPToken` para el activo recibido y, si el `MPToken` no existe, exige que esté ya autorizado por el emisor. Esto evita que un retiro deje a la cuenta sin poder recibir el activo o consuma reserva de forma inesperada a mitad de la operación.
+When executing [AMMWithdraw](/tx/AMMWithdraw), the withdrawn asset may require creating a new trustline or `MPToken` on the withdrawing account if it did not already have one. Before this fix, that reserve check was not performed explicitly for all cases; with the amendment active, `sufficientReserve` checks before the withdrawal whether a `RippleState` (trustline) or an `MPToken` needs to be created for the received asset and, if the `MPToken` does not exist, requires that it already be authorized by the issuer. This prevents a withdrawal from leaving the account unable to receive the asset or from consuming reserve unexpectedly midway through the operation.
 
-También ajusta `AMMLiquidity` para que, cuando no hay una oferta clara del libro central (`clobQuality`) con la que comparar, el AMM pueda proponer directamente su oferta de tamaño máximo (`maxOffer`) en más situaciones, mejorando cuánta liquidez del pool queda realmente disponible para el enrutamiento de pagos.
+It also adjusts `AMMLiquidity` so that, when there is no clear offer from the central book (`clobQuality`) to compare against, the AMM can directly propose its maximum-size offer (`maxOffer`) in more situations, improving how much of the pool's liquidity is actually made available for payment routing.
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- [AMMWithdraw](/tx/AMMWithdraw): comprobación de reserva para trustline o MPToken antes de retirar.
-- [Payment](/tx/Payment): cálculo de la oferta máxima que un AMM proyecta frente al libro de órdenes.
-- [RippleState](/objects/RippleState) y `MPToken`: pueden crearse como parte del retiro si faltan.
+- [AMMWithdraw](/tx/AMMWithdraw): reserve check for a trustline or MPToken before withdrawing.
+- [Payment](/tx/Payment): calculation of the maximum offer an AMM projects against the order book.
+- [RippleState](/objects/RippleState) and `MPToken`: may be created as part of the withdrawal if missing.
 
-## Estado y contexto
+## Status and context
 
-Corrige un caso donde un retiro de AMM hacia un activo nuevo para la cuenta podía completarse sin la reserva o autorización necesarias, o donde el AMM ofrecía menos liquidez de la que realmente podía aportar por falta de una comparación explícita con el libro central.
+Fixes a case where an AMM withdrawal into an asset new to the account could complete without the required reserve or authorization, or where the AMM offered less liquidity than it could actually provide due to the lack of an explicit comparison with the central book.

@@ -1,80 +1,80 @@
 ---
 title: EscrowFinish
-summary: Libera al destinatario los fondos de un Escrow cuyo FinishAfter ya ha pasado, aportando el Fulfillment si el escrow tenía Condition.
+summary: Releases the funds of an Escrow whose FinishAfter has already passed to the recipient, providing the Fulfillment if the escrow had a Condition.
 category: escrow
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/escrowfinish
 amendment: Escrow
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-`EscrowFinish` completa un [Escrow](/objects/Escrow) creado con [EscrowCreate](/tx/EscrowCreate): entrega el importe bloqueado a la cuenta `Destination` del escrow y borra el objeto del ledger. Cualquier cuenta puede enviar esta transacción (no tiene por qué ser el remitente ni el destinatario), siempre que se cumplan las condiciones: ha pasado `FinishAfter`, no ha pasado `CancelAfter` y, si el escrow tenía `Condition`, se presenta el `Fulfillment` correcto.
+`EscrowFinish` completes an [Escrow](/objects/Escrow) created with [EscrowCreate](/tx/EscrowCreate): it delivers the locked amount to the escrow's `Destination` account and deletes the object from the ledger. Any account can send this transaction (it doesn't have to be the sender or the recipient), as long as the conditions are met: `FinishAfter` has passed, `CancelAfter` hasn't passed, and, if the escrow had a `Condition`, the correct `Fulfillment` is provided.
 
-El escrow se identifica por `Owner` (quien lo creó) y `OfferSequence` (el `Sequence` o Ticket de la transacción `EscrowCreate`). Al finalizar, el `OwnerCount` del creador baja en uno y recupera la reserva del objeto.
+The escrow is identified by `Owner` (who created it) and `OfferSequence` (the `Sequence` or Ticket of the `EscrowCreate` transaction). Upon finishing, the creator's `OwnerCount` decreases by one and they recover the object's reserve.
 
-Un detalle importante: los escrows no crean cuentas. Si el destino se ha borrado mientras el escrow estaba vivo, la finalización falla con `tecNO_DST`.
+An important detail: escrows don't create accounts. If the destination has been deleted while the escrow was alive, finishing fails with `tecNO_DST`.
 
-## Cuándo usarlo
+## When to use it
 
-- Cobrar un vesting o un pago programado cuando llega la fecha.
-- Cerrar un intercambio condicionado revelando la preimagen (`Fulfillment`) de la condición.
-- Automatizar la liberación: un servicio externo puede enviar el `EscrowFinish` en nombre del destinatario, ya que cualquiera puede firmarlo.
+- Claiming a vesting or scheduled payment when the date arrives.
+- Closing a conditional exchange by revealing the preimage (`Fulfillment`) of the condition.
+- Automating the release: an external service can send the `EscrowFinish` on behalf of the recipient, since anyone can sign it.
 
-## Cómo funciona por dentro
+## How it works inside
 
-**`EscrowFinish::preflight`** (estático). `Condition` y `Fulfillment` van juntos o no van: si aparece uno sin el otro, `temMALFORMED`. En `preflightSigValidated`, si ambos están, se verifica que el fulfillment satisface la condición (`checkCondition`) y el resultado se cachea en el HashRouter; también se validan los `CredentialIDs` con `credentials::checkFields` si los hay. La fee no es la base: `EscrowFinish::calculateBaseFee` añade `base × (32 + tamaño_del_fulfillment / 16)` drops cuando hay `Fulfillment`. Con la fee base de testnet (10 drops) un fulfillment pequeño cuesta al menos 330 drops.
+**`EscrowFinish::preflight`** (static). `Condition` and `Fulfillment` go together or not at all: if one appears without the other, `temMALFORMED`. In `preflightSigValidated`, if both are present, it verifies that the fulfillment satisfies the condition (`checkCondition`) and the result is cached in the HashRouter; `CredentialIDs` are also validated with `credentials::checkFields` if present. The fee isn't the base fee: `EscrowFinish::calculateBaseFee` adds `base × (32 + fulfillment_size / 16)` drops when there's a `Fulfillment`. With testnet's base fee (10 drops), a small fulfillment costs at least 330 drops.
 
-**`EscrowFinish::preclaim`** (contra el ledger). Si hay `CredentialIDs` y [Credentials](/amendments/Credentials) está activo, se comprueba que las credenciales son válidas para la cuenta que envía. Con [TokenEscrow](/amendments/TokenEscrow) activo, se lee ya aquí el escrow por `keylet::escrow(Owner, OfferSequence)`; si no existe, `tecNO_TARGET`. Si el importe es un token, `escrowFinishPreclaimHelper` exige que el destino esté autorizado por el emisor (si `RequireAuth`) y que no esté en deep freeze (`tecFROZEN`) o bloqueado en el MPT (`tecLOCKED`).
+**`EscrowFinish::preclaim`** (against the ledger). If there are `CredentialIDs` and [Credentials](/amendments/Credentials) is active, it checks that the credentials are valid for the sending account. With [TokenEscrow](/amendments/TokenEscrow) active, the escrow is already read here via `keylet::escrow(Owner, OfferSequence)`; if it doesn't exist, `tecNO_TARGET`. If the amount is a token, `escrowFinishPreclaimHelper` requires that the destination be authorized by the issuer (if `RequireAuth`) and not be in deep freeze (`tecFROZEN`) or locked in the MPT (`tecLOCKED`).
 
-**`EscrowFinish::doApply`** (efectos). Con el tiempo de cierre del ledger padre: si `FinishAfter` existe y aún no ha pasado, `tecNO_PERMISSION` ("demasiado pronto"); si `CancelAfter` existe y ya ha pasado, también `tecNO_PERMISSION` ("demasiado tarde"). Luego la condición: si el fulfillment cacheado como inválido, `tecCRYPTOCONDITION_ERROR`; si el escrow no tenía `Condition` pero la transacción la trae, o si la trae distinta a la almacenada, también `tecCRYPTOCONDITION_ERROR`. Se lee el destino (`tecNO_DST` si no existe) y se aplica `verifyDepositPreauth`: si el destino tiene `lsfDepositAuth`, solo puede finalizar el propio destino, una cuenta preautorizada con [DepositPreauth](/tx/DepositPreauth) o alguien con credenciales aceptadas por el destino. Después borra el escrow de los directorios del creador y del destino, abona el importe: XRP directamente al `Balance`; tokens con `escrowUnlockApplyHelper`, aplicando el `TransferRate` guardado en el objeto en el momento de crearlo, y quitando el escrow del directorio del emisor. Por último decrementa el `OwnerCount` del creador y elimina el objeto.
+**`EscrowFinish::doApply`** (effects). Using the parent ledger's close time: if `FinishAfter` exists and hasn't passed yet, `tecNO_PERMISSION` ("too soon"); if `CancelAfter` exists and has already passed, also `tecNO_PERMISSION` ("too late"). Then the condition: if the cached fulfillment is invalid, `tecCRYPTOCONDITION_ERROR`; if the escrow had no `Condition` but the transaction brings one, or brings one different from the stored one, also `tecCRYPTOCONDITION_ERROR`. The destination is read (`tecNO_DST` if it doesn't exist) and `verifyDepositPreauth` is applied: if the destination has `lsfDepositAuth`, only the destination itself, an account preauthorized with [DepositPreauth](/tx/DepositPreauth), or someone with credentials accepted by the destination can finish it. It then removes the escrow from the creator's and destination's directories, pays out the amount: XRP directly to the `Balance`; tokens via `escrowUnlockApplyHelper`, applying the `TransferRate` stored in the object at creation time, and removing the escrow from the issuer's directory. Finally it decrements the creator's `OwnerCount` and deletes the object.
 
-## Campos clave
+## Key fields
 
-- **Owner** — Cuenta que creó el escrow. No es necesariamente tu cuenta.
-- **OfferSequence** — `Sequence` (o `TicketSequence`) de la `EscrowCreate` original. Junto con `Owner` identifica el objeto.
-- **Condition** — Debe ser exactamente la misma que se guardó en el escrow. Si el escrow no tenía condición, no la incluyas.
-- **Fulfillment** — Preimagen en hexadecimal que satisface la condición. Obligatorio si pones `Condition`. Sube la fee.
-- **CredentialIDs** — Identificadores de credenciales para pasar el filtro `DepositAuth` del destino.
+- **Owner** — Account that created the escrow. Not necessarily your account.
+- **OfferSequence** — `Sequence` (or `TicketSequence`) of the original `EscrowCreate`. Together with `Owner`, identifies the object.
+- **Condition** — Must be exactly the same one stored in the escrow. If the escrow had no condition, don't include it.
+- **Fulfillment** — Preimage in hexadecimal that satisfies the condition. Required if you set `Condition`. Increases the fee.
+- **CredentialIDs** — Credential identifiers to pass the destination's `DepositAuth` filter.
 
-## Errores habituales
+## Common errors
 
-- **tecNO_PERMISSION** — Todavía no ha llegado `FinishAfter`, ya ha pasado `CancelAfter`, o el destino tiene `DepositAuth` y no estás preautorizado.
-- **tecNO_TARGET** — No existe un escrow con ese `Owner` + `OfferSequence`. Revisa que usas el `Sequence` de la `EscrowCreate`, no el del escrow en `account_objects` con otro nombre.
-- **tecCRYPTOCONDITION_ERROR** — `Fulfillment` incorrecto, `Condition` distinta a la del escrow, o has puesto `Condition` en un escrow que no la tenía.
-- **temMALFORMED** — `Condition` sin `Fulfillment` o viceversa.
-- **telINSUF_FEE_P / terINSUF_FEE_B** — La fee no cubre el extra por `Fulfillment`.
-- **tecNO_DST** — La cuenta destino del escrow ya no existe.
-- **tecFROZEN / tecLOCKED** — Escrow de tokens con destino congelado o bloqueado.
+- **tecNO_PERMISSION** — `FinishAfter` hasn't arrived yet, `CancelAfter` has already passed, or the destination has `DepositAuth` and you're not preauthorized.
+- **tecNO_TARGET** — There's no escrow with that `Owner` + `OfferSequence`. Check that you're using the `Sequence` of the `EscrowCreate`, not the one for the escrow shown under a different name in `account_objects`.
+- **tecCRYPTOCONDITION_ERROR** — Incorrect `Fulfillment`, a `Condition` different from the escrow's, or you set a `Condition` on an escrow that didn't have one.
+- **temMALFORMED** — `Condition` without `Fulfillment` or vice versa.
+- **telINSUF_FEE_P / terINSUF_FEE_B** — The fee doesn't cover the extra amount for `Fulfillment`.
+- **tecNO_DST** — The escrow's destination account no longer exists.
+- **tecFROZEN / tecLOCKED** — Token escrow with a frozen or locked destination.
 
-## Ejemplo
+## Example
 
-Finaliza un escrow que creaste tú mismo (por eso `Owner` es tu cuenta) con `Sequence` 12345 y sin condición:
+Finish an escrow you created yourself (hence `Owner` is your account) with `Sequence` 12345 and no condition:
 
 ```json
 {
   "TransactionType": "EscrowFinish",
-  "Account": "rXXXX_TU_CUENTA",
-  "Owner": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
+  "Owner": "rXXXX_YOUR_ACCOUNT",
   "OfferSequence": 12345
 }
 ```
 
-Si el escrow tuviera condición, añadirías `"Condition": "A0258020...810120"` y `"Fulfillment": "A0228020..."`.
+If the escrow had a condition, you'd add `"Condition": "A0258020...810120"` and `"Fulfillment": "A0228020..."`.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Crea antes un escrow con [EscrowCreate](/tx/EscrowCreate) con `FinishAfter` a unos dos minutos y apunta su `Sequence`.
-2. Envía `EscrowFinish` de inmediato con ese `OfferSequence`: verás `tecNO_PERMISSION`, porque aún no ha pasado `FinishAfter`.
-3. Espera a que el tiempo de cierre del ledger supere `FinishAfter` y reenvía. El resultado debe ser `tesSUCCESS`.
-4. Consulta `account_objects` con `type: "escrow"` en tu cuenta: el objeto ha desaparecido. `account_info` de la cuenta destino muestra el `Balance` incrementado y tu `OwnerCount` ha bajado en uno.
-5. Opcional: activa `asfDepositAuth` en la cuenta destino y prueba a finalizar desde una tercera cuenta para ver el `tecNO_PERMISSION` de `DepositAuth`.
+1. First create an escrow with [EscrowCreate](/tx/EscrowCreate) with `FinishAfter` about two minutes out and note its `Sequence`.
+2. Send `EscrowFinish` immediately with that `OfferSequence`: you'll see `tecNO_PERMISSION`, because `FinishAfter` hasn't passed yet.
+3. Wait until the ledger's close time passes `FinishAfter` and resend. The result should be `tesSUCCESS`.
+4. Query `account_objects` with `type: "escrow"` on your account: the object is gone. `account_info` of the destination account shows the increased `Balance`, and your `OwnerCount` has decreased by one.
+5. Optional: enable `asfDepositAuth` on the destination account and try finishing from a third account to see the `DepositAuth` `tecNO_PERMISSION`.
 
-## Relacionado
+## Related
 
-- [EscrowCreate](/tx/EscrowCreate) — crea el escrow.
-- [EscrowCancel](/tx/EscrowCancel) — devuelve los fondos si pasa `CancelAfter`.
-- [Escrow](/objects/Escrow) — el objeto que se borra aquí.
-- [DepositPreauth](/tx/DepositPreauth) — preautoriza a quien puede finalizar hacia una cuenta con `DepositAuth`.
-- [Credentials](/amendments/Credentials) — permite pasar `DepositAuth` con credenciales.
-- [TokenEscrow](/amendments/TokenEscrow) — escrow de IOU y MPT.
+- [EscrowCreate](/tx/EscrowCreate) — creates the escrow.
+- [EscrowCancel](/tx/EscrowCancel) — returns the funds if `CancelAfter` passes.
+- [Escrow](/objects/Escrow) — the object deleted here.
+- [DepositPreauth](/tx/DepositPreauth) — preauthorizes who can finish toward an account with `DepositAuth`.
+- [Credentials](/amendments/Credentials) — allows passing `DepositAuth` with credentials.
+- [TokenEscrow](/amendments/TokenEscrow) — escrow for IOU and MPT.

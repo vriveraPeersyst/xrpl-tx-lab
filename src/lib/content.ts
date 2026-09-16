@@ -17,7 +17,7 @@ export function readDoc<T = Record<string, string>>(kind: "tx" | "objects" | "am
   return { name, data: data as Doc<T>["data"], body: content.trim() };
 }
 
-/** Frontmatter tolerante: una `clave: valor` por línea, sin YAML estricto (los resúmenes llevan dos puntos). */
+/** Lenient frontmatter: one `key: value` per line, not strict YAML (summaries contain colons). */
 export function parseFrontmatter(txt: string): { data: Record<string, string | boolean>; content: string } {
   const m = txt.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
   if (!m) return { data: {}, content: txt };

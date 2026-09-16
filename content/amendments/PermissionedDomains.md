@@ -1,22 +1,22 @@
 ---
 title: PermissionedDomains
-summary: Define dominios en cadena con un conjunto de credenciales aceptadas, para restringir quién puede operar dentro de ellos.
+summary: Defines on-chain domains with a set of accepted credentials, to restrict who can operate within them.
 xrplDocs: https://xrpl.org/resources/known-amendments#permissioneddomains
 introducedIn: 2.3.0
 ---
 
-## Qué cambia
+## What changes
 
-Introduce el objeto `PermissionedDomain` (`ltPERMISSIONED_DOMAIN`): identificado por su dueño (`Owner`) y una `Sequence`, almacena una lista `AcceptedCredentials` de pares emisor/tipo de [Credential](/objects/Credential) (hasta `kMaxPermissionedDomainCredentialsArraySize` entradas). Una cuenta pertenece al dominio si posee, aceptada y no caducada, al menos una de las credenciales de esa lista.
+Introduces the `PermissionedDomain` object (`ltPERMISSIONED_DOMAIN`): identified by its owner (`Owner`) and a `Sequence`, it stores an `AcceptedCredentials` list of issuer/type pairs of [Credential](/objects/Credential) (up to `kMaxPermissionedDomainCredentialsArraySize` entries). An account belongs to the domain if it holds, accepted and not expired, at least one of the credentials on that list.
 
-`PermissionedDomainSet` crea el dominio (sin `DomainID`) o lo actualiza (con `DomainID`, comprobando en `preclaim` que quien firma es el `Owner` y que el dominio existe); rechaza en `preflight` un `DomainID` igual a cero y valida el array de credenciales con `credentials::checkArray`. En `preclaim` también verifica que cada emisor de las credenciales aceptadas es una cuenta existente (`tecNO_ISSUER` si no). `PermissionedDomainDelete` borra el objeto, siempre que su propietario lo autorice. El amendment depende de [Credentials](/amendments/Credentials): sin él activo, `PermissionedDomainSet` no se acepta (`checkExtraFeatures` lo comprueba).
+`PermissionedDomainSet` creates the domain (without `DomainID`) or updates it (with `DomainID`, checking in `preclaim` that the signer is the `Owner` and that the domain exists); it rejects in `preflight` a `DomainID` equal to zero and validates the credentials array with `credentials::checkArray`. In `preclaim` it also verifies that each issuer of the accepted credentials is an existing account (`tecNO_ISSUER` if not). `PermissionedDomainDelete` deletes the object, as long as its owner authorizes it. The amendment depends on [Credentials](/amendments/Credentials): without it active, `PermissionedDomainSet` is not accepted (`checkExtraFeatures` checks for this).
 
-## Transacciones y objetos afectados
+## Affected transactions and objects
 
-- Nuevas: [PermissionedDomainSet](/tx/PermissionedDomainSet) y [PermissionedDomainDelete](/tx/PermissionedDomainDelete).
-- Objeto: nuevo [PermissionedDomain](/objects/PermissionedDomain).
-- Consumido por [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate), [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet), [VaultCreate](/tx/VaultCreate) y [VaultSet](/tx/VaultSet), que pueden restringir su `DomainID` a un dominio permisionado existente.
+- New: [PermissionedDomainSet](/tx/PermissionedDomainSet) and [PermissionedDomainDelete](/tx/PermissionedDomainDelete).
+- Object: new [PermissionedDomain](/objects/PermissionedDomain).
+- Consumed by [MPTokenIssuanceCreate](/tx/MPTokenIssuanceCreate), [MPTokenIssuanceSet](/tx/MPTokenIssuanceSet), [VaultCreate](/tx/VaultCreate) and [VaultSet](/tx/VaultSet), which can restrict their `DomainID` to an existing permissioned domain.
 
-## Estado y contexto
+## Status and context
 
-PermissionedDomains traduce el concepto de "lista blanca de participantes verificados" a un objeto reutilizable en el ledger: en vez de que cada emisor o protocolo mantenga su propia lista de cuentas autorizadas, define un conjunto de credenciales aceptadas una sola vez y cualquier transactor puede referenciarlo por su `DomainID`. Es la pieza base sobre la que se construyen [PermissionedDEX](/amendments/PermissionedDEX) (mercados restringidos a un dominio) y el protocolo de préstamos (vaults y MPTs con emisión restringida a inversores acreditados).
+PermissionedDomains translates the concept of a "whitelist of verified participants" into a reusable object on the ledger: instead of each issuer or protocol maintaining its own list of authorized accounts, it defines a set of accepted credentials once, and any transactor can reference it by its `DomainID`. It is the foundational piece on which [PermissionedDEX](/amendments/PermissionedDEX) (markets restricted to a domain) and the lending protocol (vaults and MPTs with issuance restricted to accredited investors) are built.

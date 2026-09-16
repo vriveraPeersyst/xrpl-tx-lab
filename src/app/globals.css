@@ -2,9 +2,9 @@
 
 /*
  * XRP Ledger Brand Design System (2026)
- * Fundamentos: blanco y gris claro de base, negro para texto, verde como acento y lenguaje
- * gráfico. Tipografía alternativa oficial: Inter Tight (titulares, ExtraLight/Light) e Inter
- * (cuerpo), sentence case, tracking 0, interlineado 100-130 %. Escala exponencial.
+ * Foundations: white and light grey base, black for text, green as accent and graphic
+ * language. Official alternative typefaces: Inter Tight (headlines, ExtraLight/Light) and Inter
+ * (body), sentence case, tracking 0, leading 100-130%. Exponential scale.
  */
 :root {
   /* Core palette */
@@ -20,14 +20,14 @@
   --green-300: #21e46b;
   --green-400: #0daa3e;
   --green-500: #078139;
-  /* Extended palette (acentos) */
+  /* Extended palette (accents) */
   --lilac-100: #f2edff; --lilac-300: #c0a7ff; --lilac-400: #7649e3; --lilac-500: #5429a1;
   --red-100: #fdece7; --red-300: #f0643a; --red-400: #da4518; --red-500: #a22514;
   --pink-100: #fdf1f4; --pink-400: #ff577f;
   --blue-100: #edf4ff; --blue-300: #428cff; --blue-400: #0179e7; --blue-500: #0a4dc0;
   --yellow-100: #f3f1eb; --yellow-300: #dbf15e; --yellow-500: #d4c02d;
 
-  /* Semantic tokens (tema claro = tema de marca) */
+  /* Semantic tokens (light theme = brand theme) */
   --bg: var(--grey-100);
   --fg: var(--black);
   --muted: var(--grey-500);
@@ -35,8 +35,8 @@
   --surface-2: var(--grey-200);
   --surface-3: var(--grey-300);
   --border: var(--grey-300);
-  --accent: var(--green-300);        /* relleno: verde con texto negro */
-  --accent-ink: var(--green-500);    /* verde legible sobre blanco para texto/enlaces */
+  --accent: var(--green-300);        /* fill: green with black text */
+  --accent-ink: var(--green-500);    /* legible green on white for text/links */
   --accent-soft: var(--green-100);
   --success: var(--green-400);
   --warning: var(--yellow-500);
@@ -45,7 +45,7 @@
   --lilac: var(--lilac-400);
 }
 
-/* El tema de marca es claro; el oscuro solo se activa explícitamente con data-theme="dark". */
+/* The brand theme is light; dark only activates explicitly with data-theme="dark". */
 :root[data-theme="dark"] {
   --bg: var(--black);
   --fg: var(--grey-100);
@@ -98,7 +98,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); l
 code, pre, .font-mono { font-family: var(--font-mono); }
 code { font-size: 0.92em; }
 
-/* Titulares: Inter Tight, pesos ligeros, interlineado 100-110 %, sentence case */
+/* Headlines: Inter Tight, light weights, leading 100-110%, sentence case */
 .display { font-family: var(--font-display); font-weight: 300; letter-spacing: 0; line-height: 1.05; }
 .display-xl { font-family: var(--font-display); font-weight: 200; line-height: 1; letter-spacing: -0.01em; font-size: clamp(2.5rem, 6vw, 4.5rem); }
 .display-lg { font-family: var(--font-display); font-weight: 300; line-height: 1.05; font-size: clamp(1.9rem, 3.5vw, 2.75rem); }
@@ -107,21 +107,21 @@ code { font-size: 0.92em; }
 .eyebrow { font-size: 0.75rem; color: var(--muted); letter-spacing: 0; }
 .datapoint { font-family: var(--font-display); font-weight: 200; line-height: 1; font-size: 2.5rem; }
 
-/* Botones: píldoras (CTA de marca) */
+/* Buttons: pills (brand CTA) */
 .btn-primary { @apply inline-flex items-center gap-1 rounded-full bg-fg px-4 py-2 text-sm font-medium text-bg hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40; }
 .btn-secondary { @apply inline-flex items-center gap-1 rounded-full border border-border bg-surface px-4 py-2 text-sm text-fg hover:border-fg disabled:cursor-not-allowed disabled:opacity-40; }
 .btn-accent { @apply inline-flex items-center gap-1 rounded-full bg-accent px-4 py-2 text-sm font-medium text-black hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40; }
 .link { color: var(--accent-ink); text-decoration: none; }
 .link:hover { text-decoration: underline; }
 
-/* Superficies */
+/* Surfaces */
 .card { @apply border border-border bg-surface p-5; border-radius: var(--radius-brand); }
 .card-grey { @apply bg-surface-3 p-5 text-black; border-radius: var(--radius-brand); }
 .card-black { @apply bg-black p-5 text-white; border-radius: var(--radius-brand); }
 .card-green { @apply bg-accent p-5 text-black; border-radius: var(--radius-brand); }
 .badge { @apply inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs; }
 
-/* Motivo de marca: líneas de columna verticales (tipo retícula) */
+/* Brand motif: vertical column lines (grid) */
 .grid-lines { position: relative; }
 .grid-lines::before {
   content: "";
@@ -130,7 +130,7 @@ code { font-size: 0.92em; }
   opacity: 0.12;
 }
 
-/* Prosa de documentación */
+/* Documentation prose */
 .prose-doc { @apply text-[15px] leading-[1.5]; }
 .prose-doc h2 { @apply mt-10 mb-3 text-2xl; font-family: var(--font-display); font-weight: 300; line-height: 1.1; }
 .prose-doc h3 { @apply mt-6 mb-2 text-lg; font-family: var(--font-display); font-weight: 400; }
@@ -149,10 +149,64 @@ code { font-size: 0.92em; }
 .prose-doc th { @apply text-xs font-medium text-muted; }
 .prose-doc blockquote { @apply my-3 border-l-2 border-accent pl-3 text-muted; }
 
-/* Tablas de datos */
+/* Data tables */
 .tbl { @apply w-full border-collapse text-sm; }
 .tbl th { @apply border-b border-fg/60 px-2 py-2 text-left text-xs font-medium text-muted; }
 .tbl td { @apply border-b border-border px-2 py-2 align-top; }
 .tbl tr:hover td { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
 
 input, select, textarea { border-radius: var(--radius-brand); }
+
+/* ---------- Brand forms ---------- */
+.input, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea {
+  width: 100%;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-brand);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.3;
+  outline: none;
+  transition: border-color 120ms, box-shadow 120ms;
+}
+input:not([type="checkbox"]):not([type="radio"])::placeholder, textarea::placeholder { color: var(--grey-400); }
+input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus, .input:focus {
+  border-color: var(--fg);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--green-300) 45%, transparent);
+}
+input[aria-invalid="true"], .input-invalid { border-color: var(--red-400) !important; }
+textarea { resize: vertical; min-height: 6rem; }
+select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--fg) 50%), linear-gradient(135deg, var(--fg) 50%, transparent 50%); background-position: calc(100% - 16px) 55%, calc(100% - 11px) 55%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 2rem; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--green-400); width: 1rem; height: 1rem; }
+label { font-size: 0.875rem; }
+.field-label { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.35rem; font-size: 0.875rem; }
+.field-type { font-size: 0.7rem; color: var(--muted); }
+.hint { font-size: 0.75rem; color: var(--muted); margin-top: 0.35rem; }
+.mono { font-family: var(--font-mono); }
+
+/* Toggles/segments: black-on-white pills (brand) */
+.seg { display: inline-flex; gap: 0.25rem; }
+.pill { display: inline-flex; align-items: center; border-radius: 9999px; padding: 0.25rem 0.75rem; font-size: 0.75rem; background: var(--surface-2); color: var(--muted); border: 1px solid transparent; cursor: pointer; }
+.pill:hover { color: var(--fg); border-color: var(--border); }
+.pill-active, .pill[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+
+/* Code and JSON blocks */
+.code-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-brand); padding: 0.75rem; font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.5; overflow: auto; }
+.code-block-dark { background: var(--black); color: var(--green-200); border-radius: var(--radius-brand); padding: 0.75rem; font-family: var(--font-mono); font-size: 0.75rem; line-height: 1.5; overflow: auto; }
+
+/* Collapsible details */
+details > summary { cursor: pointer; list-style: none; font-size: 0.75rem; color: var(--muted); }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "+"; display: inline-block; width: 1rem; font-family: var(--font-mono); }
+details[open] > summary::before { content: "–"; }
+
+/* Notices */
+.notice { border-radius: var(--radius-brand); padding: 0.75rem; font-size: 0.875rem; border: 1px solid transparent; }
+.notice-warn { background: var(--yellow-100); border-color: var(--yellow-500); }
+.notice-error { background: var(--red-100); border-color: var(--red-300); }
+.notice-ok { background: var(--green-100); border-color: var(--green-300); }
+.notice-info { background: var(--blue-100); border-color: var(--blue-300); }
+
+/* Nested sub-block in forms (arrays) */
+.subcard { border: 1px solid var(--border); background: var(--grey-100); border-radius: var(--radius-brand); padding: 0.75rem; }

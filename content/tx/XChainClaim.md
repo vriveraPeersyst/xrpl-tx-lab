@@ -1,90 +1,90 @@
 ---
 title: XChainClaim
-summary: Completa una transferencia por puente cuyo claim ID ya tiene quórum de atestaciones, entregando los fondos desde la door al destino que elijas.
+summary: Completes a bridge transfer whose claim ID already has quorum of attestations, delivering the funds from the door to the destination you choose.
 category: puente
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/xchainclaim
 xls: XLS-0038
 amendment: XChainBridge
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-**Atención: el amendment [XChainBridge](/amendments/XChainBridge) no está activo en la testnet.** Hasta que se active, cualquier envío se rechaza con `temDISABLED`.
+**Warning: the [XChainBridge](/amendments/XChainBridge) amendment is not active on testnet.** Until it's activated, any submission is rejected with `temDISABLED`.
 
-`XChainClaim` es el paso final "manual" de una transferencia por puente. Cuando hiciste [XChainCommit](/tx/XChainCommit) en la cadena origen sin indicar `OtherChainDestination`, los witnesses atestiguan el envío sin destino y los fondos no se entregan solos: quedan a la espera en tu [XChainOwnedClaimID](/objects/XChainOwnedClaimID). Con `XChainClaim` eliges a qué cuenta de esta cadena van (`Destination`, con `DestinationTag` opcional) y el importe (`Amount`), que debe coincidir con el que atestiguaron los witnesses.
+`XChainClaim` is the final "manual" step of a bridge transfer. When you performed [XChainCommit](/tx/XChainCommit) on the source chain without specifying `OtherChainDestination`, the witnesses attest to the send without a destination and the funds don't deliver themselves: they sit waiting in your [XChainOwnedClaimID](/objects/XChainOwnedClaimID). With `XChainClaim` you choose which account on this chain they go to (`Destination`, with an optional `DestinationTag`) and the amount (`Amount`), which must match what the witnesses attested to.
 
-Si la reclamación tiene éxito: la door de esta cadena paga `Amount` al destino, tu cuenta paga la `SignatureReward` repartida entre los witnesses que atestiguaron, y el objeto `XChainOwnedClaimID` se borra (liberando reserva). Si el commit llevaba `OtherChainDestination`, no hace falta esta transacción: la entrega ocurre automáticamente al alcanzar quórum en [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation).
+If the claim succeeds: this chain's door pays `Amount` to the destination, your account pays the `SignatureReward` distributed among the witnesses who attested, and the `XChainOwnedClaimID` object is deleted (freeing up the reserve). If the commit carried `OtherChainDestination`, this transaction isn't needed: delivery happens automatically once quorum is reached in [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation).
 
-## Cuándo usarlo
+## When to use it
 
-- Cuando hiciste el commit sin destino y quieres decidir después a quién entregar.
-- Cuando la entrega automática falló (por ejemplo, el destino tenía DepositAuth o pedía destination tag) y el claim ID sigue vivo: el código conserva el claim (`OnTransferFail::KeepClaim`) para que puedas reintentar con otro destino o con `DestinationTag`.
-- Para recibir en tu propia cuenta saltándote tu propio DepositAuth (ver abajo).
+- When you made the commit without a destination and want to decide later who to deliver to.
+- When automatic delivery failed (for example, the destination had DepositAuth or required a destination tag) and the claim ID is still alive: the code keeps the claim (`OnTransferFail::KeepClaim`) so you can retry with a different destination or with `DestinationTag`.
+- To receive into your own account while bypassing your own DepositAuth (see below).
 
-## Cómo funciona por dentro
+## How it works inside
 
-`XChainClaim::preflight` (en `transactors/bridge/XChainBridge.cpp`): `Amount` positivo y con el activo de uno de los dos lados del puente (`temBAD_AMOUNT`).
+`XChainClaim::preflight` (in `transactors/bridge/XChainBridge.cpp`): `Amount` positive and with the asset of one of the bridge's two sides (`temBAD_AMOUNT`).
 
 `XChainClaim::preclaim`:
 
-- Debe existir el [Bridge](/objects/Bridge) (`tecNO_ENTRY`) y la cuenta `Destination` (`tecNO_DST`): a diferencia de la creación de cuentas por puente, aquí no se crean cuentas.
-- El activo de `Amount` debe ser el de **esta** cadena (`tecXCHAIN_BAD_TRANSFER_ISSUE`).
-- Debe existir el `XChainOwnedClaimID` con ese `XChainClaimID` (`tecXCHAIN_NO_CLAIM_ID`) y **ser tuyo** (`tecXCHAIN_BAD_CLAIM_ID`).
-- El quórum no se comprueba aquí sino en `doApply`.
+- The [Bridge](/objects/Bridge) must exist (`tecNO_ENTRY`) and the `Destination` account must exist (`tecNO_DST`): unlike bridge account creation, no accounts are created here.
+- The asset of `Amount` must be **this** chain's (`tecXCHAIN_BAD_TRANSFER_ISSUE`).
+- The `XChainOwnedClaimID` with that `XChainClaimID` must exist (`tecXCHAIN_NO_CLAIM_ID`) and **be yours** (`tecXCHAIN_BAD_CLAIM_ID`).
+- Quorum isn't checked here but in `doApply`.
 
 `XChainClaim::doApply`:
 
-1. Lee la lista de firmantes y el quórum de la door (`getSignersListAndQuorum`); sin SignerList, `tecXCHAIN_NO_SIGNERS_LIST`.
-2. `onClaim` → `claimHelper` con `CheckDst::Ignore`: descarta las atestaciones cuyo firmante ya no está en la lista o cuya clave ya no es válida, suma los pesos de las que coinciden en importe (convertido al issue de la cadena origen) y en `WasLockingChainSend`, ignorando el destino que atestiguaron. Si el peso no llega al quórum, `tecXCHAIN_CLAIM_NO_QUORUM`.
-3. `finalizeClaimHelper` transfiere desde la door al `Destination` (`transferHelper`, con `DepositAuthPolicy::DstCanBypass`: si el destino eres tú mismo, tu propio DepositAuth no bloquea). Si esa transferencia falla, se devuelve el error y el claim se **conserva**.
-4. Reparte la `SignatureReward` guardada en el claim ID desde tu cuenta a partes iguales entre las `AttestationRewardAccount` de los witnesses que contaron para el quórum. Con [fixXChainRewardRounding](/amendments/fixXChainRewardRounding) (tampoco activo en testnet) el reparto redondea hacia abajo. Un fallo individual en un pago de recompensa no anula la operación, salvo `tecUNFUNDED_PAYMENT` o `tecINTERNAL`.
-5. Borra el `XChainOwnedClaimID` del ledger y de tu directorio, y baja tu `OwnerCount` en 1.
+1. Reads the door's signer list and quorum (`getSignersListAndQuorum`); without a SignerList, `tecXCHAIN_NO_SIGNERS_LIST`.
+2. `onClaim` → `claimHelper` with `CheckDst::Ignore`: discards attestations whose signer is no longer on the list or whose key is no longer valid, sums the weights of those that match in amount (converted to the source chain's issue) and in `WasLockingChainSend`, ignoring the destination they attested to. If the weight doesn't reach quorum, `tecXCHAIN_CLAIM_NO_QUORUM`.
+3. `finalizeClaimHelper` transfers from the door to `Destination` (`transferHelper`, with `DepositAuthPolicy::DstCanBypass`: if the destination is yourself, your own DepositAuth doesn't block it). If that transfer fails, the error is returned and the claim is **kept**.
+4. Distributes the `SignatureReward` stored in the claim ID from your account equally among the `AttestationRewardAccount`s of the witnesses that counted toward quorum. With [fixXChainRewardRounding](/amendments/fixXChainRewardRounding) (also not active on testnet) the distribution rounds down. An individual failure in a reward payment doesn't void the operation, except for `tecUNFUNDED_PAYMENT` or `tecINTERNAL`.
+5. Deletes the `XChainOwnedClaimID` from the ledger and from your directory, and lowers your `OwnerCount` by 1.
 
-## Campos clave
+## Key fields
 
-- **XChainClaimID** — número del claim ID que posees y sobre el que ya hay atestaciones.
-- **Amount** — importe en el activo de esta cadena. Debe coincidir numéricamente con lo atestiguado; si no, no hay quórum para "ese" importe.
-- **Destination** / **DestinationTag** — cuenta de esta cadena que recibe. Debe existir. Si tiene `lsfRequireDestTag`, el tag es obligatorio.
+- **XChainClaimID** — the number of the claim ID you own and on which there are already attestations.
+- **Amount** — amount in this chain's asset. Must numerically match what was attested; if not, there's no quorum for "that" amount.
+- **Destination** / **DestinationTag** — account on this chain that receives it. Must exist. If it has `lsfRequireDestTag`, the tag is mandatory.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo. Es lo que verás hoy en testnet.
-- **tecXCHAIN_CLAIM_NO_QUORUM** — aún no hay suficientes atestaciones para ese importe, o el importe no coincide con el del commit.
-- **tecXCHAIN_BAD_CLAIM_ID** — el claim ID existe pero pertenece a otra cuenta.
-- **tecXCHAIN_NO_CLAIM_ID** — no existe (quizá ya se consumió con una entrega automática).
-- **tecNO_DST** — la cuenta destino no existe en esta cadena.
-- **tecDST_TAG_NEEDED** / **tecNO_PERMISSION** — el destino exige tag o tiene DepositAuth; el claim se conserva para reintentar.
-- **tecXCHAIN_NO_SIGNERS_LIST** — la door no tiene lista de firmantes configurada.
+- **temDISABLED** — the amendment isn't active. This is what you'll see today on testnet.
+- **tecXCHAIN_CLAIM_NO_QUORUM** — there still aren't enough attestations for that amount, or the amount doesn't match the commit's.
+- **tecXCHAIN_BAD_CLAIM_ID** — the claim ID exists but belongs to another account.
+- **tecXCHAIN_NO_CLAIM_ID** — it doesn't exist (perhaps it was already consumed by an automatic delivery).
+- **tecNO_DST** — the destination account doesn't exist on this chain.
+- **tecDST_TAG_NEEDED** / **tecNO_PERMISSION** — the destination requires a tag or has DepositAuth; the claim is kept so you can retry.
+- **tecXCHAIN_NO_SIGNERS_LIST** — the door has no signer list configured.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "XChainClaim",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "XChainBridge": {
-    "LockingChainDoor": "rYYYY_OTRA_CUENTA",
+    "LockingChainDoor": "rYYYY_OTHER_ACCOUNT",
     "LockingChainIssue": { "currency": "XRP" },
-    "IssuingChainDoor": "rZZZZ_EMISOR",
+    "IssuingChainDoor": "rZZZZ_ISSUER",
     "IssuingChainIssue": { "currency": "XRP" }
   },
   "XChainClaimID": "1",
-  "Destination": "rXXXX_TU_CUENTA",
+  "Destination": "rXXXX_YOUR_ACCOUNT",
   "Amount": "1000000"
 }
 ```
 
-`rYYYY_OTRA_CUENTA` es la door de la cadena locking y `rZZZZ_EMISOR` la door de la cadena emisora. Reclamas 1 XRP para ti mismo.
+`rYYYY_OTHER_ACCOUNT` is the locking chain's door and `rZZZZ_ISSUER` the issuing chain's door. You claim 1 XRP for yourself.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Carga el ejemplo en el builder con el `XChainClaimID` de un claim ID tuyo y el mismo `Amount` que enviaste en el `XChainCommit` de la otra cadena.
-2. Envíalo: hoy obtendrás `temDISABLED` porque XChainBridge no está activo.
-3. Cuando el amendment se active y haya quórum: tras `tesSUCCESS`, `account_objects` con `type: "xchain_owned_claim_id"` ya no mostrará el objeto, el `Balance` del `Destination` habrá subido en `Amount` y el tuyo habrá bajado en `SignatureReward + Fee`. En los metadatos verás los pagos de recompensa a cada witness.
-4. Si lo envías antes de que haya quórum, verás `tecXCHAIN_CLAIM_NO_QUORUM` y el claim ID seguirá intacto; consulta `ledger_entry` con `xchain_owned_claim_id` para ver cuántas atestaciones lleva.
+1. Load the example into the builder with the `XChainClaimID` of a claim ID you own and the same `Amount` you sent in the `XChainCommit` on the other chain.
+2. Submit it: today you'll get `temDISABLED` because XChainBridge isn't active.
+3. Once the amendment is activated and there's quorum: after `tesSUCCESS`, `account_objects` with `type: "xchain_owned_claim_id"` will no longer show the object, the `Destination`'s `Balance` will have gone up by `Amount`, and yours will have gone down by `SignatureReward + Fee`. In the metadata you'll see the reward payments to each witness.
+4. If you submit it before there's quorum, you'll see `tecXCHAIN_CLAIM_NO_QUORUM` and the claim ID will remain intact; check `ledger_entry` with `xchain_owned_claim_id` to see how many attestations it has.
 
-## Relacionado
+## Related
 
 - [XChainCreateClaimID](/tx/XChainCreateClaimID), [XChainCommit](/tx/XChainCommit), [XChainAddClaimAttestation](/tx/XChainAddClaimAttestation)
 - [XChainOwnedClaimID](/objects/XChainOwnedClaimID), [Bridge](/objects/Bridge)

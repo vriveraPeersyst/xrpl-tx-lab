@@ -1,94 +1,94 @@
 ---
 title: XChainAccountCreateCommit
-summary: Envía XRP por el puente para crear una cuenta nueva en la otra cadena, sin necesidad de claim ID previo.
+summary: Sends XRP through the bridge to create a new account on the other chain, without needing a prior claim ID.
 category: puente
 xrplDocs: https://xrpl.org/docs/references/protocol/transactions/types/xchainaccountcreatecommit
 xls: XLS-0038
 amendment: XChainBridge
-level: intermedio
+level: intermediate
 ---
 
-## Qué hace
+## What it does
 
-**Atención: el amendment [XChainBridge](/amendments/XChainBridge) no está activo en la testnet.** Hasta que se active, cualquier envío se rechaza con `temDISABLED`.
+**Warning: the [XChainBridge](/amendments/XChainBridge) amendment is not active on testnet.** Until it's activated, any submission is rejected with `temDISABLED`.
 
-El flujo normal del puente exige un claim ID en la cadena de destino, y para crearlo hace falta tener allí una cuenta con XRP. Eso es un problema de arranque en una sidechain nueva. `XChainAccountCreateCommit` lo resuelve: envías `Amount` (XRP) más `SignatureReward` a la door de esta cadena, indicando la cuenta `Destination` que quieres que exista en la otra. No necesitas claim ID; en su lugar el puente usa un contador secuencial, `XChainAccountCreateCount`, que se incrementa con cada envío y ordena las creaciones.
+The normal bridge flow requires a claim ID on the destination chain, and creating one requires already having an account there with XRP. That's a bootstrapping problem on a new sidechain. `XChainAccountCreateCommit` solves it: you send `Amount` (XRP) plus `SignatureReward` to this chain's door, specifying the `Destination` account you want to exist on the other chain. You don't need a claim ID; instead the bridge uses a sequential counter, `XChainAccountCreateCount`, which increments with each send and orders the creations.
 
-En la otra cadena, los witnesses envían [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation). Al alcanzar el quórum, la door de allí crea la cuenta `Destination` con `Amount` y paga la recompensa a los witnesses con los fondos que tú adelantaste. Aquí la recompensa **sí se cobra por adelantado**: la door recibe `Amount + SignatureReward`.
+On the other chain, witnesses send [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation). Once quorum is reached, the door there creates the `Destination` account with `Amount` and pays the reward to the witnesses using the funds you advanced. Here the reward **is charged upfront**: the door receives `Amount + SignatureReward`.
 
-Solo funciona en puentes XRP-XRP y solo si la door ha configurado `MinAccountCreateAmount` en el [Bridge](/objects/Bridge).
+This only works on XRP-XRP bridges and only if the door has configured `MinAccountCreateAmount` on the [Bridge](/objects/Bridge).
 
-## Cuándo usarlo
+## When to use it
 
-- Crear tu primera cuenta en una sidechain a partir de XRP de la mainchain (o al revés).
-- Financiar cuentas de terceros en la otra cadena sin que ellos tengan que hacer nada.
+- Creating your first account on a sidechain using XRP from the mainchain (or vice versa).
+- Funding third-party accounts on the other chain without them having to do anything.
 
-## Cómo funciona por dentro
+## How it works inside
 
-En el código la clase se llama `XChainCreateAccountCommit` (en `transactors/bridge/XChainBridge.cpp`).
+In the code the class is called `XChainCreateAccountCommit` (in `transactors/bridge/XChainBridge.cpp`).
 
-`XChainCreateAccountCommit::preflight`: `Amount` debe ser XRP positivo; `SignatureReward` XRP no negativa; y ambos del mismo activo. Cualquier incumplimiento devuelve `temBAD_AMOUNT`.
+`XChainCreateAccountCommit::preflight`: `Amount` must be positive XRP; `SignatureReward` non-negative XRP; and both the same asset. Any violation returns `temBAD_AMOUNT`.
 
 `XChainCreateAccountCommit::preclaim`:
 
-- Debe existir el Bridge (`tecNO_ENTRY`).
-- `SignatureReward` debe ser exactamente la del Bridge (`tecXCHAIN_REWARD_MISMATCH`).
-- El Bridge debe tener `MinAccountCreateAmount`; si no, `tecXCHAIN_CREATE_ACCOUNT_DISABLED`.
-- `Amount` debe ser ≥ `MinAccountCreateAmount` (`tecXCHAIN_INSUFF_CREATE_AMOUNT`).
-- La door no puede enviársela a sí misma (`tecXCHAIN_SELF_COMMIT`).
-- El activo de `Amount` debe ser el de esta cadena (`tecXCHAIN_BAD_TRANSFER_ISSUE`) y el de la otra cadena debe ser XRP (`tecXCHAIN_CREATE_ACCOUNT_NONXRP_ISSUE`): no se pueden crear cuentas con IOU.
+- The Bridge must exist (`tecNO_ENTRY`).
+- `SignatureReward` must be exactly that of the Bridge (`tecXCHAIN_REWARD_MISMATCH`).
+- The Bridge must have `MinAccountCreateAmount`; otherwise `tecXCHAIN_CREATE_ACCOUNT_DISABLED`.
+- `Amount` must be ≥ `MinAccountCreateAmount` (`tecXCHAIN_INSUFF_CREATE_AMOUNT`).
+- The door cannot send to itself (`tecXCHAIN_SELF_COMMIT`).
+- The asset of `Amount` must be this chain's (`tecXCHAIN_BAD_TRANSFER_ISSUE`) and the other chain's must be XRP (`tecXCHAIN_CREATE_ACCOUNT_NONXRP_ISSUE`): accounts cannot be created with an IOU.
 
 `XChainCreateAccountCommit::doApply`:
 
-- Transfiere `Amount + SignatureReward` a la door con `transferHelper` (`CanCreateDstPolicy::Yes`, `DepositAuthPolicy::Normal`). Exige `saldo ≥ importe + reserva` (`tecUNFUNDED_PAYMENT`), permitiendo que el fee salga de la reserva pero no el importe.
-- Incrementa `XChainAccountCreateCount` en el Bridge. Ese número es el que los witnesses citarán como `XChainAccountCreateCount` en sus atestaciones.
+- Transfers `Amount + SignatureReward` to the door via `transferHelper` (`CanCreateDstPolicy::Yes`, `DepositAuthPolicy::Normal`). Requires `balance ≥ amount + reserve` (`tecUNFUNDED_PAYMENT`), allowing the fee to come out of the reserve but not the amount.
+- Increments `XChainAccountCreateCount` on the Bridge. That number is what the witnesses will cite as `XChainAccountCreateCount` in their attestations.
 
-En la otra cadena, `applyCreateAccountAttestations` procesa las creaciones **en orden estricto**: solo se ejecuta la que tiene `createCount == XChainAccountClaimCount + 1`. Las siguientes (hasta 128 por delante, `kXbridgeMaxAccountCreateClaims`) se acumulan en objetos [XChainOwnedCreateAccountClaimID](/objects/XChainOwnedCreateAccountClaimID) propiedad de la door hasta que les toque. Si la creación falla (por ejemplo, `Amount` por debajo de la reserva base de la otra cadena → `tecNO_DST_INSUF_XRP`), el claim se descarta igualmente (`OnTransferFail::RemoveClaim`) para no bloquear a las siguientes; los fondos quedan en la door.
+On the other chain, `applyCreateAccountAttestations` processes creations **in strict order**: only the one whose `createCount == XChainAccountClaimCount + 1` is executed. The following ones (up to 128 ahead, `kXbridgeMaxAccountCreateClaims`) accumulate in [XChainOwnedCreateAccountClaimID](/objects/XChainOwnedCreateAccountClaimID) objects owned by the door until their turn comes. If the creation fails (for example, `Amount` below the other chain's base reserve → `tecNO_DST_INSUF_XRP`), the claim is discarded anyway (`OnTransferFail::RemoveClaim`) so as not to block the following ones; the funds remain with the door.
 
-## Campos clave
+## Key fields
 
-- **Destination** — la cuenta a crear en la **otra** cadena. Si ya existe, simplemente recibe el XRP.
-- **Amount** — XRP que recibirá la cuenta nueva. Debe ser ≥ `MinAccountCreateAmount` del Bridge; en la práctica también ≥ reserva base de la otra cadena, o la creación fallará allí y perderás los fondos (quedan en la door).
-- **SignatureReward** — copia exacta de la recompensa del Bridge. Se cobra ahora, junto con `Amount`.
+- **Destination** — the account to create on the **other** chain. If it already exists, it simply receives the XRP.
+- **Amount** — XRP the new account will receive. Must be ≥ the Bridge's `MinAccountCreateAmount`; in practice also ≥ the other chain's base reserve, or the creation will fail there and you'll lose the funds (they remain with the door).
+- **SignatureReward** — exact copy of the Bridge's reward. Charged now, along with `Amount`.
 
-## Errores habituales
+## Common errors
 
-- **temDISABLED** — el amendment no está activo. Es lo que verás hoy en testnet.
-- **tecXCHAIN_CREATE_ACCOUNT_DISABLED** — el Bridge no tiene `MinAccountCreateAmount`.
-- **tecXCHAIN_INSUFF_CREATE_AMOUNT** — `Amount` menor que el mínimo del Bridge.
-- **tecXCHAIN_REWARD_MISMATCH** — `SignatureReward` distinta a la del Bridge.
-- **tecXCHAIN_CREATE_ACCOUNT_NONXRP_ISSUE** — el puente no es XRP-XRP.
-- **tecUNFUNDED_PAYMENT** — no tienes `Amount + SignatureReward + reserva`.
-- **temBAD_AMOUNT** — `Amount` o `SignatureReward` no son XRP, o `Amount` es 0.
+- **temDISABLED** — the amendment isn't active. This is what you'll see today on testnet.
+- **tecXCHAIN_CREATE_ACCOUNT_DISABLED** — the Bridge has no `MinAccountCreateAmount`.
+- **tecXCHAIN_INSUFF_CREATE_AMOUNT** — `Amount` is less than the Bridge's minimum.
+- **tecXCHAIN_REWARD_MISMATCH** — `SignatureReward` differs from the Bridge's.
+- **tecXCHAIN_CREATE_ACCOUNT_NONXRP_ISSUE** — the bridge isn't XRP-XRP.
+- **tecUNFUNDED_PAYMENT** — you don't have `Amount + SignatureReward + reserve`.
+- **temBAD_AMOUNT** — `Amount` or `SignatureReward` isn't XRP, or `Amount` is 0.
 
-## Ejemplo
+## Example
 
 ```json
 {
   "TransactionType": "XChainAccountCreateCommit",
-  "Account": "rXXXX_TU_CUENTA",
+  "Account": "rXXXX_YOUR_ACCOUNT",
   "XChainBridge": {
-    "LockingChainDoor": "rYYYY_OTRA_CUENTA",
+    "LockingChainDoor": "rYYYY_OTHER_ACCOUNT",
     "LockingChainIssue": { "currency": "XRP" },
-    "IssuingChainDoor": "rZZZZ_EMISOR",
+    "IssuingChainDoor": "rZZZZ_ISSUER",
     "IssuingChainIssue": { "currency": "XRP" }
   },
-  "Destination": "rYYYY_OTRA_CUENTA",
+  "Destination": "rYYYY_OTHER_ACCOUNT",
   "Amount": "20000000",
   "SignatureReward": "100"
 }
 ```
 
-`rYYYY_OTRA_CUENTA` es la door de la cadena locking (y, en este ejemplo simplificado, también la dirección a crear en la otra cadena); `rZZZZ_EMISOR` es la door de la cadena emisora. Envías 20 XRP más 100 drops de recompensa.
+`rYYYY_OTHER_ACCOUNT` is the locking chain's door (and, in this simplified example, also the address to create on the other chain); `rZZZZ_ISSUER` is the issuing chain's door. You send 20 XRP plus 100 drops of reward.
 
-## Pruébalo en testnet
+## Try it on testnet
 
-1. Carga el ejemplo en el builder. `SignatureReward` debe coincidir con la del Bridge y `Amount` superar su `MinAccountCreateAmount`.
-2. Envíalo: hoy obtendrás `temDISABLED` porque XChainBridge no está activo.
-3. Cuando el amendment se active y exista el puente: tras `tesSUCCESS`, `account_info` de la door mostrará `Balance` aumentado en `Amount + SignatureReward`, y `ledger_entry` del Bridge mostrará `XChainAccountCreateCount` incrementado en 1.
-4. En la otra cadena, la door acumulará un `XChainOwnedCreateAccountClaimID` con las atestaciones hasta el quórum; entonces `account_info` de `Destination` responderá con la cuenta recién creada y `XChainAccountClaimCount` del Bridge de allí igualará tu número de creación.
+1. Load the example into the builder. `SignatureReward` must match the Bridge's and `Amount` must exceed its `MinAccountCreateAmount`.
+2. Submit it: today you'll get `temDISABLED` because XChainBridge isn't active.
+3. Once the amendment is activated and the bridge exists: after `tesSUCCESS`, `account_info` of the door will show `Balance` increased by `Amount + SignatureReward`, and `ledger_entry` of the Bridge will show `XChainAccountCreateCount` incremented by 1.
+4. On the other chain, the door will accumulate an `XChainOwnedCreateAccountClaimID` with attestations until quorum; then `account_info` of `Destination` will respond with the newly created account and the Bridge's `XChainAccountClaimCount` there will match your creation number.
 
-## Relacionado
+## Related
 
 - [XChainAddAccountCreateAttestation](/tx/XChainAddAccountCreateAttestation), [XChainCreateBridge](/tx/XChainCreateBridge), [XChainModifyBridge](/tx/XChainModifyBridge)
 - [XChainCommit](/tx/XChainCommit), [XChainCreateClaimID](/tx/XChainCreateClaimID)

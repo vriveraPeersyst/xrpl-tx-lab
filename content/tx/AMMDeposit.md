@@ -85,7 +85,7 @@ The effective fee (`tfee`) for single-asset deposits is the AMM's, unless you ho
   "TransactionType": "AMMDeposit",
   "Account": "rXXXX_YOUR_ACCOUNT",
   "Asset": { "currency": "XRP" },
-  "Asset2": { "currency": "USD", "issuer": "rZZZZ_EMISOR" },
+  "Asset2": { "currency": "USD", "issuer": "rZZZZ_ISSUER" },
   "Amount": "1000000",
   "Flags": 524288
 }
@@ -96,7 +96,7 @@ Deposits 1 XRP as a single asset into the XRP/USD pool.
 ## Try it on testnet
 
 1. Make sure the XRP/USD AMM exists (`amm_info`); if not, create it with [AMMCreate](/tx/AMMCreate).
-2. Have a trust line to `rZZZZ_EMISOR` (even if you deposit XRP, `preclaim` checks authorization and freeze on both assets) and free XRP for one more trust line.
+2. Have a trust line to `rZZZZ_ISSUER` (even if you deposit XRP, `preclaim` checks authorization and freeze on both assets) and free XRP for one more trust line.
 3. Send the example with `Flags: 524288`. Note the `lp_token.value` from `amm_info` before and after: your LP token balance goes up and the pool's `amount` increases by 1 XRP.
 4. Try variants: `Flags: 1048576` with `Amount` and `Amount2` for a balanced deposit, or `Flags: 65536` with `LPTokenOut` and observe how much of each asset gets deducted.
 5. Send `tfSingleAsset` with `Amount2` included to see `temMALFORMED`, or a huge `LPTokenOut` with `tfSingleAsset` to trigger `tecAMM_FAILED`.
