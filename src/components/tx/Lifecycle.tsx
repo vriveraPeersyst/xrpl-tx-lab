@@ -23,7 +23,7 @@ export function Lifecycle({ t }: { t: TransactorAnalysis }) {
           <p className="text-xs text-muted">{p.desc}</p>
           {p.has ? (
             <div className="mt-2 flex flex-wrap gap-1">
-              {p.codes.length ? p.codes.map((c) => <Link key={c} href={`/results#${c}`} className={`badge font-mono ${c.startsWith("tec") ? "bg-warning/15 text-warning" : "bg-danger/10 text-danger"}`}>{c}</Link>) : <span className="text-xs text-muted">sin códigos de error propios (usa los genéricos de Transactor)</span>}
+              {p.codes.length ? p.codes.map((c) => <Link key={c} href={`/results#${c}`} className={`badge font-mono ${c.startsWith("tec") ? "bg-[#dbf15e] text-black" : "bg-[#fdece7] text-[#a22514]"}`}>{c}</Link>) : <span className="text-xs text-muted">sin códigos de error propios (usa los genéricos de Transactor)</span>}
             </div>
           ) : (
             <p className="mt-2 text-xs text-muted">Hereda la implementación genérica de <code>Transactor</code>.</p>

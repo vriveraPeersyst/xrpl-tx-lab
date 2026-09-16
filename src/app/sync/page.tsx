@@ -10,7 +10,7 @@ export default function SyncPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Sincronización con testnet</h1>
+        <h1 className="display-lg">Sincronización con testnet</h1>
         <p className="text-muted">Un job diario (pm2, 12:00 Europe/Madrid) toma un snapshot de la testnet, alinea el código de rippled con la versión desplegada, re-extrae los datos y pasa el lint de cobertura. Si aparece un tipo, objeto o amendment nuevo, genera su documentación y la deja marcada como borrador.</p>
       </div>
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -26,7 +26,7 @@ export default function SyncPage() {
         </section>
       )}
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Historial de sincronizaciones ({log.length})</h2>
+        <h2 className="mb-2 display-md">Historial de sincronizaciones ({log.length})</h2>
         {log.length === 0 && <p className="text-sm text-muted">Todavía no se ha ejecutado ninguna sincronización automática.</p>}
         <ul className="space-y-2">{log.map((e) => <li key={e.at} className="card text-sm"><div className="flex flex-wrap gap-2"><b>{new Date(e.at).toLocaleString("es-ES")}</b><span className="text-muted">testnet {e.testnet}</span><span className={e.coverageOk ? "text-success" : "text-danger"}>{e.coverageOk ? "cobertura OK" : `${e.errors.length} errores`}</span></div>{e.changes.length > 0 && <ul className="ml-4 mt-1 list-disc">{e.changes.map((c) => <li key={c}>{c}</li>)}</ul>}{e.generated.length > 0 && <p className="mt-1 text-xs text-muted">Generado: {e.generated.join(", ")}</p>}</li>)}</ul>
       </section>

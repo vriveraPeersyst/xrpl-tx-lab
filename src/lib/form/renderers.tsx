@@ -43,7 +43,7 @@ function AmountInput({ value, onChange }: RendererProps) {
     <div className="space-y-2">
       <div className="flex gap-1 text-xs">
         {(["xrp", "iou", "mpt"] as const).map((k) => (
-          <button key={k} type="button" onClick={() => onChange(k === "xrp" ? "1000000" : k === "iou" ? { currency: "USD", issuer: "", value: "1" } : { mpt_issuance_id: "", value: "1" })} className={`rounded px-2 py-1 ${kind === k ? "bg-accent text-white" : "bg-surface-2 text-muted hover:text-fg"}`}>
+          <button key={k} type="button" onClick={() => onChange(k === "xrp" ? "1000000" : k === "iou" ? { currency: "USD", issuer: "", value: "1" } : { mpt_issuance_id: "", value: "1" })} className={`rounded px-2 py-1 ${kind === k ? "bg-fg text-bg" : "bg-surface-2 text-muted hover:text-fg"}`}>
             {k === "xrp" ? "XRP (drops)" : k === "iou" ? "Token emitido" : "MPT"}
           </button>
         ))}
@@ -74,7 +74,7 @@ function IssueInput({ value, onChange }: RendererProps) {
     <div className="space-y-2">
       <div className="flex gap-1 text-xs">
         {(["xrp", "iou", "mpt"] as const).map((k) => (
-          <button key={k} type="button" onClick={() => onChange(k === "xrp" ? { currency: "XRP" } : k === "iou" ? { currency: "USD", issuer: "" } : { mpt_issuance_id: "" })} className={`rounded px-2 py-1 ${kind === k ? "bg-accent text-white" : "bg-surface-2 text-muted hover:text-fg"}`}>
+          <button key={k} type="button" onClick={() => onChange(k === "xrp" ? { currency: "XRP" } : k === "iou" ? { currency: "USD", issuer: "" } : { mpt_issuance_id: "" })} className={`rounded px-2 py-1 ${kind === k ? "bg-fg text-bg" : "bg-surface-2 text-muted hover:text-fg"}`}>
             {k === "xrp" ? "XRP" : k === "iou" ? "Token emitido" : "MPT"}
           </button>
         ))}

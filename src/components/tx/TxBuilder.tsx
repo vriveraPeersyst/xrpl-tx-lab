@@ -90,7 +90,7 @@ export function TxBuilder(p: BuilderProps) {
     }
   };
 
-  if (p.pseudo) return <div className="rounded-lg border border-border bg-surface p-4 text-sm text-muted">Esta es una pseudo-transacción: la emite la propia red durante el cierre del ledger y no puede enviarla ninguna cuenta.</div>;
+  if (p.pseudo) return <div className="rounded-[2px] border border-border bg-surface p-4 text-sm text-muted">Esta es una pseudo-transacción: la emite la propia red durante el cierre del ledger y no puede enviarla ninguna cuenta.</div>;
 
   const visibleFields = p.fields.filter((f) => f.inTestnet);
   const commonVisible = p.commonFields.filter((f) => !HIDDEN_COMMON.has(f.name));
@@ -104,11 +104,11 @@ export function TxBuilder(p: BuilderProps) {
           <button type="button" className="btn-secondary" onClick={() => setShowCommon(!showCommon)}>{showCommon ? "Ocultar comunes" : "Campos comunes"}</button>
         </div>
         {p.prerequisites?.length ? (
-          <div className="rounded-md border border-warning/40 bg-warning/10 p-3 text-sm"><b>Antes de enviar:</b><ul className="ml-4 list-disc">{p.prerequisites.map((x) => <li key={x}>{x}</li>)}</ul></div>
+          <div className="rounded-[2px] border border-warning/40 bg-warning/10 p-3 text-sm"><b>Antes de enviar:</b><ul className="ml-4 list-disc">{p.prerequisites.map((x) => <li key={x}>{x}</li>)}</ul></div>
         ) : null}
         {raw ? (
           <div>
-            <textarea className="min-h-80 w-full rounded-md border border-border bg-surface p-3 font-mono text-xs" value={rawText} spellCheck={false} onChange={(e) => { setRawText(e.target.value); try { const v = JSON.parse(e.target.value); setTx(v); setRawErr(null); } catch (err) { setRawErr(err instanceof Error ? err.message : "JSON inválido"); } }} />
+            <textarea className="min-h-80 w-full rounded-[2px] border border-border bg-surface p-3 font-mono text-xs" value={rawText} spellCheck={false} onChange={(e) => { setRawText(e.target.value); try { const v = JSON.parse(e.target.value); setTx(v); setRawErr(null); } catch (err) { setRawErr(err instanceof Error ? err.message : "JSON inválido"); } }} />
             {rawErr && <p className="text-xs text-danger">{rawErr}</p>}
           </div>
         ) : (
@@ -125,7 +125,7 @@ export function TxBuilder(p: BuilderProps) {
       </div>
 
       <div className="space-y-4">
-        <pre className="max-h-96 overflow-auto rounded-md border border-border bg-surface-2 p-3 text-xs">{json}</pre>
+        <pre className="max-h-96 overflow-auto rounded-[2px] border border-border bg-surface-2 p-3 text-xs">{json}</pre>
         {problems.length > 0 && <ul className="space-y-1 text-sm text-warning">{problems.map((x) => <li key={x}>⚠ {x}</li>)}</ul>}
         <div className="flex flex-wrap gap-2">
           <button type="button" className="btn-secondary" disabled={sim.loading} onClick={runSimulate}>{sim.loading ? "Simulando…" : "Simular (sin firmar)"}</button>
@@ -137,16 +137,16 @@ export function TxBuilder(p: BuilderProps) {
           <button type="button" className="btn-secondary" onClick={() => navigator.clipboard.writeText(json)}>Copiar JSON</button>
         </div>
 
-        {sim.error && <div className="rounded-md border border-danger/40 bg-danger/10 p-3 text-sm">Error al simular: {sim.error}</div>}
+        {sim.error && <div className="rounded-[2px] border border-danger/40 bg-danger/10 p-3 text-sm">Error al simular: {sim.error}</div>}
         {sim.result && (
-          <div className="rounded-lg border border-border p-3">
+          <div className="rounded-[2px] border border-border p-3">
             <h4 className="mb-2 text-sm font-semibold">Simulación (RPC <code>simulate</code>, sin firma ni fee)</h4>
             <TxResult engineResult={sim.result.engine_result} message={sim.result.engine_result_message} meta={sim.result.meta} txJson={sim.result.tx_json} />
           </div>
         )}
 
         {signer.status === "awaiting" && signer.created && (
-          <div className="rounded-lg border border-accent/50 bg-surface p-4">
+          <div className="rounded-[2px] border border-accent/50 bg-surface p-4">
             <p className="mb-2 text-sm font-semibold">Firma en Xaman</p>
             <div className="flex flex-col items-center gap-3 sm:flex-row">
               <img src={signer.created.refs.qr_png} alt="QR de firma Xaman" className="h-44 w-44 rounded bg-white p-1" />
@@ -158,9 +158,9 @@ export function TxBuilder(p: BuilderProps) {
             </div>
           </div>
         )}
-        {(signer.status === "rejected" || signer.status === "expired" || signer.status === "error") && <div className="rounded-md border border-danger/40 bg-danger/10 p-3 text-sm">{signer.error}</div>}
+        {(signer.status === "rejected" || signer.status === "expired" || signer.status === "error") && <div className="rounded-[2px] border border-danger/40 bg-danger/10 p-3 text-sm">{signer.error}</div>}
         {signer.status === "signed" && signer.txid && (
-          <div className="rounded-lg border border-success/50 p-3 text-sm">
+          <div className="rounded-[2px] border border-success/50 p-3 text-sm">
             <p>Firmada y enviada. Hash: <a className="link" href={`${TESTNET_EXPLORER}/transactions/${signer.txid}`} target="_blank" rel="noreferrer">{signer.txid}</a></p>
             {signer.resolved?.response.dispatched_result && <p className="text-muted">Resultado preliminar del nodo: <code>{signer.resolved.response.dispatched_result}</code></p>}
             {final.loading && <p className="text-muted">Esperando validación…</p>}

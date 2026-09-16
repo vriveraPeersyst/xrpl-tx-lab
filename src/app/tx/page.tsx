@@ -12,12 +12,12 @@ export default function TxIndex() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Tipos de transacción en testnet ({names.length})</h1>
+        <h1 className="display-lg">Tipos de transacción en testnet ({names.length})</h1>
         <p className="text-muted">Los que existen en el <code>xrpld</code> de testnet. Los que dependen de un amendment no activo se pueden construir, pero el nodo los rechazará con <code>temDISABLED</code>.</p>
       </div>
       {(Object.keys(CATEGORIES) as (keyof typeof CATEGORIES)[]).filter((c) => byCat[c].length).map((c) => (
         <section key={c}>
-          <h2 className="mb-2 text-lg font-semibold">{CATEGORIES[c].label} <span className="text-sm font-normal text-muted">· {CATEGORIES[c].blurb}</span></h2>
+          <h2 className="mb-2 display-md">{CATEGORIES[c].label} <span className="text-sm font-normal text-muted">· {CATEGORIES[c].blurb}</span></h2>
           <table className="tbl">
             <thead><tr><th>Tipo</th><th>Resumen</th><th>Amendment</th><th className="text-right">Campos</th></tr></thead>
             <tbody>

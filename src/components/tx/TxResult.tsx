@@ -14,7 +14,7 @@ export function TxResult({ engineResult, message, meta, txJson, validated, hash 
   const ok = engineResult === "tesSUCCESS";
   return (
     <div className="space-y-2 text-sm">
-      <div className={`rounded-md p-2 ${ok ? "bg-success/10" : cat?.applied ? "bg-warning/10" : "bg-danger/10"}`}>
+      <div className={`rounded-[2px] p-2 ${ok ? "bg-success/10" : cat?.applied ? "bg-warning/10" : "bg-danger/10"}`}>
         <Link href={`/results#${engineResult}`} className="font-mono font-semibold hover:underline">{engineResult}</Link>
         {cat && <span className="ml-2 text-xs text-muted">{cat.label}</span>}
         <p className="text-muted">{code?.description ?? message}</p>

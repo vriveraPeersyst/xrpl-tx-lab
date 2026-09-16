@@ -27,7 +27,7 @@ export default async function AmendmentPage({ params }: { params: Promise<{ name
     <div className="space-y-8">
       <header className="space-y-2">
         <div className="text-xs text-muted"><Link href="/amendments" className="hover:underline">Amendments</Link> / {f?.kind === "fix" ? "corrección" : "funcionalidad"}</div>
-        <h1 className="font-mono text-3xl font-bold">{name}</h1>
+        <h1 className="display-lg font-mono font-light">{name}</h1>
         <p className="max-w-3xl text-lg text-muted">{doc?.data.summary}</p>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className={`badge ${st.cls}`}>{st.label} en testnet</span>
@@ -41,7 +41,7 @@ export default async function AmendmentPage({ params }: { params: Promise<{ name
       <section className="grid gap-3 sm:grid-cols-3">
         <div className="card"><div className="text-xs uppercase text-muted">ID</div><div className="break-all font-mono text-xs">{s?.id ?? "—"}</div></div>
         <div className="card"><div className="text-xs uppercase text-muted">Votación en testnet</div><div className="text-sm">{s ? (s.enabled ? "activo" : s.count !== undefined ? `${s.count} de ${s.validations ?? "?"} validadores (${pct ?? "?"} %), umbral ${s.threshold}` : "sin datos de votación") : "no existe en testnet"}</div>{s?.majority ? <div className="text-xs text-muted">mayoría desde {new Date((s.majority + 946684800) * 1000).toLocaleString("es-ES")}</div> : null}{s?.vetoed ? <div className="text-xs text-danger">vetado por este nodo</div> : null}</div>
-        <div className="card"><div className="text-xs uppercase text-muted">Afecta a</div><div className="flex flex-wrap gap-1">{txs.map((t) => <Link key={t.name} href={`/tx/${t.name}`} className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-xs hover:bg-accent-soft hover:text-accent">{t.name}</Link>)}{txs.length === 0 && <span className="text-xs text-muted">ningún transactor lo consulta directamente</span>}</div></div>
+        <div className="card"><div className="text-xs uppercase text-muted">Afecta a</div><div className="flex flex-wrap gap-1">{txs.map((t) => <Link key={t.name} href={`/tx/${t.name}`} className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-xs hover:bg-accent-soft hover:text-accent-ink">{t.name}</Link>)}{txs.length === 0 && <span className="text-xs text-muted">ningún transactor lo consulta directamente</span>}</div></div>
       </section>
 
       {doc ? <section className="max-w-3xl"><Markdown>{doc.body}</Markdown></section> : <section className="card text-sm text-muted">Documentación pendiente de redactar.</section>}

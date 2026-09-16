@@ -60,7 +60,7 @@ export default function AccountPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-baseline gap-3"><h1 className="text-2xl font-bold">Mi wallet</h1><a className="link font-mono text-sm" href={`${TESTNET_EXPLORER}/accounts/${x.account}`} target="_blank" rel="noreferrer">{x.account} ↗</a><button className="btn-secondary ml-auto" onClick={load} disabled={loading}>{loading ? "Cargando…" : "Actualizar"}</button></div>
+      <div className="flex flex-wrap items-baseline gap-3"><h1 className="display-lg">Mi wallet</h1><a className="link font-mono text-sm" href={`${TESTNET_EXPLORER}/accounts/${x.account}`} target="_blank" rel="noreferrer">{x.account} ↗</a><button className="btn-secondary ml-auto" onClick={load} disabled={loading}>{loading ? "Cargando…" : "Actualizar"}</button></div>
       {err && <p className="text-sm text-danger">{err}</p>}
       {!info ? (
         <div className="card space-y-2"><p>Esta cuenta <b>no existe todavía en testnet</b>. Pide XRP al faucet para activarla (reserva base: {formatXrp(testnet.reserves.baseXrp)}).</p><button className="btn-primary" disabled={funding} onClick={fund}>{funding ? "Pidiendo al faucet…" : "Financiar con el faucet de testnet"}</button></div>
@@ -127,7 +127,7 @@ export default function AccountPage() {
                 const acts = actionsFor(o, x.account!);
                 const summary = summarize(o);
                 return (
-                  <li key={i} className="rounded-md border border-border p-2 text-sm">
+                  <li key={i} className="rounded-[2px] border border-border p-2 text-sm">
                     <div className="flex flex-wrap items-baseline gap-2">
                       <Link href={`/objects/${type}`} className="font-mono font-semibold hover:underline">{type}</Link>
                       {r && <span className="badge bg-surface-2 text-muted">{formatXrp(r.units * testnet.reserves.incXrp)} reserva</span>}

@@ -1,46 +1,67 @@
 @import "tailwindcss";
 
+/*
+ * XRP Ledger Brand Design System (2026)
+ * Fundamentos: blanco y gris claro de base, negro para texto, verde como acento y lenguaje
+ * gráfico. Tipografía alternativa oficial: Inter Tight (titulares, ExtraLight/Light) e Inter
+ * (cuerpo), sentence case, tracking 0, interlineado 100-130 %. Escala exponencial.
+ */
 :root {
-  --bg: #f7f8fa;
-  --fg: #14171f;
-  --muted: #5d6675;
-  --surface: #ffffff;
-  --surface-2: #eef1f5;
-  --border: #d9dee6;
-  --accent: #0a5cff;
-  --accent-soft: #e6eeff;
-  --success: #158a4a;
-  --warning: #b26a00;
-  --danger: #c62828;
+  /* Core palette */
+  --white: #ffffff;
+  --black: #141414;
+  --grey-100: #f0f3f7;
+  --grey-200: #e6eaf0;
+  --grey-300: #cad4df;
+  --grey-400: #8a919a;
+  --grey-500: #72777e;
+  --green-100: #eafcf1;
+  --green-200: #70ee97;
+  --green-300: #21e46b;
+  --green-400: #0daa3e;
+  --green-500: #078139;
+  /* Extended palette (acentos) */
+  --lilac-100: #f2edff; --lilac-300: #c0a7ff; --lilac-400: #7649e3; --lilac-500: #5429a1;
+  --red-100: #fdece7; --red-300: #f0643a; --red-400: #da4518; --red-500: #a22514;
+  --pink-100: #fdf1f4; --pink-400: #ff577f;
+  --blue-100: #edf4ff; --blue-300: #428cff; --blue-400: #0179e7; --blue-500: #0a4dc0;
+  --yellow-100: #f3f1eb; --yellow-300: #dbf15e; --yellow-500: #d4c02d;
+
+  /* Semantic tokens (tema claro = tema de marca) */
+  --bg: var(--grey-100);
+  --fg: var(--black);
+  --muted: var(--grey-500);
+  --surface: var(--white);
+  --surface-2: var(--grey-200);
+  --surface-3: var(--grey-300);
+  --border: var(--grey-300);
+  --accent: var(--green-300);        /* relleno: verde con texto negro */
+  --accent-ink: var(--green-500);    /* verde legible sobre blanco para texto/enlaces */
+  --accent-soft: var(--green-100);
+  --success: var(--green-400);
+  --warning: var(--yellow-500);
+  --danger: var(--red-400);
+  --info: var(--blue-400);
+  --lilac: var(--lilac-400);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0d1117;
-    --fg: #e6edf3;
-    --muted: #8b95a5;
-    --surface: #161b22;
-    --surface-2: #1f262f;
-    --border: #2d3540;
-    --accent: #5b9cff;
-    --accent-soft: #14213a;
-    --success: #3fb950;
-    --warning: #d29922;
-    --danger: #f85149;
-  }
-}
+/* El tema de marca es claro; el oscuro solo se activa explícitamente con data-theme="dark". */
 :root[data-theme="dark"] {
-  --bg: #0d1117;
-  --fg: #e6edf3;
-  --muted: #8b95a5;
-  --surface: #161b22;
-  --surface-2: #1f262f;
-  --border: #2d3540;
-  --accent: #5b9cff;
-  --accent-soft: #14213a;
-  --success: #3fb950;
-  --warning: #d29922;
-  --danger: #f85149;
+  --bg: var(--black);
+  --fg: var(--grey-100);
+  --muted: var(--grey-400);
+  --surface: #1c1c1c;
+  --surface-2: #262626;
+  --surface-3: #333333;
+  --border: #333333;
+  --accent: var(--green-300);
+  --accent-ink: var(--green-200);
+  --accent-soft: #10321c;
+  --success: var(--green-200);
+  --warning: var(--yellow-300);
+  --danger: var(--red-300);
+  --info: var(--blue-300);
+  --lilac: var(--lilac-300);
 }
 
 @theme inline {
@@ -49,41 +70,89 @@
   --color-muted: var(--muted);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-border: var(--border);
   --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
   --color-accent-soft: var(--accent-soft);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
-  --font-sans: var(--font-geist-sans), system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --color-info: var(--info);
+  --color-lilac: var(--lilac);
+  --color-black: var(--black);
+  --color-white: var(--white);
+  --color-green-300: var(--green-300);
+  --color-green-200: var(--green-200);
+  --color-green-100: var(--green-100);
+  --color-grey-300: var(--grey-300);
+  --color-grey-200: var(--grey-200);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-inter-tight), var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-mono-fallback), ui-monospace, "SF Mono", Menlo, monospace;
+  --radius-brand: 2px;
 }
 
 html { scroll-behavior: smooth; }
-body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); }
-code { font-family: var(--font-mono); font-size: 0.92em; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); line-height: 1.3; -webkit-font-smoothing: antialiased; }
+code, pre, .font-mono { font-family: var(--font-mono); }
+code { font-size: 0.92em; }
 
-.btn-primary { @apply rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50; }
-.btn-secondary { @apply rounded-md border border-border bg-surface px-3 py-1.5 text-sm hover:border-accent disabled:cursor-not-allowed disabled:opacity-50; }
-.link { @apply text-accent hover:underline; }
-.card { @apply rounded-lg border border-border bg-surface p-4; }
-.badge { @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium; }
+/* Titulares: Inter Tight, pesos ligeros, interlineado 100-110 %, sentence case */
+.display { font-family: var(--font-display); font-weight: 300; letter-spacing: 0; line-height: 1.05; }
+.display-xl { font-family: var(--font-display); font-weight: 200; line-height: 1; letter-spacing: -0.01em; font-size: clamp(2.5rem, 6vw, 4.5rem); }
+.display-lg { font-family: var(--font-display); font-weight: 300; line-height: 1.05; font-size: clamp(1.9rem, 3.5vw, 2.75rem); }
+.display-md { font-family: var(--font-display); font-weight: 300; line-height: 1.1; font-size: 1.5rem; }
+.standfirst { font-size: 1.125rem; line-height: 1.3; font-weight: 300; }
+.eyebrow { font-size: 0.75rem; color: var(--muted); letter-spacing: 0; }
+.datapoint { font-family: var(--font-display); font-weight: 200; line-height: 1; font-size: 2.5rem; }
 
-.prose-doc { @apply text-[15px] leading-7; }
-.prose-doc h2 { @apply mt-8 mb-3 text-xl font-semibold; }
-.prose-doc h3 { @apply mt-6 mb-2 text-lg font-semibold; }
+/* Botones: píldoras (CTA de marca) */
+.btn-primary { @apply inline-flex items-center gap-1 rounded-full bg-fg px-4 py-2 text-sm font-medium text-bg hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40; }
+.btn-secondary { @apply inline-flex items-center gap-1 rounded-full border border-border bg-surface px-4 py-2 text-sm text-fg hover:border-fg disabled:cursor-not-allowed disabled:opacity-40; }
+.btn-accent { @apply inline-flex items-center gap-1 rounded-full bg-accent px-4 py-2 text-sm font-medium text-black hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40; }
+.link { color: var(--accent-ink); text-decoration: none; }
+.link:hover { text-decoration: underline; }
+
+/* Superficies */
+.card { @apply border border-border bg-surface p-5; border-radius: var(--radius-brand); }
+.card-grey { @apply bg-surface-3 p-5 text-black; border-radius: var(--radius-brand); }
+.card-black { @apply bg-black p-5 text-white; border-radius: var(--radius-brand); }
+.card-green { @apply bg-accent p-5 text-black; border-radius: var(--radius-brand); }
+.badge { @apply inline-flex items-center whitespace-nowrap rounded-full px-2 py-0.5 text-xs; }
+
+/* Motivo de marca: líneas de columna verticales (tipo retícula) */
+.grid-lines { position: relative; }
+.grid-lines::before {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(100% / 6 - 1px), currentColor calc(100% / 6 - 1px), currentColor calc(100% / 6));
+  opacity: 0.12;
+}
+
+/* Prosa de documentación */
+.prose-doc { @apply text-[15px] leading-[1.5]; }
+.prose-doc h2 { @apply mt-10 mb-3 text-2xl; font-family: var(--font-display); font-weight: 300; line-height: 1.1; }
+.prose-doc h3 { @apply mt-6 mb-2 text-lg; font-family: var(--font-display); font-weight: 400; }
 .prose-doc p { @apply my-3; }
 .prose-doc ul { @apply my-3 ml-5 list-disc; }
 .prose-doc ol { @apply my-3 ml-5 list-decimal; }
 .prose-doc li { @apply my-1; }
-.prose-doc a { @apply text-accent hover:underline; }
-.prose-doc code { @apply rounded bg-surface-2 px-1 py-0.5 text-[0.9em]; }
-.prose-doc pre { @apply my-3 overflow-auto rounded-md border border-border bg-surface-2 p-3 text-xs; }
+.prose-doc a { color: var(--accent-ink); }
+.prose-doc a:hover { text-decoration: underline; }
+.prose-doc strong { font-weight: 600; }
+.prose-doc code { @apply bg-surface-2 px-1 py-0.5 text-[0.9em]; border-radius: var(--radius-brand); }
+.prose-doc pre { @apply my-3 overflow-auto border border-border bg-surface p-3 text-xs; border-radius: var(--radius-brand); }
 .prose-doc pre code { @apply bg-transparent p-0; }
 .prose-doc table { @apply my-4 w-full border-collapse text-sm; }
-.prose-doc th, .prose-doc td { @apply border border-border px-2 py-1 text-left align-top; }
-.prose-doc blockquote { @apply my-3 border-l-4 border-accent/40 pl-3 text-muted; }
+.prose-doc th, .prose-doc td { @apply border-b border-border px-2 py-1.5 text-left align-top; }
+.prose-doc th { @apply text-xs font-medium text-muted; }
+.prose-doc blockquote { @apply my-3 border-l-2 border-accent pl-3 text-muted; }
 
+/* Tablas de datos */
 .tbl { @apply w-full border-collapse text-sm; }
-.tbl th { @apply border-b border-border px-2 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-muted; }
-.tbl td { @apply border-b border-border px-2 py-1.5 align-top; }
+.tbl th { @apply border-b border-fg/60 px-2 py-2 text-left text-xs font-medium text-muted; }
+.tbl td { @apply border-b border-border px-2 py-2 align-top; }
+.tbl tr:hover td { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+
+input, select, textarea { border-radius: var(--radius-brand); }

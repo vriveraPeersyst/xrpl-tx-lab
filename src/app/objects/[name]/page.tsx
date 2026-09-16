@@ -30,12 +30,12 @@ export default async function ObjectPage({ params }: { params: Promise<{ name: s
     <div className="space-y-8">
       <header className="space-y-2">
         <div className="text-xs text-muted"><Link href="/objects" className="hover:underline">Objetos</Link> / <span className="font-mono">{e.tag} · 0x{e.value.toString(16).padStart(4, "0")}</span></div>
-        <h1 className="font-mono text-3xl font-bold">{name}</h1>
+        <h1 className="display-lg font-mono font-light">{name}</h1>
         <p className="max-w-3xl text-lg text-muted">{doc?.data.summary ?? e.doc?.replace(/\\sa.*$/, "")}</p>
         <div className="flex flex-wrap gap-2 text-xs">
           <span className="badge bg-surface-2 text-muted">nombre RPC: {e.rpcName}</span>
           {doc?.data.reserve !== undefined && <span className="badge bg-surface-2 text-muted">reserva: {doc.data.reserve} × {testnet.reserves.incXrp} XRP</span>}
-          {related.map((s) => <Link key={s} href={`/tx/${s}`} className="badge bg-accent-soft text-accent font-mono">{s}</Link>)}
+          {related.map((s) => <Link key={s} href={`/tx/${s}`} className="badge bg-accent-soft text-accent-ink font-mono">{s}</Link>)}
           {doc?.data.xrplDocs && <a className="link" href={doc.data.xrplDocs} target="_blank" rel="noreferrer">xrpl.org ↗</a>}
         </div>
       </header>
@@ -50,12 +50,12 @@ export default async function ObjectPage({ params }: { params: Promise<{ name: s
       )}
       {doc ? <section className="max-w-3xl"><Markdown>{doc.body}</Markdown></section> : <section className="card text-sm text-muted">Documentación pendiente. Datos extraídos del código a continuación.</section>}
       <section className="space-y-2">
-        <h2 className="text-xl font-semibold">Campos ({fields.length})</h2>
+        <h2 className="display-md">Campos ({fields.length})</h2>
         <FieldsTable fields={fields} />
       </section>
       {flags.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Flags (lsf*)</h2>
+          <h2 className="display-md">Flags (lsf*)</h2>
           <table className="tbl"><thead><tr><th>Flag</th><th>Valor</th><th>Significado</th></tr></thead><tbody>{flags.map((f) => <tr key={f.name}><td className="font-mono">{f.name}</td><td className="font-mono text-xs">0x{f.value.toString(16).padStart(8, "0")}</td><td className="text-muted">{f.doc ?? ""}</td></tr>)}</tbody></table>
         </section>
       )}

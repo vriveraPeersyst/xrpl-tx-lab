@@ -44,11 +44,11 @@ export default async function TxPage({ params }: { params: Promise<{ name: strin
           <Link href="/tx" className="hover:underline">Transacciones</Link><span>/</span><span>{CATEGORIES[spec?.category ?? (pseudo ? "sistema" : "otros")].label}</span>
           <span className="ml-auto font-mono">tipo {t.value} · {t.tag}</span>
         </div>
-        <h1 className="font-mono text-3xl font-bold">{name}</h1>
+        <h1 className="display-lg font-mono font-light">{name}</h1>
         <p className="max-w-3xl text-lg text-muted">{doc?.data.summary ?? t.doc}</p>
         <div className="flex flex-wrap items-center gap-2 text-xs">
           {gate ? <AmendmentBadge name={gate.name} /> : <span className="badge bg-surface-2 text-muted">sin amendment de activación</span>}
-          {t.delegable && <Link href="/permissions" className="badge bg-accent-soft text-accent">delegable</Link>}
+          {t.delegable && <Link href="/permissions" className="badge bg-accent-soft text-accent-ink">delegable</Link>}
           {t.privileges.map((p) => <span key={p} className="badge bg-surface-2 text-muted" title="Privilegio declarado en TxSettings (lo aplican los invariant checks)">{p}</span>)}
           {doc?.data.level && <span className="badge bg-surface-2 text-muted">nivel: {doc.data.level}</span>}
           {doc?.data.xrplDocs && <a className="link" href={doc.data.xrplDocs} target="_blank" rel="noreferrer">xrpl.org ↗</a>}
@@ -58,7 +58,7 @@ export default async function TxPage({ params }: { params: Promise<{ name: strin
       </header>
 
       <section id="builder" className="space-y-3">
-        <h2 className="text-xl font-semibold">Construir y enviar en testnet</h2>
+        <h2 className="display-md">Construir y enviar en testnet</h2>
         <Suspense fallback={<div className="text-sm text-muted">Cargando builder…</div>}>
         <TxBuilder
           name={name}
@@ -76,7 +76,7 @@ export default async function TxPage({ params }: { params: Promise<{ name: strin
 
       {!pseudo && (
         <section id="coste" className="space-y-3">
-          <h2 className="text-xl font-semibold">Cuánto cuesta</h2>
+          <h2 className="display-md">Cuánto cuesta</h2>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="card">
               <h3 className="mb-2 font-semibold">Fee (se destruye)</h3>
@@ -103,7 +103,7 @@ export default async function TxPage({ params }: { params: Promise<{ name: strin
       )}
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">Campos ({fields.filter((f) => f.inTestnet).length} propios + {protocol.commonFields.length} comunes)</h2>
+        <h2 className="display-md">Campos ({fields.filter((f) => f.inTestnet).length} propios + {protocol.commonFields.length} comunes)</h2>
         <FieldsTable fields={fields} hints={spec?.hints} />
         <details>
           <summary className="cursor-pointer text-sm text-muted">Campos comunes a toda transacción</summary>
@@ -113,7 +113,7 @@ export default async function TxPage({ params }: { params: Promise<{ name: strin
 
       {(flags.length > 0 || asf.length > 0) && (
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold">Flags</h2>
+          <h2 className="display-md">Flags</h2>
           {flags.length > 0 && (
             <table className="tbl">
               <thead><tr><th>Flag</th><th>Valor</th><th>Efecto</th></tr></thead>
@@ -135,7 +135,7 @@ export default async function TxPage({ params }: { params: Promise<{ name: strin
 
       {t.transactor && (
         <section className="space-y-3">
-          <h2 className="text-xl font-semibold">Cómo lo procesa xrpld</h2>
+          <h2 className="display-md">Cómo lo procesa xrpld</h2>
           <Lifecycle t={t.transactor} />
           <p className="text-xs text-muted">Además de estos, cualquier transacción puede fallar con los códigos genéricos (fee, secuencia, firma) de <code>Transactor.cpp</code>: <TerBadge code="telINSUF_FEE_P" /> <TerBadge code="terPRE_SEQ" /> <TerBadge code="tefPAST_SEQ" /> <TerBadge code="tefMAX_LEDGER" /> <TerBadge code="terINSUF_FEE_B" /> <TerBadge code="tefBAD_AUTH" />.</p>
         </section>
@@ -143,14 +143,14 @@ export default async function TxPage({ params }: { params: Promise<{ name: strin
 
       <section className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold">Códigos de resultado posibles ({ter.length})</h2>
+          <h2 className="display-md">Códigos de resultado posibles ({ter.length})</h2>
           <div className="flex flex-wrap gap-1">{ter.map((c) => <TerBadge key={c} code={c} />)}</div>
           <ul className="mt-2 space-y-1 text-sm">
             {ter.map((c) => { const r = protocol.results.find((x) => x.code === c); return <li key={c}><code className="text-xs">{c}</code> <span className="text-muted">— {r?.description ?? r?.comment ?? ""}</span></li>; })}
           </ul>
         </div>
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold">Amendments que lo condicionan ({amendments.length})</h2>
+          <h2 className="display-md">Amendments que lo condicionan ({amendments.length})</h2>
           <ul className="space-y-1 text-sm">
             {amendments.map((a) => <li key={a.name} className="flex items-center gap-2"><AmendmentBadge name={a.name} />{a.gate && <span className="text-xs text-muted">activa el tipo</span>}</li>)}
             {amendments.length === 0 && <li className="text-muted">Ninguno: comportamiento base del protocolo.</li>}
@@ -166,7 +166,7 @@ export default async function TxPage({ params }: { params: Promise<{ name: strin
 
       {t.transactor && (
         <section className="space-y-2">
-          <h2 className="text-xl font-semibold">Código fuente</h2>
+          <h2 className="display-md">Código fuente</h2>
           <p className="text-sm text-muted">Transactor: <a className="link" href={sourceUrl(t.transactor.file)} target="_blank" rel="noreferrer">{t.transactor.file}</a> ({t.transactor.lines} líneas) · definición: <a className="link" href={sourceUrl("include/xrpl/protocol/detail/transactions.macro")} target="_blank" rel="noreferrer">transactions.macro</a></p>
           <table className="tbl">
             <thead><tr><th>Función</th><th>Códigos TER</th><th>Amendments consultados</th><th>Flags</th></tr></thead>

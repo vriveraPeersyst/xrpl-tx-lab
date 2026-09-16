@@ -17,9 +17,9 @@ export default async function FieldPage({ params }: { params: Promise<{ name: st
   return (
     <div className="space-y-6">
       <div className="text-xs text-muted"><Link href="/fields" className="hover:underline">Campos</Link></div>
-      <h1 className="font-mono text-3xl font-bold">{name}</h1>
+      <h1 className="display-lg font-mono font-light">{name}</h1>
       <div className="flex flex-wrap gap-2 text-xs">
-        <Link href={`/fields#${type}`} className="badge bg-accent-soft text-accent font-mono">{type}</Link>
+        <Link href={`/fields#${type}`} className="badge bg-accent-soft text-accent-ink font-mono">{type}</Link>
         <span className="badge bg-surface-2 text-muted">nth {f.nth}</span>
         {f.def && <span className="badge bg-surface-2 text-muted">{f.def.isSigningField ? "se firma" : "no se firma"} · {f.def.isVLEncoded ? "VL" : "fijo"}</span>}
         {common && <span className="badge bg-surface-2 text-muted">campo común a todas las transacciones</span>}

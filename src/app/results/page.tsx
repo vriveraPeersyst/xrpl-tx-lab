@@ -9,7 +9,7 @@ export default function ResultsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Códigos de resultado ({inTestnet.size} en testnet)</h1>
+        <h1 className="display-lg">Códigos de resultado ({inTestnet.size} en testnet)</h1>
         <p className="text-muted">Cada transacción termina con un código <code>TER</code>. El prefijo dice si se aplicó y si cobró fee.</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -19,7 +19,7 @@ export default function ResultsPage() {
         const rows = protocol.results.filter((r) => r.category === c).sort((a, b) => a.value - b.value);
         return (
           <section key={c}>
-            <h2 className="mb-2 font-mono text-lg font-semibold">{c}* <span className="text-sm font-normal text-muted">({rows.length})</span></h2>
+            <h2 className="mb-2 font-mono display-md">{c}* <span className="text-sm font-normal text-muted">({rows.length})</span></h2>
             <table className="tbl">
               <thead><tr><th>Código</th><th>Valor</th><th>Descripción</th><th>Lo devuelven</th></tr></thead>
               <tbody>

@@ -9,7 +9,7 @@ export default function ObjectsIndex() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Objetos del ledger ({names.length})</h1>
+        <h1 className="display-lg">Objetos del ledger ({names.length})</h1>
         <p className="text-muted">Cada entrada del estado del ledger (ledger entry) que existe en el <code>xrpld</code> de testnet, con los campos y flags que declara el código.</p>
       </div>
       <table className="tbl">

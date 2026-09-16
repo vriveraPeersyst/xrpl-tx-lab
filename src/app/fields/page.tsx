@@ -24,11 +24,11 @@ export default function FieldsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Campos serializados ({rows.length})</h1>
+        <h1 className="display-lg">Campos serializados ({rows.length})</h1>
         <p className="text-muted">Todos los <code>SField</code> del protocolo, con su tipo de serialización y dónde se usan (transacciones, objetos del ledger, objetos internos).</p>
       </div>
       <section>
-        <h2 className="mb-2 text-lg font-semibold">Tipos</h2>
+        <h2 className="mb-2 display-md">Tipos</h2>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{types.map((t) => <div key={t} id={t} className="card py-2"><div className="font-mono font-semibold">{t} <span className="text-xs font-normal text-muted">código {testnet.definitions.TYPES[t] ?? "?"}</span></div><p className="text-xs text-muted">{TYPE_DOC[t] ?? ""}</p></div>)}</div>
       </section>
       <table className="tbl">

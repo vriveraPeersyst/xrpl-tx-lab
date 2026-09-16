@@ -12,7 +12,7 @@ export default function ReservesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold">Cuánto XRP cuesta cada cosa</h1>
+        <h1 className="display-lg">Cuánto XRP cuesta cada cosa</h1>
         <p className="max-w-3xl text-muted">La XRPL exige a cada cuenta mantener bloqueada una <b>reserva base</b> más una <b>reserva incremental</b> por cada objeto que posee. Ese XRP no se destruye: se libera al borrar el objeto. Los <b>fees</b> de transacción sí se destruyen. Valores vivos de la testnet (objeto <Link href="/objects/FeeSettings" className="link">FeeSettings</Link>).</p>
       </div>
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -23,7 +23,7 @@ export default function ReservesPage() {
       </section>
       <ReserveCalculator />
       <section>
-        <h2 className="mb-2 text-xl font-semibold">Reserva por objeto del ledger</h2>
+        <h2 className="mb-2 display-md">Reserva por objeto del ledger</h2>
         <table className="tbl">
           <thead><tr><th>Objeto</th><th>Unidades</th><th>En testnet</th><th>Quién la paga</th><th>Detalle</th><th>Evidencia en el código</th></tr></thead>
           <tbody>
@@ -45,7 +45,7 @@ export default function ReservesPage() {
         </table>
       </section>
       <section className="space-y-2">
-        <h2 className="text-xl font-semibold">Fees de transacción</h2>
+        <h2 className="display-md">Fees de transacción</h2>
         <ul className="ml-5 list-disc space-y-1 text-sm">
           <li><b>Fee base</b>: {BASE_FEE_DROPS} drops. Se multiplica por el <i>load factor</i> del servidor cuando hay carga (fee escalation). Cuanto más pagas, antes entra en el ledger si la cola está llena.</li>
           <li><b>Multifirma</b>: fee base × (1 + número de firmas en <code>Signers</code>). Código: <code>Transactor::calculateBaseFee</code>.</li>
