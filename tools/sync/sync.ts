@@ -138,6 +138,10 @@ if (!process.env.SYNC_NO_GIT) {
     fs.unlinkSync(msgFile);
     log("commit done");
     if (!process.env.SYNC_NO_PUSH && sh("git remote").length) { run("git push -q"); log("push done"); }
+    // Deploy to Vercel when the project is linked (no git remote/integration needed).
+    if (!process.env.SYNC_NO_DEPLOY && fs.existsSync(path.join(ROOT, ".vercel/project.json"))) {
+      try { run("vercel deploy --prod --yes"); log("deployed to Vercel"); } catch (e) { log("vercel deploy failed:", e instanceof Error ? e.message : e); }
+    }
   } else log("no changes in the repo");
 }
 process.exit(cov.ok ? 0 : 2);
