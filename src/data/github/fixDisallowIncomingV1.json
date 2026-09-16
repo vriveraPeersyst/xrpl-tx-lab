@@ -1,0 +1,445 @@
+{
+ "name": "fixDisallowIncomingV1",
+ "fetchedAt": "2026-09-16T10:55:33.737Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 2,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-07-06T00:20:43Z",
+  "lastMerged": "2026-07-02T14:48:59Z",
+  "release": "2.0.0-b3",
+  "totalComments": 56
+ },
+ "release": {
+  "version": "2.0.0-b3",
+  "date": "2023-10-18T23:32:06Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.0.0-b3",
+  "excerpt": "fixDisallowIncomingV1 by @dangell7 in https://github.com/XRPLF/rippled/pull/4721"
+ },
+ "prs": [
+  {
+   "number": 7364,
+   "title": "refactor: Retire DisallowIncomingV1 fix",
+   "url": "https://github.com/XRPLF/rippled/pull/7364",
+   "state": "closed",
+   "author": "TimothyBanks",
+   "createdAt": "2026-05-29T18:31:00Z",
+   "updatedAt": "2026-07-06T00:20:43Z",
+   "closedAt": "2026-07-02T14:48:59Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-29T19:09:21Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7364?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 82.3%. Comparing base ([`c53aafa`](https://app.codecov.io/gh/XRPLF/rippled/commit/c53aafa6bfeb8591532c770cfcc59abf5f156a2f?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`aacd1a4`](https://app.codecov.io/gh/XRPLF/rippled/commit/aacd1a4bcafdc667120f211498511aec38e84f45?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#issuecomment-4578924697"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-10T20:17:50Z",
+     "body": "@a1q123456 @pratikmankawde Please take another look",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#issuecomment-4674079937"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T12:11:43Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#issuecomment-4809454181"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T14:28:19Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#issuecomment-4810498391"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-01T16:41:40Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#issuecomment-4857823084"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-01T20:52:16Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#issuecomment-4859944356"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-01T21:14:06Z",
+     "body": "@bthomee  The rest of the changes are good.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#issuecomment-4860093962"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis change set retires the DisallowingIncomingV1 fix.  Includes updates to unit tests.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-07-02T14:48:59Z",
+   "draft": false,
+   "base": "develop",
+   "head": "TimothyBanks:retire_disallow_incoming_v1",
+   "additions": 31,
+   "deletions": 46,
+   "changedFiles": 3,
+   "commits": 8,
+   "reviewComments": 13,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-01T17:35:32Z",
+     "body": "## Pull request overview\n\nThis PR retires the `DisallowIncomingV1` fix amendment by moving it from the active amendment list to the retired list, and simplifies `TrustSet` behavior accordingly (the “fixed” behavior becomes unconditional). Unit tests are updated to remove coverage for the pre-retirement (unfixed) behavior and to keep coverage for the RequireAuth + DisallowIncoming interaction.\n\n**Changes:**\n- Retire `DisallowIncomingV1` in `features.macro` (active → retired).\n- Simplify `TrustSet::preclaim` by removing gating on `fixDisallowIncomingV1`.\n- Refactor `TrustSet_test` to drop dual-path (with/without fix) testing and add a focused RequireAuth scenario test.\n\n### Reviewed changes\n\nC"
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-06-02T13:53:29Z",
+     "body": "lgtm"
+    },
+    {
+     "author": "a1q123456",
+     "state": "DISMISSED",
+     "date": "2026-06-11T14:06:27Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "DISMISSED",
+     "date": "2026-06-22T14:57:23Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-24T12:32:45Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 3 out of 3 changed files in this pull request and generated 1 comment."
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T16:28:53Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-06-25T15:10:49Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "DISMISSED",
+     "date": "2026-06-25T15:11:46Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "a1q123456",
+     "state": "DISMISSED",
+     "date": "2026-06-26T10:35:02Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "DISMISSED",
+     "date": "2026-06-29T15:07:17Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "DISMISSED",
+     "date": "2026-07-01T12:55:38Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-01T13:53:05Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-07-01T14:46:47Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-07-01T17:03:40Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-07-01T20:56:01Z",
+     "body": "I have the feeling that a lot of changes disappeared after the conflict resolution."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-01T21:06:28Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2026-07-01T21:23:49Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-02T14:13:32Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-02T14:43:22Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:35:32Z",
+     "path": "src/libxrpl/tx/transactors/token/TrustSet.cpp",
+     "body": "`sleDst` is noted as potentially null, but the disallow-incoming check assumes it is always non-null. If a TrustSet targets an issuer account that doesn't exist, `preclaim()` can dereference a null pointer before `doApply()` returns `tecNO_DST`. Add an early return when `sleDst` is null to avoid UB and keep behavior consistent with `doApply()`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3336028651"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-24T12:32:45Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Retiring this fix removes the public `fixDisallowIncomingV1` symbol from `include/xrpl/protocol/Feature.h` (XRPL_RETIRE_FIX does not declare an extern), which is a breaking `libxrpl`/installed-header API change for any downstream code that referenced the amendment ID. If the intent is only to stop gating behavior internally but keep build compatibility, consider providing a deprecated compatibility alias or otherwise call out the `libxrpl` API impact explicitly in the PR metadata/release notes.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3467081411"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T16:28:53Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "This is the whole point of this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3468680880"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-25T15:09:42Z",
+     "path": "src/libxrpl/tx/transactors/token/TrustSet.cpp",
+     "body": "I don't think this list is going to expand in the future. It makes sense to inline it by putting the condition after `if`",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3475468372"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-25T15:10:46Z",
+     "path": "src/test/app/TrustSet_test.cpp",
+     "body": "I don't think the function needs to take a `features` parameter",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3475475753"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-07-01T12:55:26Z",
+     "path": "src/libxrpl/tx/transactors/token/TrustSet.cpp",
+     "body": "I would recommend to combine these two `if` statements and write a single comprehensive comment. This can be done in a follow-up PR if you'd like, but seems like a small lift to do here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3506049253"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-01T13:53:05Z",
+     "path": "src/libxrpl/tx/transactors/token/TrustSet.cpp",
+     "body": "This code change would require two new approvals.  That is not an easy lift.  I will push up the change.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3506478353"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-07-01T17:03:40Z",
+     "path": "src/libxrpl/tx/transactors/token/TrustSet.cpp",
+     "body": "Not anymore - after the changes today only one person needs to approve your last commit(s).",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3507773710"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-07-01T20:55:41Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "This needs to be restored, and a new entry needs to be added for `DisallowIncomingV1`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3508985843"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-07-01T21:06:29Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "🔴 **Severity: CRITICAL**\n\nThe deleted `XRPL_FIX(DisallowIncomingV1)` above this line was not replaced with `XRPL_RETIRE_FIX(DisallowIncomingV1)`. This amendment is **enabled on mainnet** (ID `15D61F0C6DB6A2F86BCF96F1E2444FEC54E705923339EC175BD3E517C8B3FF91`). Without `retireFeature` registration, nodes won't recognize this amendment and become amendment-blocked.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add `XRPL_RETIRE_FIX(DisallowIncomingV1)` to the retired fixes list in `include/xrpl/protocol/detail/features.macro`. The retired fixes list is alphabetically sorted (lines 87-113). Insert `XRPL_RETIRE_FIX(DisallowIncomingV1)` between `XRPL_RETIRE_",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3509036281"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-07-01T21:23:44Z",
+     "path": "src/test/app/TrustSet_test.cpp",
+     "body": "The `features` are passed to all other test functions where they presumably are not even needed (since creating an Env without specifying the features will just use all afaik). Would it make sense to remove the argument from all these functions, or conversely to add it to this function here for consistency?",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3509116010"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-02T14:13:32Z",
+     "path": "src/test/app/TrustSet_test.cpp",
+     "body": "I would argue that is out of scope for this PR.  The other tests were not running through the DisallowIncomingV1 fix.  There are other tests here that also don't pass along the `features` parameter.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3513727626"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-02T14:43:21Z",
+     "path": "src/test/app/TrustSet_test.cpp",
+     "body": "I should state though, another reviewer wanted the parameter removed from this call.  I don't know the exact reasons for that.",
+     "url": "https://github.com/XRPLF/rippled/pull/7364#discussion_r3513939620"
+    }
+   ]
+  },
+  {
+   "number": 4721,
+   "title": "fixDisallowIncomingV1",
+   "url": "https://github.com/XRPLF/rippled/pull/4721",
+   "state": "closed",
+   "author": "dangell7",
+   "createdAt": "2023-09-21T18:22:23Z",
+   "updatedAt": "2023-10-20T18:07:43Z",
+   "closedAt": "2023-10-05T23:25:17Z",
+   "labels": [
+    "Tx Change",
+    "Amendment",
+    "Testable"
+   ],
+   "comments": [
+    {
+     "author": "scottschurr",
+     "date": "2023-09-28T17:24:00Z",
+     "body": "I just looked over this pull request.  The proposed approach looks like it would work and solve the identified problem.\n\nHowever, I'm not yet convinced that the identified problem justifies an amendment.  Let me walk through why.\n\nIf `asfDisallowIncomingTrustline` were a sticky flag (that couldn't be cleared), then I'd say you have a great justification.  But the flag is not sticky.  `asfDisallowIncomingTrustline` can be set and cleared as often as an account wants.  So if an account gets into the situation solved by this `fix`, they can also solve the problem by\n\n1. Clearing their `asfDisallowIncomingTrustline` flag briefly,\n2. Letting the `tfSetfAuth` get set on the trust line, and then\n3.",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#issuecomment-1739733037"
+    },
+    {
+     "author": "dangell7",
+     "date": "2023-09-28T18:38:47Z",
+     "body": "> I just looked over this pull request. The proposed approach looks like it would work and solve the identified problem.\n> \n> However, I'm not yet convinced that the identified problem justifies an amendment. Let me walk through why.\n> \n> If `asfDisallowIncomingTrustline` were a sticky flag (that couldn't be cleared), then I'd say you have a great justification. But the flag is not sticky. `asfDisallowIncomingTrustline` can be set and cleared as often as an account wants. So if an account gets into the situation solved by this `fix`, they can also solve the problem by\n> \n> 1. Clearing their `asfDisallowIncomingTrustline` flag briefly,\n> 2. Letting the `tfSetfAuth` get set on the trust line, ",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#issuecomment-1739828475"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-03T15:57:30Z",
+     "body": "@dangell7 wrote:\n\n> I would argue a few things.\n> \n> 1. This means that the issuer needs to communicate to me, for me to clear my flag then reset it.\n> 2. They/I would need to do this every time, for every issuer that has an authorized trustline.\n> 3. I already gave permission/trust to the issuer through adding their trustline therefore this process is redundant.\n\nThanks for bringing those up.  I think all of those are legitimate points.  However I'm not completely convinced they are important enough to merit an amendment.\n\nOn the other hand I recognize that I'm not a very good representative of ledger usability concerns.  So my hope is that someone with more usability focus will weigh in.  ",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#issuecomment-1745268688"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-03T16:36:07Z",
+     "body": "> @dangell7 wrote:\n> \n> > I would argue a few things.\n> > \n> > 1. This means that the issuer needs to communicate to me, for me to clear my flag then reset it.\n> > 2. They/I would need to do this every time, for every issuer that has an authorized trustline.\n> > 3. I already gave permission/trust to the issuer through adding their trustline therefore this process is redundant.\n> \n> Thanks for bringing those up. I think all of those are legitimate points. However I'm not completely convinced they are important enough to merit an amendment.\n> \n> On the other hand I recognize that I'm not a very good representative of ledger usability concerns. So my hope is that someone with more usability foc",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#issuecomment-1745342678"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-05T00:08:02Z",
+     "body": "This PR has sufficient approvals. @dangell7 , please:\n1. Bring this branch up-to-date with `develop`\n2. Confirm that, from your perspective, this PR is ready to merge.\n\nThanks!",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#issuecomment-1747818703"
+    },
+    {
+     "author": "dangell7",
+     "date": "2023-10-05T07:08:05Z",
+     "body": "LGTM",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#issuecomment-1748215931"
+    }
+   ],
+   "body": "This commit introduces a new fix amendment (fixDisallowIncomingV1) which fixes an issue that occurs with authorized trustlines and the `lsfDisallowIncomingTrustline` flag.\n\nCurrently if a user creates an authorized trustline then sets the `lsfDisallowIncomingTrustline` flag on their account, the gateway/issuer cannot then approve the trustline.\n\nTo recreate the issue:\n\n1. Issuer sets `asfRequireAuth` on their account.\n2. User sets `asfDisallowIncomingTrustline` on their account.\n3. User submits SetTrust tx to Issuer.\n4. Issuer cannot  then authorize the trustline.\n\nOnce the amendment is activated, the issuer can authorize the trustline after the User sets the `asfDisallowIncomingTrustline` f",
+   "merged": true,
+   "mergedAt": "2023-10-05T23:25:17Z",
+   "draft": false,
+   "base": "develop",
+   "head": "Transia-RnD:fixDisallowIncomingV1",
+   "additions": 59,
+   "deletions": 2,
+   "changedFiles": 4,
+   "commits": 10,
+   "reviewComments": 6,
+   "reviews": [
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-21T21:32:33Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2023-09-22T10:34:57Z",
+     "body": ""
+    },
+    {
+     "author": "RichardAH",
+     "state": "COMMENTED",
+     "date": "2023-09-24T09:26:23Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-10-04T00:12:49Z",
+     "body": ":+1: Nice job with this pull request.  The implementation is straightforward and easy to read.  The unit test demonstrates the intention and utility of the change.\n\nI left one note about a comment that might be changed.  But I leave that your discretion."
+    },
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2023-10-04T14:16:16Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mvadari",
+     "date": "2023-09-21T21:32:33Z",
+     "path": "src/ripple/app/tx/impl/SetTrust.cpp",
+     "body": "Why not just invert the `if` and return inside it, instead of having an empty `if` and returning in the `else`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#discussion_r1333624345"
+    },
+    {
+     "author": "dangell7",
+     "date": "2023-09-22T10:34:57Z",
+     "path": "src/ripple/app/tx/impl/SetTrust.cpp",
+     "body": "I actually have it like that on my local branch but with `clang-format` it makes it very \"compact\". I'm open to doing it like that if its preferred. It was just done like that for readability.\n\n```\nif (ctx.view.rules().enabled(fixDisallowIncomingV1) &&\n        !ctx.view.exists(keylet::line(id, uDstAccountID, currency)))\n        return tecNO_PERMISSION;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#discussion_r1334203446"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2023-09-24T09:26:23Z",
+     "path": "src/ripple/app/tx/impl/SetTrust.cpp",
+     "body": "In general positive conditions should be preferred over negative conditions. They are quick and easy to scan through, it's very obvious to the reader what's happening. The more complicated the condition the more likely the next programmer will misunderstand it and insert a mistake.",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#discussion_r1335151389"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-03T23:28:19Z",
+     "path": "src/ripple/app/tx/impl/SetTrust.cpp",
+     "body": "Personally, I have no trouble reading the current formulation of the `if`.  So I'm good with leaving it the way it is.",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#discussion_r1344869522"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-03T23:57:59Z",
+     "path": "src/test/app/SetTrust_test.cpp",
+     "body": "Nice job with this unit test addition!",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#discussion_r1344888424"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-04T00:12:10Z",
+     "path": "src/ripple/app/tx/impl/SetTrust.cpp",
+     "body": "If I were reading this code in the future, I think I'd find the changed comment on line 136 misplaced.  My inclination is to remove the change from line 136 and, instead, add something like this comment just in front of this `if`:\n```\n            // The original implementation of featureDisallowIncoming was\n            // too restrictive.  If\n            //   o fixDisallowIncomingV1 is enabled and\n            //   o The trust line already exists\n            // Then allow the TrustSet.\n```\nI think this is an improvement.  But it's only a suggestion.  Take it, modify it, or leave it as you will.",
+     "url": "https://github.com/XRPLF/rippled/pull/4721#discussion_r1344900757"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

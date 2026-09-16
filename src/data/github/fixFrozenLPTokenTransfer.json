@@ -1,0 +1,484 @@
+{
+ "name": "fixFrozenLPTokenTransfer",
+ "fetchedAt": "2026-09-16T10:56:39.437Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2025-02-05T18:06:08Z",
+  "lastMerged": "2025-02-05T18:05:24Z",
+  "release": "2.4.0",
+  "totalComments": 64
+ },
+ "release": {
+  "version": "2.4.0",
+  "date": "2025-03-04T19:00:43Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.4.0",
+  "excerpt": "fixFrozenLPTokenTransfer** - Prohibits the transfer of LP tokens when the associated liquidity pool contains at least one frozen asset. ([#5227](https://github.com/XRPLF/rippled/pull/5227))"
+ },
+ "prs": [
+  {
+   "number": 5227,
+   "title": "Amendment `fixFrozenLPTokenTransfer`: Prohibit transfer of LPToken when an asset is frozen",
+   "url": "https://github.com/XRPLF/rippled/pull/5227",
+   "state": "closed",
+   "author": "shawnxie999",
+   "createdAt": "2024-12-18T21:12:37Z",
+   "updatedAt": "2025-02-05T18:06:08Z",
+   "closedAt": "2025-02-05T18:05:24Z",
+   "labels": [
+    "Ready to merge",
+    "Bug",
+    "Amendment"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2024-12-18T23:18:30Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5227?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `91.83673%` with `4 lines` in your changes missing coverage. Please review.\n> Project coverage is 78.2%. Comparing base [(`f6d6308`)](https://app.codecov.io/gh/XRPLF/rippled/commit/f6d63082c0037e0198be5bed17cd24648917b36f?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`ceaa99d`)](https://app.codecov.io/gh/XRPLF/rippled/commit/ceaa99d18fcc34c8ed65200d19014e957592e1fb?dropdown=cover",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#issuecomment-2552448462"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-02-05T17:56:49Z",
+     "body": "@bthomee commit msg:\n\nProhibit LPToken holders from sending LPToken to others if they have been frozen by one of the assets in AMM pool\n\nWe can use the amendment name for the descripton/title",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#issuecomment-2637640163"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### New Definition\nIf a liquidity pool token (LPToken) is associated with a liquidity pool that contains at least one asset that is regularly frozen, the LPToken itself is considered \"frozen\". This means:\n\n1. The holder cannot send the frozen LPToken to others. (The frozen status restricts the holder from transferring the LPToken to another wallet)\n\n2. The holder can still receive frozen LPTokens. (If someone sends frozen LPTokens to the holder, they can still receive them, even though they cannot send them out)\n\nThis behavior is similar to how regular frozen IOUs work: you can receive them, but you cannot send them to others while they are frozen.\n\n### Ba",
+   "merged": true,
+   "mergedAt": "2025-02-05T18:05:24Z",
+   "draft": false,
+   "base": "develop",
+   "head": "shawnxie999:lptoken-freeze",
+   "additions": 597,
+   "deletions": 10,
+   "changedFiles": 9,
+   "commits": 11,
+   "reviewComments": 40,
+   "reviews": [
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-01-14T15:57:42Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-01-21T22:13:11Z",
+     "body": "It looks functionally fine to me. Just left some comments about style, code coverage and redundant header files included."
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-01-22T14:51:02Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-01-22T16:45:56Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-01-22T16:46:41Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-01-22T16:49:06Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-01-22T16:49:18Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-01-22T16:54:45Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-01-22T17:08:50Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-01-22T17:11:51Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-01-22T18:12:19Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-01-31T21:29:38Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-02-03T15:41:50Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-02-03T15:46:34Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2025-02-03T15:52:50Z",
+     "body": "just replied one comment. it looks good to me."
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-02-04T18:24:13Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-02-05T01:08:55Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "APPROVED",
+     "date": "2025-02-05T15:10:40Z",
+     "body": "It looks good to me"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-02-05T15:51:14Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-02-05T15:53:59Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-02-05T16:49:09Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-02-05T17:23:50Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "shawnxie999",
+     "date": "2025-01-14T15:57:42Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "note: this code would likely need to be refactored similar to [deepfreeze](https://github.com/XRPLF/rippled/pull/5227/files#diff-31c845b2ac1b7fc26729d6aa4c01c06412d476063dedf8175f9d22e75e69fd3c) cc @vvysokikh1",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1915110376"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-20T21:46:16Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "don't need curly braces",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1922866195"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-20T21:47:14Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "don't need curly braces",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1922866717"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-20T22:06:05Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "don't need curly braces",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1922875789"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-20T22:12:49Z",
+     "path": "src/xrpld/app/paths/detail/StepChecks.h",
+     "body": "since this line can not be covered anyway, can we add  ` // LCOV_EXCL_LINE` to exclude.",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1922879024"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-20T22:13:26Z",
+     "path": "src/xrpld/app/paths/detail/StepChecks.h",
+     "body": "don't need curly braces",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1922879310"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-20T22:29:03Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "don't need curly braces",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1922886096"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-20T22:29:07Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "don't need curly braces",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1922886118"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-20T22:29:13Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "don't need curly braces",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1922886153"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-21T02:58:12Z",
+     "path": "src/xrpld/app/paths/detail/StepChecks.h",
+     "body": "don't need this line",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1923002000"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-21T02:58:29Z",
+     "path": "src/xrpld/app/paths/detail/StepChecks.h",
+     "body": "don't need this line",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1923002148"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-21T03:05:26Z",
+     "path": "src/xrpld/app/paths/detail/DirectStep.cpp",
+     "body": "although they are functionally equivalent, I think the previous one is better for readability and debugging",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1923005611"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-21T03:29:05Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "482-483 can be simplified to `FeatureBitset const all{jtx::supported_amendments()};` since it's only used once in the function",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1923025175"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-21T03:37:00Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "from line 23 to line 37 don't need to include these header files",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1923028771"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-21T03:41:43Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "from line 39 to line 45, don't need to include these header files",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1923031133"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-21T18:10:08Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "typo? send lptoken to carol",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1924175035"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-21T21:39:37Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "this is unreachable,  `// LCOV_EXCL_LINE` to exclude.",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1924396425"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-21T21:41:11Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "don't need {}",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1924398204"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-21T21:57:17Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "is this line covered? do we need to add an extra test to cover it?",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1924414744"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-01-22T14:51:02Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "Don't remove this code though. It should be impossible for the issuer to not be found, but check just in case so rippled doesn't crash",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1925456787"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-01-22T16:45:56Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "going to leave the braces here for readability since the if condition is fairly long",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1925646694"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-01-22T16:46:40Z",
+     "path": "src/xrpld/app/paths/detail/StepChecks.h",
+     "body": "going leaving the braces here for readability",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1925647786"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-01-22T16:49:06Z",
+     "path": "src/xrpld/app/paths/detail/StepChecks.h",
+     "body": "this is needed to use isLPTokenFrozen",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1925651612"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-01-22T16:49:18Z",
+     "path": "src/xrpld/app/paths/detail/StepChecks.h",
+     "body": "this is needed for the err codes",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1925651880"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-01-22T16:54:44Z",
+     "path": "src/xrpld/app/paths/detail/DirectStep.cpp",
+     "body": "sure i can change it back for now ...but just a heads up that this would need to be refactored this way eventually because of another amendment that needs to add a check here as well\n\n        if (auto const ter = checkFreeze(ctx.view, src_, dst_, currency_);\n            ter != tesSUCCESS)\n            return ter;\n        if (auto const ter = checkSomethingNew(...);\n            ter != tesSUCCESS)\n            return ter;",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1925660009"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-01-22T17:08:50Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "going to leave here for readability since `if` has braces",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1925679230"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-01-22T17:11:51Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "its a copy paste of original accountHolds. This line will be covered by existing amm test cases that check for the balance of LPToken holders",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1925683401"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-01-22T18:12:19Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "done...added the comment to exclude from the code coverage report",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1925761557"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-01-31T21:29:38Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "sorry. it's the other line not covered. `amount.clear(Issue{currency, ammAccount});` under else if.",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1938002653"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-02-03T15:41:50Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "this line theoretically shouldn't be possible. this function is mostly used to check if the trustline between amm account and a lpt owner is frozen, which is not possible because the amm account cannot freeze someone",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1939606245"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-02-03T15:46:34Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "ok. we can add // LCOV_EXCL_LINE",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1939613769"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-02-04T18:24:13Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "I think we may still should want to expose it in the code coverage , since in the future, it might be possible that there might be new features where potentially have the AMM account freeze a LPT holder? (i'm just guessing)",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1941696509"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-02-05T01:08:55Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "ok. I'm good with it",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1942113520"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-05T14:38:52Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "Nit: I'm not very familiar with tests for lp token, so what does 1000 mean in this context?",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1943063779"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-05T14:39:37Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "Nit: What are the lines limits here for? I think you don't really need to set them here as limits can be bypassed by trading offers",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1943065062"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-05T15:04:56Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "Nit: maybe add a test that checks that carol can cash the check regardless of freeze",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1943115707"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-02-05T15:51:14Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "it means they are depositing the amount of USD and EUR into the pool and in return they get 1000 LPT. This number doesn't really matter - it can be anything as long as they have some LPT",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1943219832"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-02-05T15:53:59Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "it is needed for the LPT holder to increase the limit if they want to use LPT in offers. I don't think the offers can bypass them. There are some AMM tests that exercises this behavior I believe",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1943224716"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-02-05T16:49:08Z",
+     "path": "src/test/app/LPTokenTransfer_test.cpp",
+     "body": "added in https://github.com/XRPLF/rippled/pull/5227/commits/3efac527b91a3b73c57d26eb01bf10b463fdf16b",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1943316763"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-02-05T17:19:37Z",
+     "path": "src/xrpld/app/misc/detail/AMMUtils.cpp",
+     "body": "This log message is used for all three if-else statements, with the first two statements clearing the amount. This log message may not be sufficient to easily distinguish which of the first two cases was the reason for the amount to be zero, making debugging harder. I would therefore suggest to have separate log messages in each if-else statement.",
+     "url": "https://github.com/XRPLF/rippled/pull/5227#discussion_r1943362643"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

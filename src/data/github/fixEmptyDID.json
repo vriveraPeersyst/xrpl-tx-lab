@@ -1,0 +1,94 @@
+{
+ "name": "fixEmptyDID",
+ "fetchedAt": "2026-09-16T10:55:44.186Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2024-03-22T19:12:31Z",
+  "lastMerged": "2024-03-22T15:09:54Z",
+  "release": "2.2.0",
+  "totalComments": 6
+ },
+ "release": {
+  "version": "2.2.0",
+  "date": "2024-06-04T23:09:54Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.2.0",
+  "excerpt": "fixEmptyDID amendment: Modifies the behavior of the DID amendment: adds an additional check to ensure that DIDs are non-empty when created, and returns a `tecEMPTY_DID` error if the DID would be empty. [#4950](https://github.com/XRPLF/rippled/pull/4950)"
+ },
+ "prs": [
+  {
+   "number": 4950,
+   "title": "Add the`fixEmptyDID` amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/4950",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2024-03-13T18:40:32Z",
+   "updatedAt": "2024-03-22T19:12:31Z",
+   "closedAt": "2024-03-22T15:09:54Z",
+   "labels": [
+    "Ready to merge",
+    "Amendment"
+   ],
+   "comments": [
+    {
+     "author": "seelabs",
+     "date": "2024-03-13T20:16:14Z",
+     "body": "This needs a better commit message. When opening a PR I'd like it to have the proposed commit message and that commit message should be part of the review (plus a good commit message helps the reviewers as well).\n\nMany people do this (I'm sure I do this myself), but I'd like us to get out of the habit of doing.",
+     "url": "https://github.com/XRPLF/rippled/pull/4950#issuecomment-1995651329"
+    },
+    {
+     "author": "codecov-commenter",
+     "date": "2024-03-13T23:13:31Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/4950?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAll modified and coverable lines are covered by tests :white_check_mark:\n> Project coverage is 76.96%. Comparing base [(`2e9261c`)](https://app.codecov.io/gh/XRPLF/rippled/commit/2e9261cb26b8559a2380cefdbb59044b29fd8de0?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`85b8d89`)](https://app.codecov.io/gh/XRPLF/rippled/pull/4950?dropdown=coverage&src=pr&el=desc&utm_medium=referral&utm_source=github&utm_content=",
+     "url": "https://github.com/XRPLF/rippled/pull/4950#issuecomment-1996063445"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-03-14T15:04:28Z",
+     "body": "Proposed commit message:\n```\n`fixEmptyDID`: fix amendment to handle empty DID edge cases: (#4950)\n\nThis amendment fixes an edge case where an empty DID object can be\ncreated. It adds an additional check to ensure that DIDs are\nnon-empty when created, and throws a `tecEMPTY_DID` error if the DID\nwould be empty.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4950#issuecomment-1997670554"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-03-14T15:12:11Z",
+     "body": "@seelabs @ximinez this is ready to merge (once CI is fixed).",
+     "url": "https://github.com/XRPLF/rippled/pull/4950#issuecomment-1997687285"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR introduces an amendment that fixes a problem where DIDs can be empty, which shouldn't be able to happen. An empty DID object is equivalent to not having a DID object at all, so there is no need to take up the extra object reserve.\n\n### Context of Change\n\nIf a`DIDSet` transaction is sent with one or two of the fields (`DIDDocument`/`Data`/`URI`) as an empty string, when there is no pre-existing DID, the `DID` object is created with empty fields.\n\nRecreation: https://devnet.xrpl.org/transactions/A73FEA27EF6A24438A7E9A3B8192B1C0B430E503A14212933CAFF54C66C51FCD\n\n### Type of Change\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [ ] New featur",
+   "merged": true,
+   "mergedAt": "2024-03-22T15:09:54Z",
+   "draft": false,
+   "base": "develop",
+   "head": "mvadari:did-fix",
+   "additions": 35,
+   "deletions": 10,
+   "changedFiles": 4,
+   "commits": 2,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2024-03-13T20:22:05Z",
+     "body": ":+1: LGTM"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2024-03-14T12:23:23Z",
+     "body": "👍 LGTM"
+    }
+   ],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

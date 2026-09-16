@@ -1,0 +1,358 @@
+{
+ "name": "fixNonFungibleTokensV1_2",
+ "fetchedAt": "2026-09-16T10:58:37.496Z",
+ "summary": {
+  "status": "merged",
+  "prs": 3,
+  "open": 0,
+  "merged": 2,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2023-02-14T19:08:17Z",
+  "lastMerged": "2023-02-14T02:48:34Z",
+  "release": "1.10.0",
+  "totalComments": 39
+ },
+ "release": {
+  "version": "1.10.0",
+  "date": "2023-03-14T18:20:01Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.10.0",
+  "excerpt": "`fixNonFungibleTokensV1_2`**: This amendment is a combination of NFToken fixes. [#4417](https://github.com/XRPLF/rippled/pull/4417)"
+ },
+ "prs": [
+  {
+   "number": 4417,
+   "title": "`fixNonFungibleTokensV1_2`: Multiple bug fixes for XLS-20 NFTs",
+   "url": "https://github.com/XRPLF/rippled/pull/4417",
+   "state": "closed",
+   "author": "kennyzlei",
+   "createdAt": "2023-02-13T07:28:02Z",
+   "updatedAt": "2023-02-14T19:08:17Z",
+   "closedAt": "2023-02-14T02:48:34Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "kennyzlei",
+     "date": "2023-02-13T13:31:38Z",
+     "body": "@ximinez @intelliot I noticed the `feature/nft-fixes` branch is currently about 8 commits behind `develop` and causing a merge conflict.  The resolution itself is a few lines of code to catch up on other features added from what I have tested.  I assume `feature/nft-fixes` branch is protected and there are limitations to pushing commits to the branch directly to fix it.  Would appreciate some recommendations on getting it to a good state.  I was thinking these were some options:\n1. Using an existing PR or new PR to pull in the ~8 commits into `feature/nft-fixes`.  Might be a bit strange to have duplicate diff in that PR but it'll get the branch up-to-date\n2. Have a maintainer or someone with",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1427949508"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-13T16:13:28Z",
+     "body": "I don't think `feature/nft-fixes` is protected. ~If we bring it up-to-date with a merge commit, there will not be any duplication in the diff.~ Actually, I'm not sure what you mean about duplicate diff. This is a common situation with git and as long as you aren't cherry-picking commits off the base branch (which would create new git hashes for those commits) then there is no problem, whether we rebase or use merge commits.",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1428219528"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-02-13T18:38:04Z",
+     "body": "Just as a note, some of the the commit messages on this pull request do not follow guidelines we've been following for a long time.  Here's the source of the guidelines we've followed in the past: https://cbea.ms/git-commit/\n\nSpecifically, we've requested that line lengths on commit messages be limited to 72 characters or so.  We haven't always been great at enforcing that, but it has been a guideline.\n\nI understand that expectations change over time.  So if unlimited line lengths is the new norm, then so be it.  But I thought ya'll should be aware that it is a change.",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1428463323"
+    },
+    {
+     "author": "kennyzlei",
+     "date": "2023-02-13T19:07:46Z",
+     "body": "> Just as a note, some of the the commit messages on this pull request do not follow guidelines we've been following for a long time. Here's the source of the guidelines we've followed in the past: https://cbea.ms/git-commit/\n> \n> Specifically, we've requested that line lengths on commit messages be limited to 72 characters or so. We haven't always been great at enforcing that, but it has been a guideline.\n> \n> I understand that expectations change over time. So if unlimited line lengths is the new norm, then so be it. But I thought ya'll should be aware that it is a change.\n\nYeah I think this is something we should enforce before PR merge in the future.  Since this existing feature branch g",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1428501699"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-13T19:11:10Z",
+     "body": "It's a good guideline, but writing good (short) commit messages is extremely difficult, and I wouldn't hold up the release just for that. To take a specific example, how would you rewrite `[Amendment] If you set a destination on an NFT offer, only that destination can settle through brokerage (fix #4373) (#4399)`?\n\nIt is the worst offender and I would be in favor of shortening it with a simple rebase before merging it into `develop`. However, in order to do that, we need a specific subject line to use.",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1428507182"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-02-13T20:45:48Z",
+     "body": "> It's a good guideline, but writing good (short) commit messages is extremely difficult, and I wouldn't hold up the release just for that. To take a specific example, how would you rewrite `[Amendment] If you set a destination on an NFT offer, only that destination can settle through brokerage (fix #4373) (#4399)`?\n\n```\nOnly account specified as destination can settle through brokerage:\n\n* Fixes 4373\n```\nFirst line is 68 characters long. (And I'd drop `[Amendment]` from all the commit messages.)",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1428658586"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-02-13T20:47:28Z",
+     "body": "@intelliot, there are two guidelines I'm noticing:\n\n1. The subject line should be limited to 50 characters and\n2. The lines in the body should be limited to 72 characters.\n\nYou're noting a place where we broke the first of these guidelines.  50 characters is really hard.  I tend to target 60 characters.  For the case you pointer out I might suggest that we don't need all of those detail in the subject line.  We can put additional details in the body:\n\n```\nPlace new restrictions on brokering NFT offers:\n\nWhen brokering NFT offers, if there's a destination field in the offer\nwe now require that the broker must be the destination.\n```\n\nThese guidelines are hard.  Even native English speaking pr",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1428660236"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-13T20:49:51Z",
+     "body": "> > It's a good guideline, but writing good (short) commit messages is extremely difficult, and I wouldn't hold up the release just for that. To take a specific example, how would you rewrite `[Amendment] If you set a destination on an NFT offer, only that destination can settle through brokerage (fix #4373) (#4399)`?\n> \n> ```\n> Only account specified as destination can settle through brokerage:\n> \n> * Fixes 4373\n> ```\n> \n> First line is 68 characters long. (And I'd drop `[Amendment]` from all the commit messages.)\n\nTo make it easier to navigate between the [commit history](https://github.com/XRPLF/rippled/commits/develop) and the relevant PRs, I'd like to include the PR # in the subject. Al",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1428662628"
+    },
+    {
+     "author": "kennyzlei",
+     "date": "2023-02-13T20:52:25Z",
+     "body": "I'll do that cleanup to remove `[Amendment]` and rename that particular commit to `Only account specified as destination can settle through brokerage: (#4399)`",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1428665308"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-13T20:54:07Z",
+     "body": "@kennyzlei Given you're rebasing anyway, and given that we would like to merge this PR as multiple commits (not a single squashed commit), feel free to rebase on top of the current HEAD of `develop`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1428667186"
+    },
+    {
+     "author": "kennyzlei",
+     "date": "2023-02-13T21:04:29Z",
+     "body": "@intelliot @scottschurr @ximinez just rebased and fixed up commit messages, ready for review",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1428680149"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-13T22:26:08Z",
+     "body": "(Scott S is reviewing)",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#issuecomment-1428781237"
+    }
+   ],
+   "body": "## High Level Overview of Change\nProposal to merge feature branch `feature/nft-fixes` to `develop` branch\n\n### Context of Change\nIntroduce a new amendment, **`fixNonFungibleTokensV1_2`** which is a combination of bug fixes that have been individually merged into `feature/nft-fixes` through the pull request process:\n- https://github.com/XRPLF/rippled/pull/4346\n- https://github.com/XRPLF/rippled/pull/4380\n- https://github.com/XRPLF/rippled/pull/4403\n- https://github.com/XRPLF/rippled/pull/4399\n\nEach individual pull request contains details on the bugs they intend to fix\n\n### Type of Change\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which add",
+   "merged": true,
+   "mergedAt": "2023-02-14T02:48:34Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:feature/nft-fixes",
+   "additions": 1900,
+   "deletions": 570,
+   "changedFiles": 10,
+   "commits": 6,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2023-02-13T17:06:13Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "COMMENTED",
+     "date": "2023-02-13T18:09:08Z",
+     "body": ""
+    },
+    {
+     "author": "ledhed2222",
+     "state": "APPROVED",
+     "date": "2023-02-13T22:21:42Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2023-02-13T22:22:15Z",
+     "body": ""
+    },
+    {
+     "author": "thejohnfreeman",
+     "state": "APPROVED",
+     "date": "2023-02-13T22:23:28Z",
+     "body": "I have not reviewed the code itself, but I confirmed that this is a feature branch whose individual commits were previously approved by trusted reviewers."
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-02-13T22:59:58Z",
+     "body": "Looks like what I'd expect."
+    },
+    {
+     "author": "intelliot",
+     "state": "APPROVED",
+     "date": "2023-02-14T00:07:40Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "nbougalis",
+     "date": "2023-02-13T17:06:12Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "Note: negative balances are *not* a problem. Trustlines are bi-directional, and the issuer *might* have configured the trustline so that you can go into debt. The problem is a balance that _exceeds_ the limit.",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#discussion_r1104775675"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-13T18:09:07Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "(@ledhed2222 wrote this comment [here](https://github.com/ledhed2222/rippled/commit/36c87451275ebd4dfdbb7972d5460555e7b49faf))\n\n@ledhed2222 if it makes sense to you, could you clarify this comment? You can do so in a new PR, with `feature/nft-fixes` as the base branch.\n\n(or, you can push a commit on `feature/nft-fixes`, if permissions allow. Either way is fine)",
+     "url": "https://github.com/XRPLF/rippled/pull/4417#discussion_r1104852300"
+    }
+   ]
+  },
+  {
+   "number": 4416,
+   "title": "Rename fixUnburnableNFToken to fixNonFungibleTokensV1_2",
+   "url": "https://github.com/XRPLF/rippled/pull/4416",
+   "state": "closed",
+   "author": "kennyzlei",
+   "createdAt": "2023-02-13T06:49:37Z",
+   "updatedAt": "2023-02-14T05:53:04Z",
+   "closedAt": "2023-02-13T18:44:16Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "kennyzlei",
+     "date": "2023-02-13T18:44:16Z",
+     "body": "closing in favor of https://github.com/XRPLF/rippled/pull/4419 which includes other cosmetic refactors",
+     "url": "https://github.com/XRPLF/rippled/pull/4416#issuecomment-1428470361"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nRenames common amendment `fixUnburnableNFToken` to `fixNonFungibleTokensV1_2` to more accurately reflect bundling of changes and follow version convention of previous amendments to non-fungible tokens\n\n### Context of Change\n\nRenames common amendment, which includes the following changes in the feature branch:\n- https://github.com/XRPLF/rippled/pull/4391\n- https://github.com/XRPLF/rippled/pull/4346\n- https://github.com/XRPLF/rippled/pull/4380\n- https://github.com/XRPLF/rippled/pull/4403\n- https://github.com/XRPLF/rippled/pull/4399\n\n### Type of Change\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds fun",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "feature/nft-fixes",
+   "head": "kennyzlei:rename-nft-v1-2",
+   "additions": 66,
+   "deletions": 66,
+   "changedFiles": 7,
+   "commits": 2,
+   "reviewComments": 7,
+   "reviews": [
+    {
+     "author": "kennyzlei",
+     "state": "COMMENTED",
+     "date": "2023-02-13T13:23:15Z",
+     "body": ""
+    },
+    {
+     "author": "ledhed2222",
+     "state": "COMMENTED",
+     "date": "2023-02-13T16:18:23Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "COMMENTED",
+     "date": "2023-02-13T16:24:57Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-02-13T17:10:02Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "APPROVED",
+     "date": "2023-02-13T18:13:16Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "kennyzlei",
+     "state": "COMMENTED",
+     "date": "2023-02-13T18:15:38Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "kennyzlei",
+     "date": "2023-02-13T13:21:31Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "I was not sure between feature or fix here, I noticed the NonFungibleTokensV1_1 was created as a feature but it contained various bug fixes so I followed that paradigm but lack context for that decision\n\nAlso noticed the naming convention for features was required to be `NonFungibleTokensV1_2` vs. `featureNonFungibleTokensV1_2` for the const name defined in the header file.  I didn't dig deep in the code to understand the reason for it yet",
+     "url": "https://github.com/XRPLF/rippled/pull/4416#discussion_r1104462935"
+    },
+    {
+     "author": "ledhed2222",
+     "date": "2023-02-13T16:18:22Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "good question on this - i'm not sure either",
+     "url": "https://github.com/XRPLF/rippled/pull/4416#discussion_r1104706797"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-13T16:24:57Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "For NonFungibleTokensV1_1, it was actually a feature as it actually implemented XLS-20 and was a replacement of NonFungibleTokensV1.\n\nFor NonFungibleTokensV1_2, it is actually a fix as it is just fixing bugs in the current XLS-20 implementation.\n\nper some [community feedback here](https://github.com/XRPLF/rippled/pull/4399#issuecomment-1418599887), I believe we want to go with `fixNonFungibleTokensV1_2`.\n\nAs for the differences in naming in the const name in the header file - I don't know why that is. @seelabs @scottschurr ?",
+     "url": "https://github.com/XRPLF/rippled/pull/4416#discussion_r1104717028"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-02-13T17:10:02Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "@kennyzlei, the asymmetry you are seeing between the naming of `feature`s and `fix`es is caused by a difference between the `REGISTER_FEATURE` and `REGISTER_FIX` macros.  You'll find them here:\n\nhttps://github.com/XRPLF/rippled/blob/develop/src/ripple/protocol/impl/Feature.cpp#L393-L406\n\nYou'll notice that the `REGISTER_FEATURE` macro contains `feature##fName`.  That has the effect of textually prepending the text `feature` to the supplied name.  The `REGISTER_FIX` macro doesn't have a construction like that.\n\nWhat you _really_ want to know is why the macros were coded with that asymmetry.  I can only guess.  But my guess is that `feature` has more characters than `fix`.  Automatically prepe",
+     "url": "https://github.com/XRPLF/rippled/pull/4416#discussion_r1104781455"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-13T18:11:15Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "what is the value of this comment?",
+     "url": "https://github.com/XRPLF/rippled/pull/4416#discussion_r1104854314"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-13T18:11:30Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "same here (I wonder if this line could be removed)",
+     "url": "https://github.com/XRPLF/rippled/pull/4416#discussion_r1104854568"
+    },
+    {
+     "author": "kennyzlei",
+     "date": "2023-02-13T18:15:37Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "yeah this does not seem to add more info in the comment beyond the code itself, ill remove",
+     "url": "https://github.com/XRPLF/rippled/pull/4416#discussion_r1104858332"
+    }
+   ]
+  },
+  {
+   "number": 4419,
+   "title": "rename fixUnburnableNFToken to fixNonFungibleTokensV1_2  and some cosmetic changes",
+   "url": "https://github.com/XRPLF/rippled/pull/4419",
+   "state": "closed",
+   "author": "ledhed2222",
+   "createdAt": "2023-02-13T18:31:57Z",
+   "updatedAt": "2023-02-13T20:30:02Z",
+   "closedAt": "2023-02-13T20:30:01Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "kennyzlei",
+     "date": "2023-02-13T18:43:36Z",
+     "body": "@ledhed2222 nit: can you update the PR description to be closer to https://github.com/XRPLF/rippled/pull/4416 ?  \"rename amendment\" does not make it clear which amendment you are renaming",
+     "url": "https://github.com/XRPLF/rippled/pull/4419#issuecomment-1428469593"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\ntitle says it all\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Tests (You added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation Updates\n- [ ] Release",
+   "merged": true,
+   "mergedAt": "2023-02-13T20:30:01Z",
+   "draft": false,
+   "base": "feature/nft-fixes",
+   "head": "ledhed2222:gw/cosmetic-changes",
+   "additions": 74,
+   "deletions": 80,
+   "changedFiles": 7,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "kennyzlei",
+     "state": "APPROVED",
+     "date": "2023-02-13T18:59:01Z",
+     "body": "lgtm\n\ndo you want to address this comment change https://github.com/XRPLF/rippled/pull/4417#discussion_r1104852300 here?  we also can save it for a later time due to rebuild/test times"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2023-02-13T19:45:18Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-02-13T20:13:08Z",
+     "body": "LGTM"
+    }
+   ],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

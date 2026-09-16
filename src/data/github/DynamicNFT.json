@@ -1,0 +1,550 @@
+{
+ "name": "DynamicNFT",
+ "fetchedAt": "2026-09-16T10:42:05.197Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2025-01-15T13:22:54Z",
+  "lastMerged": "2025-01-09T16:22:12Z",
+  "release": "2.4.0",
+  "totalComments": 76
+ },
+ "release": {
+  "version": "2.4.0",
+  "date": "2025-03-04T19:00:43Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.4.0",
+  "excerpt": "DynamicNFT (XLS-46)** - Adds the ability to mint mutable `NFToken` objects whose URI can be changed. ([#5048](https://github.com/XRPLF/rippled/pull/5048))"
+ },
+ "prs": [
+  {
+   "number": 5048,
+   "title": "XLS-46: DynamicNFT",
+   "url": "https://github.com/XRPLF/rippled/pull/5048",
+   "state": "closed",
+   "author": "tequdev",
+   "createdAt": "2024-06-18T04:56:37Z",
+   "updatedAt": "2025-01-15T13:22:54Z",
+   "closedAt": "2025-01-09T16:22:12Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2024-06-18T05:26:19Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5048?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAll modified and coverable lines are covered by tests :white_check_mark:\n> Project coverage is 77.9%. Comparing base [(`040cd23`)](https://app.codecov.io/gh/XRPLF/rippled/commit/040cd23e4a7c0a7e10aca72a97b22494fb57b520?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`ccbed88`)](https://app.codecov.io/gh/XRPLF/rippled/commit/ccbed88524689ddb752f8fca2246fafbcd00afaa?dropdown=coverage&el=desc&utm_medium=referral&",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2175040323"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-06-20T13:31:36Z",
+     "body": "In other PR, I suggested adding a [check](https://github.com/XRPLF/rippled/pull/4838#issuecomment-1838855814) so that NFTokenModify would fail if there is any outstanding offers. This is to prevent the issuer from changing the URI and then accept an existing offer.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2180706018"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-06-20T13:58:38Z",
+     "body": "> In other PR, I suggested adding a [check](https://github.com/XRPLF/rippled/pull/4838#issuecomment-1838855814) so that NFTokenModify would fail if there is any outstanding offers. This is to prevent the issuer from changing the URI and then accept an existing offer.\n\nAs mentioned in this comment, wouldn't that make sense since the issuer can change the URI after the user has bought it?\nUsers need to be aware of the risk to mutable NFTs, just as they need to be aware of the possibility of being burned by the issuer after purchasing a Burnable NFT.\n\nhttps://github.com/XRPLF/rippled/pull/4838#issuecomment-1994709096",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2180779959"
+    },
+    {
+     "author": "xVet",
+     "date": "2024-06-20T15:19:24Z",
+     "body": "Correct, if you own a dynamic NFT then you agree that it can be changed by the issuer. I wouldn't personally put a check on offers, because this might cut into some use cases people come up with.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2180963255"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-06-21T17:05:14Z",
+     "body": "BTW, the \"Context of change\" section linked to the XLS20 proposal, I think you meant to link to this one https://github.com/XRPLF/XRPL-Standards/discussions/130",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2183122124"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-06-22T11:08:48Z",
+     "body": "> BTW, the \"Context of change\" section linked to the XLS20 proposal, I think you meant to link to this one [XRPLF/XRPL-Standards#130](https://github.com/XRPLF/XRPL-Standards/discussions/130)\n\ngood catch, fixed!",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2183982400"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-06-29T05:36:11Z",
+     "body": "@scottschurr \nThanks for the review. I fully agree with your suggestions and have cherry-picked all three commits.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2197991934"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-07-16T13:01:26Z",
+     "body": "I suggest holding off on merging this PR until the [Clio counterpart](https://github.com/XRPLF/clio/pull/1525) is also approved. While this isn't standard practice, the NFT functionality is in a unique position where its Clio implementation is necessary for it to work correctly. IMO ideally we should make sure the feature works on both ends before merging both into develop.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2230834895"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-09-11T16:07:19Z",
+     "body": "> I suggest holding off on merging this PR until the [Clio counterpart](https://github.com/XRPLF/clio/pull/1525) is also approved. While this isn't standard practice, the NFT functionality is in a unique position where its Clio implementation is necessary for it to work correctly. IMO ideally we should make sure the feature works on both ends before merging both into develop.\n\nThe PR has been inactive for about a month...\nIf it is not included in the next release (2.3.0), we will have to wait a few more months.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2344084004"
+    },
+    {
+     "author": "cindyyan317",
+     "date": "2024-09-23T09:06:12Z",
+     "body": "> > I suggest holding off on merging this PR until the [Clio counterpart](https://github.com/XRPLF/clio/pull/1525) is also approved. While this isn't standard practice, the NFT functionality is in a unique position where its Clio implementation is necessary for it to work correctly. IMO ideally we should make sure the feature works on both ends before merging both into develop.\n> \n> The PR has been inactive for about a month... If it is not included in the next release (2.3.0), we will have to wait a few more months.\n\nHi @tequdev ,\nThe  [Clio counterpart](https://github.com/XRPLF/clio/pull/1525)  has been finished. After this PR is merged to rippled, Clio will update the XRPL library and do ",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2367625524"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-12-20T20:18:10Z",
+     "body": "Build error - \n```\nsrc/xrpld/app/tx/detail/NFTokenModify.cpp:72:35: error: use of undeclared identifier 'sle'\n   72 |         if (auto const minter = (*sle)[~sfNFTokenMinter]; minter != account)\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2557663122"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-01-08T18:47:40Z",
+     "body": "Good to go from the automation tests. @tequdev please update the branch and ensure that this is ready to merge from your side.\ncc @bthomee for visibility",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2578380550"
+    },
+    {
+     "author": "tequdev",
+     "date": "2025-01-09T00:41:48Z",
+     "body": "ready to merge👍",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2578960954"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-01-09T16:06:42Z",
+     "body": "@bthomee this is ready to merge whenever you get a chance",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2580670318"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-01-14T19:15:35Z",
+     "body": "@tequdev it looks like this code doesn't check for invalid flags - can that be added in a separate PR?",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2590913926"
+    },
+    {
+     "author": "tequdev",
+     "date": "2025-01-15T13:22:52Z",
+     "body": "> @tequdev it looks like this code doesn't check for invalid flags - can that be added in a separate PR?\n\nNice catch!\n\nYou can check the changes in this PR.\n#5246",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#issuecomment-2592847452"
+    }
+   ],
+   "body": "Replace from https://github.com/XRPLF/rippled/pull/4838\nCo-Author: @xVet\n\n## High Level Overview of Change\n\nSpec: [XLS-46d: Dynamic Non Fungible Tokens (dNFTs)](https://github.com/XRPLF/XRPL-Standards/discussions/130)\n\nThis Amendment adds functionality to update the URI of [NFToken objects](https://github.com/XRPLF/XRPL-Standards/discussions/46) by adding:\n\n`NFTokenModify:` Transactor to initiate the altering of the URI\n`lsfMutable`: Flag to be set in a NFTokenMint transaction to allow NFTokenModify to execute successfully on given NFT.\n\n### Context of Change\n\nhttps://github.com/XRPLF/XRPL-Standards/discussions/130\n\n### Type of Change\n\n- [x ] New feature (non-breaking change which adds funct",
+   "merged": true,
+   "mergedAt": "2025-01-09T16:22:12Z",
+   "draft": false,
+   "base": "develop",
+   "head": "tequdev:featureDynamicNFT",
+   "additions": 522,
+   "deletions": 26,
+   "changedFiles": 14,
+   "commits": 47,
+   "reviewComments": 36,
+   "reviews": [
+    {
+     "author": "scottschurr",
+     "state": "CHANGES_REQUESTED",
+     "date": "2024-06-28T21:38:16Z",
+     "body": "Nice job on this pull request!  The unit test coverage is pretty good.  I appreciate that you took the time to do that.\n\nI left quite a number of comments, but don't be dismayed by that ...\n\n1. Most of the comments are personal preferences of mine (although I justify them).\n2. I can be a very picky reviewer.\n\nThat said, I think that my comment regarding the `nft::updateToken()` implementation is pretty important.  If you choose not to implement that change I'll want to understand why.\n\nFor your convenience I made commits that implement all of the changes I've suggested.  If you want, you're welcome to cherry pick them, or you can just use them as examples of the changes I am suggesting.  The"
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2024-06-29T05:23:44Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2024-07-02T21:09:36Z",
+     "body": "Looks great to me!  Thanks for your patience with my review."
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-07-03T18:57:48Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-07-03T19:11:25Z",
+     "body": ""
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2024-07-04T02:43:59Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-07-04T14:38:45Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2024-07-04T14:43:39Z",
+     "body": "Looks good!"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-07-05T14:47:31Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-07-05T22:19:18Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-07-08T14:50:17Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2024-07-11T16:18:20Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2024-07-11T17:42:29Z",
+     "body": "looks good"
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2024-07-12T03:34:26Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-12-12T23:49:25Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-12-12T23:52:22Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-12-13T00:05:16Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-12-13T00:05:20Z",
+     "body": ""
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2024-12-15T08:41:28Z",
+     "body": ""
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2024-12-15T08:41:33Z",
+     "body": ""
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2024-12-15T08:41:40Z",
+     "body": ""
+    },
+    {
+     "author": "cindyyan317",
+     "state": "COMMENTED",
+     "date": "2024-12-23T09:30:43Z",
+     "body": ""
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2024-12-23T09:56:10Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-01-09T16:20:46Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "scottschurr",
+     "date": "2024-06-25T00:03:29Z",
+     "path": "include/xrpl/protocol/TxFlags.h",
+     "body": "This whole section of `NFTokenMintMask`s is just adding or removing one bit in a previously defined mask.  Repeating the names of all the flags in every definition seems kind of error prone to me.  Consider changing all of the definitions to simply build on a previously defined `NFTokenMintMask`.  It might look like this:\n```\nconstexpr std::uint32_t const tfNFTokenMintMask =\n    ~(tfUniversal | tfBurnable | tfOnlyXRP | tfTransferable);\n\nconstexpr std::uint32_t const tfNFTokenMintOldMask =\n    ~( ~tfNFTokenMintMask | tfTrustLine);\n\n// if featureDynamicNFT enabled then new flag allowing mutable URI available.\nconstexpr std::uint32_t const tfNFTokenMintOldMaskWithMutable =\n    ~( ~tfNFTokenMint",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1651785922"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-25T01:17:06Z",
+     "path": "src/libxrpl/protocol/TxFormats.cpp",
+     "body": "The spec (https://github.com/XRPLF/XRPL-Standards/discussions/130 August 18, 2023 version) specifies that the `sfURI` field is required.  Here it is listed as `soeOPTIONAL`. I think that `soeOPTIONAL` is a good choice, because that matches the behavior of `NFTokenMint`.  Perhaps the spec needs to be updated?",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1651834400"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T00:08:00Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "I think \"minter\" is not a great name for the role this `Account` plays in this test.  They certainly do mint the NFTs, but not in the role assigned by `setMinter()`.  I think a better name for this `Account` would be \"issuer\".  Issuer really is the role that this `Account` plays throughout the unit test.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1657941853"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T00:25:10Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "It looks like this section of the test is exercising corners of `NFTokenModify::preflight()`.  That's great, and I very much appreciate it.\n\nThere is a corner of `preflight()` that this test currently misses.  You can verify that `preflight()` calls `preflight1()` by causing a `preflight1()` to return a non-`tesSUCCESS` code.  Here's one way to do that:\n```\n            // Set a negative fee.  Exercises invalid preflight1.\n            env(token::modify(issuer, nftId),\n                fee(STAmount(10ull, true)),\n                ter(temBAD_FEE));\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1657950867"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T00:44:38Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "This code base usually uses `camelCase` for locals, not `snake_case`.  I suggest you change this local name to `nftIDNotExists`.  Same for `nftId_not_modifiable` down below.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1657960180"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T00:44:50Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "I don't think this test actually tests what you think it is testing.  Because you are using `nftId_not_modifiable`, `preclaim()` bails before you get to the invalid minter check.  You can help prevent some mistakes like this by limiting the scope of locals using braces.  You've used that technique in other parts of this test.  I think it would be good to apply that technique to this section as well.\n\nWhen I applied that technique in this section, here is what the results looked like:\n```\n            {\n                // NFToken not exists\n                uint256 const nftIDNotExists{\n                    token::getNextID(env, issuer, 0u, tfMutable)};\n                env.close();\n\n            ",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1657960241"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T00:49:13Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "It would be nice to add a comment about what this lambda does.  Perhaps something like...\n```\n            // lambda that returns the JSON form of NFTokens held by acct\n```\nYou also don't need any captures.  All the relevant information is passed in.  But, since we're talking about captures, it makes more sense to me to capture `env`, rather than pass it in.  It reduces noise at the call sites.  So I'd be inclined to make the signature of the lambda look like this:\n```\n            // lambda that returns the JSON form of NFTokens held by acct\n            auto accountNFTs = [&env](Account const& acct) {\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1657964323"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T01:02:01Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "These 5 lines, or something very much like them, get repeated a lot in this test.  You can make a lambda that does this work and make checking the text of the `URI` easier to apply throughout the test.  I built a lambda like that.\n\nA naive lambda would make it hard to know which line actually failed.  But we can pass the invoking line number into the lambda and produce understandable fail messages.  Here's what my lambda looked like:\n```\n            // lambda that checks for the expected URI value of an NFToken\n            auto checkURI = [&accountNFTs, this](\n                                Account const& acct,\n                                char const* uri,\n                               ",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1657975085"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T16:05:43Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Could be `const`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1658963671"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T19:40:37Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenModify.cpp",
+     "body": "My personal bias is to use real type names, rather than `auto` as long at the type name does not get too long.  I find this really helps me when I'm reading code.  I use a text editor, not an IDE, to work on code.  So having the actual type be visible in the source code makes it easier for me as a reader.\n\nIf you use an IDE you might think this guidance does not apply to you.  But if you use the Github interface to do code reviews, then you too read code as text.  So having the actual type visible in the source code benefits you as well.\n\nThat's a long winded way of suggesting that you replace the `auto` with `TER`.  But I'm not insisting.  It's only a suggestion.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1659242846"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T19:41:30Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenModify.cpp",
+     "body": "Consider replacing `auto` with `AccountID`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1659243724"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T19:42:09Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenModify.cpp",
+     "body": "Consider replacing `auto` with `AccountID`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1659244160"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T19:51:12Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenModify.cpp",
+     "body": "I think this `if` leaves something to be desired.  This is the first time that we've looked for the Issuer for this particular `NFToken`.  It's possible that there will be a bug so that the `read()` does not return an account object.  If that happens it makes sense to give up quickly.  As the `if` is currently written, we'll ignore that case and let it be handles further down in the code.\n\nSo my preference is to restructure the code like this:\n```\n        if (auto const sle = ctx.view.read(keylet::account(issuer)); !sle)\n            return tecNO_PERMISSION;  // Should not be possible\n        else if (auto const minter = (*sle)[~sfNFTokenMinter];\n                 minter != account)\n          ",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1659250942"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T19:51:55Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenModify.cpp",
+     "body": "Consider replacing `auto` with `uint256`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1659251464"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T19:52:37Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenModify.cpp",
+     "body": "Consider replacing `auto` with `AccountID`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1659252263"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T19:56:33Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenModify.cpp",
+     "body": "I think there's a problem with the `nft::updateToken()` implementation.  See the discussion in `NFTokenUtils.cpp`.  I'm going to suggest that all of this code be replaced by...\n```\n    return nft::changeTokenURI(view(), owner, nftokenID, ctx_.tx[~sfURI]);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1659257082"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-28T20:55:36Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenUtils.cpp",
+     "body": "This implementation for `updateToken` has a subtle complexity hidden in it.  The current behavior is to remove the `NFToken` from the page and then insert the `NFToken` into the (presumably same) page.\n\nThe subtle complexity is that removing the `NFToken` from its page may cause the page to coalesce with adjacent pages.  Then re-adding the `NFToken` may cause the page to split.  None of that activity is really necessary.  We're not actually removing or adding an `NFToken`.  We're just adding, replacing or removing the `URI` associated with the `NFToken`.  The presence of the `NFToken`, and its `NFTokenID` value, are always left unchanged.  So manipulating NFTokenPages is not really necessary",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1659315015"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-06-29T05:23:44Z",
+     "path": "src/libxrpl/protocol/TxFormats.cpp",
+     "body": "Since you pointed it out, as of Jun 29 the `sfURI` field has been updated to an optional field.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1659605826"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-07-03T18:57:48Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenUtils.cpp",
+     "body": "@scottschurr may I ask why is `Slice` type used here, and not `Buffer`?\n\nAlso another related question, in `STBlob`, it uses`Buffer` to store `value_`, but why `value_type` have type `Slice` and not `Buffer`? In `STBlob`:\n```\nclass STBlob : public STBase, public CountedObject<STBlob>\n{\n    Buffer value_;\n\npublic:\n    using value_type = Slice;\n```\n\nThanks!",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1664622222"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-07-03T19:11:25Z",
+     "path": "src/libxrpl/protocol/TxFormats.cpp",
+     "body": "Is there any use case for removing the URI from an existing NFT? Is there any difference from burning the NFT compared to an NFT without a URI?",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1664635346"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-07-04T02:43:59Z",
+     "path": "src/libxrpl/protocol/TxFormats.cpp",
+     "body": "Such a use case may not be common, but it is not impossible to say that there is no use case.\n\nSince the NFTokenMint transaction can be executed with the URI field unspecified, it is reasonable that the NFTokenModify transaction can change the URI field to unspecified.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1665018036"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-07-04T14:38:45Z",
+     "path": "src/libxrpl/protocol/TxFormats.cpp",
+     "body": "Makes sense. Thanks!",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1665800918"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-07-05T14:47:31Z",
+     "path": "src/libxrpl/protocol/TxFormats.cpp",
+     "body": "Should there be a flag for removing the URI from the NFT, like with `NFTokenMinter`, instead of just using its absence?",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1666895332"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-07-05T22:19:18Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenUtils.cpp",
+     "body": "> @scottschurr may I ask why is Slice type used here, and not Buffer?\n\nSure.  The simple answer is that I was looking for the most obvious type to pass in.  The only call in the code base (currently) to `nft::changeTokenURI` looks like this:\n```\n    return nft::changeTokenURI(view(), owner, nftokenID, ctx_.tx[~sfURI]);\n```\nThe awkward question is \"What type does `ctx_.tx[~sfURI]` return?\"  I could dig through a bunch of templates in `STObject` and try to figure that out.  But it's really easy to get lost in there.  So in situations like this I usually rely on my compiler to tell me.\n\nI picked a type that I'm pretty sure is not constructible or assignable from whatever `ctx_.tx[~sfURI]` retur",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1667187972"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-07-08T14:50:17Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenUtils.cpp",
+     "body": "Really appreciate the detailed response. Thanks Scott! ❤️",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1668790611"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2024-07-11T16:18:19Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Maybe it's better to put `testcase(\"Test NFTokenModify\")` here",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1674311580"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-07-12T03:34:26Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "fixed!",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1675097513"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-12-12T23:49:24Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenModify.cpp",
+     "body": "```suggestion\n        if (auto const minter = (*sle)[~sfNFTokenMinter];\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1883042911"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-12-12T23:52:22Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenModify.cpp",
+     "body": "Shouldn't this have a different error (like `tecINTERNAL` or `tefEXCEPTION`) if this shouldn't be possible? It also makes it easier to identify if something goes wrong.",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1883044940"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-12-13T00:05:16Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenUtils.cpp",
+     "body": "Same here",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1883054493"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-12-13T00:05:19Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenUtils.cpp",
+     "body": "Same here",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1883054546"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-12-15T08:41:28Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenModify.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1885554656"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-12-15T08:41:33Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenUtils.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1885554697"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-12-15T08:41:40Z",
+     "path": "src/xrpld/app/tx/detail/NFTokenUtils.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1885554722"
+    },
+    {
+     "author": "cindyyan317",
+     "date": "2024-12-23T09:30:42Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "🤔  This name seemed changed. Why `ttNFTokenModify` is using different naming style?",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1895525457"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-12-23T09:56:10Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Good catch! fixed!",
+     "url": "https://github.com/XRPLF/rippled/pull/5048#discussion_r1895552832"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

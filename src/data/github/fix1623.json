@@ -1,0 +1,558 @@
+{
+ "name": "fix1623",
+ "fetchedAt": "2026-09-16T10:52:16.339Z",
+ "summary": {
+  "status": "merged",
+  "prs": 3,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:21:23Z",
+  "lastMerged": "2025-10-30T17:33:09Z",
+  "release": "3.2.0",
+  "totalComments": 70
+ },
+ "release": {
+  "version": "3.2.0",
+  "date": "2026-06-16T00:36:47Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/3.2.0",
+  "excerpt": "Retire fix1623 amendment by @pratikmankawde in https://github.com/XRPLF/rippled/pull/5928"
+ },
+ "prs": [
+  {
+   "number": 5928,
+   "title": "Retire fix1623 amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/5928",
+   "state": "closed",
+   "author": "pratikmankawde",
+   "createdAt": "2025-10-23T15:02:54Z",
+   "updatedAt": "2026-05-20T17:21:23Z",
+   "closedAt": "2025-10-30T17:33:09Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-10-23T15:24:48Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5928?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.3%. Comparing base ([`44e027e`](https://app.codecov.io/gh/XRPLF/rippled/commit/44e027e51614c10124ab42588c65b63b173c1bf9?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`208559e`](https://app.codecov.io/gh/XRPLF/rippled/commit/208559ea7a31015d9621cf9dd394d4447c64ad2a?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5928#issuecomment-3437623976"
+    }
+   ],
+   "body": "## High Level Overview of Change\nThis change retires the `fix1623` amendment.\n\n### Context of Change\nAmendments activated for more than 2 years can be retired.\nhttps://xrpl.org/resources/known-amendments#fix1623\n\n### Type of Change\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Docu",
+   "merged": true,
+   "mergedAt": "2025-10-30T17:33:09Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:pratik/Retire-fix1623-amendment",
+   "additions": 35,
+   "deletions": 80,
+   "changedFiles": 4,
+   "commits": 11,
+   "reviewComments": 7,
+   "reviews": [
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-10-23T15:11:58Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-10-23T15:27:02Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-10-23T15:47:07Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-10-23T16:03:53Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "APPROVED",
+     "date": "2025-10-28T19:10:56Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2025-10-29T12:02:48Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-10-29T19:46:26Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-10-30T15:56:57Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "pratikmankawde",
+     "date": "2025-10-23T15:11:58Z",
+     "path": "src/xrpld/rpc/detail/DeliveredAmount.cpp",
+     "body": "Interestingly the [fix1623](https://xrpl.org/resources/known-amendments#fix1623) amendment suggests that the delivered amount fields are only for `Check_Cash` type transactions. But this code says otherwise. Or am I missing something here?\nAlso tagging @ximinez for some insight.",
+     "url": "https://github.com/XRPLF/rippled/pull/5928#discussion_r2455541748"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-10-23T15:12:46Z",
+     "path": "src/xrpld/rpc/detail/DeliveredAmount.cpp",
+     "body": "you don't need this function anymore, move its functionality into `canHaveDeliveredAmount`",
+     "url": "https://github.com/XRPLF/rippled/pull/5928#discussion_r2455546109"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-10-23T15:14:06Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "nit: did you mean `Txn`?",
+     "url": "https://github.com/XRPLF/rippled/pull/5928#discussion_r2455553185"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-10-23T15:47:06Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "Yeah, typo. Fixing.",
+     "url": "https://github.com/XRPLF/rippled/pull/5928#discussion_r2455702869"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-10-23T16:03:53Z",
+     "path": "src/xrpld/rpc/detail/DeliveredAmount.cpp",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/5928#discussion_r2455785214"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-10-29T19:46:26Z",
+     "path": "src/xrpld/rpc/detail/DeliveredAmount.cpp",
+     "body": "> Interestingly the [fix1623](https://xrpl.org/resources/known-amendments#fix1623) amendment suggests that the delivered amount fields are only for `Check_Cash` type transactions. But this code says otherwise. Or am I missing something here?\n\n`DeliveredAmount` existed before `fix1623`, but only for payment and account delete. `fix1623` _added_ it for check cash.",
+     "url": "https://github.com/XRPLF/rippled/pull/5928#discussion_r2475136191"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-10-30T15:56:57Z",
+     "path": "src/xrpld/rpc/detail/DeliveredAmount.cpp",
+     "body": "Thanks for confirming.",
+     "url": "https://github.com/XRPLF/rippled/pull/5928#discussion_r2478658097"
+    }
+   ]
+  },
+  {
+   "number": 2549,
+   "title": "Don't read Amount field if it is not present (RIPD-1623)",
+   "url": "https://github.com/XRPLF/rippled/pull/2549",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2018-05-18T20:26:23Z",
+   "updatedAt": "2018-06-21T14:14:55Z",
+   "closedAt": "2018-06-01T21:07:57Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "ripplelabs-jenkins",
+     "date": "2018-05-18T21:06:08Z",
+     "body": "## Jenkins Build Summary\n\nBuilt from [this commit](https://github.com/ripple/rippled/commit/26b7968736c69cbdffd3516e55ec9e66a020fa5c)\n\nBuilt at __20180518 - 21:06:07__\n\n### Test Results\n\nBuild Type | Log | Result | Status\n---------- | --- | ------ | ------\ndocs | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2549/1//artifact/docs.txt) | 1 cases, 0 failed, t: 2s | PASS :white_check_mark: \nclang.debug.unity | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2549/1//artifact/clang.debug.unity.txt) | 1030 cases, 0 failed, t: 246s | PASS :white_check_mark: \nmsvc.debug | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2549/1//artifact/msvc.debug.txt) | 1026 cases, 0 ",
+     "url": "https://github.com/XRPLF/rippled/pull/2549#issuecomment-390332255"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-06-01T21:07:57Z",
+     "body": "In 1.1.0-b2",
+     "url": "https://github.com/XRPLF/rippled/pull/2549#issuecomment-394009457"
+    }
+   ],
+   "body": "@mDuo13 identified a potential issue if amendments go live in an unexpected order.  Suppose the Checks amendment were to go live before fix1623.  Then, later, fix1623 goes live.  If that occurred, a CheckCash that specified `DeliverMin` in the pre-fix1623 window could return a synthetic `delivered_amount` of \"0\" after fix1623 went live.  Not correct.  A better response would be \"unavailable\".\n\nAlthough we don't expect amendments to go live in the wrong order, this fix is still correct and might be useful if future transaction types start returning the synthetic `delivered_amount` field.\n\nThis change is not on an amendment, since it does not affect any data that goes in the ledger.  It only a",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:delivered-amount-error",
+   "additions": 23,
+   "deletions": 20,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "mDuo13",
+     "state": "APPROVED",
+     "date": "2018-05-22T01:15:19Z",
+     "body": ":+1:"
+    },
+    {
+     "author": "miguelportilla",
+     "state": "APPROVED",
+     "date": "2018-05-22T19:43:42Z",
+     "body": "👍"
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 2466,
+   "title": "Add delivered_amount to tx result for CheckCash (RIPD-1623)",
+   "url": "https://github.com/XRPLF/rippled/pull/2466",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2018-04-03T16:32:56Z",
+   "updatedAt": "2018-05-16T16:28:15Z",
+   "closedAt": "2018-05-01T16:03:16Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "ripplelabs-jenkins",
+     "date": "2018-04-03T17:10:35Z",
+     "body": "## Jenkins Build Summary\n\nBuilt from [this commit](https://github.com/ripple/rippled/commit/b1641fa0dac5f6031f1e80ce6c1e4dd13045da3b)\n\nBuilt at __20180420 - 01:08:37__\n\n### Test Results\n\nBuild Type | Log | Result | Status\n---------- | --- | ------ | ------\ndocs | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2466/6//artifact/docs.txt) | 1 cases, 0 failed, t: 2s | PASS :white_check_mark: \nclang.debug.unity | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2466/6//artifact/clang.debug.unity.txt) | 1022 cases, 0 failed, t: 251s | PASS :white_check_mark: \ncoverage | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2466/6//artifact/coverage.txt) | 1022 cases, 0 fail",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-378325693"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-04-03T17:37:52Z",
+     "body": "I'm seeing some linker errors:\n```\n../../src/ripple/beast/hash/spooky.h:41: error: undefined reference to 'SpookyHash::Init(unsigned long, unsigned long)'\n../../src/ripple/beast/hash/spooky.h:47: error: undefined reference to 'SpookyHash::Update(void const*, unsigned long)'\n../../src/ripple/beast/hash/spooky.h:54: error: undefined reference to 'SpookyHash::Final(unsigned long*, unsigned long*)'\n```\nLooking into it now....",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-378334332"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2018-04-03T18:01:16Z",
+     "body": "These should be defined in src/ripple/beast/hash/impl/spookyv2.cpp.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-378341789"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-04-03T18:04:54Z",
+     "body": "The link error was caused by a stale cmake file on my end. It works now.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-378342898"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2018-04-04T14:49:00Z",
+     "body": "If this affects the actual metadata stored in the ledger (and to my untrained eye, it looks like it does), we should change the Checks amendment name or put this behind a second amendment. Otherwise, servers running 0.90.1 or lower may think they're running the same \"Checks\" amendment even though they aren't.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-378627303"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-04T16:51:15Z",
+     "body": "Regarding @mDuo13's suggestion of possible change in amendment name, I can positively say yes, this bug fix adds to the metadata that is stored for a subset of `CheckCash` transactions.  I hear the  concern that an old version of the Checks code could be running on the network and produce the wrong metadata.  Certainly one way to address that concern would be to change the spelling of the amendment.\n\nI'd prefer to leave the determination of whether that's necessary to an expert in the area.  Perhaps @nbougalis would chime in?",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-378669275"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-04T20:52:23Z",
+     "body": "I've added a `[FOLD]` commit that hopefully addresses a couple of the identified nits.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-378741236"
+    },
+    {
+     "author": "codecov-io",
+     "date": "2018-04-04T21:44:47Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2466?src=pr&el=h1) Report\n> Merging [#2466](https://codecov.io/gh/ripple/rippled/pull/2466?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/1eece9b1fdbf58b8a4b52b738f53be4fd39dd37e?src=pr&el=desc) will **increase** coverage by `0.02%`.\n> The diff coverage is `100%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2466/graphs/tree.svg?height=150&src=pr&token=y0OgJuslsq&width=650)](https://codecov.io/gh/ripple/rippled/pull/2466?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2466      +/-   ##\n===========================================\n+ Coverag",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-378755262"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-17T21:20:05Z",
+     "body": "@intelliot, Changing the amendment name would certainly be the most secure thing to do.  However there have been previous amendments that have been published to the network but not completely finished until a later release.  At the moment I think `Checks` is following that example.  Not to say that we couldn't tighten up our process.  But I'd like input from @nbougalis before we choose to do that.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382150612"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-04-18T02:10:26Z",
+     "body": "Re: amendment name... the amendment hasn’t yet been activated and this PR corrects a technical flaw in the original implementation. Under these circumstances, I don’t think it’s necessary to change the name.\n\nIs the concern here that someone will be running 0.90 after we release 1.0 with a fix and have issues?\n\nOne could make that argument, but if that’s the case, then a `fix` amendment for this seems more appropriate and we simply propose activating the fix first and `Checks` later. But now we’re adding two amendments...",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382223700"
+    },
+    {
+     "author": "intelliot",
+     "date": "2018-04-18T14:34:15Z",
+     "body": "Exactly - there will likely be rippled servers running 0.90 on the network. Don't we want them to be amendment blocked if they don't have this fix?\n\nIf we want it to be one amendment, we could rename it. `ChecksV2` or `Checks1.0.1` for example.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382408518"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-18T16:12:10Z",
+     "body": "Not that we can rely on this in all cases, but in the specific 1.0.0 case there's a different amendment (`fix1543`) which, assuming it goes live with 1.0.0, would amendment block any nodes running 0.90.0.  Here's the commit: https://github.com/ripple/rippled/commit/d45556ec823ae896f35e671f269f8612330a836d#diff-9b4c07353136ece3af67c68aca12ff63R363.  That commit was added in 1.0.0-b4.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382442491"
+    },
+    {
+     "author": "intelliot",
+     "date": "2018-04-18T16:44:32Z",
+     "body": "I _think_ there will be no problems if `fix1543` is activated before `Checks`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382452443"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-18T17:18:48Z",
+     "body": "Another consideration is that, regarding ledger health, it's really only important that the _validators_ are on 1.0.0 when the `Checks` amendment goes live.  Leaving `fix1543` out of consideration, if a non-validator node is running 0.90.0 when `Checks` goes live, then that node will see a disagreement between the ledger it built and the one accepted by the network.  So that node will see more frequent de-syncs.  It's less explicit than being amendment blocked, but the problem is limited to those non-validator nodes that are running 0.90.0.\n\nThe story changes dramatically if there are validator nodes running 0.90.0.  But, at least for the time being, that's less of a concern.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382462943"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2018-04-18T18:36:13Z",
+     "body": "If we're changing the behavior of an amendment from a released version, we should change its name and ID. Full stop.\n\nThe point of the Amendments system is to make it clear when people aren't running the rules agreed by a consensus of the network. That includes this case. Changing the amendment's functionality (even just a little bit) but not its name/ID is almost as bad as not having an amendment at all.\n\nJust because there happen to be circumstances around this one (like a separate fix amendment that's likely to go live first/at the same time, essentially doing the job of amendment blocking servers for this one) doesn't make it a good practice. What if the other fix amendment doesn't get a",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382486751"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-18T19:09:46Z",
+     "body": "@mDuo13 and @intelliot:  @nbougalis and I have talked this over.  My current intention is to add a `fix` that enabled just this change for `delivered_amount`.  We will enable that `fix` on the network before enabling the `Checks` amendment.  Objections?\n\nFor the longer term we probably need to rethink how we've been handling amendments with an eye toward broader control of validators.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382496811"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-19T04:01:12Z",
+     "body": "Rebased to -b4 and attached changes to `fix1623` instead of `Checks`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382603254"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-04-19T17:13:44Z",
+     "body": "Still :+1: from me as well",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382812679"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-19T18:11:11Z",
+     "body": "The perils of a rebase.  @ximinez , the missing space in Features.cpp is added.  Thanks for catching that.\n\n@mDuo13 and @intelliot, is this approach sufficient for you?  It you're okay with it then I'll squash and mark as passed.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382830540"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2018-04-19T22:59:13Z",
+     "body": "Putting the changes on a fix amendment works for me",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-382905822"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-01T16:03:16Z",
+     "body": "Merged as 7bc163ee4c8aa9616a126d92b3dfc3c7aa35bf5f.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#issuecomment-385709281"
+    }
+   ],
+   "body": "@mDuo13 noticed that Checks don't include the `delivered_amount` field in their metadata.  This pull request corrects that oversight.  It would be smart to not  enable the `Checks` amendment on the network until this fix is running on the main net.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:check-delivered-amount",
+   "additions": 142,
+   "deletions": 50,
+   "changedFiles": 5,
+   "commits": 1,
+   "reviewComments": 14,
+   "reviews": [
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2018-04-03T20:15:40Z",
+     "body": ":+1: Left a nit, but it's part of one of our ongoing friendly disagreements."
+    },
+    {
+     "author": "mDuo13",
+     "state": "COMMENTED",
+     "date": "2018-04-04T14:51:50Z",
+     "body": ""
+    },
+    {
+     "author": "mDuo13",
+     "state": "COMMENTED",
+     "date": "2018-04-04T14:53:47Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-04-04T15:04:38Z",
+     "body": ""
+    },
+    {
+     "author": "mDuo13",
+     "state": "COMMENTED",
+     "date": "2018-04-04T15:10:16Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2018-04-04T17:49:31Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2018-04-04T20:49:39Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-04-04T20:59:53Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "CHANGES_REQUESTED",
+     "date": "2018-04-17T21:11:07Z",
+     "body": "Didn't review all the code, but it looks good overall.\n\nI want to emphasize that I think the amendment name should be changed to prevent confusion with the version of the Checks amendment introduced earlier."
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2018-04-17T22:48:48Z",
+     "body": "This looks great. I left a small, but not crucial question / suggestion in the unit tests."
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2018-04-17T22:59:36Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2018-04-17T23:17:33Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2018-04-18T15:41:19Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2018-04-19T16:45:26Z",
+     "body": "Still :+1:"
+    },
+    {
+     "author": "intelliot",
+     "state": "APPROVED",
+     "date": "2018-04-19T18:11:20Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "seelabs",
+     "date": "2018-04-03T20:11:41Z",
+     "path": "src/ripple/app/tx/impl/CashCheck.cpp",
+     "body": "Three nits here:\n1) I think it formats better with assignment instead of `{}`.\n2) This is an immediately invoked lambda, why are we capturing some variable and passing others as parameters. I'd capture them all.\n3) Because this is an immediately invoked lambda, there is no danger of dangling references. The explicit lambda capture doesn't provide any value. A default capture would improve the code. (I already know you disagree :-)\n\nHere's my suggestion:\n```\n            STAmount const xrpDeliver = [&] {\n                // If the check cash specified Amount deliver exactly that.\n                if (!optDeliverMin)\n                    return ctx_.tx.getFieldAmount(sfAmount);\n\n                re",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r178947306"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2018-04-04T14:51:50Z",
+     "path": "src/ripple/app/tx/impl/CashCheck.cpp",
+     "body": "This looks possibly wrong to me. Are you setting a nonzero delivered amount even in the case where you return `tecPATH_PARTIAL`?",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r179169581"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2018-04-04T14:53:47Z",
+     "path": "src/ripple/rpc/impl/RPCHelpers.cpp",
+     "body": "Is it a bad thing to add delivered amount to Escrow or Payment Channels? I should hope that _all_ transactions which can deliver currency should have it, just for simplicity in processing transaction metadata. (I mean, that would be outside the scope of the Checks amendment to change that here, I guess...)",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r179170299"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-04-04T15:04:38Z",
+     "path": "src/ripple/app/tx/impl/CashCheck.cpp",
+     "body": "This looks correct to me. If we return `tecPATH_PARTIAL` on line 375 we never get to this line. Or did you mean something else?",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r179174404"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2018-04-04T15:10:16Z",
+     "path": "src/ripple/app/tx/impl/CashCheck.cpp",
+     "body": "Oh, no, my bad. I just misread the \"return\" statement!",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r179176589"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-04T17:49:31Z",
+     "path": "src/ripple/rpc/impl/RPCHelpers.cpp",
+     "body": "Excellent question, @mDuo13.  This specific topic came up when I was talking with Dave Cohen in San Francisco last December.  Dave's position was that all transactions that transfer funds (including all `Payment` transactions, not just the partials) should put their final outcome in a `delivered_amount` field.  This would have the potential to vastly simplify the computational hoops that an exchange has to jump through.\n\nIf we can simplify the life of an exchange I'm all for it.  However we need to think hard about some transactions like `EscrowCreate`.  From an _exchange's_ perspective does that XRP still belong to the owning account, even though the XRP is, for now, locked away in the `Esc",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r179227969"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-04T20:49:39Z",
+     "path": "src/ripple/app/tx/impl/CashCheck.cpp",
+     "body": "I've attempted to resolve a couple of these nits with a `[FOLD]` commit.  But I'll add a couple of comments:\n\n1. My inclination is to brace initialize whenever it's reasonable.  When general brace initialization was introduced in C++11, the goal was that everyone could use it everywhere.  And it would be safer that other forms of initialization since it doesn't narrow.  That failed.  Anything with an `initializer_list` constructor (like `vector`) causes problems.  `auto` causes problems (although we hope that improves with C++17).  But in my effort to think as little as possible while coding I reach for `{}` initialization by default unless I know of a reason not to.  Effective Modern C++ It",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r179278612"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-04-04T20:59:53Z",
+     "path": "src/ripple/app/tx/impl/CashCheck.cpp",
+     "body": "While this avoids the argument over lambda captures, I prefer the lambda over this code - even with the captures. You're call, of course.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r179281383"
+    },
+    {
+     "author": "ximinez",
+     "date": "2018-04-17T21:29:07Z",
+     "path": "src/ripple/rpc/impl/RPCHelpers.cpp",
+     "body": "IMHO, nothing is delivered by an `EscrowCreate`. It would only be delivered by an `EscrowFinish` or maybe an `EscrowCancel`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r182239621"
+    },
+    {
+     "author": "ximinez",
+     "date": "2018-04-17T22:48:14Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "This feels a bit like splitting hairs, but does `env.tx()` work if you call `env.close()` first? It would be cool to verify that the delivered amount field also gets populated correctly after a call to `env.close()`. Even if it doesn't, you could maybe do a two-part call, where you save the txid before calling `env.close()` then do the same checks.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r182264925"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-17T22:59:36Z",
+     "path": "src/ripple/rpc/impl/RPCHelpers.cpp",
+     "body": "That's why it's worth thinking about.  An `EscrowCreate` removes available XRP from an account.  Perhaps that account can no longer pay fees after the `EscrowCreate`?  I just want to make sure that any features we add align with the needs to the customers who we hope to have using those features.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r182266870"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-04-17T23:17:33Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "@ximinex, I'm not exactly sure what you're suggesting?  Here's what I think is happening now:\n\n1. We get the transaction hash before calling `Env::close()`.\n2. Then we call `Env::close()`.\n3. Following the `close()`, we get the transaction metadata and verify the `delivered_amount`\n\nHow would you like that adjusted?",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r182269674"
+    },
+    {
+     "author": "ximinez",
+     "date": "2018-04-18T15:41:19Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": ":man_facepalming: \n\nI completely missed the call to `env.close()` in `verifyDeliveredAmount`. It's already doing ~almost~ exactly what I described.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r182474449"
+    },
+    {
+     "author": "ximinez",
+     "date": "2018-04-19T16:31:58Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "Single byte nit: Since you added spaces before the `}` to the other amendments above, may as well add one here, too.",
+     "url": "https://github.com/XRPLF/rippled/pull/2466#discussion_r182808848"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

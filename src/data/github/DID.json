@@ -1,0 +1,1677 @@
+{
+ "name": "DID",
+ "fetchedAt": "2026-09-16T10:40:41.632Z",
+ "summary": {
+  "status": "merged",
+  "prs": 4,
+  "open": 0,
+  "merged": 3,
+  "issues": 4,
+  "proposals": 1,
+  "branches": [],
+  "lastActivity": "2026-06-25T16:34:05Z",
+  "lastMerged": "2026-06-25T16:34:05Z",
+  "release": "2.2.0",
+  "totalComments": 225
+ },
+ "release": {
+  "version": "2.2.0",
+  "date": "2024-06-04T23:09:54Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.2.0",
+  "excerpt": "fixEmptyDID amendment: Modifies the behavior of the DID amendment: adds an additional check to ensure that DIDs are non-empty when created, and returns a `tecEMPTY_DID` error if the DID would be empty. [#4950](https://github.com/XRPLF/rippled/pull/4950)"
+ },
+ "prs": [
+  {
+   "number": 7620,
+   "title": "Remove Credential/oracle/PD/DID from sponsor",
+   "url": "https://github.com/XRPLF/rippled/pull/7620",
+   "state": "closed",
+   "author": "PeterChen13579",
+   "createdAt": "2026-06-25T02:14:44Z",
+   "updatedAt": "2026-06-25T16:34:05Z",
+   "closedAt": "2026-06-25T16:34:05Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-06-25T03:09:17Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7620?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 82.2%. Comparing base ([`6ecf413`](https://app.codecov.io/gh/XRPLF/rippled/commit/6ecf413c648f2ab0e94e9b191f9a8dcac0c63772?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`597a9f2`](https://app.codecov.io/gh/XRPLF/rippled/commit/597a9f2a6393b975c4b534eb3cbafe5eb58535f4?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/7620#issuecomment-4795468945"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-06-25T16:34:05Z",
+   "draft": false,
+   "base": "xrplf/sponsor",
+   "head": "PeterChen13579:Cut_Credential_Oracle_from_Scope",
+   "additions": 60,
+   "deletions": 747,
+   "changedFiles": 12,
+   "commits": 3,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-06-25T09:50:28Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "APPROVED",
+     "date": "2026-06-25T14:53:33Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 6552,
+   "title": "refactor: Assorted small DID fixes",
+   "url": "https://github.com/XRPLF/rippled/pull/6552",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2026-03-16T20:40:41Z",
+   "updatedAt": "2026-05-20T17:26:41Z",
+   "closedAt": "2026-03-17T14:44:07Z",
+   "labels": [
+    "Ready to merge",
+    "Trivial",
+    "AI Triage"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-03-16T22:28:32Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6552?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 79.8%. Comparing base ([`252c676`](https://app.codecov.io/gh/XRPLF/rippled/commit/252c6768dfd88c8f239ed828ae8f1f85132c976f?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`1519fdf`](https://app.codecov.io/gh/XRPLF/rippled/commit/1519fdfddbe8fe1bcac37db7c62f3c82b011bf76?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/6552#issuecomment-4071032248"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR:\n* Makes `addSLE` in `DIDSet` a static function, instead of a free function.\n* Renames `Attestation` to `Data` everywhere (an artifact of a previous name for the field).\n* Actually runs a set of tests that were not included in the `run` function of `DID_test`.\n\n### Context of Change\n\nAI code review\n\n> **Description:**\n> The helper function `addSLE` is a free function defined in the `xrpl` namespace with external linkage, no declaration in any header, and no `static` keyword:\n> \n> ```cpp\n> TER\n> addSLE(ApplyContext& ctx, std::shared_ptr<SLE> const& sle, AccountID const& owner)\n> ```\n> \n> This function is logically private to `DIDSet.cpp`. As written:\n",
+   "merged": true,
+   "mergedAt": "2026-03-17T14:44:07Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:mvadari/addsle-static",
+   "additions": 8,
+   "deletions": 6,
+   "changedFiles": 5,
+   "commits": 7,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2026-03-17T14:08:29Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 4636,
+   "title": "`DID`: Decentralized identifiers (DIDs) (XLS-40):",
+   "url": "https://github.com/XRPLF/rippled/pull/4636",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2023-07-31T18:05:31Z",
+   "updatedAt": "2024-02-15T18:09:41Z",
+   "closedAt": "2023-10-18T20:01:12Z",
+   "labels": [
+    "Ready to merge",
+    "API Change",
+    "Amendment",
+    "Will Need Documentation",
+    "Clio Reviewed"
+   ],
+   "comments": [
+    {
+     "author": "RichardAH",
+     "date": "2023-08-01T07:25:10Z",
+     "body": "Is the DID object just a first class NFT that's set and unset by the user themselves on their own account? Am I missing something? Should someone else be able to modify this?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1659722288"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-01T14:37:25Z",
+     "body": "> Is the DID object just a first class NFT that's set and unset by the user themselves on their own account? Am I missing something? Should someone else be able to modify this?\n\nI think you might be referring to an old version of the spec - it was updated (and changed pretty heavily) about a month ago.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1660460594"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-09-07T18:19:00Z",
+     "body": "How should this PR be moved forward? Should it be considered for the next release?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1710589516"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-19T17:58:46Z",
+     "body": "> How should this PR be moved forward? Should it be considered for the next release?\n\n@intelliot the spec isn't finalized yet and there isn't much time between the final spec release and the 2.0 release. I'd like it to go into 2.0, but it may get pushed to the next release.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1726234163"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-09-26T18:20:34Z",
+     "body": "note: let's wait for updated spec (at least) before merging this\n\nupdates needed at: https://github.com/XRPLF/XRPL-Standards/discussions/100\n\n- should also wait for QA testing to complete (~ next week)",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1736056431"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-02T23:54:54Z",
+     "body": "@nbougalis - could you check if your requested changes have been satisfactorily addressed?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1743935927"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-09T16:01:04Z",
+     "body": "@intelliot this PR is ready to merge.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1753279440"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-09T16:11:47Z",
+     "body": "(note: checking with @nbougalis regarding whether he still has change requests)",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1753295932"
+    },
+    {
+     "author": "sgramkumar",
+     "date": "2023-10-11T03:05:02Z",
+     "body": "QA tests 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1756691018"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-11T20:21:16Z",
+     "body": "@intelliot this is good to go",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1758475339"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-12T15:20:26Z",
+     "body": "note: @dangell7 has reviewed: \"Looks good to me.\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1759817814"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-12T17:02:49Z",
+     "body": "Suggested commit message:\n```\n`DID`: Decentralized identifiers (DIDs) (XLS-40): (#4636)\n\nImplement native support for W3C DIDs.\n\nAdd a new ledger object: `DID`.\n\nAdd two new transactions:\n1. `DIDSet`: create or update the `DID` object.\n2. `DIDDelete`: delete the `DID` object.\n\nThis meets the requirements specified in the DID v1.0 specification\ncurrently recommended by the W3C Credentials Community Group.\n\nThe DID format for the XRP Ledger conforms to W3C DID standards. The\nobjects can be created and owned by any XRPL account holder. The\ntransactions can be integrated by any service, wallet, or application.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1760017309"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-13T21:26:07Z",
+     "body": "note: @sappenin would like the spec to be merged prior to this implementation\n\n- Spec: https://github.com/XRPLF/XRPL-Standards/pull/136",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#issuecomment-1762245486"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nIntroduces:\n* New ledger object: `DID`\n* Two new transactions:\n  * `DIDSet`, which creates and updates the `DID` object\n  * `DIDDelete`, which deletes the `DID` object\n\n### Context of Change\n\n- [XLS-40d specification](https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0040d-decentralized-identity#readme)\n\nEarlier discussions/versions:\n- https://github.com/XRPLF/XRPL-Standards/pull/136\n- [Spec discussion](https://github.com/XRPLF/XRPL-Standards/discussions/100)\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [x] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would ca",
+   "merged": true,
+   "mergedAt": "2023-10-18T20:01:12Z",
+   "draft": false,
+   "base": "develop",
+   "head": "mvadari:did",
+   "additions": 1063,
+   "deletions": 7,
+   "changedFiles": 30,
+   "commits": 28,
+   "reviewComments": 100,
+   "reviews": [
+    {
+     "author": "nbougalis",
+     "state": "CHANGES_REQUESTED",
+     "date": "2023-08-01T04:15:19Z",
+     "body": "Left some comments. Biggest issue, IMO, is the lack of any invariant checks. You should consider what types of checks make sense to code up."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-01T19:13:35Z",
+     "body": ""
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2023-08-01T19:55:16Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-01T20:05:19Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-01T20:06:56Z",
+     "body": ""
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2023-08-01T20:18:14Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2023-08-01T20:19:35Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2023-08-01T20:20:15Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-01T20:21:54Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-08-01T20:54:13Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-08-01T21:19:09Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-08-02T03:08:11Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "COMMENTED",
+     "date": "2023-08-02T15:09:58Z",
+     "body": ""
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2023-08-02T16:06:28Z",
+     "body": ""
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2023-08-02T16:12:37Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2023-08-02T16:15:03Z",
+     "body": ""
+    },
+    {
+     "author": "mDuo13",
+     "state": "COMMENTED",
+     "date": "2023-08-15T00:28:16Z",
+     "body": ""
+    },
+    {
+     "author": "mDuo13",
+     "state": "COMMENTED",
+     "date": "2023-08-15T00:34:35Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-16T20:41:45Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-16T20:43:26Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-16T20:43:34Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-16T20:48:43Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-17T16:10:52Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-17T16:11:01Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-17T16:11:48Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-08-23T18:01:26Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-08-23T19:19:44Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-08-23T20:30:30Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-24T09:23:43Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-24T09:25:09Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-24T09:25:18Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-24T09:25:55Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-08-24T17:39:20Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-08-24T17:39:55Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-08-24T17:40:18Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-08-24T17:41:03Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "APPROVED",
+     "date": "2023-09-08T20:12:45Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-15T19:40:31Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-15T19:40:35Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "CHANGES_REQUESTED",
+     "date": "2023-09-21T19:55:36Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-22T22:41:25Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-26T15:28:55Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-26T17:27:46Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-26T17:30:18Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-26T17:30:29Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-26T17:30:35Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-26T17:30:40Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-26T17:32:47Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-26T17:32:53Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-26T17:32:58Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-26T17:33:06Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-26T17:34:47Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2023-09-26T17:53:41Z",
+     "body": "👍 LGTM"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-03T21:38:35Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-10-04T15:42:42Z",
+     "body": "Looks good. Left some minor comments."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T16:44:49Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T16:45:05Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T17:10:36Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T17:10:43Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T17:11:03Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T17:11:16Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-10-06T17:11:38Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T19:30:38Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T19:40:53Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-10-06T20:48:33Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-10-06T20:50:15Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-10-06T20:50:53Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T21:06:31Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T21:06:42Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-10-06T21:11:51Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2023-10-06T21:34:31Z",
+     "body": "Nice job on this :+1:"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2023-10-07T13:40:23Z",
+     "body": "👍 LGTM"
+    },
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2023-10-11T05:08:00Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "APPROVED",
+     "date": "2023-10-12T16:28:18Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-16T19:17:06Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-17T15:26:13Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2023-10-17T21:50:50Z",
+     "body": ":+1:"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2023-10-17T23:11:54Z",
+     "body": ":+1: LGTM"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "nbougalis",
+     "date": "2023-08-01T03:50:57Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Shouldn't there be _some_ sanity checks for these values? At a minimum, a length check, so that someone can't create a megabyte or two worth of data?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1280081426"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-08-01T03:55:05Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "You _should_ be able to just reduce this `if`/`else` with:\n\n```\n(*sleDID)[~sfURI] = ctx_.tx[~sfURI];\n```\n\nNotice that you don't check if one or both the URI and DATA fields are being set to the same value that they already hold; so it's possible for someone to \"update\" the object while making no change. You may want to elide the call to `update` in that case.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1280083078"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-08-01T03:57:22Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "This can be reduced to just `return addSLE(ctx_, sleDID, account_);`\n\nAlso, why even have `addSLE` as a separate function instead of inlining the code here?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1280083961"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-08-01T03:58:43Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "No need for the separate variable of the block scope.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1280084585"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-08-01T04:00:19Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Same comment as before: why a separate function instead of inlining the code?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1280085228"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-08-01T04:01:37Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "This bit could be done in `preclaim`; not sure it makes sense to do it, just pointing it out.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1280085715"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-08-01T04:10:05Z",
+     "path": "src/ripple/protocol/TER.h",
+     "body": "This conflicts with PR #4626: see [lines 302-305 of TER.h](https://github.com/XRPLF/rippled/pull/4626/files#diff-570760ccc79d416a7e98bf3e851c2e298ea5cf90f7207018e06aa6b46d09a013R302-R305):\n\n```\n    tecAMM_EMPTY = 166,\n    tecAMM_NOT_EMPTY = 167,\n    tecAMM_ACCOUNT = 168,\n    tecINCOMPLETE = 169\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1280088783"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-08-01T04:12:31Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "You may want to consider using a non-common code here? On the other hand `Data` is generic enough that it may be useful elsewhere, so... maybe it's fine.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1280089751"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-01T19:13:35Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "It seems overly complicated to add that to `preclaim`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281048704"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2023-08-01T19:54:23Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": "I feel like `DID` is a weird name for this object. This is just a ledger object that holds two arbitrary bits of data, in the `URI` field and the `Data` field. Why not call this something more generic? I could see this being used for things other than DID.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281089963"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2023-08-01T19:55:02Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "Similar to my other comment, why not call these something more generic instead of `DIDSet` and `DIDDelete`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281090523"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-01T20:05:19Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": "You can only own one of them, so I don't really know what else you'd use them for.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281101552"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-01T20:06:56Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "I don't think that reduction works.\nWhat I want is: do nothing if the field doesn't exist in the transaction, delete the field if the field is an empty string, and replace it in any other case. \nWhat my understanding of that line of code is: delete the field if it doesn't exist, and replace it in any other case.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281102945"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2023-08-01T20:18:14Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": "This is just arbitrary data storage, I could really use this for anything at all. I could use it for an oracle, a bridge, governance, etc.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281112461"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-08-01T20:19:35Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "You're right, given what you're trying to do my proposed construct won't work. It's fine as it, but I wouldn't have personally structured this as you have; I'd have included two flags that, if set, indicate the type of value you're setting/clearing. So, if `sfFlags & flagURI` was set, then the `URI` field is replaced with the `URI` field from the transaction.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281113661"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-08-01T20:20:14Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Agreed. And any performance gains are likely to be overshadowed by the extra work to load/manipulate the objects.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281114196"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-01T20:21:54Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "This was the method that @seelabs and @aanchal4 thought was most user-intuitive.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281115527"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-08-01T20:54:13Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": "That's an interesting point @cjcobb23 \n\nWe could make this more generic - add a read-only \"kind\" field that's part of the hash and let people store whatever data they want.\n\nSo a DID would be stored in this new generic data object and have a \"kind\" of \"DID\", oracles would have a \"kind\" of \"oracle-usd-xrp\" or somesuch, and since the \"kind\" is part of the hash they are distinct objects. Although with this design you can only ever have one object per \"kind\", but that doesn't seem too bad.\n\nWe have talked about general purpose data storage in the past, now that we have a concrete use-case for such an object (DIDs) it seems like it's worth looking at doing the generic solution. We'd have to flesh",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281143050"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-08-01T21:19:08Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": ">    Although with this design you can only ever have one object per \"kind\", but that doesn't seem too bad.\n\n@seelabs there could be multiple oracles even for the same type. I.e. could have a pricing oracle for XRP/USD by chainlink, DIA, etc. Also could have weather, sports, etc. oracles say from the same Oracle Provider.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281166322"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-08-02T03:08:11Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": "@gregtatcam If the oracles are from different providers they can be on different accounts (the hash would include the \"kind\"and the account). Weather, sports, ect oracles from the same providers could be different \"kinds\".",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1281332296"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-08-02T15:09:58Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "What names would you propose instead?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1282048010"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2023-08-02T16:06:28Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "Something related to whatever we name the object. If we name the object `DataBlob` (not saying that's a good name), we could call these `DataBlobSet` and `DataBlobDelete`",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1282121707"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2023-08-02T16:12:37Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": "Could also add a \"description\" field as well, that's just some plain text description of the data.\n\nOne thing I think worth thinking about is actually storing the schema in the object. The schema could be defined in protobuf. This could enable things like allowing callers to pass in protobuf in the update transaction, safely deserializing the protobuf to other types and returning JSON to the RPC callers by just converting from protobuf to JSON. Obviously this wouldn't work for very large schemas, but for small schemas, say with just a few fields, we could probably store them in the object and get a lot of benefits.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1282129715"
+    },
+    {
+     "author": "dangell7",
+     "date": "2023-08-02T16:15:03Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "I like the `Collection/Document` nomenclature. I started in NOSQL and always liked those names. If the account is the collection then these could be \"Documents\".\n\nI agree that DID is more the type of `Data/Document` that is being stored and we should aim for more agnostic approach with the name of the transactor.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1282132338"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2023-08-15T00:28:16Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": "I think we should rename the ledger entry `Document` (\"DID documents\" are a thing but this can store any type of document), change the transaction names to `DocumentSet` and `DocumentDelete`, and allow multiple such items per account, with each having a (required) UInt32 `DocumentNumber` field to uniquely identify the doc. Conventionally, certain numbers can be reserved for certain types of documents—like 0 could be for a decentralized ID. That's similar to the \"kind\" that @seelabs suggested, but it takes up less space and we'd have to worry less about normalizing i.e. capitalization. You still need to know various outside conventions to use the \"kind\" identifier anyway so numbers are about ",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1294082491"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2023-08-15T00:34:35Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "+1 for `Document`",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1294084892"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-16T20:41:45Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Yes, I missed that - the spec says a max of 256 bytes per field.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1296406543"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-16T20:43:26Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "The idea behind `addSLE` was that it could eventually become a helper function that all transactors can use - I noticed a lot of the transactors had the same code written, and this would make them (or at least future transactors) a bit easier to read. I was saving making it a broader-scope helper method for a separate PR.\nI talked to @seelabs about this and he said it shouldn't really have any perf difference.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1296407910"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-16T20:43:34Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Ditto here",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1296408026"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-16T20:48:43Z",
+     "path": "src/ripple/protocol/TER.h",
+     "body": "I'll fix that after I rebase when that PR is merged - I don't think it's a super urgent fix.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1296412230"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-17T16:10:52Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4636/commits/99b53beb144c66ed619563b94819f6a6deca8ca0",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1297444918"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-17T16:11:00Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4636/commits/99b53beb144c66ed619563b94819f6a6deca8ca0",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1297445137"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-17T16:11:48Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Simplified in https://github.com/XRPLF/rippled/pull/4636/commits/99b53beb144c66ed619563b94819f6a6deca8ca0",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1297445971"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-08-23T18:01:26Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": "@mDuo13 What are the hazards of a large ledger entry object? I'm not familiar with the issues of trust line creation.\n\nThe owner reserve fees disincentives spamming an account with frivolous DIDs right?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1303367401"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-08-23T18:38:14Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "update the year to 2023",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1303404210"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-08-23T18:47:56Z",
+     "path": "src/test/jtx/DID.h",
+     "body": "I don't mean to impose, but I believe we follow the convention that class names need to begin with a capital letter. Is that not the case?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1303413173"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-08-23T19:01:41Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "The spec document says:\n```\nBoth URI and Data fields MUST be absent to delete the DID object.\n```\n\nIs this condition enforced anywhere implicitly?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1303426490"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-08-23T19:13:29Z",
+     "path": "src/ripple/protocol/SField.h",
+     "body": "Will we get any performance benefits if we use a custom `SF_256Byte` field instead of `SF_VL` (variable length) here?\n\nI'm thinking of something like:\n```\nusing SF_256Byte = TypedField<STBitString<256*8>>\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1303440811"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-08-23T19:17:42Z",
+     "path": "src/ripple/protocol/impl/TER.cpp",
+     "body": "Suggestion: I think it would be useful to say \"Atleast URI or Data field must be non-empty in a DID object\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1303445649"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-08-23T20:30:14Z",
+     "path": "src/test/rpc/LedgerRPC_test.cpp",
+     "body": "Are we using the DID format `did:xrpl:0:...` to perform any CRUD operation? It appears that we use Account(`alice` in this piece of code) and Type (`DID`).\n\nThe implementation does adhere to the spec. Is the DIDID meant to be a universal identifier without any usages inside ledger itself?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1303510267"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-24T09:23:43Z",
+     "path": "src/ripple/protocol/SField.h",
+     "body": "This is such a simple amendment, I don't think any performance benefits from using `SF_UINT256` would matter.  Also, such a data type would mean that the length of the data type _had_ to be 256 bytes (instead of possibly being less), which sure you could pad with 0s, but that's a little less nice of a DX.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1304053707"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-24T09:25:09Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "That situation isn't possible - you can't have a DID without a URI and Data field (which is enforced in the code). I assume that line of text is from an old version of the spec where there was no `Delete` transactor.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1304055476"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-24T09:25:18Z",
+     "path": "src/test/jtx/DID.h",
+     "body": "That's not true in the JTX tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1304055642"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-24T09:25:55Z",
+     "path": "src/test/rpc/LedgerRPC_test.cpp",
+     "body": "No, that format is used in the universal resolver, not in `ledger_entry`. It's unnecessary in `ledger_entry`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1304056343"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-08-24T17:39:20Z",
+     "path": "src/ripple/protocol/SField.h",
+     "body": "hmm okay, got your point. what is DX?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1304665731"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-08-24T17:39:55Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "ok, that makes sense",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1304666206"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-08-24T17:40:18Z",
+     "path": "src/test/jtx/DID.h",
+     "body": "hmm, i see",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1304666595"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-08-24T17:41:03Z",
+     "path": "src/ripple/protocol/SField.h",
+     "body": "Developer experience",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1304667266"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-15T19:40:31Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": "https://github.com/XRPLF/XRPL-Standards/discussions/132",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1327712757"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-15T19:40:35Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "https://github.com/XRPLF/XRPL-Standards/discussions/132",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1327712808"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-09-21T18:25:08Z",
+     "path": "src/ripple/protocol/SField.h",
+     "body": "What is this field for? It's not covered in the specs. Is this the latest version: https://github.com/XRPLF/XRPL-Standards/discussions/100 ?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1333454381"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-09-21T18:25:23Z",
+     "path": "src/test/app/AccountDelete_test.cpp",
+     "body": "Why is the second signer list needed?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1333454633"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-09-21T18:34:07Z",
+     "path": "src/test/rpc/LedgerRPC_test.cpp",
+     "body": "Shouldn't this be \"did\" instead of \"payment channel\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1333462939"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-09-21T18:34:15Z",
+     "path": "src/test/rpc/LedgerRPC_test.cpp",
+     "body": "Shouldn't this be \"did\" instead of \"payment channel\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1333463039"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-09-21T18:56:36Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Consider adding a lambda to reduce duplicate code:\n>        auto update = [&](auto const& sField) {\n>              if (auto const field = ctx_.tx[~sField])\n>              {\n>                  if (field->empty())\n>                  {\n>                      sleDID->makeFieldAbsent(sField);\n>                  }\n>                  else\n>                  {\n>                      (*sleDID)[sField] = *field;\n>                  }\n>              }\n>        };\n>        update(sfURI);\n>        update(sfDIDDocument);\n>        update(sfAttestation);",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1333484395"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-09-21T19:05:00Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Consider adding lambda:\n>       auto set = [&](auto const& sField) {\n>        if (auto const field = ctx_.tx[~sField];\n>           field.has_value() && !field->empty())\n>            (*sleDID)[sField] = field.value();\n>      };\n>      set(sfURI);\n>      set(sfDIDDocument);\n>      set(sfAttestation);",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1333492087"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-09-21T19:12:01Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "`account_` is equal to `ctx_.tx[sfAccount]`. Consider this:\n>     return deleteSLE(ctx_, keylet::did(account_), account_);",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1333498288"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-09-21T19:17:49Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Should check `sleOwner` and return `tecINTERNAL` if doesn't exist.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1333503752"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-09-21T19:29:54Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Consider simplifying. Don't really need these variables.\n>         if (!ctx.view.read(keylet::did(ctx.tx[sfAccount])) &&\n>            !ctx.tx.isFieldPresent(sfURI) && !ctx.tx.isFieldPresent(sfDIDDocument))\n>            return tecEMPTY_DID;\n>\n>         return tesSUCCESS;",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1333514436"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-09-21T19:35:46Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Consider this:\n>     auto malformed = [&](auto const& sField, std::size_t length) -> bool {\n>         if (auto field = ctx.tx[~sField])\n>             return field->length() > length;\n>         return false;\n>     };\n>     if (malformed(sfURI, maxDIDURILength) ||\n>         malformed(sfDIDDocument, maxDIDDocumentLength) ||\n>         malformed(sfAttestation, maxDIDAttestationLength))\n>         return temMALFORMED;",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1333519805"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-22T22:41:25Z",
+     "path": "src/ripple/protocol/SField.h",
+     "body": "It's coming in a spec update that hasn't been added yet (but should happen early next week).",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1334866001"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-26T15:28:54Z",
+     "path": "src/test/app/AccountDelete_test.cpp",
+     "body": "Probably a copy-paste error",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1337406398"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-26T17:27:46Z",
+     "path": "src/ripple/protocol/TER.h",
+     "body": "This has been resolved (I don't remember which commit)",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1337561470"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-26T17:30:18Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Done in https://github.com/XRPLF/rippled/pull/4636/commits/298077f443ad9e0a0a8ee3045f2dafd0bd2a590b",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1337564105"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-26T17:30:29Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Done in https://github.com/XRPLF/rippled/pull/4636/commits/298077f443ad9e0a0a8ee3045f2dafd0bd2a590b",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1337564310"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-26T17:30:35Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Done in https://github.com/XRPLF/rippled/pull/4636/commits/298077f443ad9e0a0a8ee3045f2dafd0bd2a590b",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1337564407"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-26T17:30:40Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Done in https://github.com/XRPLF/rippled/pull/4636/commits/298077f443ad9e0a0a8ee3045f2dafd0bd2a590b",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1337564558"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-26T17:32:46Z",
+     "path": "src/test/app/AccountDelete_test.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/commit/298077f443ad9e0a0a8ee3045f2dafd0bd2a590b",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1337567032"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-26T17:32:53Z",
+     "path": "src/test/rpc/LedgerRPC_test.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/commit/298077f443ad9e0a0a8ee3045f2dafd0bd2a590b",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1337567140"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-26T17:32:58Z",
+     "path": "src/test/rpc/LedgerRPC_test.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/commit/298077f443ad9e0a0a8ee3045f2dafd0bd2a590b",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1337567212"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-26T17:33:05Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Done in https://github.com/XRPLF/rippled/commit/298077f443ad9e0a0a8ee3045f2dafd0bd2a590b",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1337567330"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-26T17:34:47Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Done in https://github.com/XRPLF/rippled/pull/4636/commits/04066ae42e9c8d7de59742d984b4202e4d705d54",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1337569110"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-03T21:38:34Z",
+     "path": "src/ripple/protocol/SField.h",
+     "body": "@gregtatcam https://github.com/XRPLF/XRPL-Standards/pull/136",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1344772695"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-04T15:29:43Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Need to add docs before merging.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1346076227"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-04T15:31:16Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "If you don't use the result of the `read` use `exists` instead so the object isn't deserialized. (FWIW, I do this myself too. It's easy to overlook `exists` and reach for `read`)",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1346078536"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-04T15:32:31Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "It's your call, but I don't find much value in making this a separate function. I'd probably just make a block in the one place it's called. But also fine as-is. (Although it should live in an anonymous namespace if you do keep it a separate function).",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1346080307"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-04T15:35:27Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "We tend not to use `has_value` and `value` . Consider rewriting this in a similar style to your `update` lambda above. I.e. something like:\n```\n        if (auto const field = ctx_.tx[~sField]; field && !field->empty())\n            (*sleDID)[sField] = *field;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1346084230"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-04T15:37:25Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "This function doesn't add much value. Consider just inlinining this code in `doApply`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1346086804"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-04T15:39:11Z",
+     "path": "src/test/app/DID_test.cpp",
+     "body": "Put the word \"DID\" somewhere in the testcase; It makes it easier when looking at test logs when something fails. (Here and the other testcases too).",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1346089206"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-04T15:42:23Z",
+     "path": "src/test/jtx/impl/DID.cpp",
+     "body": "This is a minor nit, but it's a little easier if files have unique names. Right now we have two files names `DID.cpp` and two named `DID.h`. This causes a little friction when switching between the header and cpp file, for example (because it's ambiguous). It's really fine as-is, and no change needed, but keep in mind that duplicate names do cause a small amount of extra friction. (and yes, I know we have other duplicate names).",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1346093630"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T16:44:48Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "I made it a separate function because I'd like to make it a helper function for the future, but I figured that the refactor wasn't worth doing in this PR and could wait for a separate PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1348968898"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T16:45:05Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "I made it a separate function because I'd like to make it a helper function for the future, but I figured that the refactor wasn't worth doing in this PR and could wait for a separate PR. It's also used in `AccountDelete`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1348969161"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T17:10:36Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4636/commits/6bda30b852d448b4b3df2d534b6441ed0af92663",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349002836"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T17:10:43Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4636/commits/6bda30b852d448b4b3df2d534b6441ed0af92663",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349003566"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T17:11:03Z",
+     "path": "src/test/app/DID_test.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4636/commits/f347bae57f9aac9417e082dc83df6f70c5c87af5",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349005629"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T17:11:16Z",
+     "path": "src/test/jtx/impl/DID.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4636/commits/47059087a2308a0ce1d9032c82419ed2f0992072",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349007120"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-10-06T17:11:38Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "@mvadari Some of those common functions reside in `View.h`. Might make sense to move it there.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349009517"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T19:30:38Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Thanks for the suggestion - moved in https://github.com/XRPLF/rippled/pull/4636/commits/31117f7fccebe37a4faf47d1a840448b8b86e660",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349237505"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T19:40:53Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Added in https://github.com/XRPLF/rippled/pull/4636/commits/4acc54b39e136699c871423871eca4ac405a9052",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349246807"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-06T20:48:33Z",
+     "path": "src/test/jtx/impl/DID.cpp",
+     "body": "Unfortunately, this doesn't fix things for me. I still get prompted. Honestly, we should probably change this back to `DID.h`. I appreciate the change, but let's change it back (of change it to something that differ by more than just case changes).",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349309614"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-06T20:50:14Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "I don't think that belongs in this PR. That's should probably be it's own PR and we should refactor code to use the new helper function at the same time. I'd prefer to restrict this PR to just the changes needed for DID.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349310819"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-06T20:50:53Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Nit: formatting",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349311214"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T21:06:30Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Reverted in https://github.com/XRPLF/rippled/pull/4636/commits/36716d6417d4e646cf692b6d9fe6fbf2f24e180b",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349321412"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T21:06:42Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4636/commits/c6e6b261001abbc80aaffa8545660893d1242eb9",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349321598"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-06T21:11:51Z",
+     "path": "src/ripple/app/tx/impl/DID.cpp",
+     "body": "That makes sense. I'm fine with it as-is. Thanks for the explanation.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1349325054"
+    },
+    {
+     "author": "dangell7",
+     "date": "2023-10-12T16:28:14Z",
+     "path": "src/ripple/protocol/LedgerFormats.h",
+     "body": "nit: This clashes with a LedgerFormat we use in Xahau.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1357076161"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-16T19:17:06Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "This was resolved but I forget which commit.",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1361165885"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-17T15:26:13Z",
+     "path": "src/ripple/protocol/LedgerFormats.h",
+     "body": "Just to close the loop: this was discussed offline and Xahau will take care of this on their end",
+     "url": "https://github.com/XRPLF/rippled/pull/4636#discussion_r1362321778"
+    }
+   ]
+  },
+  {
+   "number": 1850,
+   "title": "Fix bug that did not remove an unfunded offer (RIPD-1298)",
+   "url": "https://github.com/XRPLF/rippled/pull/1850",
+   "state": "closed",
+   "author": "seelabs",
+   "createdAt": "2016-09-16T15:39:30Z",
+   "updatedAt": "2016-09-30T17:51:47Z",
+   "closedAt": "2016-09-30T17:51:47Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "vinniefalco",
+     "date": "2016-09-16T15:41:58Z",
+     "body": "We need a much better explanation of this bug fix in the commit message.",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-247634168"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2016-09-16T16:12:18Z",
+     "body": "Three thoughts:\n- Do we need a comparable fix in `BookStep::fwdImp()`?  The  specific case I ran into happened in `revImp()`, so I'm just guessing that it could happen in  `fwdImp()`.  I'm thinking of something around line 565 that would look like...\n\n```\nreturn processMore || offer.fully_consumed();\n```\n- This change will affect transaction outcomes, so it will cause de-syncing among servers running with vs without this fix.  Should we save the fix and bundle it with another that takes an amendment?  Or should we put this on a time switch?  \n- It would be great to see a unit test for this.  Perhaps one test for the `revImp()` case and another test for the `fwdImp()` case?",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-247641700"
+    },
+    {
+     "author": "codecov-io",
+     "date": "2016-09-16T16:23:13Z",
+     "body": "## [Current coverage](https://codecov.io/gh/ripple/rippled/pull/1850?src=pr) is 64.77% (diff: 100%)\n\n> Merging [#1850](https://codecov.io/gh/ripple/rippled/pull/1850?src=pr) into [develop](https://codecov.io/gh/ripple/rippled/branch/develop?src=pr) will increase coverage by **0.02%**\n\n``` diff\n@@            develop      #1850   diff @@\n==========================================\n  Files           704        704          \n  Lines         50790      50798     +8   \n  Methods           0          0          \n  Messages          0          0          \n  Branches          0          0          \n==========================================\n+ Hits          32884      32904    +20   \n+ Misses        17",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-247644368"
+    },
+    {
+     "author": "JoelKatz",
+     "date": "2016-09-16T17:08:12Z",
+     "body": "This will need to be hooked to an amendment or something since it changes transaction processing behavior. Ideally, not as its own amendment (since it's so tiny) but perhaps piggybacked on whatever we change next.",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-247654719"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2016-09-16T21:50:09Z",
+     "body": "Commit message should read:\n\n```\nFix unfunded offer not removed:\n\n(Description)\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-247717307"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2016-09-16T21:52:27Z",
+     "body": "Looks magnificent.  :+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-247717700"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-09-16T21:52:54Z",
+     "body": "@vinniefalco Will fix the title when I squash it down.",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-247717787"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-09-16T21:54:56Z",
+     "body": "@vinniefalco (Description will be what's in the second commit now)",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-247718140"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-09-19T12:26:33Z",
+     "body": "Squashed and rebased onto 0.40.0-b3",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-247979236"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-09-19T15:26:19Z",
+     "body": "I pushed a fix to remove some redundant decls.",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-248025970"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2016-09-20T14:31:56Z",
+     "body": "Just to be clear, still :+1:.",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-248318880"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-09-20T15:11:14Z",
+     "body": "Squashed",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-248331530"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-09-30T17:51:47Z",
+     "body": "Merged as bb0b97f46bcc783955e0fcd1511fa2086c48cb1a",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#issuecomment-250809313"
+    }
+   ],
+   "body": "@scottschurr @nbougalis",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "seelabs:unfunded",
+   "additions": 109,
+   "deletions": 6,
+   "changedFiles": 4,
+   "commits": 1,
+   "reviewComments": 10,
+   "reviews": [
+    {
+     "author": "vinniefalco",
+     "state": "CHANGES_REQUESTED",
+     "date": "2016-09-16T15:41:26Z",
+     "body": ""
+    },
+    {
+     "author": "vinniefalco",
+     "state": "APPROVED",
+     "date": "2016-09-16T22:01:44Z",
+     "body": ":+1:"
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-09-16T22:10:32Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-09-19T15:10:20Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2016-09-19T15:10:46Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-09-19T15:21:26Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-09-19T15:24:20Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-09-19T15:27:07Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "vinniefalco",
+     "date": "2016-09-16T15:41:21Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Grammar?",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#discussion_r79195666"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2016-09-16T22:00:00Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Excellent comment, this is what I need",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#discussion_r79258529"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2016-09-16T22:00:34Z",
+     "path": "src/test/app/Flow_test.cpp",
+     "body": "nit: braced-init",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#discussion_r79258582"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-09-16T22:10:32Z",
+     "path": "src/test/app/Flow_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#discussion_r79259673"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-09-19T15:01:48Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Minor it: why not `processMore |= offer.fully_consumed();`",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#discussion_r79411383"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-09-19T15:03:08Z",
+     "path": "src/ripple/ledger/View.h",
+     "body": "Lines 353 and 354 duplicate 350 and 351.",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#discussion_r79411711"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-09-19T15:04:39Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Yep. This is perfect.",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#discussion_r79412068"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-09-19T15:21:26Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "`|=` is not short-circuited when `processMore` is already true. We'll save a function call.",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#discussion_r79416045"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-09-19T15:24:20Z",
+     "path": "src/ripple/ledger/View.h",
+     "body": "I just noticed I've been doing that for every single switch-over. Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#discussion_r79416717"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-09-19T15:27:07Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Fair enough.",
+     "url": "https://github.com/XRPLF/rippled/pull/1850#discussion_r79417432"
+    }
+   ]
+  }
+ ],
+ "issues": [
+  {
+   "number": 6611,
+   "title": "Incomplete preflight `temEMPTY_DID` check in DIDSet allows subset-empty transactions to bypass preflight",
+   "url": "https://github.com/XRPLF/rippled/issues/6611",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-03-20T17:00:30Z",
+   "updatedAt": "2026-03-24T22:34:36Z",
+   "closedAt": null,
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 0,
+   "body": "## Issue Description\n\nThe second preflight guard in `DIDSet::preflight()` (`src/libxrpl/tx/transactors/did/DIDSet.cpp:32–35`) requires **all three** fields (`sfURI`, `sfDIDDocument`, `sfData`) to be simultaneously present AND empty to return `temEMPTY_DID`:\n\n```cpp\nif (ctx.tx.isFieldPresent(sfURI) && ctx.tx[sfURI].empty() &&\n    ctx.tx.isFieldPresent(sfDIDDocument) && ctx.tx[sfDIDDocument].empty() &&\n    ctx.tx.isFieldPresent(sfData) && ctx.tx[sfData].empty())\n    return temEMPTY_DID;\n```\n\nThis misses cases where only a **subset** of fields are present and all of them are empty. For example, a transaction containing only `{sfURI=\"\", sfDIDDocument=\"\"}` (without `sfData`) passes preflight beca"
+  },
+  {
+   "number": 4734,
+   "title": "CMake Error at .nih_c/unix_makefiles/GNU_11.4.0/Release/rippled_src-src/CMakeLists.txt:76 (find_package):   By not providing \"Findlz4.cmake\" in CMAKE_MODULE_PATH this project has   asked CMake to find a package configuration file provided by \"lz4\", but   CMake did not find one.",
+   "url": "https://github.com/XRPLF/rippled/issues/4734",
+   "state": "closed",
+   "author": "shazam8253",
+   "createdAt": "2023-09-28T20:42:36Z",
+   "updatedAt": "2023-10-17T04:44:36Z",
+   "closedAt": "2023-10-17T04:44:36Z",
+   "labels": [],
+   "comments": 3,
+   "body": "We are having an issue with installing the Validator-Keys tool.  When we run these commands here is the output: \n$ cd ${YOUR_VALIDATOR_KEYS_TOOL_DIRECTORY}\n$ mkdir -p build/gcc.debug\n$ cd build/gcc.debug\n$ cmake -DCMAKE_BUILD_TYPE=Release ../.. \n\nCould not find a package configuration file provided by \"lz4\" with any of\n the following names:\n\n\tlz4Config.cmake\n\tlz4-config.cmake\n\n  Add the installation prefix of \"lz4\" to CMAKE_PREFIX_PATH or set \"lz4_DIR\"\n  to a directory containing one of the above files.  If \"lz4\" provides a\n  separate development package or SDK, be sure it has been installed."
+  },
+  {
+   "number": 3080,
+   "title": "1.3.1 build failed (Fetched in submodule path 'doc/docca', but it did not contain 335dbf9)",
+   "url": "https://github.com/XRPLF/rippled/issues/3080",
+   "state": "closed",
+   "author": "sergeygalkin",
+   "createdAt": "2019-09-16T21:23:55Z",
+   "updatedAt": "2019-09-17T00:02:28Z",
+   "closedAt": "2019-09-17T00:02:28Z",
+   "labels": [],
+   "comments": 4,
+   "body": "Can't build 1.3.1, it seems what https://github.com/vinniefalco/docca.git was updated couple days ago\n```\n[ 20%] Performing build step for 'snappy'\n-- snappy build command succeeded.  See also /rippled/.nih_c/unix_makefiles/GNU_7.4.0/Release/src/snappy-stamp/snappy-build-*.log\n[ 20%] No install step for 'snappy'\n[ 21%] No test step for 'snappy'\n[ 22%] Completed 'snappy'\n[ 22%] Built target snappy\nScanning dependencies of target nudb_src\n[ 22%] Creating directories for 'nudb_src'\n[ 23%] Performing download step (git clone) for 'nudb_src'\nCloning into 'nudb_src'...\nNote: checking out '2.0.1'.\n\nYou are in 'detached HEAD' state. You can look around, make experimental\nchanges and commit them, and"
+  },
+  {
+   "number": 249,
+   "title": "My rippled API missed a transaction, and maybe wisepass.com's did too",
+   "url": "https://github.com/XRPLF/rippled/issues/249",
+   "state": "closed",
+   "author": "miracle2k",
+   "createdAt": "2014-01-08T18:15:09Z",
+   "updatedAt": "2014-01-11T19:25:36Z",
+   "closedAt": "2014-01-11T19:25:36Z",
+   "labels": [],
+   "comments": 2,
+   "body": "Namely this one:\n\nhttps://wisepass.com/tx/9A54E63E14CFF3FD5797E4950DF212966B89949BCDF26DCE3F94B99082D72376\n\nThe transaction is stated as being included in ledger 4279703.\n\nWhen I queried that ledger using `{\"command\": \"ledger\", \"transactions\" : true, \"ledger_index\": 4279703, \"expand\": true}` the response was marked as closed and contained no transaction (I don't have the actual output anymore).\n\nThe funny thing is that the ledger is also empty on the wisepass site:\n\nhttps://wisepass.com/ledger/4279703\n\nI am guessing they might be subscribing to the ledger feed and the transaction feed separately.\n\nSubsequently my ledger-subscription claimed that 4279704 was closed, and as described in #248, "
+  }
+ ],
+ "proposals": [
+  {
+   "number": 136,
+   "title": "XLS-40: DID Specification",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/136",
+   "state": "closed",
+   "isPr": true,
+   "author": "aanchal4",
+   "createdAt": "2023-09-29T14:22:24Z",
+   "updatedAt": "2024-01-11T00:22:12Z",
+   "comments": 5,
+   "labels": []
+  }
+ ],
+ "branches": []
+}

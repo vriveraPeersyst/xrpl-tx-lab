@@ -1,0 +1,102 @@
+{
+ "name": "fix1528",
+ "fetchedAt": "2026-09-16T10:51:23.755Z",
+ "summary": {
+  "status": "closed without merge",
+  "prs": 1,
+  "open": 0,
+  "merged": 0,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2017-09-25T19:15:04Z",
+  "totalComments": 8
+ },
+ "release": {},
+ "prs": [
+  {
+   "number": 2221,
+   "title": "Use rounded close time in Consensus (RIPD-1528)",
+   "url": "https://github.com/XRPLF/rippled/pull/2221",
+   "state": "closed",
+   "author": "bachase",
+   "createdAt": "2017-09-05T17:15:19Z",
+   "updatedAt": "2017-09-25T19:15:04Z",
+   "closedAt": "2017-09-25T19:15:04Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov-io",
+     "date": "2017-09-05T18:05:49Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2221?src=pr&el=h1) Report\n> Merging [#2221](https://codecov.io/gh/ripple/rippled/pull/2221?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/fc640504ba90ef4323f8e845e8c264b81e2054b5?src=pr&el=desc) will **decrease** coverage by `<.01%`.\n> The diff coverage is `92.3%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2221/graphs/tree.svg?width=650&height=150&src=pr&token=y0OgJuslsq)](https://codecov.io/gh/ripple/rippled/pull/2221?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2221      +/-   ##\n===========================================\n- Covera",
+     "url": "https://github.com/XRPLF/rippled/pull/2221#issuecomment-327256845"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2017-09-25T19:15:04Z",
+     "body": "Merged as c76656cf7f02d8d848c31b96ec3dc9de3727aaaa",
+     "url": "https://github.com/XRPLF/rippled/pull/2221#issuecomment-331983534"
+    }
+   ],
+   "body": "Switches the default behavior of Consensus to use `roundCloseTime` instead of `effCloseTime`. `effCloseTime` is still used when accepting the consensus ledger to ensure the consensus close time comes after the parent ledger close time. This change eliminates an edge case in which peers could reach agreement on the close time, but end up generating ledgers with different close times.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "bachase:roundclose",
+   "additions": 193,
+   "deletions": 34,
+   "changedFiles": 9,
+   "commits": 2,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "mellery451",
+     "state": "APPROVED",
+     "date": "2017-09-06T20:03:33Z",
+     "body": "👍"
+    },
+    {
+     "author": "bachase",
+     "state": "COMMENTED",
+     "date": "2017-09-06T20:15:53Z",
+     "body": ""
+    },
+    {
+     "author": "JoelKatz",
+     "state": "APPROVED",
+     "date": "2017-09-18T17:44:45Z",
+     "body": ":neckbeard::+1:"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mellery451",
+     "date": "2017-09-06T19:38:40Z",
+     "path": "src/test/consensus/Consensus_test.cpp",
+     "body": "although I see this value mentioned as raw close time in the following comments, I don't think it has any context in this particular comment  - maybe remove?",
+     "url": "https://github.com/XRPLF/rippled/pull/2221#discussion_r137369221"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-09-06T20:02:24Z",
+     "path": "src/test/consensus/Consensus_test.cpp",
+     "body": "isn't this check effectively the same as the one starting on line 635, so code could be DRY'd?",
+     "url": "https://github.com/XRPLF/rippled/pull/2221#discussion_r137374600"
+    },
+    {
+     "author": "bachase",
+     "date": "2017-09-06T20:15:52Z",
+     "path": "src/test/consensus/Consensus_test.cpp",
+     "body": "Good catch, I'll fix. For context, these changes were actually back ported from a branch based off of #2209 where the comparisons need to be different.",
+     "url": "https://github.com/XRPLF/rippled/pull/2221#discussion_r137377775"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

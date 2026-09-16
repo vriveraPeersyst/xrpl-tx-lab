@@ -1,0 +1,620 @@
+{
+ "name": "fixNFTokenReserve",
+ "fetchedAt": "2026-09-16T10:58:20.904Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 2,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-07-06T00:20:25Z",
+  "lastMerged": "2026-06-26T12:09:30Z",
+  "release": "2.1.0",
+  "totalComments": 82
+ },
+ "release": {
+  "version": "2.1.0",
+  "date": "2024-02-21T19:57:23Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.1.0",
+  "excerpt": "[fixNFTokenReserve](https://github.com/XRPLF/rippled/pull/4767)"
+ },
+ "prs": [
+  {
+   "number": 7367,
+   "title": "refactor: Retire NFTokenReserve fix",
+   "url": "https://github.com/XRPLF/rippled/pull/7367",
+   "state": "closed",
+   "author": "TimothyBanks",
+   "createdAt": "2026-05-29T20:12:43Z",
+   "updatedAt": "2026-07-06T00:20:25Z",
+   "closedAt": "2026-06-26T12:09:31Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-29T20:49:07Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7367?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 82.0%. Comparing base ([`dd0b675`](https://app.codecov.io/gh/XRPLF/rippled/commit/dd0b6754d4c33d906d54f317dcc9f4da800488ec?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`c63418a`](https://app.codecov.io/gh/XRPLF/rippled/commit/c63418a809f32c9f1d8a27fb98837e44eab7fc66?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#issuecomment-4579739932"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-10T20:45:24Z",
+     "body": "@a1q123456 @pratikmankawde Please take another look",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#issuecomment-4674312362"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis change set retires the NFToken Reserve fix and updates related unit tests.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-06-26T12:09:30Z",
+   "draft": false,
+   "base": "develop",
+   "head": "TimothyBanks:retire_nftoken_reserve",
+   "additions": 82,
+   "deletions": 131,
+   "changedFiles": 3,
+   "commits": 3,
+   "reviewComments": 17,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-01T17:36:20Z",
+     "body": "## Pull request overview\n\nThis PR retires the `fixNFTokenReserve` amendment and removes the conditional code paths associated with it, making the buyer reserve enforcement behavior unconditional and updating NFT unit tests accordingly.\n\n**Changes:**\n- Retire the `NFTokenReserve` fix amendment in `features.macro`.\n- Make the reserve check in `NFTokenAcceptOffer::transferNFToken` unconditional (no longer gated by `fixNFTokenReserve`).\n- Simplify `NFToken_test.cpp` scenarios by removing the pre-/post-amendment branching and updating feature sets used by the tests.\n\n### Reviewed changes\n\nCopilot reviewed 3 out of 3 changed files in this pull request and generated 8 comments.\n\n| File | Descriptio"
+    },
+    {
+     "author": "a1q123456",
+     "state": "DISMISSED",
+     "date": "2026-06-11T14:09:06Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "APPROVED",
+     "date": "2026-06-22T14:12:54Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-22T14:19:47Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "DISMISSED",
+     "date": "2026-06-22T14:19:55Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-22T14:20:40Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T18:14:46Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T18:14:58Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T18:15:18Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T18:15:24Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T18:15:30Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T18:15:40Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T18:15:47Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-06-25T15:14:14Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "APPROVED",
+     "date": "2026-06-25T15:29:37Z",
+     "body": "LGTM"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:36:18Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "This comment block has a few grammatical issues that reduce readability (capitalization and \"NFTs(sell offer)\" phrasing). Consider rewording slightly.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3336032385"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:36:18Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Minor grammar: \"an kIncrement reserve\" should be rephrased (and \"Bob\" capitalized) for clarity.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3336032425"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:36:19Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Minor grammar: \"an sell offer\" should be \"a sell offer\" (and consider capitalizing \"Alice\").",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3336032443"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:36:19Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Moving NFTokenReserve from XRPL_FIX to XRPL_RETIRE_FIX removes the public `fixNFTokenReserve` identifier from `Feature.h` (retired fixes don't generate `extern uint256 const fix...`), which is a libxrpl/public-header API break for downstream code that referenced it. If this is intentional, the PR should explicitly note the libxrpl/API impact; alternatively, keep a deprecated alias exported from the public header.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3336032465"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:36:19Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "This comment block has a few grammatical issues that reduce readability (capitalization and \"NFTs(sell offer)\" phrasing). Consider rewording slightly.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3336032494"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:36:19Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Minor grammar: \"an kIncrement reserve\" should be rephrased (and \"Bob\" capitalized) for clarity.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3336032523"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:36:20Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Minor grammar: \"an sell offer\" should be \"a sell offer\" (and consider capitalizing \"Alice\").",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3336032555"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:36:20Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Moving NFTokenReserve from XRPL_FIX to XRPL_RETIRE_FIX removes the public `fixNFTokenReserve` identifier from `Feature.h` (retired fixes don't generate `extern uint256 const fix...`), which is a libxrpl/public-header API break for downstream code that referenced it. If this is intentional, the PR should explicitly note the libxrpl/API impact; alternatively, keep a deprecated alias exported from the public header.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3336032583"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-22T14:19:48Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "`fixNFTokenReserve` amendment is active now. So, this comment can be updated.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3452925918"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-22T14:20:40Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3452932251"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T18:14:46Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "This is the point of the PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3469306060"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T18:14:58Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "This is the point of the PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3469307312"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T18:15:18Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Not addressing in this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3469309499"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T18:15:23Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Not addressing in this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3469309992"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T18:15:30Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Not addressing in this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3469310565"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T18:15:40Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Not addressing in this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3469311429"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T18:15:47Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Not addressing in this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/7367#discussion_r3469312051"
+    }
+   ]
+  },
+  {
+   "number": 4767,
+   "title": "`fixNFTokenReserve`: Throw error when NFT buyer does not meet reserve requirement",
+   "url": "https://github.com/XRPLF/rippled/pull/4767",
+   "state": "closed",
+   "author": "shawnxie999",
+   "createdAt": "2023-10-13T22:06:50Z",
+   "updatedAt": "2024-02-17T01:16:42Z",
+   "closedAt": "2024-02-02T22:27:22Z",
+   "labels": [
+    "Ready to merge",
+    "Bug",
+    "Amendment",
+    "QE impact not expected"
+   ],
+   "comments": [
+    {
+     "author": "shawnxie999",
+     "date": "2023-10-30T15:47:16Z",
+     "body": "@scottschurr thanks for the great suggestions! this PR is now ready for re-review",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#issuecomment-1785505028"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-10-31T18:22:41Z",
+     "body": "@scottschurr sorry my bad, i thought I changed it, but it was lost when i was doing refactors. Just updated 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#issuecomment-1787750006"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-11-30T16:17:01Z",
+     "body": "Intend to merge this after 2.0.1 is released",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#issuecomment-1834088722"
+    },
+    {
+     "author": "tequdev",
+     "date": "2023-11-30T16:22:50Z",
+     "body": "@shawnxie999 Thank you for fixing the issue.",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#issuecomment-1834100866"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-20T06:01:25Z",
+     "body": "Some unit tests were renamed. @shawnxie999 to resolve conflicts (no hurry).",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#issuecomment-1901774921"
+    },
+    {
+     "author": "codecov-commenter",
+     "date": "2024-01-24T21:16:50Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/4767?src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: `6 lines` in your changes are missing coverage. Please review.\n> Comparison is base [(`6f00d32`)](https://app.codecov.io/gh/XRPLF/rippled/commit/6f00d32f7e698d4f8bd7f23c386c132a04708be2?el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) 61.50% compared to head [(`cdbbb0d`)](https://app.codecov.io/gh/XRPLF/rippled/pull/4767?src=pr&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) 61.50%.\n\n| [",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#issuecomment-1908930712"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-02-02T01:02:16Z",
+     "body": "@shawnxie999 could you have a look at the \"6 lines in your changes are missing coverage\" reported above?",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#issuecomment-1922597261"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-02-02T14:19:51Z",
+     "body": "@intelliot these are the lines that return tecInternal errors, which are guarded by the preclaim checks already. I dont think we need additional tests needed for these lines 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#issuecomment-1923984387"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-02-17T01:16:41Z",
+     "body": "- @sgramkumar reviewing for QA",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#issuecomment-1949568089"
+    }
+   ],
+   "body": "## High Level Overview of Change\nAdd checks in the NFTokenAcceptOffer transactor to check if OwnerCount changed, if it did, then check for the reserve requirement.\n\n\n### Context of Change\nFixes a problem where someone could accept an NFT sell offer without needing reserve.\n\nThis problem, however, does not occur when buy offer is involved or in brokered mode.\n\n\n### Type of Change\n\n\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [x] Tests (You added te",
+   "merged": true,
+   "mergedAt": "2024-02-02T22:27:22Z",
+   "draft": false,
+   "base": "develop",
+   "head": "shawnxie999:nft-reserve",
+   "additions": 400,
+   "deletions": 29,
+   "changedFiles": 5,
+   "commits": 28,
+   "reviewComments": 20,
+   "reviews": [
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-10-25T19:54:41Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-10-25T19:54:55Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-10-25T23:25:44Z",
+     "body": "Don't let the comments I left discourage you.  This is a great pull request.  The fix looks good.  I think you did an especially good job with the tests.\n\nI did leave some comments for you to consider, but they are mostly about different ways to structure the same code.  Feel free to push back on any of them.\n\nNice job!"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-10-30T15:25:16Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-10-30T15:45:27Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-10-31T18:05:00Z",
+     "body": "Changes look good.  It would still be nice to fix the parameter name in the unit test lambda, but it's not important enough to hold up this pull request."
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-10-31T22:30:36Z",
+     "body": ":+1:"
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-11-01T22:18:50Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-11-01T23:13:40Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-11-01T23:20:57Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-11-01T23:25:31Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-11-02T18:44:23Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-11-02T18:59:46Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-11-02T19:09:59Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-11-02T21:47:51Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-11-02T21:49:27Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-11-02T21:50:36Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "APPROVED",
+     "date": "2023-11-02T21:51:07Z",
+     "body": "thanks for your work @shawnxie999 , this looks nice"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-11-03T19:57:12Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "scottschurr",
+     "date": "2023-10-25T19:54:41Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "There's always the (remote) possibility that this `read()` will return an empty `shared_ptr`.  So my personal preference is to check for `nullptr` before proceeding.  Maybe something like this:\n```\n    auto const sleBuyer = view().read(keylet::account(buyer));\n    if (!sleBuyer)\n        return tecINTERNAL;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1372260767"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-25T19:54:54Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "I was a bit bothered that the code inserted into `acceptOffer` and `doApply` was very close to identical.  So I did a bit of nosing about.  It looks to me that the code that actually transfers the token in `acceptOffer` and `doApply` could be a common helper function.  It might look like this:\n```\nTER\nNFTokenAcceptOffer::transferNFToken(\n    AccountID const& buyer, AccountID const& seller, uint256 const& nftokenID)\n{\n    auto tokenAndPage = nft::findTokenAndPage(view(), seller, nftokenID);\n\n    if (!tokenAndPage)\n        return tecINTERNAL;\n\n    if (auto const ret = nft::removeToken(\n            view(), seller, nftokenID, std::move(tokenAndPage->page));\n        !isTesSuccess(ret))\n        re",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1372261017"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-25T20:55:03Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Just the tiniest nit here.  Usually the word \"account\" is abbreviated to \"acct\", not \"act\" in this file.  In fact I think you'll find that true throughout most of this code base.  So I suggest changing \"act\" to \"acct\".",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1372316669"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-25T22:53:02Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "The lambda / `tuple` / structured binding approach is very much how the cool kids do it these days.  And it works.\n\nI have a minor preference for a more old school approach that I think works a bit better.\n\nThe trouble with a returned `tuple` going into a structured binding is that you have to get the structured binding names and their order right every time the lambda is invoked.  In this case that gives you five different opportunities to mess up.  To make things worse, this `tuple` contains two values of the same type.  So you could swap the names in the structured binding and the compiler will not offer you any kind of warning.\n\nThe way to avoid this is to replace the lambda \\ `tuple` \\ ",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1372398061"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-10-30T15:25:16Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "Thanks for the suggestion! This looks much better",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1376408752"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-10-30T15:45:27Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Thanks for the suggestion. I think I would prefer removing the structured binding completely since it's indeed unnecessary to have the other field :)",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1376439217"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-31T16:22:27Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "The new version looks good, but it would still be nice to rename the `act` lambda argument to `acct` and fix the comments to match.",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1377859405"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-11-01T22:18:50Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "@scottschurr very insightful comment 👍 It's funny that you suggested the struct idea, because I believe that's how lambda's are implemented under the hood by the compiler :))",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1379387633"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-11-01T22:35:23Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Why are we verifying unit tests without the old fixes? We expect the validators to have pulled the latest code updates right? I was of the understanding that they would be Amendment Blocked otherwise.",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1379398655"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-11-01T22:43:04Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "I don't understand why the reserve requirement must be a few drops higher, given that the transaction fees has already been paid.\n\nAccording to the code, even if `buyerBalance == reserve` (line 350), the transaction is valid right?",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1379403198"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-11-01T23:12:35Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "shouldn't Bob have at least `incReserve + drops(10) /* current transaction fee */ + drops(10) /* fees lost due to the previous transaction*/` ?\n\nI don't understand why this is different from testcase in line 6888 ?",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1379418793"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-11-01T23:20:57Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "We verify the behavior of unit tests with and without new amendments because we...\n\n1. Don't know when (or if) the amendment will be approved.  We don't want to damage existing behavior while adding an amendment.\n2. We like for the current version of rippled to process ledgers that are at least a couple of years old.  This is very helpful for ledger replay.  So we want to verify that the unit tests show old behavior when recent amendments are not enabled.\n\nHopefully that explanation makes some sense.",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1379422987"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-11-01T23:25:31Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "thanks for the explanation! I forgot about the amendment voting process :) 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1379425182"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-11-02T18:44:23Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "On that note, I found it easier to understand a simpler test case:\n```\n// Bob has enough reserve for the Transaction Fees (10 drops) and the reserve for a new NFTokenPage\nenv(pay(env.master, bob, incReserve + drops(10)));\nenv.close();\nenv(token::acceptSellOffer(bob, sellOfferIndex));\nenv.close();\n \nBEAST_EXPECT(ownerCount(env, bob) == 1);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1380637692"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-11-02T18:59:46Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "If I have exactly 20 XRP, and I submit a transaction (eg. CreateOffer) that's going to take up a certain amount of reserve, it usually looks like:\n```\n        XRPAmount reserve =\n            sb.fees().accountReserve(sleCreator->getFieldU32(sfOwnerCount) + 1);\n\n        if (mPriorBalance < reserve){\n           ...\n        }\n\n```\nHere, I believe `mPriorBalance` will equal exactly to 20 XRP. So the comparison here is done before the transaction fee is deducted. This means that after this transaction is executed, the user will actually have 19.999990 XRP because 10 drops is deducted from the user's balance.\n\nIn this PR, we are comparing the balance that has already deducted tx fee. So in the exam",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1380653207"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-11-02T19:09:59Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "> I don't understand why this is different from testcase in line 6888 ?\n\nThe test case in line 68888 is testing the precise reserve requirements in the unit of drops. While in this test, it is exercising the behavior when Bob accepts many NFTs.\n\n> shouldn't Bob have at least incReserve + drops(10) /* current transaction fee */ + drops(10) /* fees lost due to the previous transaction*/ ?\n\nIn this test case, Bob is funded with acctReserve + XRP(1). 1 XRP is more than enough for the transaction fees needed in this unit test. So we only need to worry about the incremental reserve that are taken up. Note that in unit test, the incremental reserve for an object is 50XRP, while the transaction fee ",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1380662699"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-11-02T21:47:51Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "Okay, I understand that. I was confused by the wording \"... meaning that the reserve requirement is a few drops higher\". Apart from this, I had the same understanding 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1380817164"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-11-02T21:49:27Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "ah okay, I missed the fact that Bob has 1 XRP funds 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1380818197"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-11-02T21:50:36Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "I feel the circumstance would be more clear if we eliminate that portion of the comment, but it's just a suggestion.",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1380818901"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-11-03T19:57:12Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "I think it would still be valuable to leave, since even tho 10 drops is not a lot. But still might be useful to know difference for those who might be reading the code.",
+     "url": "https://github.com/XRPLF/rippled/pull/4767#discussion_r1382144983"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

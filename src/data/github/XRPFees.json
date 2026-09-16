@@ -1,0 +1,1148 @@
+{
+ "name": "XRPFees",
+ "fetchedAt": "2026-09-16T10:49:49.544Z",
+ "summary": {
+  "status": "in development",
+  "prs": 4,
+  "open": 1,
+  "merged": 3,
+  "issues": 2,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-09-09T20:42:28Z",
+  "lastMerged": "2023-10-06T18:11:39Z",
+  "release": "2.0.0-b3",
+  "totalComments": 150
+ },
+ "release": {
+  "version": "2.0.0-b3",
+  "date": "2023-10-18T23:32:06Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.0.0-b3",
+  "excerpt": "Update API CHANGELOG for `XRPFees` changes by @ximinez in https://github.com/XRPLF/rippled/pull/4741"
+ },
+ "prs": [
+  {
+   "number": 7349,
+   "title": "refactor: Retire XRPFees amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/7349",
+   "state": "open",
+   "author": "TimothyBanks",
+   "createdAt": "2026-05-28T14:08:23Z",
+   "updatedAt": "2026-09-09T20:42:28Z",
+   "closedAt": null,
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-28T20:49:11Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7349?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `97.67442%` with `1 line` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/7349?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/misc/FeeVoteImpl.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7349?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comm",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-4568111861"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T18:08:36Z",
+     "body": "@a1q123456 This has been updated",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-4615376695"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-10T11:49:34Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-4669841456"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-10T19:01:35Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-4673494073"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-10T19:02:36Z",
+     "body": "@a1q123456 @pratikmankawde Please take another look",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-4673502558"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T11:40:20Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-4809251001"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T13:44:52Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-4810142630"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-07T16:00:53Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-5219272294"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-08-10T17:40:55Z",
+     "body": "Some of my old comments are unaddressed and I found lots of low hanging fruit type comments raised by AI review I ran locally. Please run an ai review and lets get those fixed.\nEx.:\n- The temDISABLED → temMALFORMED change is untested. applyFeeAndTestResult ([FeeVote_test.cpp:99-104](https://github.com/XRPLF/rippled/blob/cbc1594b815270b3b88957d9118e35f11edd521c/src/test/app/FeeVote_test.cpp#L99-L104)) collapses the TER to a bool via isTesSuccess, so any failure code passes. No test asserts the exact code, and the forbidden-fields path is unreachable — no test builds a tx with all three *Drops plus a legacy field. Add that case with an exact-TER assertion.\n\n- Dead struct members. [FeeVote_test",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-5243801288"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-08-10T18:07:39Z",
+     "body": "AI-review run flags some low hanging fruits on this one. Lets get those fixed first.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-5244071356"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-18T21:12:01Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-5334117098"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-03T20:29:15Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-5531720853"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-03T21:19:49Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-5532281290"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-09T20:42:28Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-5608452677"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis change set is retiring the XRPFees amendment.  The removal of that amendment resulted in various unit tests breaking because of the different ledger hashes being computed with that amendment flag being removed. The hash changes were driven by the new attributes for fee settings being turned on that were sitting behind that amendment.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol cha",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "TimothyBanks:retire_xrpfees_amendment",
+   "additions": 256,
+   "deletions": 556,
+   "changedFiles": 18,
+   "commits": 20,
+   "reviewComments": 33,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-01T17:39:12Z",
+     "body": "## Pull request overview\n\nThis PR retires the `XRPFees` amendment by removing feature-gated logic and legacy fee-field handling, standardizing fee settings on the `*Drops` fields, and updating affected unit tests (notably ledger hash expectations).\n\n**Changes:**\n- Retire `XRPFees` in `features.macro` and remove conditional code paths keyed off the amendment.\n- Standardize fee voting / ttFEE validation & application on `sf*Drops` fields; forbid legacy fee fields.\n- Update RPC and app tests to match new ledger hashes and transaction/queue behaviors.\n\n### Reviewed changes\n\nCopilot reviewed 18 out of 18 changed files in this pull request and generated 3 comments.\n\n<details>\n<summary>Show a summa"
+    },
+    {
+     "author": "a1q123456",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-06-02T12:03:35Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-03T17:45:35Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-03T17:45:48Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-03T17:46:08Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-03T17:47:32Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-10T19:01:52Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "APPROVED",
+     "date": "2026-06-22T14:11:27Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-22T14:15:37Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-22T14:17:40Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "DISMISSED",
+     "date": "2026-06-22T14:18:15Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T14:27:44Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T14:30:47Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-24T15:44:56Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "DISMISSED",
+     "date": "2026-06-24T15:45:24Z",
+     "body": "lgtm"
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-24T15:46:40Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-24T15:49:24Z",
+     "body": "Left a minor comment."
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "DISMISSED",
+     "date": "2026-06-25T15:41:54Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-06-29T15:11:20Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-08-10T17:36:12Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-08-10T17:42:34Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-08-10T18:04:29Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-08-18T21:32:36Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-08-18T21:32:42Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:03:14Z",
+     "body": "### 🔵 Needs a closer look\n\nRemoving `kFeeUnitsDeprecated` from a public header is a potential downstream (libxrpl consumer) source-breaking change that should be mitigated (e.g., keep as `[[deprecated]]`) or explicitly handled.\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**include/xrpl/protocol/Fees.h:8**\n* Removing `kFeeUnitsDeprecated` from a public header can break downstream code that still compiles against `libxrpl` headers, even if the constant is no longer used internally. Consider keeping it for source compatibility, marked as `[[deprecated]]`, so external builds don’t fail abruptly while migrating away from the legacy fee units concept.\n```\nnamespace "
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T21:41:17Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes core protocol/ledger behavior (amendment retirement, transaction validation, and ledger hash-affecting serialization), which warrants final human review despite tests being updated.\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**include/xrpl/protocol/Fees.h:10**\n* Removing `kFeeUnitsDeprecated` from a public header is a source-breaking change for downstream code that may still reference it (even if this repo no longer does). Consider keeping it as a deprecated alias for compatibility.\n```\nnamespace xrpl {\n\n/**\n * Reflects the fee settings for a particular ledger.\n```\n\n- **Files reviewed:** 18/18 changed files\n- **Comments g"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T22:59:46Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes protocol-adjacent fee serialization/validation and ledger contents (hash-affecting), which warrants careful human review for backward-compatibility and upgrade safety.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 18/18 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:39:11Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "Removing `kFeeUnitsDeprecated` from a public installed header is a source-level breaking change for downstream `libxrpl` consumers (even if the value is deprecated internally). Consider keeping the constant for backward compatibility and marking it `[[deprecated]]` instead of deleting it outright.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3336048087"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:39:12Z",
+     "path": "src/xrpld/app/misc/NetworkOPs.cpp",
+     "body": "This removes the deprecated `fee_ref` field from the ledger stream payload. Since this is an externally observable JSON-RPC/WebSocket change, the API documentation/changelog should be updated to reflect that `fee_ref` is no longer conditionally present (API-CHANGELOG.md currently describes removal only when `XRPFees` is enabled).",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3336048183"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:39:12Z",
+     "path": "src/xrpld/app/misc/NetworkOPs.cpp",
+     "body": "This removes the deprecated `fee_ref` field from the initial `subscribe` response for the ledger stream. If the intent is that `fee_ref` is now always absent (since XRPFees is retired), the public API documentation/changelog should be updated accordingly (API-CHANGELOG.md still describes this behavior as conditional).",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3336048212"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T11:57:28Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "`jtx::testableAmendments()` can be removed because it's the default value.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340973257"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T11:57:53Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340975941"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T11:58:13Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340977771"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T11:58:18Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340978248"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T11:58:30Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340979442"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T11:58:33Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340979801"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T11:58:38Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340980289"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T11:58:52Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340981729"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T11:59:32Z",
+     "path": "src/test/app/PseudoTx_test.cpp",
+     "body": "I think this `all` parameter can be removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340985454"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T12:00:12Z",
+     "path": "src/test/app/TxQ_test.cpp",
+     "body": "Why is this commented out?",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340989030"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T12:01:10Z",
+     "path": "src/test/app/TxQ_test.cpp",
+     "body": "Why did we change this?",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340993979"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T12:01:47Z",
+     "path": "src/test/app/TxQ_test.cpp",
+     "body": "Does not seem to be related?",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3340997165"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T12:02:35Z",
+     "path": "src/test/rpc/Subscribe_test.cpp",
+     "body": "the `all` parameter can be removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3341001423"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T17:45:35Z",
+     "path": "src/test/app/TxQ_test.cpp",
+     "body": "The removal of this amendment cascades into different ledger hashes being computed which cascades into different tie breaks happening.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3350687766"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T17:45:48Z",
+     "path": "src/test/app/TxQ_test.cpp",
+     "body": "Same reason as above.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3350689555"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T17:46:08Z",
+     "path": "src/test/app/TxQ_test.cpp",
+     "body": "It is related and it is a correction to a flaky test.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3350691472"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T17:47:32Z",
+     "path": "src/test/rpc/Subscribe_test.cpp",
+     "body": "It can't be removed because the parameter is not defaulted.  But I can default the parameter.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3350699783"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-10T19:01:52Z",
+     "path": "src/libxrpl/ledger/CanonicalTXSet.cpp",
+     "body": "Don't know why clang-tidy picked this up.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3390825503"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-22T14:15:37Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "`rules` param is not used anymore.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3452895077"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-22T14:17:40Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "I think `kFeeUnitsDeprecated` can be removed, since it is not something we are de/serializing into protocol message or ledger. Also the amendment is active, so, any node not following this latest code will be amendment blocked.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3452909610"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T14:27:44Z",
+     "path": "src/xrpld/app/misc/NetworkOPs.cpp",
+     "body": "That is update when a release is made.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3467855530"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T14:30:47Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "Copilot complained about it being removed.  I marked explicitly as being deprecated so we can remove it later.  I don't care one way or other another, so if the all reviewers on this PR want it removed, I can definitely do that.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3467884919"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-24T15:44:56Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "I think it's worth creating a Jira ticket for it so that we don't forget to remove it in the future.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3468402639"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-24T15:46:40Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "`rules` can be cleared here as well, and in `createFeeTx`, `verifyFeeObject`",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3468414425"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-08-10T17:36:12Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "struct `FeeSettingsFields` can be cleaned up now that these fields are deleted.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3751886793"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-08-10T17:42:34Z",
+     "path": "src/test/rpc/LedgerRPC_test.cpp",
+     "body": "Minor: `hash3` variable being used for ledger index 5, a bit confusing to read. Please consider renaming to `hash5`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3751933465"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-08-10T18:04:29Z",
+     "path": "src/test/app/TxQ_test.cpp",
+     "body": "This did look suspicious to me.\nQuick check:\n> The async-lowering race the comment above describes has been inert since d36024394d (Nov 2021),\nwhich moved LoadManager's fee block outside its `while (true)` loop (loop closes at\nLoadManager.cpp:152, `lowerLocalFee()` is at :163) — it now runs only once, at shutdown.\nThe differing outcome here is deterministic instead: same-fee queue order is decided by\n`txID ^ parentHash` (TxQ.h:761-767), \n\nImp. bit:\n\n>and this PR changes the genesis fee object and hence every\nparent hash, so the tie-break flips the same way on every platform.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3752095355"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-08-18T21:32:36Z",
+     "path": "src/test/rpc/LedgerRPC_test.cpp",
+     "body": "Updated",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3808086330"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-08-18T21:32:41Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "Updated",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3808086816"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-03T21:41:17Z",
+     "path": "API-CHANGELOG.md",
+     "body": "The bullet claims these stream messages are \"not versioned\", but subscription streams do track an API version (e.g., `InfoSub::setApiVersion` in the subscribe handler, and `NetworkOPs` emits via `jvObj.visit(p->getApiVersion(), ...)`). Consider removing the rationale and just state that `fee_ref` is removed for all API versions.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r3928961036"
+    }
+   ]
+  },
+  {
+   "number": 4741,
+   "title": "Update API CHANGELOG for `XRPFees` changes",
+   "url": "https://github.com/XRPLF/rippled/pull/4741",
+   "state": "closed",
+   "author": "ximinez",
+   "createdAt": "2023-10-03T18:16:17Z",
+   "updatedAt": "2023-11-02T22:34:55Z",
+   "closedAt": "2023-10-06T18:11:40Z",
+   "labels": [
+    "Ready to merge",
+    "Documentation"
+   ],
+   "comments": [
+    {
+     "author": "intelliot",
+     "date": "2023-10-06T16:53:00Z",
+     "body": "note: awaiting `Passed` label or confirmation from ximinez that this is ready to merge",
+     "url": "https://github.com/XRPLF/rippled/pull/4741#issuecomment-1751104928"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-11-02T22:34:54Z",
+     "body": "- Reference for XRPFees: https://github.com/XRPLF/rippled/pull/4247",
+     "url": "https://github.com/XRPLF/rippled/pull/4741#issuecomment-1791655236"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n* Adds a new section for release 1.10.\n* Also marks `jss::fee_ref` as deprecated in case `XRPFees` is ever retired.\n* Also fixes a copy-paste error in one of the unit tests related to that fix.\n\n### Context of Change\n\nSee also:\n* https://github.com/seelabs/xbridge_witness/pull/70\n* https://github.com/XRPLF/xrpl-dev-portal/pull/2183\n\n### Type of Change\n\n- [X ] Bug fix (non-breaking change which fixes an issue)\n- [X ] Tests (You added tests for code that already exists, or your new feature included in this PR)\n- [X ] Documentation Updates",
+   "merged": true,
+   "mergedAt": "2023-10-06T18:11:39Z",
+   "draft": false,
+   "base": "develop",
+   "head": "ximinez:XRPFees_fee_ref",
+   "additions": 15,
+   "deletions": 4,
+   "changedFiles": 3,
+   "commits": 4,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "intelliot",
+     "state": "APPROVED",
+     "date": "2023-10-03T20:29:55Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2023-10-06T15:27:09Z",
+     "body": ":+1:"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "intelliot",
+     "date": "2023-10-03T20:29:48Z",
+     "path": "API-CHANGELOG.md",
+     "body": "```suggestion\n  removed from the [ledger subscription stream](https://xrpl.org/subscribe.html#ledger-stream), because it will no longer\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4741#discussion_r1344701395"
+    }
+   ]
+  },
+  {
+   "number": 4429,
+   "title": "Undo API changes introduced in XRPFees:",
+   "url": "https://github.com/XRPLF/rippled/pull/4429",
+   "state": "closed",
+   "author": "ximinez",
+   "createdAt": "2023-02-22T21:59:46Z",
+   "updatedAt": "2023-10-06T16:51:42Z",
+   "closedAt": "2023-02-24T16:41:29Z",
+   "labels": [
+    "Ready to merge",
+    "API Change",
+    "Bug"
+   ],
+   "comments": [
+    {
+     "author": "ckniffen",
+     "date": "2023-02-22T22:32:47Z",
+     "body": "I would prefer keeping the new fields and the old.  We can then transition over to the new fields after it passes and deprecate the old fields.",
+     "url": "https://github.com/XRPLF/rippled/pull/4429#issuecomment-1440910001"
+    },
+    {
+     "author": "ckniffen",
+     "date": "2023-02-23T01:21:39Z",
+     "body": "It would also be nice to see these new fields added to `server_info`.  I erroneously thought they were in my initial analysis.",
+     "url": "https://github.com/XRPLF/rippled/pull/4429#issuecomment-1441105156"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-02-23T18:22:09Z",
+     "body": "> I would prefer keeping the new fields and the old. We can then transition over to the new fields after it passes and deprecate the old fields.\n\nI disagree. I don't think adding the new fields was a good idea in the first place. I honestly can't remember why I did it. The values should be able to be changed in place without any negative effects (AFAIK).",
+     "url": "https://github.com/XRPLF/rippled/pull/4429#issuecomment-1442231111"
+    },
+    {
+     "author": "ckniffen",
+     "date": "2023-02-23T18:59:14Z",
+     "body": "I thought they were changed to normalize all fees to drops.  No worries though.",
+     "url": "https://github.com/XRPLF/rippled/pull/4429#issuecomment-1442283475"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-24T01:04:39Z",
+     "body": "@ximinez at your convenience, please confirm that this is ready to merge. You can put the `Passed` label on it.",
+     "url": "https://github.com/XRPLF/rippled/pull/4429#issuecomment-1442647300"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-06T16:51:41Z",
+     "body": "- note: see https://github.com/XRPLF/rippled/pull/4741 for details about an API change that takes effect if XRPFees activates",
+     "url": "https://github.com/XRPLF/rippled/pull/4429#issuecomment-1751103068"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n#4247 made some unnecessary breaking changes to the API for the validation subscription stream. This PR reverts those changes.\n\n* Original changes: https://github.com/XRPLF/rippled/commit/e4b17d1cf2c43e33128dd70b6036fe10f38b0c0d\n* Resolves #4425\n\n### Type of Change\n\n- [X ] Bug fix (non-breaking change which fixes an issue)",
+   "merged": true,
+   "mergedAt": "2023-02-24T16:41:29Z",
+   "draft": false,
+   "base": "develop",
+   "head": "ximinez:xrpfees-api",
+   "additions": 5,
+   "deletions": 24,
+   "changedFiles": 3,
+   "commits": 3,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "ckniffen",
+     "state": "COMMENTED",
+     "date": "2023-02-22T23:48:12Z",
+     "body": ""
+    },
+    {
+     "author": "ckniffen",
+     "state": "APPROVED",
+     "date": "2023-02-23T18:59:31Z",
+     "body": ""
+    },
+    {
+     "author": "thejohnfreeman",
+     "state": "APPROVED",
+     "date": "2023-02-23T21:07:51Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2023-02-23T22:03:44Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ckniffen",
+     "date": "2023-02-22T23:48:11Z",
+     "path": "src/test/rpc/Subscribe_test.cpp",
+     "body": "This variable is no longer used.",
+     "url": "https://github.com/XRPLF/rippled/pull/4429#discussion_r1115108906"
+    }
+   ]
+  },
+  {
+   "number": 4247,
+   "title": "`XRPFees`: Fee setting and handling improvements",
+   "url": "https://github.com/XRPLF/rippled/pull/4247",
+   "state": "closed",
+   "author": "ximinez",
+   "createdAt": "2022-07-21T17:26:37Z",
+   "updatedAt": "2023-06-20T21:19:37Z",
+   "closedAt": "2023-02-03T00:20:35Z",
+   "labels": [
+    "Ready to merge",
+    "API Change",
+    "Bug",
+    "Amendment",
+    "Testable",
+    "Will Need Documentation"
+   ],
+   "comments": [
+    {
+     "author": "mDuo13",
+     "date": "2022-10-24T23:08:09Z",
+     "body": "Does this also fix the fact that the server (in some places?) serializes `BaseFee` in hexadecimal for some weird reason?",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1289753432"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-10-25T18:29:26Z",
+     "body": "> Does this also fix the fact that the server (in some places?) serializes `BaseFee` in hexadecimal for some weird reason?\n\nI'm not sure. Can you point me to some places where you see it?",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1290976913"
+    },
+    {
+     "author": "intelliot",
+     "date": "2022-11-08T05:33:01Z",
+     "body": "(@mDuo13 whenever you have a chance - there's an open question above)",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1306660394"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2022-11-16T21:16:03Z",
+     "body": "> > Does this also fix the fact that the server (in some places?) serializes `BaseFee` in hexadecimal for some weird reason?\n> \n> I'm not sure. Can you point me to some places where you see it?\n\n#3165\n\n[ledger_entry for the FeeSettings singleton object](https://xrpl.org/websocket-api-tool.html?server=wss%3A%2F%2Fs1.ripple.com%2F&req=%7B%22command%22%3A%22ledger_entry%22%2C%22index%22%3A%224BC50C9B0D8515D3EAAE1E74B29A95804346C491EE1A95BF25E4AAB854A6A651%22%2C%22ledger_index%22%3A%22validated%22%7D)\n\n![2022-11-16_131217_373832466](https://user-images.githubusercontent.com/7515597/202295914-9341149d-5fe1-47a5-b972-954bf230e1a7.png)",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1317678025"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-11-16T22:57:02Z",
+     "body": "```\n$ rippled -q feature XRPFees\n\n{\n   \"result\" : {\n      \"93E516234E35E08CA689FA33A6D38E103881F8DCB53023F728C307AA89D515A7\" : {\n         \"enabled\" : true,\n         \"name\" : \"XRPFees\",\n         \"supported\" : true,\n         \"vetoed\" : false\n      },\n      \"status\" : \"success\"\n   }\n}\n\n$ rippled -q ledger_entry 4BC50C9B0D8515D3EAAE1E74B29A95804346C491EE1A95BF25E4AAB854A6A651\n\n{\n   \"result\" : {\n      \"index\" : \"4BC50C9B0D8515D3EAAE1E74B29A95804346C491EE1A95BF25E4AAB854A6A651\",\n      \"ledger_current_index\" : 3,\n      \"node\" : {\n         \"BaseFeeDrops\" : \"10\",\n         \"Flags\" : 0,\n         \"LedgerEntryType\" : \"FeeSettings\",\n         \"ReserveBaseDrops\" : \"10000000\",\n         \"ReserveIncrementDrops",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1317786306"
+    },
+    {
+     "author": "intelliot",
+     "date": "2022-12-21T20:13:30Z",
+     "body": "@ximinez when you have a chance, could you resolve the merge conflicts? no need to force-push; we'll squash this PR to one commit when merging.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1362040228"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-01-03T21:40:46Z",
+     "body": "> @ximinez when you have a chance, could you resolve the merge conflicts?\n\nDone.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1370251705"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-01-04T17:31:41Z",
+     "body": "@intelliot I updated the new `SField` values to avoid conflicts with the pending Hooks PR #4225 as noted over at https://github.com/XRPLF/rippled/pull/4319#discussion_r1056449152",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1371219998"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-01-04T22:30:33Z",
+     "body": "This needs review. @xzhaous @nbougalis @RichardAH ?",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1371503964"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-01-12T00:14:37Z",
+     "body": "@thejohnfreeman @HowardHinnant are reviewing and will update here when they have feedback/questions",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1379645391"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-01-20T19:29:44Z",
+     "body": "@thejohnfreeman any last thoughts on this PR?",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1398838655"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-01-24T21:39:50Z",
+     "body": "> Should we remove the section \"Fee level\" in `src/ripple/app/misc/FeeEscalation.md` and amend the rest of the documentation?\n\n@thejohnfreeman I don't think so. Fee levels are not the same as fee units. I removed fee units here. Fee levels are still there and necessary for the transaction queue to work fairly. I'm hoping that after this is merged, there will be less confusion about the whole thing.\n\nAs for the rest of the documentation, I don't think \"fee units\" are really documented anywhere because the were a transparent implementation detail, but if there are, then yeah, that would need to be updated.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#issuecomment-1402723457"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis branch resolves #3932. The concept of \"fee units\" has been (almost) completely removed. It remains in a few places to preserve backward compatibility. Additionally, a new amendment, `XRPFees` has been introduced which, if enabled by the validators, will convert all representations of fees in the code, ledger, and protocol that are still raw numbers into `XRPAmount`s.\n\nAdditionally, it fixes an issue where a sidechain / test network is able to confirm a 0 drop base fee, but is unable to accept submissions of transactions with 0 drop fees. The transaction engine appears to be perfectly fine with such fees, but fee escalation logic had an unstated assumpti",
+   "merged": true,
+   "mergedAt": "2023-02-03T00:20:35Z",
+   "draft": false,
+   "base": "develop",
+   "head": "ximinez:feesettings",
+   "additions": 693,
+   "deletions": 339,
+   "changedFiles": 46,
+   "commits": 11,
+   "reviewComments": 25,
+   "reviews": [
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2022-08-26T21:12:42Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2022-08-31T16:38:51Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2022-08-31T16:44:04Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2022-08-31T16:47:15Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2022-08-31T17:03:57Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2022-08-31T17:08:08Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2022-09-07T23:07:37Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2022-09-07T23:07:46Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2022-09-07T23:07:54Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2022-09-07T23:08:03Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2022-09-07T23:08:29Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2022-10-11T19:27:35Z",
+     "body": ""
+    },
+    {
+     "author": "mDuo13",
+     "state": "APPROVED",
+     "date": "2022-11-18T22:19:24Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2023-01-13T20:26:37Z",
+     "body": ""
+    },
+    {
+     "author": "drlongle",
+     "state": "COMMENTED",
+     "date": "2023-01-18T15:31:40Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-01-18T18:32:51Z",
+     "body": ""
+    },
+    {
+     "author": "drlongle",
+     "state": "APPROVED",
+     "date": "2023-01-19T09:17:20Z",
+     "body": ""
+    },
+    {
+     "author": "thejohnfreeman",
+     "state": "COMMENTED",
+     "date": "2023-01-20T22:57:26Z",
+     "body": "Should we remove the section \"Fee level\" in `src/ripple/app/misc/FeeEscalation.md` and amend the rest of the documentation?"
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-01-24T21:47:37Z",
+     "body": ""
+    },
+    {
+     "author": "thejohnfreeman",
+     "state": "CHANGES_REQUESTED",
+     "date": "2023-01-25T18:53:31Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-01-25T20:16:41Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-01-25T20:16:49Z",
+     "body": ""
+    },
+    {
+     "author": "thejohnfreeman",
+     "state": "APPROVED",
+     "date": "2023-01-26T22:12:08Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "nbougalis",
+     "date": "2022-08-26T20:03:20Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "Not for this commit, but maybe for the future: we should _change_ the way the genesis ledger is created, to make sure that the object describing the fees is always present.\n\nThen we should not need to pass the `config` into this function.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r956410338"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2022-08-26T20:04:42Z",
+     "path": "src/ripple/app/misc/FeeVote.h",
+     "body": "Since you are here, should we update these defaults to match the network's current fees? I guess that might wreak havoc with unit tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r956411483"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2022-08-26T20:07:41Z",
+     "path": "src/ripple/app/misc/FeeVoteImpl.cpp",
+     "body": "It took me a second to understand the comment and after understanding it, this has a bit of a code smell, if I'm being honest.\n\nCan you explain why `getVotes` returns `vote_`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r956413641"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2022-08-26T20:10:06Z",
+     "path": "src/ripple/app/misc/FeeVoteImpl.cpp",
+     "body": "I personally think it's clearer to have two separate blocks:\n\n```\nif (rules.enabled(featureXRPFees))\n{\n    ... new code\n}\nelse\n{\n    ... existing code\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r956415609"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2022-08-26T21:09:46Z",
+     "path": "src/ripple/protocol/SystemParameters.h",
+     "body": "Why? This may have implications in other parts of the code.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r956449166"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2022-08-26T21:12:15Z",
+     "path": "src/ripple/protocol/impl/STValidation.cpp",
+     "body": "Should these fields be, more accurately, named `sf[Whatever]Drops` instead? I don't mind it, as is, but I am curious what others think.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r956450409"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-08-31T16:38:51Z",
+     "path": "src/ripple/protocol/impl/STValidation.cpp",
+     "body": "I'd be fine with that. I just wanted to distinguish from the existing `sfBaseFee`, etc.\n\nMy thinking was that the data type of the field is `STAmount`, which has an `xrp()` function to return an `XRPAmount`, so for consistency \"XRP\" in the `SField` name makes sense.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r959801506"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-08-31T16:44:04Z",
+     "path": "src/ripple/protocol/SystemParameters.h",
+     "body": "Yeah, on second thought, this may be the wrong way / place to implement this. The reason is that somewhere in the development process, I ran into something where a negative `XRPAmount` was possible, and could have caused trouble. In other words, I can't imagine negative one-gazillion XRP would be any better than positive one-gazillion XRP. But I'll reexamine this.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r959806281"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-08-31T16:47:15Z",
+     "path": "src/ripple/app/misc/FeeVoteImpl.cpp",
+     "body": "I was trying to avoid code duplication, but yes, it's probably clearer. I can change this.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r959809246"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-08-31T17:03:57Z",
+     "path": "src/ripple/app/misc/FeeVoteImpl.cpp",
+     "body": "The idea was that I wanted to cache the result of the voting so I wouldn't have to duplicate the work of `getVotes()` repeatedly and to add the `voteChange()` function.\n\nHowever, I just got a much better and simpler idea - I'll return a `pair<XRPAccount, bool>`, where the `bool` indicates whether the value changed, from `getVotes()`, and remove all the new functions.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r959824536"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-08-31T17:08:08Z",
+     "path": "src/ripple/app/misc/FeeVote.h",
+     "body": "I'll try it and see what happens. I think the `Env` setup specifies fees to avoid this exact problem.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r959828107"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-09-07T23:07:37Z",
+     "path": "src/ripple/app/misc/FeeVote.h",
+     "body": "Done, and updated a couple of tests to be future-proof.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r965369945"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-09-07T23:07:46Z",
+     "path": "src/ripple/app/misc/FeeVoteImpl.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r965370026"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-09-07T23:07:54Z",
+     "path": "src/ripple/app/misc/FeeVoteImpl.cpp",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r965370103"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-09-07T23:08:03Z",
+     "path": "src/ripple/protocol/SystemParameters.h",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r965370207"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-09-07T23:08:29Z",
+     "path": "src/ripple/protocol/impl/STValidation.cpp",
+     "body": "Done, but in a separate commit in case we decide that `sf[Whatever]XRP` is better.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r965370410"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-10-11T19:27:35Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "See #4319",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r992703386"
+    },
+    {
+     "author": "drlongle",
+     "date": "2023-01-18T15:31:39Z",
+     "path": "src/ripple/app/misc/FeeVoteImpl.cpp",
+     "body": "Nitpick. Should we pass by reference to avoid a copy?",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r1073694470"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-01-18T18:32:50Z",
+     "path": "src/ripple/app/misc/FeeVoteImpl.cpp",
+     "body": "Doesn't hurt! Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r1073927151"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-01-20T16:23:55Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "Optional, or forbidden? Branch above returns malformed if any present, so seems they are forbidden.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r1082772190"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-01-24T21:47:37Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "I may need to clarify the comment, but \"optional\" refers to the transaction format, changed here: https://github.com/XRPLF/rippled/pull/4247/files#diff-3e7bd959490f33226dff70ce2bfc3e957f2126a35476b2f5048a0e0328f2e77bL158-R162\n\nAt the object level, all of the fields are defined as optional, because that's the only real way I know of to have backward compatibility.\n\nSo, yes, they are forbidden in the branch above, if the amendment is enabled. In this block, they're actually required, so the code needs to check that they're all there.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r1085973740"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-01-25T18:53:04Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "These are the required ones, right? Not forbidden? The code returns malformed if they are missing.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r1087054470"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-01-25T18:53:26Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "Similarly, these are the forbidden ones.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r1087054803"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-01-25T20:16:41Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "Yeah, woops. Got those backwards.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r1087125615"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-01-25T20:16:49Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "Yeah, woops. Got those backwards.",
+     "url": "https://github.com/XRPLF/rippled/pull/4247#discussion_r1087125721"
+    }
+   ]
+  }
+ ],
+ "issues": [
+  {
+   "number": 7343,
+   "title": "No protocol-enforced ceiling on base fee post-XRPFees amendment",
+   "url": "https://github.com/XRPLF/rippled/issues/7343",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-05-27T17:44:47Z",
+   "updatedAt": "2026-05-27T17:44:47Z",
+   "closedAt": null,
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 0,
+   "body": "The XRPFees amendment removed the internal data-type-based ceiling on the base fee. Validators can now vote the base fee to any valid XRP amount via the median-vote fee-voting mechanism on flag ledgers (\\~every 15 minutes). There is no protocol-enforced upper bound. The report frames this as part of a structural exploit chain enabling \"silent XRP drainage via validator-coordinated fee manipulation\" that is \"nearly impossible to prove as intentional.\"\n\n## Background Context from Report\n\n### How Transaction Fees Work (Report Section 1)\n\nEvery XRPL transaction includes a Fee field denominated in drops of XRP (1 XRP = 1,000,000 drops). This amount is permanently destroyed -- not redistributed to"
+  },
+  {
+   "number": 4425,
+   "title": "Make XRPFees a non-breaking API change",
+   "url": "https://github.com/XRPLF/rippled/issues/4425",
+   "state": "closed",
+   "author": "intelliot",
+   "createdAt": "2023-02-18T00:31:53Z",
+   "updatedAt": "2023-02-24T16:41:31Z",
+   "closedAt": "2023-02-24T16:41:30Z",
+   "labels": [
+    "API Change"
+   ],
+   "comments": 3,
+   "body": "## Issue Description\nhttps://github.com/XRPLF/rippled/pull/4247 introduces an amendment, `featureXRPFees` (`XRPFees` for short), and causes some breaking API changes.\n\nThe motivations for the amendment:\n- The fee code is unnecessarily complex due to arcane concepts like \"fee units\" and \"reference transactions\" - represented as integers of various widths. A lot of effort is expended to keep all that straight and prevent developers from doing the wrong thing.\n- Fee units are hard-coded to 10 and the \"reference transaction\" fee is also 10, so there is an opportunity to reduce complexity: replace \"fee units\" with `XRPAmount` for all fees. Scaling/adjusting of fees can operate directly on `XRPAmo"
+  }
+ ],
+ "proposals": [],
+ "branches": []
+}

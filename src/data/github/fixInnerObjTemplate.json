@@ -1,0 +1,710 @@
+{
+ "name": "fixInnerObjTemplate",
+ "fetchedAt": "2026-09-16T10:57:04.916Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 2,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-07-06T00:20:41Z",
+  "lastMerged": "2026-07-01T16:40:01Z",
+  "release": "2.1.0",
+  "totalComments": 96
+ },
+ "release": {
+  "version": "2.1.0",
+  "date": "2024-02-21T19:57:23Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.1.0",
+  "excerpt": "[fixInnerObjTemplate](https://github.com/XRPLF/rippled/pull/4906)"
+ },
+ "prs": [
+  {
+   "number": 7368,
+   "title": "refactor: Retire InnerObjTemplate fix",
+   "url": "https://github.com/XRPLF/rippled/pull/7368",
+   "state": "closed",
+   "author": "TimothyBanks",
+   "createdAt": "2026-05-29T20:36:15Z",
+   "updatedAt": "2026-07-06T00:20:41Z",
+   "closedAt": "2026-07-01T16:40:01Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-30T19:22:22Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7368?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `87.50000%` with `1 line` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 82.0%. Comparing base ([`50fdb38`](https://app.codecov.io/gh/XRPLF/rippled/commit/50fdb38ace4faa3b8f75fde106c14c83d0637fb6?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`5939655`](https://app.codecov.io/gh/XRPLF/rippled/commit/593965575058fe129809291c59d5e24891c52a55?dropdo",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#issuecomment-4584089799"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-09T20:37:56Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#issuecomment-4663802393"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-10T21:06:02Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#issuecomment-4674520704"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-10T21:06:28Z",
+     "body": "@a1q123456 @pratikmankawde Please take another look",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#issuecomment-4674523882"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T12:11:45Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#issuecomment-4809454423"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T16:14:43Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#issuecomment-4811344238"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis change set retired the InnerObjTemplate fix and adjust unit tests to work with that feature always being on.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-07-01T16:40:01Z",
+   "draft": false,
+   "base": "develop",
+   "head": "TimothyBanks:retire_inner_obj_template",
+   "additions": 15,
+   "deletions": 58,
+   "changedFiles": 8,
+   "commits": 5,
+   "reviewComments": 11,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-01T17:37:22Z",
+     "body": "## Pull request overview\n\nThis PR retires the `InnerObjTemplate` fix amendment and simplifies AMM-related code paths and tests by removing conditional behavior that depended on `fixInnerObjTemplate` being enabled.\n\n**Changes:**\n- Retire `InnerObjTemplate` in the amendment registry and remove conditional `fixInnerObjTemplate` checks.\n- Make AMM code paths assert `sfAuctionSlot` presence unconditionally where it is now expected as an invariant.\n- Update AMM unit tests/helpers to stop varying behavior based on the retired fix.\n\n### Reviewed changes\n\nCopilot reviewed 8 out of 8 changed files in this pull request and generated 2 comments.\n\n<details>\n<summary>Show a summary per file</summary>\n\n| F"
+    },
+    {
+     "author": "a1q123456",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-06-02T13:58:44Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-02T15:52:49Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-02T15:53:57Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-02T15:55:23Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "DISMISSED",
+     "date": "2026-06-02T15:58:33Z",
+     "body": "Looks good, minor comments to address. No blocker."
+    },
+    {
+     "author": "a1q123456",
+     "state": "DISMISSED",
+     "date": "2026-06-23T14:42:19Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T18:21:11Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-25T15:22:33Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-25T15:23:36Z",
+     "body": "Minor comment"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-25T18:51:07Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-06-29T15:06:07Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-07-01T13:03:04Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-01T13:50:47Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2026-07-01T15:36:13Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:37:21Z",
+     "path": "src/xrpld/rpc/handlers/orderbook/AMMInfo.cpp",
+     "body": "The assertion message says the auction slot is \"set\", but the condition being asserted is that the field is present. Consider adjusting the message to match the invariant being checked to avoid confusion when debugging assertion failures.",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#discussion_r3336037989"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:37:22Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Several comments in this test still refer to the InnerObjTemplate amendment being enabled/disabled, but this PR retires that fix and the test no longer varies it. Please update the comments so they describe the behavior being exercised (e.g., whether the ledger is closed between transactions) without referencing an amendment that is no longer configurable.",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#discussion_r3336038036"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T13:56:55Z",
+     "path": "src/libxrpl/protocol/STObject.cpp",
+     "body": "`(rules->enabled(fixInnerObjTemplate2) && !isAMMObj)` can be simplified to `rules->enabled(fixInnerObjTemplate2)`",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#discussion_r3341727178"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-02T15:52:49Z",
+     "path": "src/libxrpl/protocol/STObject.cpp",
+     "body": "Minor:\nComment `    //  2. fixInnerObjTemplate added templates to two AMM inner objects.`, can it be removed now?",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#discussion_r3342577115"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-02T15:53:57Z",
+     "path": "src/test/jtx/impl/AMM.cpp",
+     "body": "Question: Still relevant?",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#discussion_r3342583952"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-02T15:55:23Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Comment still relevant?",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#discussion_r3342592850"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T18:21:10Z",
+     "path": "src/xrpld/rpc/handlers/orderbook/AMMInfo.cpp",
+     "body": "The message is good enough.",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#discussion_r3469340098"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-25T15:22:33Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "This still needs work.",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#discussion_r3475554637"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-25T18:51:07Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "This has already been addressed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#discussion_r3476883973"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-07-01T13:02:56Z",
+     "path": "src/test/jtx/impl/AMM.cpp",
+     "body": "According to the removed comment, this no longer needs to be accessed as an optional.",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#discussion_r3506109415"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-01T13:50:47Z",
+     "path": "src/test/jtx/impl/AMM.cpp",
+     "body": "The type is still an optional.  It is normally idiomatic to be defensive when accessing an optional.  If it is ok for this line to throw and the caller invoked this within a try/catch, then we can remove the value_or, but it still needs to be accessed as an optional.",
+     "url": "https://github.com/XRPLF/rippled/pull/7368#discussion_r3506461783"
+    }
+   ]
+  },
+  {
+   "number": 4906,
+   "title": "`fixInnerObjTemplate`: Add STObject constructor to explicitly set inner object template",
+   "url": "https://github.com/XRPLF/rippled/pull/4906",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2024-01-29T22:10:03Z",
+   "updatedAt": "2024-02-17T01:16:19Z",
+   "closedAt": "2024-02-07T21:58:12Z",
+   "labels": [
+    "Bug",
+    "Amendment",
+    "Testable",
+    "QE impact not expected"
+   ],
+   "comments": [
+    {
+     "author": "codecov-commenter",
+     "date": "2024-01-30T13:25:07Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/4906?src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: `10 lines` in your changes are missing coverage. Please review.\n> Comparison is base [(`6d3c21e`)](https://app.codecov.io/gh/XRPLF/rippled/commit/6d3c21e369cdcde867a2c54f68028f18aef7d83e?el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) 61.50% compared to head [(`f2677a3`)](https://app.codecov.io/gh/XRPLF/rippled/pull/4906?src=pr&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) 61.47%.\n\n| ",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#issuecomment-1916843554"
+    },
+    {
+     "author": "danielwwf",
+     "date": "2024-02-03T20:59:37Z",
+     "body": "After talking with some people, we would like to see a 2.0.2 for this fix that gets pushed ASAP. Waiting for 2.1.0 seems too long IMHO.\n\nDeparting AMM and putting up an AMMv2 seems the best way forward to avoid another XLS20d situation.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#issuecomment-1925453940"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-06T19:14:02Z",
+     "body": "> Looks good. One optional comment to consider.\n\nThere is another update. Please re-review. Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#issuecomment-1930593651"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-02-07T15:18:52Z",
+     "body": "Why don't we just make these fields `soeOPTIONAL`? Whats the purpose of these being `soeDEFAULT`?\n\nAlso you stated `If the object contains an soeDEFAULT field, and this field is initially set to the default value, accessing the field results in tefEXCEPTION error.`\n\nIsn't this exactly what default behavior is supposed to be? `soeDEFAULT // optional, if present, must not have default value`\n\nThanks",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#issuecomment-1932268502"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-07T15:23:45Z",
+     "body": "> Why don't we just make these fields `soeOPTIONAL`? Whats the purpose of these being `soeDEFAULT`?\n> \n> Also you stated `If the object contains an soeDEFAULT field, and this field is initially set to the default value, accessing the field results in tefEXCEPTION error.`\n> \n> Isn't this exactly what default behavior is supposed to be? `soeDEFAULT // optional, if present, must not have default value`\n> \n> Thanks\n\nChanging the field's style is risky and it's a lot more code changes.\n\n`soeDEFAULT` field saves space. If it has the default value then it should not be present. But if it is accessed then it should return the default value if it's not present.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#issuecomment-1932279055"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-02-07T15:29:25Z",
+     "body": "> > Why don't we just make these fields `soeOPTIONAL`? Whats the purpose of these being `soeDEFAULT`?\n> > Also you stated `If the object contains an soeDEFAULT field, and this field is initially set to the default value, accessing the field results in tefEXCEPTION error.`\n> > Isn't this exactly what default behavior is supposed to be? `soeDEFAULT // optional, if present, must not have default value`\n> > Thanks\n> \n> Changing the field's style is risky and it's a lot more code changes.\n> \n> `soeDEFAULT` field saves space. If it has the default value then it should not be present. But if it is accessed then it should return the default value if it's not present.\n\nAh I see thank you",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#issuecomment-1932292710"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-02-07T20:07:27Z",
+     "body": "Suggested commit message:\n```\n`fixInnerObjTemplate`: set inner object template (#4906)\n\nAdd `STObject` constructor to explicitly set the inner object template.\nThis allows certain AMM transactions to apply in the same ledger:\n\nThere is no issue if the trading fee is greater than or equal to 0.01%.\nIf the trading fee is less than 0.01%, then:\n- After AMM create, AMM transactions must wait for one ledger to close\n  (3-5 seconds).\n- After one ledger is validated, all AMM transactions succeed, as\n  appropriate, except for AMMVote.\n- The first AMMVote which votes for a 0 trading fee in a ledger will\n  succeed. Subsequent AMMVote transactions which vote for a 0 trading\n  fee will wait for the next",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#issuecomment-1932782811"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-02-17T01:16:18Z",
+     "body": "- @legleux reviewing for QA",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#issuecomment-1949567943"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdd an `STObject` constructor overload that includes an additional bool argument to set the inner object template. Set the argument to true if the constructed object is an inner object and if the `fixInnerObjTemplate` amendment is enabled.\n\n### Context of Change\n\nCurrently, the inner object template is not set upon object creation. If the object contains an `soeDEFAULT` field, and this field is initially set to the default value, accessing the field results in `tefEXCEPTION` error. Conversely, if the top object's `soeDEFAULT` field, initially set to the default value, is accessed, it returns the default value since top objects have the template set during co",
+   "merged": true,
+   "mergedAt": "2024-02-07T21:58:12Z",
+   "draft": false,
+   "base": "develop",
+   "head": "gregtatcam:fix-innerobj-templ",
+   "additions": 363,
+   "deletions": 31,
+   "changedFiles": 13,
+   "commits": 12,
+   "reviewComments": 32,
+   "reviews": [
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-01-31T20:11:48Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-01-31T20:46:25Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2024-01-31T22:14:22Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-01-31T22:21:19Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2024-01-31T23:35:55Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-02-01T00:47:12Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-02-01T02:38:46Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2024-02-01T18:24:37Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-02-01T18:38:02Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-02-01T21:25:24Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-02-01T22:17:32Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-02-01T22:28:49Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2024-02-01T22:53:37Z",
+     "body": "Looks good. One optional comment to consider."
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-02-01T23:14:58Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-02-02T00:01:13Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-02-06T22:28:09Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-02-06T23:04:21Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-02-07T02:16:38Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-02-07T02:25:11Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2024-02-07T14:25:32Z",
+     "body": ":+1:"
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2024-02-07T17:13:55Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-02-07T17:52:30Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2024-02-07T19:09:22Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2024-02-07T19:11:17Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "seelabs",
+     "date": "2024-01-31T20:11:48Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "Our current setup for amendments works well when modifying and adding transactors. It works less well with bug fixes - especially bug fixes that effect lower level classes. We've run into this several times with STAmount and number classes, and now we're running into it with STObject. I dislike passing in a bool into the constructor like this patch does, although I understand why you did it.\n\nWhat do you think about a `thread_local` variable that holds the current `Rules` (defaulting to a null ptr if there is no transaction active)? The variable would be setup on entry to a transaction and torn down on exit. The problems I see with this are:\n\n1. It won't work with coroutines, since these can",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1473408692"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-01-31T20:46:24Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "I like this idea. This could be made into a more general solution then. The overloaded `STObject` constructor with `bool` argument is not needed and existing `STObject(SField const&)` constructor can be used instead. This variable can set/torn down in `applyTransaction()` and some added AMM code can be removed. This is somewhat similar to `thread_local Number::rounding_mode Number::mode_`. Does this sound right?\n\nIf `applyTransaction()` is the right place then wouldn't it address 2?",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1473443098"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-01-31T22:14:22Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "@seelabs Because, as far as I know, inner objects are always and only created in transactor classes and related helper functions, what do you think about undoing the `STObject` ctor changes, and adding a `makeInnerObject` function that has a `Rules` parameter?\n```\nSTObject makeInnerObject(SField const& name, Rules const& rules)\n{\n    STObject obj{name};\n    if (rules.enabled(fixInnerObjTemplate))\n    {\n        SOTemplate const* elements =\n            InnerObjectFormats::getInstance().findSOTemplateBySField(name);\n        if (elements)\n            set(*elements);\n    }\n}\n```\nBoth `STObject` and `Rules` live in `src/ripple/protocol`, so there are no levelization implications.\n\nIf a new amendme",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1473532215"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-01-31T22:21:19Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "Then each inner object has to be explicitly constructed this way rather then implicitly handled via `STObject` constructor. Why is this a better approach? To avoid 1-3 issues that @seelabs mentioned?",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1473540182"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-01-31T23:35:55Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "Yeah, it avoids those issues, but it may not be a better solution. Maybe you could just pass `Rules` (or more specifically `std::optional<Rules>` into the current ctor and not add the helper).",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1473615368"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-01T00:47:12Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "Actually, I would rather use the helper. The constructor is obscure.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1473660809"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-02-01T02:38:46Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "I like @ximinez idea of passing `Rules` - good thinking Ed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1473727596"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-01T18:06:27Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "What exactly does this line do that wasn't being done before? It probably needs to also be gated by the amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1474894554"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-01T18:08:33Z",
+     "path": "src/ripple/protocol/impl/STObject.cpp",
+     "body": "Minor tweak:\n```\n        if (SOTemplate const* elements =\n                InnerObjectFormats::getInstance().findSOTemplateBySField(name))\n            obj.set(*elements);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1474897804"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-01T18:10:21Z",
+     "path": "src/ripple/protocol/impl/STObject.cpp",
+     "body": "Suggestion:\n```\nassert(v);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1474900324"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-01T18:21:37Z",
+     "path": "src/ripple/protocol/SOTemplate.h",
+     "body": "I think this comment should copied to InnerObjectFormats.cpp, probably before line 138 (the closing `}`) or after line 27 (the opening `{`). That's where people are likely going to be making additions, and so will be more likely to see and heed the message.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1474914438"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-01T18:38:02Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "`auctionSlot` was originally fetched via `peekFieldObject()`, which was returning a reference to `auctionSlot`. The latest implementation constructs `auctionSlot` as the local variable, sets its fields, and then sets `auctionSlot` in `AMM` object. `set` originally had declaration only and was not implemented. I don't think it has to be gated.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1474939087"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-02-01T21:25:24Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "The original code got an existing object and modified it. The new code creates a new object and sets it. So if there are any fields that aren't explicitly set that could have been present when it was retrieved in the previous version with `peekFieldObject` then those fields will be different between the old and new version and that's transaction breaking.\n\nIt looks like `sfAuthAccounts` is such a field. This looks transaction breaking without being protected with an amendment to me. If for some reason there's no way `sfAuthAccount` could have ever been set then we'd at the very minimum need a comment, but we'd probably want to rewrite this code to protect that case anyway.\n\nAs a side note, i",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1475169677"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-01T22:17:31Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "`sfAuthAccounts` is an optional field and is not going to be present in either the old version or the new version. The final result in terms of which fields are present and which are not is the same in both versions. What changes is how `sfDiscountedFee` is handled when it's fetched from `sfAuctionSlot` because `sfDiscountedFee` is `soeDEFAULT`. The old version fails if the field is not present. The new version fails if the amendment is disabled and succeeds if the amendment is enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1475223424"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-02-01T22:28:49Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "Just so I understand, `sfAuctionSlot` is guaranteed not exist in `ammSle` on entry to this function? Or it might exist and `sfAuthAccounts` is guaranteed not to exist?",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1475236809"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-01T22:49:29Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "Ok. I missed the `peekFieldObject()` change because I was focused on the `set`. I think this is fine, but another option to consider is that you could restore the `peekFieldObject()`, then set up the template here. The only real advantages I can think of offhand are that it would remove the need to create the temporary local, and it avoids a move assignment. The disadvantage is it adds yet another copy of that code block from the ctor. May not be worth it, but I offer for your consideration:\n```\n    // AMM creator gets the auction slot for free.\n    auto& auctionSlot = ammSle->peekFieldObject(sfAuctionSlot);\n    if (rules.enabled(fixInnerObjTemplate))\n    {\n        if (SOTemplate const* elem",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1475269078"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-01T23:14:57Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "Actually, `sfAuctionSlot` does not exist when called from `AMMCreate` and exists when called from `AMMDeposit`. The latter can be called to restore `AMM` from an empty state. So `sfAuthAccounts` have to be preserved in case it's called from `AMMDeposit` if the amendment is not enabled and reset if the amendment is enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1475291407"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-02T00:01:13Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "How about something like this:\n>        STObject auctionSlot = STObject::makeInnerObject(sfAuctionSlot, rules);\n>        if (!rules.enabled(fixInnerObjTemplate) && ammSle->isFieldPresent(sfAuctionSlot))\n>        {\n>            auto& as = ammSle->peekFieldObject(sfAuctionSlot);\n>            if (as.isFieldPresent(sfAuthAccounts))\n>                auctionSlot.setFieldArray(sfAuthAccounts, as.getFieldArray(sfAuthAccounts));\n>        }",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1475342247"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-02-06T22:23:08Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "Asserts by definition \"should not happen\". The comment doesn't add value. I'd remove it.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1480611237"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-02-06T22:25:18Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "This needs to be protected by an an amendment check. In general, when adding transaction breaking code, the code should follow the pattern:\n```\nif (amendment_on){\n// do the new thing\n}\nelse{\n// do the old thing\n}\n```\nIt makes the code much easier to audit and makes it much less likely that transaction breaking changes will sneak in.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1480612912"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-02-06T22:25:45Z",
+     "path": "src/ripple/app/tx/impl/AMMBid.cpp",
+     "body": "Rm comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1480613315"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-02-06T22:26:26Z",
+     "path": "src/ripple/app/tx/impl/AMMBid.cpp",
+     "body": "This needs to be protected by an an amendment check. In general, when adding transaction breaking code, the code should follow the pattern:\n```\nif (amendment_on){\n// do the new thing\n}\nelse{\n// do the old thing\n}\n```\nIt makes the code much easier to audit and makes it much less likely that transaction breaking changes will sneak in.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1480613888"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-02-06T22:26:46Z",
+     "path": "src/ripple/app/tx/impl/AMMVote.cpp",
+     "body": "Rm comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1480614133"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-02-06T22:27:51Z",
+     "path": "src/ripple/protocol/impl/STObject.cpp",
+     "body": "Why does this take a pointer as an argument? It seems like `STBase&&` would be clearer.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1480614993"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-02-06T22:28:04Z",
+     "path": "src/ripple/rpc/handlers/AMMInfo.cpp",
+     "body": "Rm comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1480615195"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-06T23:04:21Z",
+     "path": "src/ripple/protocol/impl/STObject.cpp",
+     "body": "This function was already declared in `STObject` but it was not defined. I just added the implementation.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1480641693"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-02-07T02:16:38Z",
+     "path": "src/ripple/protocol/impl/STObject.cpp",
+     "body": "I'm still not understanding why this interface uses a pointer and not an rvalue ref. rvalue ref seems better given how this is implemented. Am I missing something?",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1480802248"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-07T02:25:11Z",
+     "path": "src/ripple/protocol/impl/STObject.cpp",
+     "body": "Changed to rvalue ref.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1480808383"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-07T16:52:42Z",
+     "path": "src/ripple/app/misc/impl/AMMUtils.cpp",
+     "body": "I know you rewrote this based on feedback from @seelabs, but now I think this is more complicated than necessary. I think it would equivalent, and just as easy to read (if not easier) as:\n```\n    // AMM creator gets the auction slot for free.\n    // AuctionSlot is created on AMMCreate and updated on AMMDeposit\n    // when AMM is in an empty state\n    if (rules.enabled(fixInnerObjTemplate) &&\n        !ammSle->isFieldPresent(sfAuctionSlot))\n    {\n        STObject auctionSlot = STObject::makeInnerObject(sfAuctionSlot, rules);\n        ammSle->set(std::move(auctionSlot));\n    }\n    STObject& auctionSlot = ammSle->peekFieldObject(sfAuctionSlot);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1481795742"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-07T17:09:15Z",
+     "path": "src/test/jtx/impl/AMM.cpp",
+     "body": "Maybe not for this PR, but it might be worth refactoring this at some point to get rid of the overloads with multiple arguments, and just use these handy structures.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1481817308"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-07T17:12:51Z",
+     "path": "src/test/jtx/impl/AMM.cpp",
+     "body": "I think this comment is trying to say \"This could fail in pre-fixInnerObjTemplate tests if the submitted transactions recreate one of the failure scenarios. Access as optional to avoid the failure.\" Could you update to be clearer? (Feel free to use what I wrote, or rephrase it another way.)",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1481821897"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-07T17:52:30Z",
+     "path": "src/test/jtx/impl/AMM.cpp",
+     "body": "I opened a JIRA ticket for this.",
+     "url": "https://github.com/XRPLF/rippled/pull/4906#discussion_r1481869889"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

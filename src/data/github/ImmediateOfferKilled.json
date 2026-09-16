@@ -1,0 +1,155 @@
+{
+ "name": "ImmediateOfferKilled",
+ "fetchedAt": "2026-09-16T10:44:11.577Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:21:52Z",
+  "lastMerged": "2025-11-03T17:26:12Z",
+  "release": "3.2.0",
+  "totalComments": 15
+ },
+ "release": {
+  "version": "3.2.0",
+  "date": "2026-06-16T00:36:47Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/3.2.0",
+  "excerpt": "Retire ImmediateOfferKilled by @a1q123456 in https://github.com/XRPLF/rippled/pull/5973"
+ },
+ "prs": [
+  {
+   "number": 5973,
+   "title": "Retire ImmediateOfferKilled",
+   "url": "https://github.com/XRPLF/rippled/pull/5973",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2025-10-30T17:25:11Z",
+   "updatedAt": "2026-05-20T17:21:52Z",
+   "closedAt": "2025-11-03T17:26:12Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-10-30T17:52:18Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5973?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.3%. Comparing base ([`12c4b5a`](https://app.codecov.io/gh/XRPLF/rippled/commit/12c4b5a632fb04bf8daf84b7bc6bfee076859929?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`fd8ca10`](https://app.codecov.io/gh/XRPLF/rippled/commit/fd8ca10afdef973758eb711983439bc4fd71a8ea?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5973#issuecomment-3469321323"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-11-03T17:26:12Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/retire-ImmediateOfferKilled",
+   "additions": 8,
+   "deletions": 56,
+   "changedFiles": 3,
+   "commits": 4,
+   "reviewComments": 7,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-10-30T17:49:37Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-10-31T11:07:23Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-10-31T11:12:05Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-10-31T12:45:07Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "APPROVED",
+     "date": "2025-10-31T16:28:33Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-10-31T17:08:10Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-03T11:04:00Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "bthomee",
+     "date": "2025-10-30T17:45:35Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Can you please keep this list sorted alphabetically?",
+     "url": "https://github.com/XRPLF/rippled/pull/5973#discussion_r2478991200"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-10-30T17:48:44Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "You removed the `all - fillOrKill - permDEX` test, but that's still a valid test. The `fillOrKill` belongs to a different amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/5973#discussion_r2478999867"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-10-31T11:07:23Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "`all - fillOrKill - permDEX` is still here at line 5305. I just rearranged the tests so that they look clearer.\nThe previous implementation sets up some test feature presets and then each test suite selects a preset by an index. This approach is confusing because it's not very clear what features a suite is trying to test and removing a preset from the list will mess up the order and lots of tests will fail.",
+     "url": "https://github.com/XRPLF/rippled/pull/5973#discussion_r2481061352"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-10-31T11:12:05Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Thanks, Bart! Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5973#discussion_r2481072189"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-10-31T16:28:08Z",
+     "path": "src/xrpld/app/tx/detail/CreateOffer.cpp",
+     "body": "I haven't been paying full attention but are we leaving the \"If XYZ Amendment is enabled\" comments? Just curious.",
+     "url": "https://github.com/XRPLF/rippled/pull/5973#discussion_r2482016712"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-10-31T17:08:10Z",
+     "path": "src/xrpld/app/tx/detail/CreateOffer.cpp",
+     "body": "Sometimes it's a judgment call - some comments provide historic context on how it used to be without it - but here you're right that this first line provides no longer any value.",
+     "url": "https://github.com/XRPLF/rippled/pull/5973#discussion_r2482137449"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-03T11:04:00Z",
+     "path": "src/xrpld/app/tx/detail/CreateOffer.cpp",
+     "body": "Thanks guys! Have removed it.",
+     "url": "https://github.com/XRPLF/rippled/pull/5973#discussion_r2486091750"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

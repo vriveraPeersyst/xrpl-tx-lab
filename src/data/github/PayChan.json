@@ -1,0 +1,1073 @@
+{
+ "name": "PayChan",
+ "fetchedAt": "2026-09-16T10:46:33.671Z",
+ "summary": {
+  "status": "in development",
+  "prs": 5,
+  "open": 1,
+  "merged": 2,
+  "issues": 0,
+  "proposals": 1,
+  "branches": [
+   "dangell7/token-paychan-clawback",
+   "token-paychan"
+  ],
+  "lastActivity": "2026-09-15T18:19:59Z",
+  "lastMerged": "2025-10-14T19:20:07Z",
+  "release": "0.33.0",
+  "totalComments": 136
+ },
+ "release": {
+  "version": "0.33.0",
+  "date": "2016-09-29T21:41:55Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/0.33.0",
+  "excerpt": "The `rippled` 0.33.0 release includes an improved version of the payment code, which we expect to be activated via Amendment on Wednesday, 2016-10-20 with the name [Flow](https://ripple.com/build/amendments/#flow). We are also introducing XRP Payment Channels, a new structure in the ledger designed "
+ },
+ "prs": [
+  {
+   "number": 7882,
+   "title": "refactor: Extract escrow lock helpers and paychan test helpers",
+   "url": "https://github.com/XRPLF/rippled/pull/7882",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-07-28T00:05:30Z",
+   "updatedAt": "2026-09-15T18:19:59Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-28T00:50:06Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7882?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5098573546"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-07T16:00:58Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5219273225"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-31T16:06:07Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5481021980"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-15T18:19:59Z",
+     "body": "@dangell7 ready to merge?",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5685679631"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nPulls the refactoring out of #5448 (XLS-93d Token-Enabled Payment Channels) into its own PR so it can merge ahead of the feature. Code motion only, no functional change.\n\n- Moves the escrow lock/unlock helpers from the Escrow transactors into `EscrowHelpers.h`.\n- Moves the jtx `paychan` helpers from `TestHelpers.h` into their own `test/jtx/paychan.h`, and hoists the file-local helpers from `PayChan_test.cpp` into them.\n- Moves the escrowed balance test helpers from `EscrowToken_test.cpp` into the shared jtx `TestHelpers.h`.\n\n### Context of Change\n\nSplit out of #5448 per review feedback. The token paychan transactors reuse the escrow lock/unlock helpers, so t",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "Transia-RnD:dangell7/escrow-paychan-refactor",
+   "additions": 592,
+   "deletions": 572,
+   "changedFiles": 13,
+   "commits": 5,
+   "reviewComments": 4,
+   "reviews": [
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-29T14:08:58Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-29T14:12:44Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-02T19:56:46Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-02T19:56:48Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "APPROVED",
+     "date": "2026-08-04T13:50:39Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:19:05Z",
+     "body": "### 🟢 Approval recommended\n\nThe changes are mechanical extractions with updated call sites/includes and no detected behavioral deltas in the moved logic.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR performs a pure refactor (code motion) to centralize token-escrow lock/unlock logic and payment-channel JTx test helpers, enabling reuse by upcoming token-enabled payment channel work while keeping transactor behavior unchanged.\n\n**Changes:**\n- Extracts escrow token lock/unlock preclaim/apply helper templates into `EscrowHelpers.h` and updates Escrow transactors to use them.\n- Splits payment channel JTx helpers out of `TestHelpers.h` into `test/jtx/paychan.h` (+ implementation) a"
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2026-09-15T17:51:39Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-29T14:08:58Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "just a nit, but it might be worthwhile to considering moving these explicit template instantiations into a source file.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675042241"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-29T14:12:44Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "super nit and a problem not for this PR, but we don't need to construct most of these variables until after line 355.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675074494"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-02T19:56:46Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "The inline specialization pattern is inherited from develop's EscrowHelpers.h, the unlock helpers already live there. Happy to move the whole family into an EscrowHelpers.cpp as a follow up, kept this PR to code motion.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156269"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-02T19:56:48Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/82ede27f1020f380e44beade2f19bef75490b98b",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156299"
+    }
+   ]
+  },
+  {
+   "number": 5840,
+   "title": "refactor: paychan namespace and update related tests",
+   "url": "https://github.com/XRPLF/rippled/pull/5840",
+   "state": "closed",
+   "author": "tequdev",
+   "createdAt": "2025-10-03T00:57:45Z",
+   "updatedAt": "2025-10-14T19:20:17Z",
+   "closedAt": "2025-10-14T19:20:07Z",
+   "labels": [
+    "Ready to merge",
+    "Trivial",
+    "Triaged"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-10-03T01:26:34Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5840?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 79.5%. Comparing base ([`459d0da`](https://app.codecov.io/gh/XRPLF/rippled/commit/459d0da010626e5669d53966ff14cd1ae9e77957?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`e1fe752`](https://app.codecov.io/gh/XRPLF/rippled/commit/e1fe75252e1c304d7fcf27c108ffa68d5b396b30?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5840#issuecomment-3363816751"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-10-09T21:22:36Z",
+     "body": "@tequdev is this ready to merge?",
+     "url": "https://github.com/XRPLF/rippled/pull/5840#issuecomment-3387532309"
+    },
+    {
+     "author": "tequdev",
+     "date": "2025-10-10T00:17:06Z",
+     "body": "> @tequdev is this ready to merge?\n\nyes👍",
+     "url": "https://github.com/XRPLF/rippled/pull/5840#issuecomment-3387847814"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\nAdds a `paychan` namespace to the TestHelpers and implementation files, improving organization and clarity. Additionally, it updates the AMM test to use the new `paychan::create` function for payment channel creation.\n\n\n### Type of Change\n\n- [x] Refactor (non-breaking change that only restructures code)",
+   "merged": true,
+   "mergedAt": "2025-10-14T19:20:07Z",
+   "draft": false,
+   "base": "develop",
+   "head": "tequdev:refactor-paychan-test-namespase",
+   "additions": 10,
+   "deletions": 1,
+   "changedFiles": 4,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2025-10-06T15:17:28Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 4336,
+   "title": "`featureDisallowIncoming`: Opt-out of incoming Checks, PayChans, NFTokenOffers and Trustlines",
+   "url": "https://github.com/XRPLF/rippled/pull/4336",
+   "state": "closed",
+   "author": "RichardAH",
+   "createdAt": "2022-11-05T12:36:52Z",
+   "updatedAt": "2023-07-19T20:51:10Z",
+   "closedAt": "2022-12-20T01:35:36Z",
+   "labels": [
+    "Tx Change",
+    "Amendment",
+    "Testable",
+    "Will Need Documentation"
+   ],
+   "comments": [
+    {
+     "author": "RichardAH",
+     "date": "2022-11-05T13:26:58Z",
+     "body": "```\nLongest suite times:\n   41.9s ripple.tx.Offer\n   35.0s ripple.app.ValidatorSite\n   30.7s ripple.tx.NFToken\n   21.3s ripple.rpc.NodeToShardRPC\n   16.9s ripple.tx.NFTokenBurn\n   13.8s ripple.app.Flow\n   13.7s ripple.app.ShardArchiveHandler\n   12.7s ripple.app.TheoreticalQuality\n    8.4s ripple.app.LedgerReplayer\n    7.7s ripple.tx.NFTokenDir\n348.9s, 204 suites, 1591 cases, 548477 tests total, 0 failures\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1304546799"
+    },
+    {
+     "author": "WietseWind",
+     "date": "2022-11-05T13:45:33Z",
+     "body": "Yes. We need this. Users need this. The current situation confuses users.\n\nThanks for the quick Dev 😬\n\nhttps://twitter.com/wietsewind/status/1588889982026285056",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1304549594"
+    },
+    {
+     "author": "seelabs",
+     "date": "2022-11-07T16:55:58Z",
+     "body": "@RichardAH Just a head's up that Scott S. is away this week, I don't think he'll be able to review this until next week.",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1305904036"
+    },
+    {
+     "author": "intelliot",
+     "date": "2022-11-08T05:30:34Z",
+     "body": "What's the envisioned user experience in cases where users change their mind? \n\ne.g. they don't think they want NFT offers, but later try to use the feature. What prevents confusion about the feature being blocked?\n\nAnd then when they do - intentionally - want to allow incoming NFT offers, what prevents users from being spammed anyway?\n\nI know that the PR description states that ignoring such objects on the client side is an inferior solution, but I think we should dig into this a bit further, and discuss it for the benefit of developers who read about this amendment in the future:\n\nWallets could ignore such objects by default (and not show them to users). Similar to spam email, the wallet c",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1306658862"
+    },
+    {
+     "author": "WietseWind",
+     "date": "2022-11-08T06:41:01Z",
+     "body": "Thanks @nbougalis \n\nAnd @intelliot: I do not believe client side filtering is the right solution. We're living in 2022 and still receiving spam in our mailbox, and still instructing people to check their spam box. On top of that, all resources to send, transfer, receive, filter email are still being wasted. We have a shot here at preventing that hot mess on the XRPL, by simply allowing users to opt out of certain objects.\n\n(Example with NFTs, same applies for other objects) If I own no NFTs, why would I possibly want to receive offers to buy one? Even if my client filters it: it pollutes the ledger, it pollutes my account history, and it moves the responsibility to keep things clean to hopef",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1306709466"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-11-08T06:41:27Z",
+     "body": "> What's the envisioned user experience in cases where users change their mind?\n\nThe flags are easy for a platform to check. When you sign into that platform they check to see if your account is in the correct state to receive the objects their platform uses, and if it isn’t then give you a sign request to change your account settings.\n\n> Introducing these three account flags won't eliminate spam on the ledger, as it's a public blockchain and there are myriad different ways to spam (for example - even to the extent of creating new accounts, which may or may not be controllable by the spammer).\n\nCreating new accounts still won’t allow you to send NFTOffers to an account who has asfDisallowInc",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1306709776"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-11-08T06:46:31Z",
+     "body": "> I like this functionality. I think we need to consider (separately) a flag that marks an account as “not incoming trustlines” which prevents the creation of trustlines to the account.\n> \n> I only gave this a quick look, but it looks fine. Mark this as approved by me.\n\nI was going to add such a flag but then realised asfRequireAuth should already do this? Incidentally blocking trustline creation is a form of freezing. It needs to be done carefully as not to contradict other behaviour",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1306712964"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2022-11-10T19:01:41Z",
+     "body": ">I was going to add such a flag but then realised asfRequireAuth should already do this? Incidentally blocking trustline creation is a form of freezing. It needs to be done carefully as not to contradict other behaviour\n\nIt doesn't: even if you have `asfRequireAuth`, the trustline can be created and there is a big difference between that and marking an account as \"not issuing\".",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1310765122"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-11-13T16:49:45Z",
+     "body": "> It doesn't: even if you have `asfRequireAuth`, the trustline can be created and there is a big difference between that and marking an account as \"not issuing\".\n\nAh gotcha. Happy to add another flag for 'non-issuing' in that case. I think we avoid any risk of it being used as another type of freeze by only allowing the flag to be set if the account has no issued balances on any of their trustlines. Can't freeze what doesn't exist.\n\n> My only concern is we are using one flag per object type, and we have a limited number of flags. Every time we add a new ledger object that requires permission we need to use another flag. Having said that, it's not a huge concern and this is good as-is. Thanks",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1312773959"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-11-14T11:14:44Z",
+     "body": "After some discussion here in the office with @WietseWind we decided that having existing outstanding assets (issued IOUs) should not block `asfDisallowIncomingTrustline` (even though it could be considered a light version of freeze in some circumstances.)\n\nOn the contrary we decided using this adds a new use-case to the XRPL: Maintaining a currency only tradable between trusted parties. First you setup all the trustlines you will ever allow then you enable the flag. Now you have an isolated currency. (Credit: @WietseWind)\n\nTrustlines can still be created in two additional ways, neither of which are checked by the new flag: offer crossing and checkmakestrustline. We figure no check is necess",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1313518655"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-11-17T08:53:05Z",
+     "body": "Hi @scottschurr thanks for the code review\nI think I addressed everything in recent push\n\n```\nLongest suite times:\n   42.3s ripple.tx.Offer\n   35.0s ripple.app.ValidatorSite\n   31.8s ripple.tx.NFToken\n   21.1s ripple.rpc.NodeToShardRPC\n   17.7s ripple.tx.NFTokenBurn\n   13.9s ripple.app.Flow\n   13.7s ripple.app.ShardArchiveHandler\n   12.9s ripple.app.TheoreticalQuality\n    8.4s ripple.app.LedgerReplayer\n    8.2s ripple.tx.NFTokenDir\n355.7s, 204 suites, 1602 cases, 548790 tests total, 0 failures\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1318294604"
+    },
+    {
+     "author": "intelliot",
+     "date": "2022-12-14T00:08:00Z",
+     "body": "@WietseWind could we get a quick confirmation that this still resolves the issue for users? Thank you!",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1350124694"
+    },
+    {
+     "author": "intelliot",
+     "date": "2022-12-14T00:10:45Z",
+     "body": "Just mentioning @mDuo13 for awareness since this change will cause the need for a documentation update on XRPL.org",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1350130416"
+    },
+    {
+     "author": "WietseWind",
+     "date": "2022-12-20T00:54:07Z",
+     "body": "> @WietseWind could we get a quick confirmation that this still resolves the issue for users? Thank you!\n\nSure does!",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1358689864"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-07-19T20:00:34Z",
+     "body": "Hello,\nI'm new a developer to the XRP Ledger. I notice that this amendment has ~77% yes votes from the validators. Is there any expectation of getting this amendment passed in the near future? Is there an ETA or possibility of discarding this amendment otherwise?",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1642677539"
+    },
+    {
+     "author": "WietseWind",
+     "date": "2023-07-19T20:03:11Z",
+     "body": "@ckeshava See: https://xrpl.org/amendments.html#:~:text=Amendment%20Voting,-Each%20version%20of&text=Operators%20of%20rippled%20validators%20configure,can%20change%20between%20software%20releases.\n\nIt has to exceed 80% for at least two weeks, without dropping below >80% in those two weeks.",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1642680578"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-07-19T20:46:16Z",
+     "body": "@WietseWind  thanks, yes I understand that. But since this PR was merged about 6 months ago, I am curious to know if there is any specific reason why it is not voted in by the majority of the community. I guess it's impossible to know the intentions/reasons of all the validators.\n\ncc @MorganBergen  : This PR is related to one of your projects.",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1642732547"
+    },
+    {
+     "author": "kennyzlei",
+     "date": "2023-07-19T20:51:10Z",
+     "body": "@ckeshava this PR was merged 6 months ago but included in the 1.10 release in March 2023 https://xrpl.org/blog/2023/rippled-1.10.0.html. The voting time for this particular amendment seems reasonable right now\n\nVoting by validators naturally takes time to evaluate and we also want nodes to all upgrade to the version to avoid amendment blocking",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#issuecomment-1642738994"
+    }
+   ],
+   "body": "## High Level Overview of Change\nAllow users of the XRPL to signal (and enforce) that they do not wish to accept an incoming instrument of any (or all) of the following:\n* Check\n* NFTokenOffer\n* PaymentChannel\n* Trustlines\n\n### Context of Change\n\nSignificant support resources at XUMM are being wasted by end users who are on the unsolicited receiving end of these objects. While a client side block is possible, it is better for the ledger that unsolicited objects are never created in the first place.\n\nIf enabled the following three AccountSet Flags are added:\n```\nasfDisallowIncomingNFTOffer\nasfDisallowIncomingCheck\nasfDisallowIncomingPayChan\nasfDisallowIncomingTrustline\n```\nTheir behaviour and",
+   "merged": true,
+   "mergedAt": "2022-12-20T01:35:36Z",
+   "draft": false,
+   "base": "develop",
+   "head": "RichardAH:incoming_nftoffer",
+   "additions": 644,
+   "deletions": 99,
+   "changedFiles": 14,
+   "commits": 5,
+   "reviewComments": 28,
+   "reviews": [
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2022-11-08T06:35:32Z",
+     "body": "I like this functionality. I think we need to consider (separately) a flag that marks an account as “not incoming trustlines” which prevents the creation of trustlines to the account.\n\nI only gave this a quick look, but it looks fine. Mark this as approved by me."
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2022-11-10T19:36:33Z",
+     "body": "I'm in favor of this. I left a few nits, but I'm giving a thumbs-up now (however you want to resolve those is fine with me, including keeping it as-is).\n\nMy only concern is we are using one flag per object type, and we have a limited number of flags. Every time we add a new ledger object that requires permission we need to use another flag. Having said that, it's not a huge concern and this is good as-is. Thanks Richard! :+1: from me."
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2022-11-14T14:57:47Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2022-11-14T14:58:16Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2022-11-14T14:58:23Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "APPROVED",
+     "date": "2022-11-15T17:32:41Z",
+     "body": "Explanations / justifications make sense - thank you."
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2022-11-17T00:29:48Z",
+     "body": "I noted a few nits that you might choose to fix, but nothing that should block this pull request.\n\nThanks for the great tests!"
+    },
+    {
+     "author": "RichardAH",
+     "state": "COMMENTED",
+     "date": "2022-11-17T08:37:40Z",
+     "body": ""
+    },
+    {
+     "author": "RichardAH",
+     "state": "COMMENTED",
+     "date": "2022-11-17T08:39:34Z",
+     "body": ""
+    },
+    {
+     "author": "RichardAH",
+     "state": "COMMENTED",
+     "date": "2022-11-17T08:40:50Z",
+     "body": ""
+    },
+    {
+     "author": "RichardAH",
+     "state": "COMMENTED",
+     "date": "2022-11-17T10:35:49Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2022-11-17T19:42:17Z",
+     "body": ":+1: Looks great to me!"
+    },
+    {
+     "author": "JST5000",
+     "state": "COMMENTED",
+     "date": "2023-02-17T23:53:02Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "COMMENTED",
+     "date": "2023-02-28T22:27:13Z",
+     "body": ""
+    },
+    {
+     "author": "kennyzlei",
+     "state": "COMMENTED",
+     "date": "2023-02-28T22:46:18Z",
+     "body": ""
+    },
+    {
+     "author": "kennyzlei",
+     "state": "COMMENTED",
+     "date": "2023-02-28T23:27:32Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "COMMENTED",
+     "date": "2023-03-01T16:29:29Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "COMMENTED",
+     "date": "2023-03-06T07:03:16Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "seelabs",
+     "date": "2022-11-10T19:25:08Z",
+     "path": "src/ripple/app/tx/impl/CreateCheck.cpp",
+     "body": "Consider making this `const` (here and other transactors as well)",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1019531350"
+    },
+    {
+     "author": "seelabs",
+     "date": "2022-11-10T19:27:57Z",
+     "path": "src/ripple/app/tx/impl/NFTokenCreateOffer.cpp",
+     "body": "Consider restricting the scope of `destination` and `owner` to the `if` statements and combining the two if statements together for the `owner`. Something like:\n```\n    if (auto const destination = ctx.tx[~sfDestination])\n    {\n        // If a destination is specified, the destination must already be in\n        // the ledger.\n        if (!ctx.view.exists(keylet::account(*destination)))\n            return tecNO_DST;\n\n        // check if the destination has disallowed incoming offers\n        if (ctx.view.rules().enabled(featureDisallowIncoming))\n        {\n            // flag cannot be set unless amendment is enabled but\n            // out of an abundance of caution check anyway\n\n            au",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1019533642"
+    },
+    {
+     "author": "seelabs",
+     "date": "2022-11-10T19:29:14Z",
+     "path": "src/ripple/app/tx/impl/SetAccount.cpp",
+     "body": "Isn't this already checked on line 78 when we check if `uSetFlag == uClearFlag`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1019534729"
+    },
+    {
+     "author": "seelabs",
+     "date": "2022-11-14T14:57:47Z",
+     "path": "src/ripple/app/tx/impl/CreateCheck.cpp",
+     "body": "I see this is fixed in 86827623b - we can mark this as resolved (I'd do it myself but I don't have permission).",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1021645949"
+    },
+    {
+     "author": "seelabs",
+     "date": "2022-11-14T14:58:15Z",
+     "path": "src/ripple/app/tx/impl/NFTokenCreateOffer.cpp",
+     "body": "I see this is fixed in 86827623b - we can mark this as resolved",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1021646553"
+    },
+    {
+     "author": "seelabs",
+     "date": "2022-11-14T14:58:23Z",
+     "path": "src/ripple/app/tx/impl/SetAccount.cpp",
+     "body": "I see this is fixed in 86827623b - we can mark this as resolved",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1021646718"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-16T17:36:01Z",
+     "path": "src/ripple/app/tx/impl/NFTokenCreateOffer.cpp",
+     "body": "On line 172 we check for `Destination` existence and then we retrieve `Destination` here on line 181.  We can reduce the number of lookups by moving this line just above 172 and having line 172 check for `nullptr`.  Might save a few cycles?",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024308463"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-16T17:50:24Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "Nice!  Good spotting.",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024323010"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-16T20:19:48Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "Maybe the comment should read, \"Exercise the asfDisallowIncomingCheck flag\"?  Or maybe the comment is superfluous?",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024469504"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-16T20:24:04Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "I think this is a stale comment.  It might be nice to have a comment providing an overview of the real intent of the lambda.",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024472932"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-16T20:25:02Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "Very nice test!",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024473771"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-16T20:56:35Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": ":+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024499459"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-16T21:47:38Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "It doesn't look like this `{}` scope accomplishes anything?  I don't see any local variables that will be removed when the scope is exited.\n\nOh, I'm guessing the braces are there for symmetry with the other test cases that _do_ have local variables.  Or maybe there's something here that I can learn from.  Either way I'm fine with the braces.",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024538538"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-16T21:52:34Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": ":+1: Nice test!",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024542244"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-16T22:37:31Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "On line 730 an `Env` is constructed with `supported_amendments()`.  It strikes me that, since `features` is now being passed in, maybe it would be better to use `features` instead of `supported_amendments()`.  Just for your consideration.\n\nThere are several other places in the file that use `supported_amendments()` in the same way.  If you change line 730, you might choose to make the same change other places in the file.  You can find them by searching for `supported_amendments`.\n\nFWIW, I tried this change and the unit tests continued to pass.  I would not expect the proposed change to affect the validity of the modified tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024574696"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-16T22:38:21Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Thanks for doing this work.  I think it was prudent.",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024575210"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-16T23:47:20Z",
+     "path": "src/test/app/SetTrust_test.cpp",
+     "body": "This comment should be fixed :smile:",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024617722"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-17T00:14:00Z",
+     "path": "src/test/app/SetTrust_test.cpp",
+     "body": "Nice test!",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024631879"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-11-17T08:37:40Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "The scope is just to logically group that code with the above comment. It doesn't have any impact on codegen, just for readability.",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024893235"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-11-17T08:39:33Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Yes good catch, I should have replaced these! Will do",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024895023"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-11-17T08:40:50Z",
+     "path": "src/test/app/SetTrust_test.cpp",
+     "body": "Haha on it",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1024896252"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-11-17T10:35:49Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "thanks :)",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1025019603"
+    },
+    {
+     "author": "JST5000",
+     "date": "2023-02-17T23:53:02Z",
+     "path": "src/ripple/app/tx/impl/NFTokenCreateOffer.cpp",
+     "body": "I know this is merged already, but should `lsfDisallowIncomingNFTOffer` be `lsfDisallowIncomingNFTokenOffer` to be consistent with the naming convention we established?",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1110452182"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-28T22:27:13Z",
+     "path": "src/ripple/app/tx/impl/NFTokenCreateOffer.cpp",
+     "body": "@kennyzlei @ledhed2222 - thoughts?",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1120871989"
+    },
+    {
+     "author": "kennyzlei",
+     "date": "2023-02-28T22:46:18Z",
+     "path": "src/ripple/app/tx/impl/NFTokenCreateOffer.cpp",
+     "body": "yeah agreed, I think `NFToken` would be more consistent with the rest of the code than `NFT`",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1120889816"
+    },
+    {
+     "author": "kennyzlei",
+     "date": "2023-02-28T23:27:32Z",
+     "path": "src/ripple/app/tx/impl/NFTokenCreateOffer.cpp",
+     "body": "@RichardAH any thoughts on this as the original author?  I think someone can help rename since a release has not happened yet since this change was merged",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1120927293"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-03-01T16:29:29Z",
+     "path": "src/ripple/app/tx/impl/NFTokenCreateOffer.cpp",
+     "body": "@RichardAH has confirmed (directly to me) that we should feel free to rename it",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1122012613"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-03-06T07:03:16Z",
+     "path": "src/ripple/app/tx/impl/NFTokenCreateOffer.cpp",
+     "body": "Renamed by #4442",
+     "url": "https://github.com/XRPLF/rippled/pull/4336#discussion_r1126008847"
+    }
+   ]
+  },
+  {
+   "number": 3052,
+   "title": "Add PayChan to recipient's owner directory",
+   "url": "https://github.com/XRPLF/rippled/pull/3052",
+   "state": "closed",
+   "author": "seelabs",
+   "createdAt": "2019-08-19T17:50:23Z",
+   "updatedAt": "2019-09-30T23:08:38Z",
+   "closedAt": "2019-09-27T20:29:20Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "ripplelabs-jenkins",
+     "date": "2019-08-20T16:40:45Z",
+     "body": "## Jenkins Build Summary\n\nBuilt from [this commit](https://github.com/ripple/rippled/commit/613db91afa770668e35011c68720d223f5a22552)\n\nBuilt at __20190823 - 16:27:35__\n\n### Test Results\n\nBuild Type | Log | Result | Status\n---------- | --- | ------ | ------\nmsvc.Debug | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-3052/2//artifact/msvc.Debug.txt) | 1179 cases, 0 failed, t: 587s | PASS :white_check_mark: \nmsvc.Debug, <br/>NINJA_BUILD=true | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-3052/2//artifact/msvc.Debug_NINJA_BUILD_true.txt) | 1179 cases, 0 failed, t: 623s | PASS :white_check_mark: \nmsvc.Debug <br/>-Dunity=OFF | [logfile](http://ci.ops.ripple.com/job/rippled-",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#issuecomment-523096667"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-08-20T16:59:25Z",
+     "body": "I see the CI `g++: internal compiler error: Killed (program cc1plus)`. Will fix. The CI clang failures is the know clang 5 issue.",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#issuecomment-523104057"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-08-21T16:06:26Z",
+     "body": "The internal compile error appears to be a jenkins only issue. I can't repro with a local gcc 7.3. Apparently jenkins was having issues yesterday. I don't believe the error is related to this PR (but of course will keep an eye on it).",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#issuecomment-523527438"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2019-08-21T16:22:08Z",
+     "body": "Still :+1: from me.",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#issuecomment-523534440"
+    },
+    {
+     "author": "codecov-io",
+     "date": "2019-09-18T20:15:58Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/3052?src=pr&el=h1) Report\n> Merging [#3052](https://codecov.io/gh/ripple/rippled/pull/3052?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/38f82115f7b53c10464a16fa27df7825140d961f?src=pr&el=desc) will **increase** coverage by `<.01%`.\n> The diff coverage is `71.42%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/3052/graphs/tree.svg?width=650&token=y0OgJuslsq&height=150&src=pr)](https://codecov.io/gh/ripple/rippled/pull/3052?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #3052      +/-   ##\n===========================================\n+ Cover",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#issuecomment-532848279"
+    }
+   ],
+   "body": "",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "seelabs:paychan-ownerdir",
+   "additions": 152,
+   "deletions": 3,
+   "changedFiles": 6,
+   "commits": 1,
+   "reviewComments": 25,
+   "reviews": [
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2019-08-20T22:45:21Z",
+     "body": ":+1: I left a few notes for your consideration, but nothing that would block merging.  Thanks for doing this!"
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2019-08-21T15:48:02Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2019-08-21T15:53:18Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2019-08-21T16:02:48Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2019-08-21T16:03:20Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2019-08-21T16:03:52Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2019-08-21T16:04:00Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2019-08-21T16:04:08Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2019-08-21T16:04:16Z",
+     "body": ""
+    },
+    {
+     "author": "miguelportilla",
+     "state": "COMMENTED",
+     "date": "2019-09-20T15:46:00Z",
+     "body": ""
+    },
+    {
+     "author": "miguelportilla",
+     "state": "COMMENTED",
+     "date": "2019-09-20T16:21:57Z",
+     "body": ""
+    },
+    {
+     "author": "miguelportilla",
+     "state": "COMMENTED",
+     "date": "2019-09-20T16:47:42Z",
+     "body": ""
+    },
+    {
+     "author": "miguelportilla",
+     "state": "COMMENTED",
+     "date": "2019-09-20T16:53:42Z",
+     "body": ""
+    },
+    {
+     "author": "miguelportilla",
+     "state": "COMMENTED",
+     "date": "2019-09-20T16:54:23Z",
+     "body": ""
+    },
+    {
+     "author": "miguelportilla",
+     "state": "APPROVED",
+     "date": "2019-09-20T16:57:22Z",
+     "body": "I left a suggestion of adding an additional check in the test after enabling the amendment but that is entirely up to you. LGTM 👍"
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2019-09-20T17:08:23Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2019-09-20T18:19:31Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2019-09-20T18:21:03Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "scottschurr",
+     "date": "2019-08-20T18:51:32Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "I think it would be okay for the remove to not check the amendment.  If the link is present we want it removed.  But if the link is not present no biggie.  That said, there's no harm in checking the amendment.  I'm good either way.",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r315849653"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2019-08-20T18:53:09Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "I've started getting in the habit of writing to the log at `fatal` level if I return a `tefBAD_LEDGER`.  Seems like we should leave a note if we think the ledger is in a bad state.",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r315850305"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2019-08-20T19:56:45Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Rolls off the tongue easily, like \"Tippecanoe and Tyler too\". 😉",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r315875273"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2019-08-20T20:21:57Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Sub-nit: blank line intended?",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r315885040"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2019-08-20T20:25:03Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Sub-nit: channels -> channel?",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r315886310"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2019-08-20T20:27:00Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Nice test!",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r315887071"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2019-08-20T21:10:25Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "`ownerDir` could be `const`.",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r315904755"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2019-08-20T21:10:38Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "`ownerDir` could be `const`.",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r315904823"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2019-08-20T22:42:00Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "`page` could be `const` (and similarly on line 259).",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r315933987"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-08-21T15:48:02Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "I agree that we should never see a paychan in the recipient's owner dir without the amendment, so it's redundant. Still, I'd still like to keep the amendment (tho I will remove it if others feel strongly).",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r316261971"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-08-21T15:53:18Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Thanks!",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r316264863"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-08-21T16:02:48Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "Agreed. Fixed in 225b9ca2d `[fold] Write to log on bad ledger`",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r316269608"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-08-21T16:03:20Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Fixed in 613db91af `[fold] Add const in some places & fix typo`",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r316269834"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-08-21T16:03:52Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Fixed in 613db91af `Add const in some places & fix typo`",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r316270075"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-08-21T16:04:00Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Fixed in 613db91af `Add const in some places & fix typo`",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r316270132"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-08-21T16:04:08Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Fixed in 613db91af `Add const in some places & fix typo`",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r316270204"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-08-21T16:04:16Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "Fixed in 613db91af `Add const in some places & fix typo`",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r316270276"
+    },
+    {
+     "author": "miguelportilla",
+     "date": "2019-09-20T15:45:59Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "If you do keep it, you may want to consider evaluating it before constructing `page`.\ne.g.\n```\nif (view.rules().enabled(fixPayChanRecipientOwnerDir))\n{\n    if (auto const page = (*slep)[~sfDestinationNode])\n    {\n        ...\n    }\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r326690863"
+    },
+    {
+     "author": "miguelportilla",
+     "date": "2019-09-20T16:21:57Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "nit: recipient's",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r326705039"
+    },
+    {
+     "author": "miguelportilla",
+     "date": "2019-09-20T16:47:41Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Sub-Sub-nit: blank line persists after [613db91](https://github.com/ripple/rippled/commit/613db91afa770668e35011c68720d223f5a22552)",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r326714837"
+    },
+    {
+     "author": "miguelportilla",
+     "date": "2019-09-20T16:53:42Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "After enabling, consider testing if bob now has in his owner directory and the count.\ne.g.\n```\n            BEAST_EXPECT(ownerDirCount(*env.current(), bob) == 1);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r326717194"
+    },
+    {
+     "author": "miguelportilla",
+     "date": "2019-09-20T16:54:22Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "nit: Extra line?",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r326717427"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-09-20T17:08:23Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "I hear you. But I think it's OK as-is. Here's my thinking:\n1) There will be a small windows of time where the fix is not enabled. We can avoid creating a page in this case.\n2) After the fix is enabled, we'll have to create the page from then until forever.\n\nHaving said that, I don't really object to checking the amendment before constructing the page and will do so if people feel strongly.\n\nNote: I spoke with @miguelportilla in a DM and he's OK with this. I just wanted to leave a note for other reviewers.",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r326722360"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-09-20T18:19:31Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Fixed in 499e9e0e3 `Add `close` after channel create and fix typos`",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r326748201"
+    },
+    {
+     "author": "seelabs",
+     "date": "2019-09-20T18:21:03Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Fixed in c424ff1bd `TRIVIAL fixup whitespace`",
+     "url": "https://github.com/XRPLF/rippled/pull/3052#discussion_r326748760"
+    }
+   ]
+  },
+  {
+   "number": 2070,
+   "title": "Add RPC filters for Escrow an PayChan (RIPD-1414)",
+   "url": "https://github.com/XRPLF/rippled/pull/2070",
+   "state": "closed",
+   "author": "mellery451",
+   "createdAt": "2017-03-29T15:13:50Z",
+   "updatedAt": "2017-04-01T00:49:09Z",
+   "closedAt": "2017-04-01T00:14:49Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov-io",
+     "date": "2017-03-29T15:49:19Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2070?src=pr&el=h1) Report\n> Merging [#2070](https://codecov.io/gh/ripple/rippled/pull/2070?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/dbe74dffcb1c3edaaf0bc8a6f6f834fc13358ff8?src=pr&el=desc) will **increase** coverage by `<.01%`.\n> The diff coverage is `92.59%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2070/graphs/tree.svg?height=150&width=650&src=pr&token=y0OgJuslsq)](https://codecov.io/gh/ripple/rippled/pull/2070?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2070      +/-   ##\n===========================================\n+ Cover",
+     "url": "https://github.com/XRPLF/rippled/pull/2070#issuecomment-290133647"
+    }
+   ],
+   "body": "This adds two ledger entry types to RPC filter options. It is built on top of refactoring by @HowardHinnant in https://github.com/ripple/rippled/pull/2066 - this should be merged *after* that PR.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "mellery451:filter_ledger",
+   "additions": 316,
+   "deletions": 62,
+   "changedFiles": 14,
+   "commits": 5,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2017-03-29T15:29:00Z",
+     "body": ""
+    },
+    {
+     "author": "miguelportilla",
+     "state": "COMMENTED",
+     "date": "2017-03-29T17:50:41Z",
+     "body": ""
+    },
+    {
+     "author": "miguelportilla",
+     "state": "APPROVED",
+     "date": "2017-03-29T17:55:26Z",
+     "body": "I left tiny nit comment, not holding back. LGTM 👍"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "miguelportilla",
+     "date": "2017-03-29T17:50:41Z",
+     "path": "src/test/rpc/LedgerData_test.cpp",
+     "body": "`jss::SettleDelay` can be used.",
+     "url": "https://github.com/XRPLF/rippled/pull/2070#discussion_r108742773"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [
+  {
+   "number": 536,
+   "title": "XLS-93: Token PayChan",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/536",
+   "state": "open",
+   "isPr": true,
+   "author": "dangell7",
+   "createdAt": "2026-05-10T06:08:57Z",
+   "updatedAt": "2026-09-03T16:05:01Z",
+   "comments": 7,
+   "labels": []
+  }
+ ],
+ "branches": [
+  "dangell7/token-paychan-clawback",
+  "token-paychan"
+ ]
+}

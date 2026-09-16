@@ -1,0 +1,1071 @@
+{
+ "name": "MultiSign",
+ "fetchedAt": "2026-09-16T10:45:26.523Z",
+ "summary": {
+  "status": "in development",
+  "prs": 9,
+  "open": 1,
+  "merged": 2,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [
+   "mvadari/batch-multisign-prefix"
+  ],
+  "lastActivity": "2026-08-26T10:22:10Z",
+  "lastMerged": "2026-05-20T21:01:32Z",
+  "totalComments": 122
+ },
+ "release": {},
+ "prs": [
+  {
+   "number": 6407,
+   "title": "fix!: handle invalid multisign configs",
+   "url": "https://github.com/XRPLF/rippled/pull/6407",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-02-23T15:06:06Z",
+   "updatedAt": "2026-08-26T10:22:10Z",
+   "closedAt": null,
+   "labels": [
+    "DraftRunCI",
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-02-23T15:45:13Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6407?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `95.65217%` with `1 line` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6407?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/SetSignerList.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6407?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_co",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#issuecomment-3945571465"
+    },
+    {
+     "author": "sublimator",
+     "date": "2026-03-03T23:12:40Z",
+     "body": "Agreed 💯\n\nMaybe you can help work through the issues. I'm not sure what's acceptable\nin terms of maximum compute.\n\nWe can continue on the XLS, that's fine, but I think this is all related,\nso if we wanted a considered tradeoff?\n\nI was recently made aware of Batch, which sounds like David's old Agenda\nfeature.\n\nCan Batch contain multisign? Max total signatures? Etc. A \"ridiculous\"\nexponential fee?\n\nPerf aside, there is probably other holes that need poking if you're keen.\n\nOn Wed, Mar 4, 2026, 5:56 AM Mayukha Vadari ***@***.***>\nwrote:\n\n> ***@***.**** commented on this pull request.\n> ------------------------------\n>\n> In src/test/app/MultiSign_test.cpp\n> <https://github.com/XRPLF/rippled/pu",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#issuecomment-3994146145"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-26T00:44:19Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#issuecomment-4130768707"
+    },
+    {
+     "author": "godexsoft",
+     "date": "2026-05-04T14:25:21Z",
+     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#issuecomment-4371842208"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": false,
+   "mergedAt": null,
+   "draft": true,
+   "base": "develop",
+   "head": "mvadari:fix-multisign",
+   "additions": 255,
+   "deletions": 56,
+   "changedFiles": 5,
+   "commits": 7,
+   "reviewComments": 11,
+   "reviews": [
+    {
+     "author": "sublimator",
+     "state": "COMMENTED",
+     "date": "2026-03-02T04:20:56Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-03-02T13:24:33Z",
+     "body": ""
+    },
+    {
+     "author": "sublimator",
+     "state": "COMMENTED",
+     "date": "2026-03-03T03:39:45Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-03-03T12:31:12Z",
+     "body": ""
+    },
+    {
+     "author": "sublimator",
+     "state": "COMMENTED",
+     "date": "2026-03-03T12:36:55Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-03-03T12:43:21Z",
+     "body": ""
+    },
+    {
+     "author": "sublimator",
+     "state": "COMMENTED",
+     "date": "2026-03-03T13:48:58Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-03-03T14:18:09Z",
+     "body": ""
+    },
+    {
+     "author": "sublimator",
+     "state": "COMMENTED",
+     "date": "2026-03-03T22:43:29Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-03-03T22:56:30Z",
+     "body": ""
+    },
+    {
+     "author": "sublimator",
+     "state": "COMMENTED",
+     "date": "2026-03-04T04:47:25Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "sublimator",
+     "date": "2026-03-02T04:20:56Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "@mvadari \n\nWhat are you thoughts here with testNestedMultiSign?\nIt seems like this disables the creation of invalid nested signer lists, and then allows the master key to be used, regardless of why it was disabled, in the case of invalid signer lists. That does seem a relatively elegant lesser of two evils and will likely unstick some folk, but what are your thoughts on actual nested multisign use cases? Do you believe they are worth supporting? I suppose the people who found themselves in such a pickle had reasons to try nesting.",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#discussion_r2870425057"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-03-02T13:24:33Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "This PR is still a draft because I'm not 100% on the design. Happy to discuss strategies on the fix front.\nMy concern with adding a nested multisign feature is around performance/DoS risk. If we want to solve this problem ASAP, I would prefer a fix strategy first - I don't think that has to be mutually exclusive with adding a feature amendment in the future.",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#discussion_r2872434555"
+    },
+    {
+     "author": "sublimator",
+     "date": "2026-03-03T03:39:45Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "Thanks for the response\n\n> I would prefer a fix strategy first \n\nOk, that makes sense :) \n\n> I'm not 100% on the design. \n\nOn further consideration I'm starting to have some hesitations too despite the elegance.  \n\nI just spent a bit of time looking into the motivating case for some of the nested multisign work and what strikes me is that at every txn what each party did was perfectly valid and could not have been caught at signer list/{master,regular}key modification time. \n\nThe state occurred as a coordination problem between parties. So in that case at least, automatically enabling the master key on the primary account would be based on a signing party's independent action, which would no",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#discussion_r2875892419"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-03-03T12:31:12Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "> So in that case at least, automatically enabling the master key on the primary account would be based on a signing party's independent action, which would not be considered a standard practice.\n\nThe master key would not be enabled on the primary account, it would only be usable as a signer in a signer list.\n\nDiscussion on a feature version should not be a part of this PR. That should be discussed in the XLS repo, so that it's not impossible to find later.",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#discussion_r2877990835"
+    },
+    {
+     "author": "sublimator",
+     "date": "2026-03-03T12:36:55Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "Wherever you are still happy to discuss then, can you link somewhere? \n\nI might have misunderstood or miscommunicated my understanding of the master key allowance here. I will check when on laptop again \n\nThanks :)",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#discussion_r2878017445"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-03-03T12:43:21Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "There is a discussion open in the XRPL-Standards repo on this topic.",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#discussion_r2878047963"
+    },
+    {
+     "author": "sublimator",
+     "date": "2026-03-03T13:48:58Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "2026 problems. I was looking at this with an agent while working with an agent on something completely unrelated. My apologies. \n\n> The master key would not be enabled on the primary account, it would only be usable as a signer in a signer list.\n\nOk, so the idea is that someone who has sole access to their master key will be able to use it for multisign purposes regardless of their master key enabled status? Though there's no real protocol method of enforcing sole access, unfortunately :/ \n\nI will have to double check as I'm paranoid now, so I'll get back to you with on it, but from what I saw today it's possible (and has been seen on mainnet) to create a signer list of mutable accounts, and",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#discussion_r2878377754"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-03-03T14:18:09Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "> I will have to double check as I'm paranoid now, so I'll get back to you with on it, but from what I saw today it's possible (and has been seen on mainnet) to create a signer list of mutable accounts, and then those accounts to change their own signing configuration such that the signer list set that was perfectly valid becomes invalid.\n\nYes, agreed. That's why it's not enough to just try to prevent the situation - we can't 100% prevent the situation. We have to also make it easier for people to fix their configuration.\n\nWe could theoretically limit the otherwise-disabled master key to only be used on SignerListSet transactions, but that's basically equivalent to allowing all transactions,",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#discussion_r2878533927"
+    },
+    {
+     "author": "sublimator",
+     "date": "2026-03-03T22:43:29Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "Yeah, I can't really see any way of eking out special allowances that doesn't break existing semantics and guarantees. It might be in the end that the feature is the fix?",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#discussion_r2880875672"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-03-03T22:56:30Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "The feature isn't without its own issues, as mentioned above. Any software decision is always about tradeoffs.",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#discussion_r2880916560"
+    },
+    {
+     "author": "sublimator",
+     "date": "2026-03-04T04:47:25Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "Cross reference for related discussion: https://github.com/XRPLF/XRPL-Standards/discussions/472#discussioncomment-15972032",
+     "url": "https://github.com/XRPLF/rippled/pull/6407#discussion_r2881777190"
+    }
+   ]
+  },
+  {
+   "number": 7064,
+   "title": "fix: Fix multisign and signfor to check for delegate",
+   "url": "https://github.com/XRPLF/rippled/pull/7064",
+   "state": "closed",
+   "author": "yinyiqian1",
+   "createdAt": "2026-05-01T18:02:09Z",
+   "updatedAt": "2026-05-20T21:01:32Z",
+   "closedAt": "2026-05-20T21:01:32Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-01T18:30:17Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7064?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 82.1%. Comparing base ([`93ac1aa`](https://app.codecov.io/gh/XRPLF/rippled/commit/93ac1aa7aa23f801b0840a87804a6d755c944623?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`f578e94`](https://app.codecov.io/gh/XRPLF/rippled/commit/f578e9466c53d05a7f1ed2e1a97d1d0c3642c61b?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#issuecomment-4360939785"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-03T11:09:58Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#issuecomment-4366023604"
+    },
+    {
+     "author": "godexsoft",
+     "date": "2026-05-04T14:23:02Z",
+     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#issuecomment-4371822631"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-07T18:27:52Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#issuecomment-4399971927"
+    }
+   ],
+   "body": "In multisign and signfor operations, an account is not permitted to sign its own transaction. \nSimilarly, in a delegation transaction, the `sfDelegate` cannot sign the transaction it is submitting on behalf of another account.\n\n\n\n## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-05-20T21:01:32Z",
+   "draft": false,
+   "base": "develop",
+   "head": "yinyiqian1:fix-perm-multisign",
+   "additions": 155,
+   "deletions": 3,
+   "changedFiles": 3,
+   "commits": 6,
+   "reviewComments": 8,
+   "reviews": [
+    {
+     "author": "PeterChen13579",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-05-11T17:55:46Z",
+     "body": "Minor comments"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-05-11T18:18:10Z",
+     "body": ""
+    },
+    {
+     "author": "PeterChen13579",
+     "state": "APPROVED",
+     "date": "2026-05-11T18:44:13Z",
+     "body": "👍"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-05-13T18:18:28Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-05-18T01:04:44Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-05-20T19:44:53Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-05-20T19:48:03Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "PeterChen13579",
+     "date": "2026-05-11T17:24:25Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "I think this should say `can not be among the signers`",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#discussion_r3220842627"
+    },
+    {
+     "author": "PeterChen13579",
+     "date": "2026-05-11T17:45:27Z",
+     "path": "src/test/app/Delegate_test.cpp",
+     "body": "add `to` end of the line here so it reads `account to be part of `",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#discussion_r3220977958"
+    },
+    {
+     "author": "PeterChen13579",
+     "date": "2026-05-11T17:55:34Z",
+     "path": "src/test/app/Delegate_test.cpp",
+     "body": "Do we need to check the balance after successful txn here or is it checked somewhere else?",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#discussion_r3221038678"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-05-11T18:18:10Z",
+     "path": "src/test/app/Delegate_test.cpp",
+     "body": "The code change does not touch the fee flow.  But it can be added as a defensive check: https://github.com/XRPLF/rippled/pull/7064/changes/7e7a8aefca639266d44a9528363fcd8ee03e3cda",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#discussion_r3221157862"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-05-18T01:02:39Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "```suggestion\n    // the delegate account itself can not be among the signers.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#discussion_r3255837744"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-05-18T01:04:40Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "To confirm: Does this change require an amendment / is it currently behind a not-yet-supported amendment?",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#discussion_r3255844189"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-05-20T19:44:53Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "This does not require an amendment.\nFor non-delegation transactions, the behavior remains exactly the same.\nFor delegation transactions, it now returns the delegated account. It is fine because delegation amendment is not enabled yet.",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#discussion_r3276710200"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-05-20T19:48:03Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "updated in https://github.com/XRPLF/rippled/pull/7064/changes/3fcf45c696005824ea331736a329eaff8ab39e36",
+     "url": "https://github.com/XRPLF/rippled/pull/7064#discussion_r3276729527"
+    }
+   ]
+  },
+  {
+   "number": 5479,
+   "title": "fix: improve multisign usage of `simulate`",
+   "url": "https://github.com/XRPLF/rippled/pull/5479",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2025-06-06T13:46:18Z",
+   "updatedAt": "2026-02-04T22:40:08Z",
+   "closedAt": "2025-06-10T06:47:27Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-06-06T14:15:55Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5479?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAll modified and coverable lines are covered by tests :white_check_mark:\n> Project coverage is 79.1%. Comparing base [(`d494bf4`)](https://app.codecov.io/gh/XRPLF/rippled/commit/d494bf45b2ba646a7283746f94306b08eaf3f08c?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`d02257c`)](https://app.codecov.io/gh/XRPLF/rippled/commit/d02257c30efc2dbef761792fd3760d1cdee6cc5e?dropdown=coverage&el=desc&utm_medium=referral&",
+     "url": "https://github.com/XRPLF/rippled/pull/5479#issuecomment-2949403580"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-06-06T16:16:19Z",
+     "body": "@Bronek you may want to re-review, I found another issue when refactoring (you could simulate a transaction that was both single- and multi-\"signed\")",
+     "url": "https://github.com/XRPLF/rippled/pull/5479#issuecomment-2949775409"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR allows users to submit `simulate` requests from a multisign account without needing to specify the accounts that are doing the multisigning, and fixes an error with `simulate` that allowed double-\"signed\" (both single-sign and multi-sign public keys are provided) transactions.\n\n### Context of Change\n\nThere was some confusion about how to use `simulate` with a multisign account. Receiving `tefMASTER_DISABLED` was unexpected. This change makes it more intuitive.\n\n### Type of Change\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n\n### API Impact\n\n- [x] Public API: Non-breaking change\n\n## Before / After\n\n**Before:** \nSubmitting a `simulate` req",
+   "merged": true,
+   "mergedAt": "2025-06-10T06:47:27Z",
+   "draft": false,
+   "base": "develop",
+   "head": "mvadari:fix-simulate",
+   "additions": 112,
+   "deletions": 18,
+   "changedFiles": 2,
+   "commits": 9,
+   "reviewComments": 6,
+   "reviews": [
+    {
+     "author": "Bronek",
+     "state": "APPROVED",
+     "date": "2025-06-06T15:40:18Z",
+     "body": "Simple change with good unit test coverage. Ship it :)"
+    },
+    {
+     "author": "Bronek",
+     "state": "APPROVED",
+     "date": "2025-06-06T16:56:23Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2025-06-06T17:43:08Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2025-06-06T17:52:10Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-06-06T17:53:33Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-06-06T17:55:33Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "APPROVED",
+     "date": "2025-06-07T05:04:58Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "APPROVED",
+     "date": "2025-06-09T20:08:07Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "APPROVED",
+     "date": "2025-06-10T03:29:56Z",
+     "body": "Nice !"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "oleks-rip",
+     "date": "2025-06-06T17:43:08Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "Why this check is not outside of the `if (ctx.flags & tapDRY_RUN)` block? Are messing single-sign _and_ multi-sign are allowed for the real run? And why to check SigningPubKey, it doesn't  have any critical info so can be ignored, Signature is what is important to check, do you agree?",
+     "url": "https://github.com/XRPLF/rippled/pull/5479#discussion_r2132608540"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2025-06-06T17:52:10Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "Why not just   `if (ctx.flags & tapDRY_RUN) return tesSUCCESS`?  Signature nonexistents already  checked in `preflight2(PreflightContext const& ctx)`",
+     "url": "https://github.com/XRPLF/rippled/pull/5479#discussion_r2132620128"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-06-06T17:53:32Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "I checked that - it happens in `checkValidity` (which calls `STTx::checkSign`) for normal submission, which is skipped in this block.\nhttps://github.com/XRPLF/rippled/blob/develop/src/libxrpl/protocol/STTx.cpp#L392-L393",
+     "url": "https://github.com/XRPLF/rippled/pull/5479#discussion_r2132621847"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-06-06T17:55:33Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "Good point, fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/5479#discussion_r2132624384"
+    },
+    {
+     "author": "intelliot",
+     "date": "2025-06-07T05:03:34Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "```suggestion\n        // For simulate, skip signature validation when neither SigningPubKey nor Signers are provided\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5479#discussion_r2133366103"
+    },
+    {
+     "author": "intelliot",
+     "date": "2025-06-07T05:04:26Z",
+     "path": "src/test/rpc/Simulate_test.cpp",
+     "body": "```suggestion\n    testInvalidSingleAndMultiSigningTransaction()\n```\nsince this testing an error case",
+     "url": "https://github.com/XRPLF/rippled/pull/5479#discussion_r2133366461"
+    }
+   ]
+  },
+  {
+   "number": 2247,
+   "title": "Increase multisign test coverage",
+   "url": "https://github.com/XRPLF/rippled/pull/2247",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2017-10-18T15:53:56Z",
+   "updatedAt": "2018-01-12T18:47:20Z",
+   "closedAt": "2017-12-01T20:34:38Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov-io",
+     "date": "2017-10-18T16:44:23Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2247?src=pr&el=h1) Report\n> Merging [#2247](https://codecov.io/gh/ripple/rippled/pull/2247?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/cafe18c59279e7de447f25a0e00d0562d6441c7a?src=pr&el=desc) will **increase** coverage by `<.01%`.\n> The diff coverage is `n/a`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2247/graphs/tree.svg?token=y0OgJuslsq&src=pr&width=650&height=150)](https://codecov.io/gh/ripple/rippled/pull/2247?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2247      +/-   ##\n===========================================\n+ Coverage",
+     "url": "https://github.com/XRPLF/rippled/pull/2247#issuecomment-337653467"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-10-24T18:00:23Z",
+     "body": "@wilsonianb: Are these additional checks sort of what you had in mind?",
+     "url": "https://github.com/XRPLF/rippled/pull/2247#issuecomment-339078384"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-10-24T19:36:27Z",
+     "body": "Fixed typo and squashed.  Will mark as passed if CI passes (modulo Travis timeouts).  Thanks reviewers.",
+     "url": "https://github.com/XRPLF/rippled/pull/2247#issuecomment-339106444"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-12-01T02:15:17Z",
+     "body": "Rebased to 0.80.1.",
+     "url": "https://github.com/XRPLF/rippled/pull/2247#issuecomment-348381853"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-12-01T20:34:38Z",
+     "body": "In 0.90.0-b1",
+     "url": "https://github.com/XRPLF/rippled/pull/2247#issuecomment-348607622"
+    }
+   ],
+   "body": "@wilsonianb asked me a question about behavior of multisigning if a member of a signer list sets themselves up as exclusively multisigned.  I realized that I didn't have a unit test to cover this scenario.  So here's a unit test that covers exactly that scenario.\n\nReviewers: @wilsonianb and @mellery451.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:multisign-test",
+   "additions": 67,
+   "deletions": 1,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "mellery451",
+     "state": "APPROVED",
+     "date": "2017-10-20T21:29:41Z",
+     "body": "👍"
+    },
+    {
+     "author": "wilsonianb",
+     "state": "COMMENTED",
+     "date": "2017-10-24T16:17:08Z",
+     "body": ""
+    },
+    {
+     "author": "wilsonianb",
+     "state": "APPROVED",
+     "date": "2017-10-24T18:16:41Z",
+     "body": "LGTM :+1: \nThose are what I had in mind. Thanks"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "wilsonianb",
+     "date": "2017-10-24T16:16:48Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "What do you think about an additional test showing that becky's signers cannot multisign for alice (I guess using `msig (msig::Reg {becky, bogie})`)?\nIt might be worth giving becky a single signer, because `msig (msig::Reg {becky, bogie}, msig::Reg {becky, demon})` results in `temINVALID` due to both `Signers` accounts' having the same address.\nInstead, we could get the desired `tefBAD_SIGNATURE (A signature is provided for a non-signer.)`",
+     "url": "https://github.com/XRPLF/rippled/pull/2247#discussion_r146614515"
+    },
+    {
+     "author": "wilsonianb",
+     "date": "2017-10-24T18:14:56Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "`beck's` --> `becky's`?",
+     "url": "https://github.com/XRPLF/rippled/pull/2247#discussion_r146647723"
+    }
+   ]
+  },
+  {
+   "number": 1330,
+   "title": "Improve non sign_for multisign features",
+   "url": "https://github.com/XRPLF/rippled/pull/1330",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2015-10-01T00:52:28Z",
+   "updatedAt": "2017-07-17T22:33:21Z",
+   "closedAt": "2015-10-07T01:55:27Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov-io",
+     "date": "2015-10-01T01:19:29Z",
+     "body": "## [Current coverage](https://codecov.io/github/ripple/rippled?ref=304bb0181ec349414e9ad28fae9bd691d338af2c) is `49.22%`\n\n> Merging **#1330** into **develop** will increase coverage by **+0.02%** as of [`304bb01`](https://codecov.io/github/ripple/rippled/commit/304bb0181ec349414e9ad28fae9bd691d338af2c)\n\n``` diff\n@@            develop   #1330   diff @@\n=======================================\n  Files           958     958       \n  Stmts         65608   65615     +7\n  Branches          0       0       \n  Methods           0       0       \n=======================================\n+ Hit           32282   32296    +14\n  Partial           0       0       \n+ Missed        33326   33319     -7\n```\n\n> ",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#issuecomment-144589306"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2015-10-01T01:21:34Z",
+     "body": ":+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#issuecomment-144589515"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2015-10-01T19:36:23Z",
+     "body": ":+1: as is - left some nitpicky comments.",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#issuecomment-144825119"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2015-10-01T20:54:18Z",
+     "body": "Comments incorporated.  Thanks @nbougalis.",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#issuecomment-144845094"
+    },
+    {
+     "author": "sublimator",
+     "date": "2015-10-03T01:26:00Z",
+     "body": ":+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#issuecomment-145191566"
+    },
+    {
+     "author": "coveralls",
+     "date": "2017-07-17T22:33:21Z",
+     "body": "[![Coverage Status](https://coveralls.io/builds/12431619/badge)](https://coveralls.io/builds/12431619)\n\nChanges Unknown when pulling **c6a834544f28c40aef33555f898b540f85389468 on scottschurr:multisign-fixes** into ** on ripple:develop**.",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#issuecomment-315904620"
+    }
+   ],
+   "body": "This is a small collection of multi-sign related fixes:\n- During testing it was noted that one form of malformed\n  transaction was not being trapped.  That's been addressed.\n- An improvement was suggested for the tecNO_ALTERNATIVE_KEY text.\n- During use, the submit_multisigned was found to be improved by\n  moving the \"Signers\" argument inside the \"tx_json\".\n\nEach commit is independent, so they can logically be merged\nas separate commits.  But the code changes are small, so if\nreviewers prefer that the commits be squashed that will be fine\nas well.\n\nThe sign_for RPC command has bigger issues which will be\naddressed in a separate pull request.\n\nReviewers: @nbougalis, @sublimator \n\nOther concer",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:multisign-fixes",
+   "additions": 220,
+   "deletions": 208,
+   "changedFiles": 5,
+   "commits": 3,
+   "reviewComments": 6,
+   "reviews": [],
+   "reviewCommentsList": [
+    {
+     "author": "sublimator",
+     "date": "2015-10-03T01:05:03Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "Why is this set empty twice? It looks like an empty blob is set on both lines 194 and 197",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#discussion_r41081737"
+    },
+    {
+     "author": "sublimator",
+     "date": "2015-10-03T01:10:13Z",
+     "path": "src/ripple/rpc/tests/JSONRPC.test.cpp",
+     "body": "submit_multisigned will sort the passed in Signers array huh? The tx_json that is passed in, may not necessarily be what is submitted",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#discussion_r41081840"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2015-10-03T01:13:31Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "Great question.  A `JTx` object contains both a `Json::Value` and an `STTx` which represent the same data.  Since I'm mangling the `JTx` in ways that may not have been anticipated, I'm mangling both the `Json::Value` and the `STTx` identically.  At least that's the intention.  So I do the work twice.",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#discussion_r41081910"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2015-10-03T01:16:27Z",
+     "path": "src/ripple/rpc/tests/JSONRPC.test.cpp",
+     "body": "Right.  But I think the sorting is the only modification that `submit_multisigned` does.  I did that because a text sort may not give the right value.  Doing the sort in `submit_multisigned` made it a lot easier to write my python tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#discussion_r41081973"
+    },
+    {
+     "author": "sublimator",
+     "date": "2015-10-03T01:22:03Z",
+     "path": "src/ripple/rpc/tests/JSONRPC.test.cpp",
+     "body": "`\"SigningPubKey\": \"\",`\n\nWould be great if we ha a magic wand to _safely_ give this the flick :)",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#discussion_r41082066"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2015-10-03T01:35:26Z",
+     "path": "src/ripple/rpc/tests/JSONRPC.test.cpp",
+     "body": "I'll be improving the situation by inserting it automatically in `sign_for` (code review to come).  But, yeah, if someone doesn't use `sign_for` they must remember to include the field.",
+     "url": "https://github.com/XRPLF/rippled/pull/1330#discussion_r41082251"
+    }
+   ]
+  },
+  {
+   "number": 1829,
+   "title": "Make minor additions to multisign tests (RIPD-1273)",
+   "url": "https://github.com/XRPLF/rippled/pull/1829",
+   "state": "closed",
+   "author": "mellery451",
+   "createdAt": "2016-09-01T16:36:06Z",
+   "updatedAt": "2016-09-13T16:10:58Z",
+   "closedAt": "2016-09-13T16:10:58Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov-io",
+     "date": "2016-09-01T17:07:21Z",
+     "body": "## [Current coverage](https://codecov.io/gh/ripple/rippled/pull/1829?src=pr) is 64.33% (diff: 100%)\n\n> Merging [#1829](https://codecov.io/gh/ripple/rippled/pull/1829?src=pr) into [develop](https://codecov.io/gh/ripple/rippled/branch/develop?src=pr) will increase coverage by **0.07%**\n\n``` diff\n@@            develop      #1829   diff @@\n==========================================\n  Files           704        704          \n  Lines         50786      50786          \n  Methods           0          0          \n  Messages          0          0          \n  Branches          0          0          \n==========================================\n+ Hits          32636      32675    +39   \n+ Misses        18",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#issuecomment-244145649"
+    },
+    {
+     "author": "ximinez",
+     "date": "2016-09-01T18:22:30Z",
+     "body": "Nit: Our convention is to put a \":\" at the end of the first line if there is more than one line in the commit message.",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#issuecomment-244167111"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2016-09-01T18:29:34Z",
+     "body": "I left a couple of comments, but nothing critical.  Thanks for adding the tests.  :+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#issuecomment-244169115"
+    },
+    {
+     "author": "ximinez",
+     "date": "2016-09-07T21:33:22Z",
+     "body": "Nice test cases. Needs to be rebased, since the files have moved in develop. :+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#issuecomment-245426536"
+    },
+    {
+     "author": "mellery451",
+     "date": "2016-09-07T21:56:31Z",
+     "body": "just rebased - thanks for the reminder",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#issuecomment-245432249"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-09-13T16:10:58Z",
+     "body": "Merged as 51d7e7336f836293cd7de13a74d6722efe8c61b9",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#issuecomment-246735198"
+    }
+   ],
+   "body": "Migrate few small error case tests from js tests into existing jTx test.\nCreate simple test for sign_for and submit_multisigned rpc methods.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "mellery451:multi_sign_tests",
+   "additions": 251,
+   "deletions": 1,
+   "changedFiles": 1,
+   "commits": 2,
+   "reviewComments": 12,
+   "reviews": [],
+   "reviewCommentsList": [
+    {
+     "author": "willwray",
+     "date": "2016-09-01T18:03:35Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "It looks like the `setup_tx` lambda is effectively a `Json::Value` used as initialiser.\nIf so, consider making it a  `Json::Value` rather than a lambda.\nI like the idea to use an immediately-invoked lambda to directly initialise it.\nThat way, it could be made const  `Json::Value` (though const is not needed here):\n\n``` C++\nJson::Value const setup_tx = [] {\n     Json::Value jv;\n     jv[jss::tx_json][jss::Account] = Account(\"alice\").human();\n     ...\n     return jv;\n}();\n```\n\nAccount alice is expanded to avoid need to capture.\nAlso removed parentheses and trailing return fwiw.",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77223660"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2016-09-01T18:08:21Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "Text in comment?  Perhaps: \"Unlike cheri, becky should be able to sign using her master key\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77224448"
+    },
+    {
+     "author": "willwray",
+     "date": "2016-09-01T18:12:24Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "Prefer `to_string(jvParams)`? Unless StyledString improves debug display.",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77225184"
+    },
+    {
+     "author": "mellery451",
+     "date": "2016-09-01T18:13:47Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "I'm still using env and baseFee..not sure how capture can be avoided. Maybe I'm missing something.",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77225418"
+    },
+    {
+     "author": "mellery451",
+     "date": "2016-09-01T18:14:59Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "will fix",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77225663"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2016-09-01T18:15:50Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "No need to fear captures, `[&]` is your friend",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77225792"
+    },
+    {
+     "author": "mellery451",
+     "date": "2016-09-01T18:16:35Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "good point - I think to_string is better.",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77225924"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2016-09-01T18:20:08Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "Scott Meyers in Effective Modern C++, Item 31, makes a pretty convincing argument that default capture modes are prone to dangling references.  Admittedly, I don't think that's a problem here.  But every time someone has to read the code they have to re-figure that out.",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77226576"
+    },
+    {
+     "author": "willwray",
+     "date": "2016-09-01T18:21:26Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "Oh yes, missed the env and basefee.\n`[&]` not a biggie but better to avoid any capture if possible; it's more pure functional and all local so lookup is minimised.",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77226778"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2016-09-01T18:24:54Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "It looks like this is a valid single sign test case, but I'm wondering if it belongs in the MultiSign file?  However I don't feel strongly about it.\n\nI wonder if the comment should read, \"Single-sign, but invalidate the sequence number.\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77227361"
+    },
+    {
+     "author": "mellery451",
+     "date": "2016-09-01T18:32:19Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "yes, that comment is wonky. This is very similar to the existing test above it, so I'm inclined to leave them together.",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77228749"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2016-09-01T19:03:15Z",
+     "path": "src/ripple/app/tests/MultiSign.test.cpp",
+     "body": "Lambdas are harder to format. Especially when you specify multiple captured variables and also an argument list. In the vast majority of cases, we use lambdas as a notational convenience for things like performing initialization. In theory one can write a lambda that captures a reference to a local variable, where the lambda outlives the scope in which it is created. But we don't write code like this much at all, and when we do, we capture variables individually. I prefer an unobtrusive default capture over naming each captured variable, for the case where the lambda's lifetime is short (i.e. in the scope of the function containing the variables it captures).",
+     "url": "https://github.com/XRPLF/rippled/pull/1829#discussion_r77234240"
+    }
+   ]
+  },
+  {
+   "number": 1332,
+   "title": "Add multisign tests",
+   "url": "https://github.com/XRPLF/rippled/pull/1332",
+   "state": "closed",
+   "author": "wltsmrz",
+   "createdAt": "2015-10-01T21:43:15Z",
+   "updatedAt": "2015-10-28T19:44:30Z",
+   "closedAt": "2015-10-28T19:44:30Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov-io",
+     "date": "2015-10-01T22:34:42Z",
+     "body": "## [Current coverage](https://codecov.io/github/ripple/rippled?ref=ca458d9d2534f851761cfbb857682f10a42ae631) is `49.19%`\n\n> Merging **#1332** into **develop** will decrease coverage by **-0.01%** as of [`ca458d9`](https://codecov.io/github/ripple/rippled/commit/ca458d9d2534f851761cfbb857682f10a42ae631)\n\n``` diff\n@@            develop   #1332   diff @@\n=======================================\n  Files           958     958       \n  Stmts         65608   65608       \n  Branches          0       0       \n  Methods           0       0       \n=======================================\n- Hit           32282   32278     -4\n  Partial           0       0       \n- Missed        33326   33330     +4\n```\n\n> ",
+     "url": "https://github.com/XRPLF/rippled/pull/1332#issuecomment-144867298"
+    },
+    {
+     "author": "sublimator",
+     "date": "2015-10-03T05:52:06Z",
+     "body": "@wltsmrz \n\nI believe you need to bump the ripple-lib version ?\nThe CI logs show that ripple-lib doesn't seem to understand some of the TransactionTypes ?",
+     "url": "https://github.com/XRPLF/rippled/pull/1332#issuecomment-145206127"
+    },
+    {
+     "author": "ximinez",
+     "date": "2015-10-09T16:13:10Z",
+     "body": "Nice tests, especially all the _negative_ test cases. I left a couple of suggestions, but nothing that should hold this up.\n\n**ETA: VETO** The tests don't actually pass. I got ahead of myself and posted this comment before they finished running. This is after `rm -rfv node_modules && npm install`.",
+     "url": "https://github.com/XRPLF/rippled/pull/1332#issuecomment-146914031"
+    }
+   ],
+   "body": "",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "wltsmrz:update-tests",
+   "additions": 379,
+   "deletions": 2,
+   "changedFiles": 2,
+   "commits": 1,
+   "reviewComments": 6,
+   "reviews": [],
+   "reviewCommentsList": [
+    {
+     "author": "sublimator",
+     "date": "2015-10-03T05:39:22Z",
+     "path": "test/multi-sign-test.js",
+     "body": "`getSigningPubKey` inspects the remote bound to the Transaction for the secret, and derives the pubKey?",
+     "url": "https://github.com/XRPLF/rippled/pull/1332#discussion_r41084218"
+    },
+    {
+     "author": "sublimator",
+     "date": "2015-10-03T05:40:51Z",
+     "path": "test/multi-sign-test.js",
+     "body": "Is this submitting with local signing turned off ?",
+     "url": "https://github.com/XRPLF/rippled/pull/1332#discussion_r41084221"
+    },
+    {
+     "author": "sublimator",
+     "date": "2015-10-03T05:42:09Z",
+     "path": "test/multi-sign-test.js",
+     "body": "It seems `setup` sets local_signing to `false` for each `test` so that answers that question, and explains the `invalidParams`.",
+     "url": "https://github.com/XRPLF/rippled/pull/1332#discussion_r41084229"
+    },
+    {
+     "author": "ximinez",
+     "date": "2015-10-09T15:54:50Z",
+     "path": "test/multi-sign-test.js",
+     "body": "Indent async functions one more step so it's more visually obvious where the `async` list ends.",
+     "url": "https://github.com/XRPLF/rippled/pull/1332#discussion_r41646216"
+    },
+    {
+     "author": "ximinez",
+     "date": "2015-10-09T15:57:17Z",
+     "path": "test/multi-sign-test.js",
+     "body": "Indent these async functions one more step, too, so it's more visually obvious where the `async` list ends.",
+     "url": "https://github.com/XRPLF/rippled/pull/1332#discussion_r41646506"
+    },
+    {
+     "author": "ximinez",
+     "date": "2015-10-09T16:01:31Z",
+     "path": "test/multi-sign-test.js",
+     "body": "Is this line the only difference between the \"remote signing\" and \"local signing\" tests? Seems like an awful lot of duplicated code for what could be a function parameter.",
+     "url": "https://github.com/XRPLF/rippled/pull/1332#discussion_r41647047"
+    }
+   ]
+  },
+  {
+   "number": 1203,
+   "title": "Simple multisigning (RIPD-182):",
+   "url": "https://github.com/XRPLF/rippled/pull/1203",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2015-07-24T21:52:35Z",
+   "updatedAt": "2015-09-18T16:04:06Z",
+   "closedAt": "2015-08-01T16:11:34Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "nbougalis",
+     "date": "2015-07-29T02:10:42Z",
+     "body": ":+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/1203#issuecomment-125806672"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2015-07-29T22:59:15Z",
+     "body": "I'm ok with this :+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/1203#issuecomment-126121389"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2015-07-30T01:13:58Z",
+     "body": "Squashed, rebased, and incorporated a couple of comments from @nbougalis.",
+     "url": "https://github.com/XRPLF/rippled/pull/1203#issuecomment-126145928"
+    },
+    {
+     "author": "JoelKatz",
+     "date": "2015-07-30T16:45:33Z",
+     "body": ":+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/1203#issuecomment-126398413"
+    }
+   ],
+   "body": "With this changeset two-level multisigning is removed from the\ncodebase and replaced with single-level multisigning.  There are\nthree known missing elements:\n1. Multisigned transactions should require higher fees than\n   regular (single-signed) transaction.  That's not yet\n   implemented.\n2. It should be possible to disable the master key on an account\n   if that account is multisign enabled (has a signer list).\n   That's not yet implemented.\n3. Documentation about multisigning needs to be improved.\n\nMultisigning is still compiled out of the code base.  To enable\nmultisigning for a stand-alone rippled, change the\nRIPPLE_ENABLE_MULTI_SIGN macro (in BeastConfig.h) to \"1\" and\nrebuild.\n\nThis com",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:simple-m-of-n",
+   "additions": 893,
+   "deletions": 3365,
+   "changedFiles": 33,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 1250,
+   "title": "Enable simple multisign with a Feature (RIPD-182)",
+   "url": "https://github.com/XRPLF/rippled/pull/1250",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2015-08-20T23:11:39Z",
+   "updatedAt": "2015-09-18T16:03:59Z",
+   "closedAt": "2015-09-04T16:36:13Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "vinniefalco",
+     "date": "2015-08-20T23:24:35Z",
+     "body": "`MultiSign` in `[features]` is going to be case-sensitive, FYI",
+     "url": "https://github.com/XRPLF/rippled/pull/1250#issuecomment-133210091"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2015-08-20T23:29:13Z",
+     "body": "Yup, just like `SusPay`.  But you have an excellent point.  If we want to change the capitalization or spelling of the `MultiSign` feature, now is the time.",
+     "url": "https://github.com/XRPLF/rippled/pull/1250#issuecomment-133210665"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2015-08-20T23:43:31Z",
+     "body": "@scottschurr It doesn't matter since the .cfg feature is only temporary until the feature is enabled on the live network. But knowing it is case-sensitive could help in case of user error.",
+     "url": "https://github.com/XRPLF/rippled/pull/1250#issuecomment-133212305"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2015-08-21T14:50:18Z",
+     "body": "Should \"`Make Rules available outside of Transactors (RIPD-182)`\" go first in the series and should it really be tagged as `RIPD-182`?",
+     "url": "https://github.com/XRPLF/rippled/pull/1250#issuecomment-133450749"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2015-08-21T16:01:51Z",
+     "body": "@nbougalis \"`Make Rules available outside of Transactors (RIPD-182)`\" could go first.  But the first commit has already `Passed`.  I assumed that this sequence of commits was more natural.\n\nAs for whether that commit should be tagged `RIPD-182` I can say that the code change was motivated by multisign (Epic https://ripplelabs.atlassian.net/browse/RIPD-182), even though it may have other consumers later.  Other choices might be https://ripplelabs.atlassian.net/browse/RIPD-746 or https://ripplelabs.atlassian.net/browse/RIPD-759.  I don't feel strongly about it.",
+     "url": "https://github.com/XRPLF/rippled/pull/1250#issuecomment-133473970"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2015-08-26T19:58:21Z",
+     "body": ":+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/1250#issuecomment-135154303"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2015-09-04T16:35:09Z",
+     "body": "Incorporated as ef511282709a6a0721b504c6b7703f9de3eecf38.",
+     "url": "https://github.com/XRPLF/rippled/pull/1250#issuecomment-137785054"
+    }
+   ],
+   "body": "This pull request consist of three commits:\n- The first commit is a duplicate of a commit that has already passed review.  Later commits in this branch have a dependency on this first commit.  However, since that commit has already passed review, reviewers do not need to review it.\n- The middle commit is tiny and provides a facility that the last commit relies on.  It allows software outside of the transactors (e.g., RPC handlers) to access the Rules.  I left this as a separate commit since it is independent of the other two.  However the last two commits could be squashed together.\n- The final commit does the actual work of switching multisign from being compile-time enabled to being run-ti",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:simple-m-of-n-feature",
+   "additions": 246,
+   "deletions": 141,
+   "changedFiles": 24,
+   "commits": 3,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": [
+  "mvadari/batch-multisign-prefix"
+ ]
+}

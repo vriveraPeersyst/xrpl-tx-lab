@@ -1,0 +1,170 @@
+{
+ "name": "fixTokenEscrowV1",
+ "fetchedAt": "2026-09-16T11:01:11.541Z",
+ "summary": {
+  "status": "closed without merge",
+  "prs": 1,
+  "open": 0,
+  "merged": 0,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-02-06T16:41:27Z",
+  "totalComments": 19
+ },
+ "release": {},
+ "prs": [
+  {
+   "number": 5523,
+   "title": "Discussion: TokenEscrowV1",
+   "url": "https://github.com/XRPLF/rippled/pull/5523",
+   "state": "closed",
+   "author": "dangell7",
+   "createdAt": "2025-07-01T17:11:21Z",
+   "updatedAt": "2026-02-06T16:41:27Z",
+   "closedAt": "2025-07-16T10:34:18Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-07-02T10:21:33Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5523?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `97.14286%` with `1 line` in your changes missing coverage. Please review.\n> Project coverage is 79.1%. Comparing base [(`e18f27f`)](https://app.codecov.io/gh/XRPLF/rippled/commit/e18f27f5f7e186e4fb0d6c8ddce34c2db72f80b3?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`949ed92`)](https://app.codecov.io/gh/XRPLF/rippled/commit/949ed922ffd761b1d4f859a0c78321f07104c2d7?dropdown=covera",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#issuecomment-3027303437"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-07-08T15:38:35Z",
+     "body": "What's the current behavior when the escrow creator deleted their trustline and cancels their escrow?",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#issuecomment-3049439230"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-07-08T15:46:01Z",
+     "body": "> If an account creates an escrow, does not specify CancelAfter and then deletes their trustline the escrow object could become \"orphaned\".\n\nWoudn't the escrow object still belong to the owner's owner directory? So technically the escrow object couldn't be orphaned since the owner is obligated to delete it before they can delete their account.",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#issuecomment-3049461157"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-07-08T15:58:33Z",
+     "body": "> What's the current behavior when the escrow creator deleted their trustline and cancels their escrow?\n\nIt adds the trustline back.",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#issuecomment-3049496918"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-07-08T16:01:12Z",
+     "body": "> > If an account creates an escrow, does not specify CancelAfter and then deletes their trustline the escrow object could become \"orphaned\".\n> \n> Woudn't the escrow object still belong to the owner's owner directory? So technically the escrow object couldn't be orphaned since the owner is obligated to delete it before they can delete their account.\n\nI may be using \"orphaned\" incorrectly here. You are right, they cannot delete their account until they remove it.",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#issuecomment-3049504365"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-07-08T16:38:36Z",
+     "body": "So I think I disagree with both \"fixes\" added in this amendment (as in I would be against adding them - though I could be convinced otherwise).\n\n`CancelAfter` should not be required - that changes the whole mechanics of an escrow, and changes the contract that underlies the escrow.\n\nAnd an issue with authorized trustlines is equivalent to both sides being deep-frozen (the aforementioned \"orphaned\" escrow) which IMO should be up to the issuer and the account to figure out a resolution to. I'd rather something akin to the `InstrumentClawback` strategy (where an issuer can claw back directly from the escrow) over anything else.",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#issuecomment-3049615157"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-07-08T17:04:36Z",
+     "body": "> So I think I disagree with both \"fixes\" added in this amendment (as in I would be against adding them - though I could be convinced otherwise).\n> \n> `CancelAfter` should not be required - that changes the whole mechanics of an escrow, and changes the contract that underlies the escrow.\n> \n> And an issue with authorized trustlines is equivalent to both sides being deep-frozen (the aforementioned \"orphaned\" escrow) which IMO should be up to the issuer and the account to figure out a resolution to. I'd rather something akin to the `InstrumentClawback` strategy (where an issuer can claw back directly from the escrow) over anything else.\n\nThank you for the review. I'm happy to hear you disagree",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#issuecomment-3049688482"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n- add `sfLockedCount` to IOU trustline. (increase and decrease)\n- user/issuer cannot delete IOU trustline if user has `sfLockedCount`\n- remove `requireAuth` check in `EscrowCancel`\n\n### Context of Change\n\nIssues:\n\n1. CancelAfter was not required\n\nIf an account creates an escrow, does not specify CancelAfter and then deletes their trustline the escrow object could become \"orphaned\".\n\n2. Require Auth is checked on EscrowCancel\n\nIf an IOU requires trustline authorization and the account sends their tokens back to the issuer, deletes the trustline and the adds the trustline back (in unauthorized state), the EscrowCancel transactor will fail with `tecNO_AUTH` w",
+   "merged": false,
+   "mergedAt": null,
+   "draft": true,
+   "base": "develop",
+   "head": "Transia-RnD:fix-escrow",
+   "additions": 198,
+   "deletions": 23,
+   "changedFiles": 7,
+   "commits": 2,
+   "reviewComments": 7,
+   "reviews": [
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-07-08T15:59:57Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-07-08T16:03:33Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-07-08T16:20:56Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2025-07-08T16:32:03Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-07-08T17:05:46Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mvadari",
+     "date": "2025-07-08T15:59:52Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "This seems wrong - CancelAfter does not need to be included...?",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#discussion_r2192901442"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-07-08T16:03:33Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "In the original spec `CancelAfter` was required or discussed to be required when IOU but never implemented. This implements that requirement. If we decide we don't need that then we can remove that. I just wanted to fix my mismatch between the original spec and the implementation.",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#discussion_r2192908216"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-07-08T16:20:56Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "I notice this requirement is only added for non-XRP escrows. I'm ok with that, because unlike XRP, there can be many reasons why someone wouldn't want to or may not be able to hold a given IOU, even for the time it takes to send it back to the issuer and destroy it.",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#discussion_r2192940408"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-07-08T16:25:46Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "Change `sfLockedCount` to `soeDEFAULT`, then this whole block can be written as\n```suggestion\n        (*sleRippleState)[sfLockedCount] += 1;\n```\n(`ValueProxy` handles all the steps for a default field behind the scenes. `+=` is needed only because `ValueProxy` does not define a `++` operator, for reasons.)",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#discussion_r2192950339"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-07-08T16:26:39Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "Also here, if you change `sfLockedCount` to `soeDEFAULT`, then this whole block can be written as\n```suggestion\n            (*sleRippleState)[sfLockedCount] = 1;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#discussion_r2192952889"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-07-08T16:30:06Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "Also here, if you change `sfLockedCount` to `soeDEFAULT`, then this whole block can be written as\n```suggestion\n    if (view.rules().enabled(fixTokenEscrowV1) &&\n        (*sleRippleState)[sfLockedCount] != 0)\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#discussion_r2192961103"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-07-08T17:05:46Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "Wow this is amazing thank you!",
+     "url": "https://github.com/XRPLF/rippled/pull/5523#discussion_r2193031196"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

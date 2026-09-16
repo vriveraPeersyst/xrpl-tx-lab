@@ -1,0 +1,1740 @@
+{
+ "name": "PriceOracle",
+ "fetchedAt": "2026-09-16T10:47:28.257Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 2,
+  "issues": 2,
+  "proposals": 1,
+  "branches": [],
+  "lastActivity": "2026-02-06T16:41:25Z",
+  "lastMerged": "2025-08-05T17:08:59Z",
+  "release": "2.2.0",
+  "totalComments": 250
+ },
+ "release": {
+  "version": "2.2.0",
+  "date": "2024-06-04T23:09:54Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.2.0",
+  "excerpt": "PriceOracle amendment: Implements a price oracle as defined in the [XLS-47](https://github.com/XRPLF/XRPL-Standards/blob/master/XLS-47d-PriceOracles/README.md) spec. A Price Oracle is used to bring real-world data, such as market prices, onto the blockchain, enabling dApps to access and utilize info"
+ },
+ "prs": [
+  {
+   "number": 5485,
+   "title": "Fix `PriceDataSeries` order on `PriceOracle` creation",
+   "url": "https://github.com/XRPLF/rippled/pull/5485",
+   "state": "closed",
+   "author": "tequdev",
+   "createdAt": "2025-06-10T08:12:30Z",
+   "updatedAt": "2026-02-06T16:41:25Z",
+   "closedAt": "2025-08-05T17:08:59Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-06-10T08:42:09Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5485?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.8%. Comparing base ([`b5a63b3`](https://app.codecov.io/gh/XRPLF/rippled/commit/b5a63b39d34b7fc819ebaab3c9085dd47251d248?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`4f89615`](https://app.codecov.io/gh/XRPLF/rippled/commit/4f896158f98199709bd06108bdd5000df61d4356?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#issuecomment-2958217570"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-08-05T15:02:29Z",
+     "body": "@tequdev is this ready to merge?",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#issuecomment-3155588561"
+    },
+    {
+     "author": "tequdev",
+     "date": "2025-08-05T15:06:56Z",
+     "body": "> @tequdev is this ready to merge?\n\nyes",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#issuecomment-3155605282"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-08-05T15:19:08Z",
+     "body": "@tequdev can you please amend your very first commit and sign it?",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#issuecomment-3155650641"
+    },
+    {
+     "author": "tequdev",
+     "date": "2025-08-05T15:29:27Z",
+     "body": "> an you please amend your very first commit and sign it?\n\nApproval has already been given, but is it okay if a force push occurs due to rebasing/squashing?",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#issuecomment-3155686374"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-08-05T15:31:55Z",
+     "body": "> > an you please amend your very first commit and sign it?\n> \n> Approval has already been given, but is it okay if a force push occurs due to rebasing/squashing?\n\nYes, please go ahead. Another approval might be needed but that's easy to give.",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#issuecomment-3155694546"
+    },
+    {
+     "author": "tequdev",
+     "date": "2025-08-05T16:26:47Z",
+     "body": "@bthomee Could you rerun the macOS workflow? I have no permission to do it.\n\nsomething went wrong when it was executed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#issuecomment-3155818931"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-08-05T16:54:48Z",
+     "body": "> @bthomee Could you rerun the macOS workflow? I have no permission to do it.\n> \n> something went wrong when it was executed.\n\nYes, there are some interesting concurrency issues with how the Conan remotes are removed and re-added. A few PRs are opened that will optimize the CI pipelines. I'll keep retrying until it succeeds.",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#issuecomment-3155900438"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-09-01T10:20:23Z",
+     "body": "@tequdev would you like to create a new PR to switch `Supported::no` to `yes` for this amendment, before the 3.0.0 release ?",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#issuecomment-3241790774"
+    },
+    {
+     "author": "tequdev",
+     "date": "2025-09-01T10:33:30Z",
+     "body": "> @tequdev would you like to create a new PR to switch `Supported::no` to `yes` for this amendment, before the 3.0.0 release ?\n\ncreated\nhttps://github.com/XRPLF/rippled/pull/5749",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#issuecomment-3241827968"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nFixed an issue where the order of PriceDataSeries was out of sync between when PriceOracle was created and when it was updated.\n\n### Context of Change\n\nAlthough they are registered in the canonical order when updated, they are created using the order specified in the transaction, so change so that they are also registered in the canonical order when created.\n\n### Type of Change\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n\n### API Impact\n no\n\n### Examples of data with issues\n\n```json\n{\n   \"AffectedNodes\" : [\n      {\n         \"ModifiedNode\" : {\n            \"FinalFields\" : {\n               \"Account\" : \"rwhaYGnJMexktjhxAKzRwoCcQ2g6hvBDWu\",\n        ",
+   "merged": true,
+   "mergedAt": "2025-08-05T17:08:59Z",
+   "draft": false,
+   "base": "develop",
+   "head": "tequdev:fix-priceoracle-order",
+   "additions": 89,
+   "deletions": 11,
+   "changedFiles": 3,
+   "commits": 1,
+   "reviewComments": 6,
+   "reviews": [
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2025-06-10T17:05:19Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-07-25T15:13:21Z",
+     "body": ""
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2025-07-25T16:00:52Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-07-29T18:12:26Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-07-29T18:16:01Z",
+     "body": ""
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2025-08-04T03:07:59Z",
+     "body": ""
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2025-08-04T03:08:06Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2025-08-05T14:45:24Z",
+     "body": "thanks! LGTM 👍"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "bthomee",
+     "date": "2025-07-25T15:13:21Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Can you please change this to `Supported::no`? We'll re-enable before the next major release.",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#discussion_r2231386185"
+    },
+    {
+     "author": "tequdev",
+     "date": "2025-07-25T16:00:52Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "changed",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#discussion_r2231506373"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-07-29T18:12:26Z",
+     "path": "src/xrpld/app/tx/detail/SetOracle.cpp",
+     "body": "This code is redundant with the code where it's updating the price (line 251), could we have a lambda to replace both occurrences? Something like\n\n```\nauto populatePriceData = [](STObject& priceData, STObject const& entry) {\n    setPriceDataInnerObjTemplate(priceData);\n    priceData.setFieldCurrency(\n        sfBaseAsset, entry.getFieldCurrency(sfBaseAsset));\n    priceData.setFieldCurrency(\n        sfQuoteAsset, entry.getFieldCurrency(sfQuoteAsset));\n    priceData.setFieldU64(\n        sfAssetPrice, entry.getFieldU64(sfAssetPrice));\n    if (entry.isFieldPresent(sfScale))\n        priceData.setFieldU8(sfScale, entry.getFieldU8(sfScale));\n};\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#discussion_r2240603402"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-07-29T18:16:01Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "```suggestion\nXRPL_FIX    (PriceOracleOrder,           Supported::no,  VoteBehavior::DefaultNo)\nXRPL_FIX    (AMMClawbackRounding,        Supported::no,  VoteBehavior::DefaultNo)\n```\n\nnit: extra space for alignment",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#discussion_r2240610559"
+    },
+    {
+     "author": "tequdev",
+     "date": "2025-08-04T03:07:59Z",
+     "path": "src/xrpld/app/tx/detail/SetOracle.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#discussion_r2250309524"
+    },
+    {
+     "author": "tequdev",
+     "date": "2025-08-04T03:08:06Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/5485#discussion_r2250309627"
+    }
+   ]
+  },
+  {
+   "number": 4789,
+   "title": "`PriceOracle`: Price Oracle (XLS-47d)",
+   "url": "https://github.com/XRPLF/rippled/pull/4789",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2023-10-26T20:52:39Z",
+   "updatedAt": "2024-02-26T11:28:27Z",
+   "closedAt": "2024-02-26T11:28:26Z",
+   "labels": [
+    "API Change",
+    "Feature Request",
+    "Amendment",
+    "Testable",
+    "Will Need Documentation",
+    "Clio Reviewed",
+    "QE signed off"
+   ],
+   "comments": [
+    {
+     "author": "mvadari",
+     "date": "2023-11-13T15:59:16Z",
+     "body": "I get this error when I try to compile locally (Mac M1):\n```\nsrc/ripple/rpc/handlers/GetAggregatePrice.cpp:72:41: error: member access into incomplete type 'LedgerMaster'\n                    context.ledgerMaster.getLedgerBySeq(prevSeq))\n                                        ^\nsrc/ripple/app/main/Application.h:79:7: note: forward declaration of 'ripple::LedgerMaster'\nclass LedgerMaster;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1808448994"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-11-13T16:04:04Z",
+     "body": "> I get this error when I try to compile locally (Mac M1):\n> \n> ```\n> src/ripple/rpc/handlers/GetAggregatePrice.cpp:72:41: error: member access into incomplete type 'LedgerMaster'\n>                     context.ledgerMaster.getLedgerBySeq(prevSeq))\n>                                         ^\n> src/ripple/app/main/Application.h:79:7: note: forward declaration of 'ripple::LedgerMaster'\n> class LedgerMaster;\n> ```\n\nThanks. I built with the `unity=ON`; should have built with the `unity=OFF` as well. This file needs `#include <ripple/app/ledger/LedgerMaster.h>`. Will update.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1808459053"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-11-20T22:01:14Z",
+     "body": "I find the [description](https://github.com/XRPLF/XRPL-Standards/blob/e0a27d1e09234f422db83420ff7dcd62d3a54edc/XLS-47d-PriceOracles/README.md#example-of-priceoracle-json) of the `OracleID` confusing. The spec says this:\n\n> We compute the PriceOracle object ID, a.k.a., OracleID, as the SHA-512Half of the following values, concatenated in order:\n>  - The Oracle space key (0x52)\n>  - The Owner Account ID\n>  - The Oracle Sequence. This field must be passed to the transactions and it describes a unique Price Oracle sequence for the given account.\n\n- `OracleID` is not mentioned in the [description](https://github.com/XRPLF/XRPL-Standards/blob/e0a27d1e09234f422db83420ff7dcd62d3a54edc/XLS-47d-PriceO",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1819874166"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-11-22T20:42:47Z",
+     "body": "@thejohnfreeman thanks for the feedback on the specs. I copied your comments and responded on https://github.com/XRPLF/XRPL-Standards/pull/138.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1823479459"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-19T21:14:39Z",
+     "body": "@gregtatcam to confirm when, from his perspective, this PR is ready to be merged.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1901124042"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-01-19T21:16:41Z",
+     "body": "> @gregtatcam to confirm when, from his perspective, this PR is ready to be merged.\n\nThere are some issue discovered during QA testing that I have to look into. Has to do with the fields validation. Will update on Monday.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1901126128"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-22T21:11:12Z",
+     "body": "note: @SaxenaKaustubh is testing this today",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1904823955"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-22T21:11:56Z",
+     "body": "note: this has been requested for consideration in the 2.1 release\n\nInternal tracker: RPFC-90",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1904825153"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-23T18:05:19Z",
+     "body": "note: I believe the new `Oracle` objects should be retrievable with `account_objects` and `ledger_entry`. (This is relevant to Clio @kennyzlei @godexsoft )",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1906629631"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-01-23T19:40:04Z",
+     "body": "> note: I believe the new `Oracle` objects should be retrievable with `account_objects` and `ledger_entry`. (This is relevant to Clio @kennyzlei @godexsoft )\n\nCorrect. `Oracle` objects are retrievable with `account_objects` and `ledger_entry`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1906800574"
+    },
+    {
+     "author": "codecov-commenter",
+     "date": "2024-01-24T19:20:47Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/4789?src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `77.06612%` with `111 lines` in your changes are missing coverage. Please review.\n> Project coverage is 61.60%. Comparing base [(`d7d15a9`)](https://app.codecov.io/gh/XRPLF/rippled/commit/d7d15a922a93593eecdaa77dbac177293344aebf?el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`f839070`)](https://app.codecov.io/gh/XRPLF/rippled/pull/4789?src=pr&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_camp",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1908770860"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-01-31T18:46:32Z",
+     "body": "> @gregtatcam to confirm when, from his perspective, this PR is ready to be merged.\n\nI think it's good to go and it's good to be merged from @manojsdoshi perspective. But there are a few commits in January that I assume have to be reviewed (@thejohnfreeman , @mvadari )",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1919721891"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-02-02T01:00:53Z",
+     "body": "- awaiting perf team sign-off\n- Internal tracker: RPFC-90",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1922596223"
+    },
+    {
+     "author": "shortthefomo",
+     "date": "2024-02-05T03:06:33Z",
+     "body": "1. can someone explain how this is even useful? \n2. is there one transactor that has the ability to even act on this data (with in the ledger). \n3. why is it even considered valuable data if nothing can be done with it?\n\nmy review of this past that ability to act on the data with in the ledger its self it should never be added to it.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1926152724"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-05T13:30:24Z",
+     "body": "> 1. can someone explain how this is even useful?\n> 2. is there one transactor that has the ability to even act on this data (with in the ledger).\n> 3. why is it even considered valuable data if nothing can be done with it?\n> \n> my review of this past that ability to act on the data with in the ledger its self it should never be added to it.\n\nIt's useful in that it enables Oracle Providers to bring market pricing data to on-chain. This data then can be used by dApps. For instance, a lending protocol can use the data to decide on the value of assets held as collateral and if the market value of the collateral falls below a certain point, the lending protocol may automatically initiate the liq",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1927017092"
+    },
+    {
+     "author": "shortthefomo",
+     "date": "2024-02-05T14:06:00Z",
+     "body": "A decentralized application (DApp) is a type of distributed, open source software application that runs on a peer-to-peer (P2P) blockchain network rather than on a single computer. \n\nWhere does this lending protocol sit, this solution needs to be build with that \"lending protocol\" is that present here?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1927086559"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-05T14:16:56Z",
+     "body": "> A decentralized application (DApp) is a type of distributed, open source software application that runs on a peer-to-peer (P2P) blockchain network rather than on a single computer.\n> \n> Where does this lending protocol sit, this solution needs to be build with that \"lending protocol\" is that present here?\n\nIt's a native landing protocol - feature of XRPL.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1927107861"
+    },
+    {
+     "author": "shortthefomo",
+     "date": "2024-02-05T14:21:18Z",
+     "body": "> It's a native landing protocol - feature of XRPL.\n\nAre you referring to the AMM? Because the code submitted here does not interface with the AMM in any way.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1927116099"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-05T14:58:16Z",
+     "body": "> > It's a native landing protocol - feature of XRPL.\n> \n> Are you referring to the AMM? Because the code submitted here does not interface with the AMM in any way.\n\nNot AMM. It's a new feature, not yet implemented.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1927194050"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-02-05T18:07:33Z",
+     "body": "- Price oracles haven't been been partner tested or Devnet released yet\n- Let's put this in 2.2 (or later)",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1927663671"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-05T18:08:52Z",
+     "body": "> * Price oracles haven't been been partner tested or Devnet released yet\n> * Let's put this in 2.2 (or later)\n\nIs it available on devnet?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1927670600"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-02-07T04:12:09Z",
+     "body": "No. I would suggest running it in a new Devnet (similar to what was done with amm-devnet). If that isn't possible, then we can do a custom build with this branch and give it a special version number, like `2.1.0+PriceOracle` or the like.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1931248073"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-07T18:44:27Z",
+     "body": "> No. I would suggest running it in a new Devnet (similar to what was done with amm-devnet). If that isn't possible, then we can do a custom build with this branch and give it a special version number, like `2.1.0+PriceOracle` or the like.\n\nIs someone scheduled to work on this? It would be good if the partners could start testing this.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1932658080"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-02-08T22:34:46Z",
+     "body": "@thejohnfreeman could you please review when you get a chance? There is a minor patch to fix `trim` validation in `get_aggregate_price`. I also merged with the latest develop and resolved the merge conflicts with `AMM`. Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1935040996"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-02-22T00:39:14Z",
+     "body": "per the request for a quick re-review (see above), this is awaiting @thejohnfreeman",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1958455337"
+    },
+    {
+     "author": "q73zhao",
+     "date": "2024-02-22T21:18:36Z",
+     "body": "**Performance sign-off**\n\nThe Price Oracle feature testing on XRPL confirmed its good performance and reliability under simulated MainNet conditions. \n\nThe `get_aggregate_price` API efficiently processed queries on token pairs with the oldest updates among 200 oracle objects, averaging a response time of 6.24 ms under medium payment loads. \n\nAdditionally, running `oracleset` transactions at around 15 per second, with a concurrent payment load of around 100 TPS, showed no significant ledger validation delays or fee escalations, with average response time of 5.71ms\n\nMore detailed report can be found [here](https://docs.google.com/document/d/1nwP-nsSKV7gz9u2Y3ch_x4YrwzpQ1bMzSWtR739lbqA/edit)",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#issuecomment-1960329901"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nImplement native support for Price Oracles\n\nAdd a new ledger object: Oracle\n\nAdd two new transactions:\n- OracleSet: create or update the Oracle object.\n- OracleDelete: delete the Oracle object.\n\nAdd one new API\n- get_aggregate_price: get aggregate price for the token pair for the oracles.\n\n### Context of Change\n\nNotes for reviewers:\n\n- This should be reviewed by someone with transactor knowledge.\n- Generally this is a straightforward feature, and it is similar to [DID](https://github.com/XRPLF/rippled/pull/4636).\n- Reading the spec is a prerequisite before reviewing #4789. [XLS-47d specification](https://github.com/XRPLF/XRPL-Standards/pull/138)\n\n### Type of",
+   "merged": true,
+   "mergedAt": "2024-02-26T11:28:26Z",
+   "draft": false,
+   "base": "develop",
+   "head": "gregtatcam:price-oracle-dev",
+   "additions": 2865,
+   "deletions": 7,
+   "changedFiles": 40,
+   "commits": 1,
+   "reviewComments": 165,
+   "reviews": [
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-30T15:52:27Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-10-30T15:54:09Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-11-09T20:14:40Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-11-09T20:59:44Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-11-13T19:23:19Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-11-13T19:24:23Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-11-13T19:25:41Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-11-13T19:26:28Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-11-13T19:40:05Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-11-14T21:51:26Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-11-30T23:47:02Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-01T01:30:33Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-01T18:46:04Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-01T20:56:55Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-01T21:00:31Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-01T21:00:54Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-01T21:02:54Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-04T19:34:18Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-04T19:45:31Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-04T21:13:41Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-04T21:17:11Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-04T23:26:11Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-05T19:54:17Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-06T15:39:43Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-06T21:43:49Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-06T21:47:19Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-06T21:55:21Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T13:46:00Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T13:59:32Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-07T18:19:46Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-07T18:33:32Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T18:36:51Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T19:04:59Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T19:23:35Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T19:30:11Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T19:39:19Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T19:47:15Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-07T19:49:30Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T19:50:18Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T19:50:49Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T19:50:55Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:09:03Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:11:12Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:21:41Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:21:58Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:22:29Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:32:36Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:35:16Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:36:49Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:37:56Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:40:15Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:43:35Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:48:31Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:49:21Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:50:16Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:50:20Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T20:56:55Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T21:24:02Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-07T21:32:31Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-12-08T00:28:58Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-08T13:53:20Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-08T14:37:14Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-08T14:42:54Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-08T14:55:51Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-08T15:54:44Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-08T19:06:51Z",
+     "body": ""
+    },
+    {
+     "author": "thejohnfreeman",
+     "state": "COMMENTED",
+     "date": "2023-12-11T17:42:27Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-13T00:03:18Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-13T00:55:14Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-13T00:59:38Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-13T14:51:07Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-13T14:55:02Z",
+     "body": ""
+    },
+    {
+     "author": "thejohnfreeman",
+     "state": "COMMENTED",
+     "date": "2023-12-13T15:16:24Z",
+     "body": ""
+    },
+    {
+     "author": "thejohnfreeman",
+     "state": "COMMENTED",
+     "date": "2023-12-13T15:18:53Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-13T15:39:00Z",
+     "body": ""
+    },
+    {
+     "author": "thejohnfreeman",
+     "state": "APPROVED",
+     "date": "2023-12-14T18:34:09Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-15T23:32:12Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-18T19:50:28Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-18T19:55:50Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-18T20:47:13Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-18T20:52:39Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-18T21:27:57Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-18T21:28:24Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-18T22:51:46Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-18T23:14:05Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-18T23:16:38Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-18T23:19:08Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-18T23:20:21Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-18T23:21:07Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-19T00:58:26Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-19T01:05:13Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-19T01:07:52Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-19T01:08:54Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-19T01:11:23Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-19T01:25:03Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-19T01:31:36Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-19T01:35:45Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-19T01:39:53Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-12-19T01:43:54Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-12-19T01:44:28Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mvadari",
+     "date": "2023-10-30T15:52:27Z",
+     "path": "src/ripple/protocol/impl/STCurrency.cpp",
+     "body": "Is this different from STIssue?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1376449185"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-10-30T15:54:09Z",
+     "path": "src/ripple/protocol/impl/STCurrency.cpp",
+     "body": "`STIssue` contains a currency and an issuer. `STCurrency` contains just the currency.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1376451530"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-11-09T20:14:40Z",
+     "path": "src/ripple/protocol/impl/STCurrency.cpp",
+     "body": "Why not just use a blob for it?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1388536482"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-11-09T20:59:44Z",
+     "path": "src/ripple/protocol/impl/STCurrency.cpp",
+     "body": "The blob has to be a hexadecimal string. `STCurrency` can represent:\n- A standard ISO-4217 currency, which is probably going to be used a lot for the `PriceUnit` and to the lesser extent used for the `Symbol` as well. The standard currency code is a three-letter string, which is user friendly.\n- Any other asset represented as a 160-bit hexadecimal string.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1388577712"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-11-13T19:23:18Z",
+     "path": "src/ripple/app/tx/impl/DeleteOracle.cpp",
+     "body": "Why does this need to use a sandbox instead of directly using `ctx_.view()`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1391584498"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-11-13T19:24:23Z",
+     "path": "src/ripple/app/tx/impl/DeleteOracle.cpp",
+     "body": "Isn't there a possibility that this needs to be adjusted by 2 if there are more than five `PriceData` objects?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1391585492"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-11-13T19:25:40Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "```suggestion\n        return terNO_ACCOUNT;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1391587422"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-11-13T19:26:28Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "What if the ledger slows down and there are a couple of minutes between ledgers?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1391588376"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-11-13T19:40:05Z",
+     "path": "src/ripple/protocol/TER.h",
+     "body": "nit: should be `temBAD_ARRAY_SIZE` or `temARRAY_TOO_LONG` or something like that",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1391607855"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-11-13T20:39:12Z",
+     "path": "src/ripple/app/tx/impl/DeleteOracle.cpp",
+     "body": "Can just use the `view`. Will update.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1391678940"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-11-13T20:43:39Z",
+     "path": "src/ripple/app/tx/impl/DeleteOracle.cpp",
+     "body": "Thanks. It might need to be adjusted by 2. The same when updating - it might be adjusted by 1 if increased to more than five `PriceData` objects. Will update.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1391684626"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-11-14T14:18:24Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Could be. What is a reasonable range to use for the validation? 30 seconds is roughly 6 times of the expected 5 seconds.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1392654770"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-11-14T21:51:26Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Is it supposed to be `>` or `>=`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1393343664"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-11-14T22:24:02Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "`>`",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1393383492"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-11-30T23:47:02Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "the code is correct as-is. here's the spec PDF (second bullet point)\n![image](https://github.com/XRPLF/rippled/assets/21219765/13e8e6b3-84f2-49b2-b1c2-362b6d6b1e66)",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1411423288"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-11-30T23:52:03Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "We are performing a similar check in `preflight` in line 51 of this file. I know that this is an update operation, but is this check necessary?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1411427219"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-01T00:52:46Z",
+     "path": "src/ripple/net/impl/RPCCall.cpp",
+     "body": "regarding the naming of the function, can we keep it as `&RPCParser::parseGetAggPrice` or something like that? I feel this name is more readable.\n\nif there is some other reason for using `parseAsIs`, please let me know.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1411474597"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-01T18:23:10Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Yes, it's necessary. There are two use-cases. The preflight checks if the transaction's `PriceDataSeries` array exceeds ten.  Even if `PriceDataSeries` contains just one element in the transaction, it's possible that the `PriceOracle` object already has ten elements in `PriceDataSeries`. The second check confirms that the `PriceDataSeries` is less or equal to ten after the update.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1412441045"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-01T18:45:21Z",
+     "path": "src/ripple/net/impl/RPCCall.cpp",
+     "body": "We just need to get the RPC parameters. There is no need go have any kind of transformation.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1412459502"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-01T20:56:54Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "A thought: is this field necessary? Seems like the same info is provided by `PreviousTxnLgrSeq`",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1412565990"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-01T21:00:31Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Are the fields allowed to be empty strings? Should there be an error in that case?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1412568564"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-01T21:00:54Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "nit: IMO this function name should start with a verb, e.g. `isInvalidLength`",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1412568795"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-01T21:02:54Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Why doesn't this check happen in `preflight`? Ditto with the other `tem` checks in this function",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1412570209"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-04T18:42:30Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "The specification lists `Account` as a required input field for this transaction. Shouldn't we mention `Account` as `soeREQUIRED` here?\n\n\n![image](https://github.com/XRPLF/rippled/assets/21219765/1028ceea-eddf-4272-81f1-449b7582cf5d)",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1414336323"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-04T19:32:17Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "What is the motivation for this `lastUpdateTime <  closeTime + 30s` rule?\n\nSuppose I publish my data with the `SetOracle` transaction, but the Transaction fails to achieve consensus through no fault of the provider (poor network conditions, an issue with the fees, etc) -- such circumstances leads to not recording the data on the ledger. Why is this helpful?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1414393721"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-04T19:45:30Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "`sfAccount` is already in `commonFields` (line 35 of this file). Notice that it's also not specified for any other transaction in this file.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1414410838"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-04T21:08:12Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "The empty string doesn't make much sense but these fields are not validated in any way. Say how is `a` any more valid than '' in `URI`? It's up to the oracle's user to interpret. The '' might make some meaning. I'll change if you feel strongly about this.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1414502637"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-04T21:09:29Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "How is `PreviousTxnLgrSeq` providing the same info as `LastUpdateTime`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1414503710"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-04T21:12:49Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "I wanted to reduce the number of redundant iterations. The other `tem` checks require the ledger access, which is usually done in `preclaim`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1414506525"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-04T21:17:11Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "True. But we also should have some reasonable validation. What if the provider includes the time too far in the future, which remains valid sort of forever. This is not good either. 30s is roughy six times of expected ledger close time. It's a reasonable leeway time.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1414510581"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-04T23:26:10Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "okay, that makes sense. thanks!",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1414629414"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-05T19:15:13Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "Why do we need a negative sign for the `scale` variable? I suspect it has something to do with the internal mechanics of the `STAmount::mIsNegative` class, but I couldn't figure it out.\n\n1. If I want to use negative values in the `PriceDataSeries` array, is that possible? (negative temperatures, depreciating yields, etc). We are using `unsigned` types internally, is this possible?\n\nI modified an existing test-case to include negative values. The numbers are over-flowing because we're using `std::uint64_t` type. \n\n2. How can we represent fractional values? Ex: `{\"XRP\", \"USD\", \"0.20\", 1}` ? Do I need to do: `{\"XRP\", \"USD\", \"2\", 10}` i.e. Scale up the base asset by 10 to ensure a whole number ?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1416169546"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-05T19:38:01Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "Apart from the `Account Reserve`, why is the second component of the fees necessary? I don't understand why we need that.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1416191497"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-05T19:42:28Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "I'm confused about the usage of `Scale` factor. The spec says that `sfAssetPrice` is the \"scaled asset price, which is the price value after applying the scaling factor\".\n\nIf I already have the final scaled price for an asset, why would I need the `scale` information? I do not need the `scale` information to determine the cost of say, 10 units of the base asset. Am I missing something?\n\n![image](https://github.com/XRPLF/rippled/assets/21219765/293e3d68-2c55-4db1-8e38-112062c0eb57)",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1416195722"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-05T19:46:51Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "I believe this condition precludes any pre-`1 Jan, 2000` date from being used in the `PriceDataSeries`. I couldn't test this with the unit tests because the `lastUpdateTime` is automatically set to current date/time. \n\nIs my understanding correct? This would make it difficult to work with historical data (like old stock market prices).",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1416199865"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-05T19:53:52Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "The integer value at the end of this macro (`4`) is filled into the `SField::fv` (`field value`). Is there a reason why you chose 4? Or do they just need to be unique? I'm trying to understand more about these values.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1416206607"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-06T15:11:24Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "It has to be unique. Selecting next in sequence makes it easier for the next update to see what's available.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1417484990"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-06T15:18:05Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Yes, and there is also a validation in place, which is not going you allow to set the time stamp older than the last closed ledger. If someone is interested in the prices predating 1/1/2000 then they need to look at some other databases and not use the blockchain's Price Oracle for this. The Price Oracle is reflecting the current market price and that's what dApps are going to use it for.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1417494947"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-06T15:24:16Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Suppose the `AssetPrice` is 10,000 and the `QuoteAsset` is `USD` then is the price $10,000 or $1000 or $100, ...? The `Scale` tells you what the actual price is. If the `Scale` is 2, then the price is $100.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1417504572"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-06T15:27:33Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "Just factoring in the transaction fee. There is create and set to should have enough fee for two tx.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1417510171"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-06T15:39:09Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "We are converting the `AssetPrice` to `STAmount`. The `AssetPrice` is represented by `exponent` and `mantissa`. In our case the `mantissa`; i.e., the `Scale` is always negative. This is why we negate it. So it's not about the negative price value, it's about the negative `mantissa` to represent the fractional values.\n\n1. Can't use the negative values\n2. Correct",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1417528827"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-06T21:43:48Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "ok, that makes sense 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1418011215"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-06T21:47:19Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "In the specification above, it is mentioned that: `SymbolPrice` is the \"scaled asset price\" i.e. `SymbolPrice` is the final `AssetPrice`. \n`SymbolPrice = originalPrice X (10^scale)` --> Is this correct?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1418014254"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-06T21:55:20Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "okay, I understood 1 and 2.\nI understand that negative `mantissa` is used to represent fractional values. But in this case, `scale` will always be `<= 0` right?  `getFieldU8` returns an `unsigned char`. When would `scale > 0` ?\n\nThe unit tests in `GetAggregatePrices` all report `scale == -1`. I couldn't think of any other counter-examples",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1418021070"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T13:46:00Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Yes.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1418989267"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T13:59:32Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "Sorry about confusion above when I said the `Scale` is always negative. I was thinking in terms of converting to the original value since we were talking about `STAmount`. The `Scale` FIELD is always positive: `SymbolPrice` = `originalPrice * 10**Scale`. To get the original price: `originalPrice = SymbolPrice * 10**(-Scale)`. We use the `originalPrice` when calculating statistics.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419008258"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-07T18:19:45Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "okay, this brings me back to my original question. `SymbolPrice` contains complete and final information about the unit price of the asset. Why would I need the scale information? Do we need to expose it in the API?\n\nCan't the users state that the per unit price is `10000` instead of saying `10^4` ? I'm still confused",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419431777"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-07T18:33:31Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "Okay. Why are we using `originalPrice` for calculating statistics (`GetAggregatePrice`) ? I was of the understanding that, `SymbolPrice` represents the complete information about the `Asset`, because `SymbolPrice` already incorporates the `Scale` information. Is that not correct?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419448075"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T18:36:51Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "It provides the ledger that the object was last updated in - my understanding is that that's basically providing the same information. But perhaps I'm misunderstanding the objective of that field.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419451724"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T19:04:59Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "`SymbolPrice` without the `Scale` is not complete. Let's say I'm a dApp and I'm looking at the pair `BTC/USD` with the `SymbolPrice` 43,379,739,841`USD`. What does 43,379,739,841 mean? The `Scale` of 6 makes it clear that one BTC is 43,379.739841`USD`. The `originalPrice` is essentially represented in the Price Oracle as mantissa and exponent with the exponent implied to be always negative and the exponent only used to represent the fractional. So if one `BTC` is 43,379`USD` then the `SymbolPrice` is 43,379 and the `Scale` is 0. The Oracle provider might choose to always represent `BTC` with the `Scale` 6, in which case one `BTC` is represented with the `SymbolPrice` 43,379,000,000`USD` and ",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419483889"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T19:23:34Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "`SymbolPrice` is mantissa and `Scale` is exponent, which if not 0 then it's always implied negative. We need both mantissa and exponent to fine the original price.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419504073"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T19:30:11Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Well, it's the ledger sequence, not the time. How do we get the time out of it: sequence * avg close time? This gives an estimate, but not the actual time. `LastUpdateTime` provides an accurate time up to a second.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419512142"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T19:39:19Z",
+     "path": "src/ripple/app/tx/impl/DeleteOracle.cpp",
+     "body": "It looks like `AccountDelete` doesn't handle oracles - are they a deletion blocker or should they be deleted with the account? IMO they probably should be deleted with the account.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419521916"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T19:47:15Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "No, I'd look up that specific ledger's close time, which will be accurate within 10 seconds (possibly more accurate than `LastUpdateTime`, if a few ledgers go by before it's accepted).",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419530605"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-07T19:49:30Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "@mvadari Additionally, the PriceOracle Set transaction might not get included in the next ledger due to problems in consensus, network health, etc. We will need to account for arbitrary delays in the publication of the oracle data.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419533135"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T19:50:18Z",
+     "path": "src/ripple/net/impl/RPCCall.cpp",
+     "body": "I believe the parse function is only needed when using the command-line versions of RPCs.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419534042"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T19:50:49Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "It's indirection and 10 seconds might not be good enough.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419534627"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T19:50:55Z",
+     "path": "src/ripple/net/impl/RPCCall.cpp",
+     "body": "This RPC should be added to the `help` message in `Main.cpp`",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419534727"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T20:09:03Z",
+     "path": "src/ripple/rpc/handlers/LedgerEntry.cpp",
+     "body": "Why is this in a big try block? Why not handle each specific issue individually? \nOr is this more of a just-in-case thing?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419550305"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T20:11:12Z",
+     "path": "src/ripple/net/impl/RPCCall.cpp",
+     "body": "I'm wondering now if it makes sense to have `get_aggregate_price` as the command line option. There are too many parameters that have to be provided.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419552084"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-07T20:21:41Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "okay, this makes a lot of sense. thank you for the explanation!!",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419564384"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-07T20:21:58Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "okay, I understand now. thanks for explaining it",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419565135"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-07T20:22:29Z",
+     "path": "src/ripple/app/tx/impl/DeleteOracle.cpp",
+     "body": "nice observation!",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419566810"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T20:32:35Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "`LastUpdateTime` also must be within 30 seconds of the last ledger close time, so before 1/1/2000 is a moot issue.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419605164"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T20:35:16Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "I'd prefer that this check makes sure that if these fields exist then they match what's already in the object, because otherwise it becomes more difficult to use - you have to include these fields the first time you update the oracle (when you create the object), but you have to remove them for every subsequent update.\nOtherwise, I'd rather have one `OracleCreate` transaction that sets all these fields, and a separate `OracleUpdate` transaction that updates the prices.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419615240"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T20:36:49Z",
+     "path": "src/ripple/rpc/handlers/LedgerEntry.cpp",
+     "body": "I don't think this try/catch is needed. Thanks for pointing it out. I'll delete.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419620897"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T20:37:56Z",
+     "path": "src/ripple/app/tx/impl/DeleteOracle.cpp",
+     "body": "It should be deleted. Thanks for pointing it out. Will update.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419624078"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T20:40:15Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Will update per first suggestion.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419630611"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T20:43:35Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Wouldn't the check being done in `preflight` not override the need for an extra set of iterations, since `preflight` is done on the submission node instead of waiting to be broadcast?\nAlso, shouldn't any check requiring ledger access return a `tec` code instead of a `tem` code?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419643117"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T20:48:31Z",
+     "path": "src/ripple/net/impl/RPCCall.cpp",
+     "body": "I'll delete it.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419647371"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-07T20:49:20Z",
+     "path": "src/ripple/net/impl/RPCCall.cpp",
+     "body": "We are not going to offer this command in cli. Will delete.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419648071"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T20:50:16Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Isn't this already a given, since the keylet is owner + document ID?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419648844"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-07T20:50:20Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "i agree, I was thinking about the limitations of the PriceOracle model",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419648899"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T20:56:54Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Wouldn't it be simpler to just do this test in `doApply` as you're making the modificaions instead of doing it again in `preclaim`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419654827"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T21:24:02Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "How do I remove a token pair? Seems like you can only add them. One example usecase for this: FTX goes under and you no longer want a pair with FTT.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419676632"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-07T21:32:31Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Why convert? Seems more confusing to have it be different in the object and the transaction.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419683622"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-08T00:28:58Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "The keylet is obtained by `ctx.tx.getAccountID(sfAccount)`. It doesn't have to be identical to `sle->getAccountID(sfOwner)` right?\n\nI can try to update your `PriceOracle` object with an `OracleSet` transaction. In that case, your account would be `sfOwner` and I would be the `sfAccount` field.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1419796247"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-08T13:53:20Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "@mvadari is right. If we can get `sle` for the `Account` then this account is the `Owner`. This check is redundant.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1420472672"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-08T14:37:14Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Decided not to have this option. If you delete and then create again then is it really the same pair or different? How to treat the historical data in this case?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1420567653"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-08T14:42:54Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "I want to check the array size, which could grow during the update and consequently the reserve.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1420575142"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-08T14:55:51Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "I thought you suggested to store it internally as Ripple Epoch or did I misunderstand? See: https://github.com/XRPLF/XRPL-Standards/pull/138#pullrequestreview-1744391598",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1420602854"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-08T15:54:44Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "I can move some checks to `preflight`: check if `AssetPrice` is included and if there are duplicate entries.\nI wouldn't need to repeat this in `preclaim` in case of create but in case of update I still need to iterate over submitted array to see if there are token pairs that are going to be added so I could check the array size and the reserve. The double iteration can't be avoided in case of update. In reality it's not a big deal, since the submitted array size is less or equal to ten. Would you rather have it handled this way? I'd have to iterate in `doApply` but again it's such a small array size that I don't think it matters. As for `tec` and `tem` code, I don't think it's a hard core ru",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1420700342"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-08T19:06:51Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Decided to add delete option after discussing with PM. A token pair is going to be deleted on update if it doesn't include the `AssetPrice`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1420911976"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-12-08T21:47:28Z",
+     "path": "src/ripple/protocol/impl/TER.cpp",
+     "body": "Would have been nice to break this into separate \"too large\" and \"too small\" errors, but not a blocker.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1421052139"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-12-08T23:42:52Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Even before implementing price data removal, I'd rather the second argument to `adjustOwnerCount` be `newCount - oldCount` instead of literal `1`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1421113056"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-12-08T23:48:24Z",
+     "path": "src/ripple/ledger/impl/View.cpp",
+     "body": "Shouldn't these both be `tefBAD_LEDGER`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1421122959"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-12-08T23:51:02Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "Is this the same as `std::greater`? Can maybe turn into a type alias.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1421124247"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-12-09T00:00:45Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "```suggestion\n * metadata objects. Stops early if the callback returns true.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1421127608"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-12-11T17:34:26Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "This looks much more complicated than I think it needs to be. I've rewritten it below. What do you think? Are my added comments correct? More questions follow.\n\n```cpp\nstatic void\niteratePriceData(\n    RPC::JsonContext& context,\n    STObject const* oracle,\n    std::function<bool(STObject const&)>&& f)\n{\n    using Meta = std::shared_ptr<STObject const>;\n    constexpr std::uint8_t maxHistory = 3;\n\n    // `oracle` points to an object that has an `sfPriceDataSeries` field.\n    // When this function is called, that is a `PriceOracle` ledger object,\n    // but after one iteration of the loop below, it is an `sfNewFields`\n    // / `sfFinalFields` object in a `CreatedNode` / `ModifiedNode` object in",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1422860400"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-12-11T17:39:18Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "Can this be handled by an early exit in the `iteratePriceData` callback?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1422872855"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-12T14:07:27Z",
+     "path": "src/ripple/protocol/impl/TER.cpp",
+     "body": "\"too small\" only applies to 0 size. It can't be for instance 1. How about `temBAD_ARRAY_SIZE_ZERO` and `temBAD_ARRAY_SIZE_TOO_LARGE`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1424044412"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-12T14:26:07Z",
+     "path": "src/ripple/ledger/impl/View.cpp",
+     "body": "I used `DID` transactor as the template and `DID` transactor handles this error the same way. In general, this error is handled inconsistently. For instance, `Transactor::ticketDelete` returns `tefBAD_LEDGER`, `DepositPreauth::removeFromLedger` returns `tefINTERNAL`, `DeleteAccount::doAppy` returns `tefBAD_LEDGER`, `DepositPreauth::doApply` returns `tefINTERNAL`, etc.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1424070366"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-12T14:30:31Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "You are right. Can just use `std::greater`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1424076646"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-12-13T00:03:18Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "I meant it should be Ripple Epoch in both.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1424699143"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-13T00:54:50Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "The comments sound right but there are two issues with your code. One is easy to fix where `STObject` object is assigned to `STLedgerEntry` here \n\n    oracle = isNew\n                ? static_cast<const STObject*>(&node.peekAtField(sfNewFields))\n                : static_cast<const STObject*>(&node.peekAtField(sfFinalFields));\n\nAnother issue is more difficult and is the reason I structured this function the way I did. The problem is that `oracle` on this line\n\n    if (!oracle || f(*oracle) || isNew)\n\n is undefined on the second iteration because `meta` goes out of scope and so do all members that `meta` owns. I have not had much time today because of the meeting, etc. to think about simplifyin",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1424725476"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-13T00:59:38Z",
+     "path": "src/ripple/app/tx/impl/SetOracle.cpp",
+     "body": "Oracle providers don't deal with Ripple Epoch and Unix Time makes a lot of sense for them. This is why it was changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1424727903"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-13T14:51:07Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "A valid range is defined as `{mostRecent-threshold, mostRecent}`. We don't have the `mostRecent` until all data is collected and sorted.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1425468492"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-12-13T14:55:02Z",
+     "path": "src/ripple/rpc/handlers/GetAggregatePrice.cpp",
+     "body": "We can do something like this:\n   \n    Meta meta = nullptr;\n    while (true) {\n        if (!oracle || f(*oracle) || isNew)\n            return;\n        ...\n        meta = ledger->txRead(prevTx).second;\n        ...\n    }\n\nBut then the `meta` shared pointer is going to be copied.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1425474256"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-12-13T15:16:24Z",
+     "path": "src/ripple/protocol/impl/TER.cpp",
+     "body": "Sounds good. Maybe even just `temARRAY_EMPTY` and `temARRAY_TOO_LARGE`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1425504092"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2023-12-13T15:18:52Z",
+     "path": "src/ripple/ledger/impl/View.cpp",
+     "body": "Understandable. What would your preference be?",
+     "url": "https://github.com/XRPLF/rippled/pull/4789#discussion_r1425507382"
+    }
+   ]
+  }
+ ],
+ "issues": [
+  {
+   "number": 4962,
+   "title": "PriceOracle: rippled returns inconsistent error codes with invalid inputs under different situations",
+   "url": "https://github.com/XRPLF/rippled/issues/4962",
+   "state": "closed",
+   "author": "SaxenaKaustubh",
+   "createdAt": "2024-03-21T17:28:44Z",
+   "updatedAt": "2024-07-17T14:57:37Z",
+   "closedAt": "2024-07-17T14:57:37Z",
+   "labels": [],
+   "comments": 4,
+   "body": "Rippled returns different error codes for invalid inputs under different situations. Following is the list of such fields:\n\nOracleSet:\n| Field | Value | Error | Notes |\n| ---- | -------| ----- | ----- |\n| PriceDataSeries | `\"\"`, `1`, `\"Invalid\"`, `([{}])`, `[{\"PriceDataSeries\": \"\"}]]` | invalidParams ||\n| PriceDataSeries | `None`, `([])` | temARRAY_EMPTY ||\n| TransactionType | 123 | internal ||\n| TransactionType | \"InvalidEntryShouldFail\" | invalidParams ||\n| Provider | \"\" | temMALFORMED ||\n| Provider | `None`, `0`, `-1`, `1`, `1.2`, `\"Invalid\"` | invalidParams ||\n| URI | `None`, `0`, `-1`, `1`, `1.2`, `\"Invalid\"` | invalidParams ||\n| URI | `\"\"` | temMALFORMED ||\n| AssetClass | `\"\"`, `\"02038"
+  },
+  {
+   "number": 4961,
+   "title": "PriceOracle: get_aggregate_price method input field issues",
+   "url": "https://github.com/XRPLF/rippled/issues/4961",
+   "state": "open",
+   "author": "SaxenaKaustubh",
+   "createdAt": "2024-03-21T17:25:32Z",
+   "updatedAt": "2024-03-21T17:25:32Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": 0,
+   "body": "While calculating PriceOracle aggregate pricing using the `get_aggregate_price` method, I noticed the following issues:\n\n1. `trim`: A decimal value e.g. `1.2` gets truncated to int e.g.`1`.\n2. `oracle_document_id`: A decimal value e.g. `1.2` gets truncated to int e.g.`1`.\n3. There is no input validation on the `oracle_document_id` field for an input of `None`.\n4. There is no input validation on `BaseAsset` and `QuoteAsset` fields. All of the following values are acceptable:\n      - `None`\n      - `\"Invalid\"`\n      - `123`\n      - `-1`\n      - `0` \n      - `1.2`\n      - `\"0158415500000000C1F76FF6ECB0BAC600000000A\"`\n      - `\"H\"`\n      - `\"HB\"`\n      - `\"HBAR\"`\n      - `\"\"`"
+  }
+ ],
+ "proposals": [
+  {
+   "number": 164,
+   "title": "[PriceOracle] Update README.md",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/164",
+   "state": "closed",
+   "isPr": true,
+   "author": "tequdev",
+   "createdAt": "2024-01-08T07:23:52Z",
+   "updatedAt": "2024-01-08T10:47:56Z",
+   "comments": 1,
+   "labels": []
+  }
+ ],
+ "branches": []
+}

@@ -1,0 +1,496 @@
+{
+ "name": "fixAMMv1_3",
+ "fetchedAt": "2026-09-16T10:53:38.502Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-02-06T16:41:23Z",
+  "lastMerged": "2025-06-02T13:52:10Z",
+  "release": "2.5.0",
+  "totalComments": 65
+ },
+ "release": {
+  "version": "2.5.0",
+  "date": "2025-06-24T18:19:49Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.5.0",
+  "excerpt": "[`fixAMMv1_3`](https://xrpl.org/resources/known-amendments#fixammv1_3) (#5203)"
+ },
+ "prs": [
+  {
+   "number": 5203,
+   "title": "Add fixAMMv1_3 amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/5203",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2024-11-25T16:32:37Z",
+   "updatedAt": "2026-02-06T16:41:23Z",
+   "closedAt": "2025-06-02T13:52:10Z",
+   "labels": [
+    "Ready to merge",
+    "Bug",
+    "Amendment"
+   ],
+   "comments": [
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T11:36:12Z",
+     "body": "@gregtatcam could you please merge latest develop so it would be easier to review? Also build seems to be broken",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#issuecomment-2639578517"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-02-06T15:31:57Z",
+     "body": "> @gregtatcam could you please merge latest develop so it would be easier to review? Also build seems to be broken\n\ndone",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#issuecomment-2640154795"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-03-24T14:15:00Z",
+     "body": "@gregtatcam I want to bring this commit https://github.com/XRPLF/rippled/pull/5224/commits/1e565e848841227bf05bc852d130ce4869831e82 in a different PR #5224 to your attention. You might (or might not - up to you) want to copy & alter it to check the `fixAMMv1_3` feature.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#issuecomment-2748281789"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-25T19:44:12Z",
+     "body": "> @gregtatcam I want to bring this commit [1e565e8](https://github.com/XRPLF/rippled/commit/1e565e848841227bf05bc852d130ce4869831e82) in a different PR #5224 to your attention. You might (or might not - up to you) want to copy & alter it to check the `fixAMMv1_3` feature.\n\nWhat is the relation between that and `fixAMMv1_3`?",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#issuecomment-2752345500"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-03-25T20:39:17Z",
+     "body": "> > @gregtatcam I want to bring this commit [1e565e8](https://github.com/XRPLF/rippled/commit/1e565e848841227bf05bc852d130ce4869831e82) in a different PR #5224 to your attention. You might (or might not - up to you) want to copy & alter it to check the `fixAMMv1_3` feature.\n> \n> What is the relation between that and `fixAMMv1_3`?\n\npseudo-accounts are used both by Vault and AMM, and this changes how they are created and their invariant (seq = 0)",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#issuecomment-2752469344"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2025-05-30T00:29:54Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5203?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `97.37609%` with `9 lines` in your changes missing coverage. Please review.\n> Project coverage is 78.9%. Comparing base [(`0a34b5c`)](https://app.codecov.io/gh/XRPLF/rippled/commit/0a34b5c691d3a205146a706b460473b3bfb84205?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`5310064`)](https://app.codecov.io/gh/XRPLF/rippled/commit/531006467e8c6b6dcc31f4c2db297531571f3e37?dropdown=cover",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#issuecomment-2920885789"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-06-02T13:34:40Z",
+     "body": "@XRPLF/rpc-reviewers Any objections to merging this?",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#issuecomment-2930758612"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-06-02T13:50:10Z",
+     "body": "> @XRPLF/rpc-reviewers Any objections to merging this?\n\nOn closer inspection, no RPC-specific code is affected. I'll go ahead and merge.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#issuecomment-2930836028"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n* Add AMM bid/create/deposit/swap/withdraw/vote invariants:\n  - Deposit, Withdrawal invariants: `sqrt(asset1Balance * asset2Balance) >= LPTokens`.\n  - Bid: `sqrt(asset1Balance * asset2Balance) > LPTokens` and the pool balances don't change.\n  - Create: `sqrt(asset1Balance * assetBalance2) == LPTokens`.\n  - Swap: `asset1BalanceAfter * asset2BalanceAfter >= asset1BalanceBefore * asset2BalanceBefore`\n     and `LPTokens` don't change.\n  - Vote: `LPTokens` and pool balances don't change.\n  - All AMM and swap transactions: amounts and tokens are greater than zero, except on withdrawal if all tokens\n    are withdrawn.\n* Add AMM deposit and withdraw rounding to ensu",
+   "merged": true,
+   "mergedAt": "2025-06-02T13:52:10Z",
+   "draft": false,
+   "base": "develop",
+   "head": "gregtatcam:amendment/fix-amm-v1-3",
+   "additions": 2518,
+   "deletions": 577,
+   "changedFiles": 22,
+   "commits": 12,
+   "reviewComments": 46,
+   "reviews": [
+    {
+     "author": "vvysokikh1",
+     "state": "CHANGES_REQUESTED",
+     "date": "2025-02-06T13:21:43Z",
+     "body": "Initial review of the invariant implementation"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-02-11T12:27:18Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-03-20T14:26:49Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-03-24T10:47:12Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-03-24T10:49:11Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-03-25T19:42:36Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "APPROVED",
+     "date": "2025-04-17T13:51:34Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "Bronek",
+     "state": "CHANGES_REQUESTED",
+     "date": "2025-05-22T12:46:52Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "CHANGES_REQUESTED",
+     "date": "2025-05-22T13:03:47Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-05-27T09:57:16Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "APPROVED",
+     "date": "2025-05-30T11:37:25Z",
+     "body": "Two code suggestions 1. in `AMMBid.cpp` and 2. in `InvariantCheck.h` (see comment above). I do not feel very strongly about either.\n\nI dislike using `static` state for accessing rules, but that boat has sailed a long time ago, nothing to do with this PR.\n\nUnit tests coverage is good at >91% . I see missing lines where you return `tecAMM_INVALID_TOKENS` which makes me think these are defensive checks. If I'm mistaken, then you should definitely add unit tests but if I am correct, you won't be able to do so (without white-box testing which we normally do not do), in which case it would be great if you added comments like `// LCOV_EXCL_LINE` to these lines. \n\nSome parts of this code would need "
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T11:51:25Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "Should this be lptAMMBalanceBefore_?",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1944591432"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T11:52:47Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "would it be better to have the following:\n```\nif (isDelete) return;\n\nif (after)...\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1944593093"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T11:54:34Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "there's only 1 line of code difference between before and after. Is that possible to deduplicate this?",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1944595244"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T12:01:10Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "should this invariant follow the same approach with 'enforce' variable as deep freeze invariants? So that we could use asserts and fatal logs to notify of invariant failures even before the amendment is enacted.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1944603401"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T12:05:09Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "I'm a bit concerned about using amm tools here. Should invariant checks be completely independent from other checks/tools? Otherwise they're a bit skewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1944608569"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T12:50:23Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "I personally find this if block hardly readable. I would suggest reworking it a bit to make it easier to understand.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1944668815"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T12:52:16Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "I would assume we don't want to use existing AMM tools and helpers to do invariant checks.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1944671437"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T13:09:20Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "I think taking this part out into some function called 'nonNegativeBalances' would make it better. The name of the function 'positiveBalances' that allows zero is not obvious to me.\n\nAnother option would be simply naming it 'validBalances' or something similar.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1944696087"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T13:13:24Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.h",
+     "body": "Why we only operate with one account and it's states? Can't multiple AMMs be changed in the same ledger? I assumed we would have to gather all ammAccounts that have a change in a balance and then verify.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1944703431"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T13:14:40Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "I would actually split these if blocks into 4 separate functions, each checking their own condition. When named properly that would improve readability.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1944705293"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-06T13:24:52Z",
+     "path": "src/xrpld/app/tx/detail/Offer.h",
+     "body": "Is this a separate invariant from usual ones? Why?",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1944720428"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-02-11T09:01:40Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "I don't see why not. We are verifying ledger state, not the library. Why would we replicate what the library already does? Besides, we need to use the tools in order to get AMM balances in order to verify invariants in case of single deposit and withdraw when only one side of AMM pool is updated. And there are other needed utilities, for instance `ammLPTokens()`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1950463345"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-02-11T10:40:09Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "IMO it's a lot of code repetition. I added comments and broke the `if` expression, which checks the invariant. It should be a lot better now.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1950610085"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-02-11T10:41:08Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "Need it for single deposit/withdraw.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1950611451"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-02-11T10:41:28Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "Updated.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1950611953"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-02-11T10:43:59Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.h",
+     "body": "Multiple AMM can be changed if a transaction interacts with DEX, for instance a payment. All AMM transactions don't interact with DEX.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1950615267"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-11T16:49:24Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Maybe should add //clang-format off for this file and revert this change? I personally don't really see this as a problem though",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1951219226"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-11T17:22:14Z",
+     "path": "include/xrpl/protocol/Rules.h",
+     "body": "Maybe worth to put on the top of the file (same as other free functions)?",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1951275101"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-11T17:23:45Z",
+     "path": "src/libxrpl/protocol/Rules.cpp",
+     "body": "maybe worth using `auto const&` to avoid copying the rules?",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1951277346"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-02-11T17:24:44Z",
+     "path": "src/test/jtx/Env.h",
+     "body": "nit: this comment doesn't bring any value",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r1951278872"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-03-18T15:35:24Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "I'm wondering if it would be useful to have IOU amount being calculated in test. I don't find these hardcoded magic numbers useful. I think if we had 2 functions (both calculate LPToken supply, but one is pre v1_3, second is a newer version with adjustment). That will make it a bit more clear and robust in my opinion.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2001343890"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-03-19T14:13:09Z",
+     "path": "src/xrpld/app/misc/AMMHelpers.h",
+     "body": "I believe these functions don't need to be in the header. Could be static functions inside of cpp or inside anon namespace",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2003435213"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-03-19T15:54:49Z",
+     "path": "src/xrpld/app/tx/detail/AMMBid.cpp",
+     "body": "I wonder if this is a correct code for this situation? Would invalid or invalid_account_id be better here?",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2003694130"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-03-19T16:09:52Z",
+     "path": "src/xrpld/app/tx/detail/Offer.h",
+     "body": "From the description of this PR: \"Add Order Book Offer invariant to verify consumed amounts. Consumed amounts are less than the offer.\"\n\nI assume that the code is correct but description should be less or equal?",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2003729172"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-03-20T10:48:56Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "I appreciate deduplication, but I find this code too difficult to read. Lambda + callback is too much for my taste.\n\nI'd suggest something like this:\n```\nvoid\nValidAMM::visitEntry(\n    bool isDelete,\n    std::shared_ptr<SLE const> const& before,\n    std::shared_ptr<SLE const> const& after)\n{\n    if (isDelete)\n        return;\n\n    // Check if pool changed\n    auto ammPoolChanged = [&](std::shared_ptr<SLE const> const& sle) {\n        auto const type = sle->getType();\n        return sle->isFieldPresent(sfBalance) &&\n            ((type == ltRIPPLE_STATE && sle->getFlags() & lsfAMMNode) ||\n             (type == ltACCOUNT_ROOT && sle->isFieldPresent(sfAMMID)));\n    };\n\n    // Check if entry is AMM",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2005305801"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-03-20T11:26:49Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "I'd suggest a shortcut here.\nif (result != tesSUCCESS)\n    return true;",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2005390258"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-03-20T12:08:28Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "ammAccount_ is checked on every if/else statement, maybe take it out? Is that even possible to have a situation where ammAccount_ would not be present? Should it be an assert of some sort?",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2005489848"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-03-20T14:19:25Z",
+     "path": "src/xrpld/app/misc/AMMHelpers.h",
+     "body": "I'm not convinced that these callbacks are required here. Callback is not even a correct term here.\n\nAll those callbacks are either identical or calculable from one another:\n```\nauto amtNoRoundCb = [&] { return tokensAdj / ePrice; };\n    auto amtProdCb = [&] { return tokensAdj / ePrice; };\n```\nor\n```\nauto tokNoRoundCb = [&] {\n        return lptAMMBalance * **(lptAMMBalance + ae * (f - 2)) /\n            (lptAMMBalance * f - ae);**\n    };\n    auto tokProdCb = [&] {\n        return **(lptAMMBalance + ae * (f - 2)) / (lptAMMBalance * f - ae)**;\n    };\nwhere tokNoRoundCb() == tokProdCb() * lptAMMBalance;\n```\nSo if we don't want to do calculation twice, we can do that without lambdas relatively eas",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2005755011"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-03-20T14:26:26Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "I would like to see unit tests checking this invariant. I understand it's probably going to take a lot of effort thought.\n\nWhile the current version of the code is definitely much more readable that previous, I would still suggest splitting finalize into a couple of different functions each covering certain scenario (or group of scenarios). That would make writing and reading tests much easier for this invariant",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2005772747"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T19:04:45Z",
+     "path": "src/xrpld/app/tx/detail/Offer.h",
+     "body": "Just to be consistent with `AMMOffer::checkInvariant()`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2008180024"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T19:05:16Z",
+     "path": "src/xrpld/app/tx/detail/Offer.h",
+     "body": "Correct, less or equal.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2008181524"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T19:10:28Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Makes sense to add // clang-format off",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2008188130"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T19:33:47Z",
+     "path": "src/test/app/AMMClawback_test.cpp",
+     "body": "The magic numbers are used all over the place. Besides, the calculation is probably impractical as you'd have to do exactly what the transactor does. You can't just use the balances to figure out the shares.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2008215719"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T19:39:04Z",
+     "path": "src/xrpld/app/misc/AMMHelpers.h",
+     "body": "`getAssetRounding()` is used below.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2008221729"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T19:46:36Z",
+     "path": "src/xrpld/app/tx/detail/AMMBid.cpp",
+     "body": "I'm reluctant to add more codes. The account is not invalid, but is basically a duplicate.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2008234607"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-03-24T10:47:12Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "This file does not have an extension expected by `clang-format`, so it will not be automatically formatted by it. No need for ` //clang-format off` here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2009928084"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-03-24T10:49:11Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "My VS code setup has application of clang-format on save. So when I add new feature to this file, it reformats it on save regardless of it's extension.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2009931398"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-24T15:27:17Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "I need to update my local tooling, which runs clang-format on every changed file. Just need to add an exception for `*.macro`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2010410728"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-24T16:03:54Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "It's not checked on `ttAMM_VOTE` and if it's present in `ttPAYMENT` then it's an error. I think in other cases should return `false`. I.e., consider it as variant failure.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2010481109"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-25T15:03:32Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "It is pretty hard to unit-test this invariant. First, the rounding change in this PR has mitigated the invariant failure. There are some unit-tests, which would have failed have it not been for this fix. They don't fail because there is no an invariant check for deposit/withdraw pre-amendment but the error messages are still logged. Second, there is a fudge factor - an allowance for a small error. This makes it really difficult to make this invariant fail. One option is to remove this fudge factor but then there will be deposit/withdraw failures because of some pretty tiny differences and it might not even be an edge case so I'm reluctant to do this.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2012315179"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-25T17:15:56Z",
+     "path": "src/xrpld/app/misc/AMMHelpers.h",
+     "body": "It's not that straightforward. First, deposit/withdraw logic is different. And I'd rather keep this logic in respective deposit/withdraw function than have a complicated logic in one function. Second, an important thing is expression evaluation order. Let's take `tokNoRoundCb` and `tokProdCb`. Conceptually `tokNoRoundCb = A * B / C` and `tokProdCb = B / C`. We could represent `tokNoRoundCb = A * tokProdCb`. But `A * B / C` is evaluated as `(A * B) / C` and we need to keep this evaluation order because it's pre-amendment code. If we change it to A * (B / C) then the result might be different due to the rounding. We must have the same result when this amendment is disabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2012573841"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-04-03T12:56:27Z",
+     "path": "src/xrpld/app/tx/detail/AMMBid.cpp",
+     "body": "the codes I suggested are already existing codes so it does not have to be added.\n\nLeaving up to your judgement which one is more suitable",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2026941912"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-05-22T12:46:02Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Fix compilation error in gcc 14 or newer\n\n```suggestion\n            std::optional<IOUAmount> const lpTokenBalanceAlt = {};\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2102473602"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-05-22T13:03:32Z",
+     "path": "src/xrpld/app/misc/AMMHelpers.h",
+     "body": "Align enum semantics with `bool`\n\n```suggestion\nenum class IsDeposit : bool { No = false, Yes = true };\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2102509954"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-05-27T09:57:15Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.h",
+     "body": "```suggestion\n    enum class ZeroAllowed : bool { No = false, Yes = true };\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2108763640"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-05-30T11:22:57Z",
+     "path": "src/xrpld/app/tx/detail/AMMBid.cpp",
+     "body": "Feel free to ignore, but I **think** a log would be useful here.\n\n```suggestion\n                {\n                    JLOG(ctx.j.debug()) << \"AMM Bid: Invalid auth.account.\";\n                    return temMALFORMED;\n                }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5203#discussion_r2115732094"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

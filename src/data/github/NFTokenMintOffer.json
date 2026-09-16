@@ -1,0 +1,325 @@
+{
+ "name": "NFTokenMintOffer",
+ "fetchedAt": "2026-09-16T10:45:46.516Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 1,
+  "branches": [],
+  "lastActivity": "2025-03-27T22:20:00Z",
+  "lastMerged": "2024-06-14T23:32:26Z",
+  "release": "2.3.0",
+  "totalComments": 40
+ },
+ "release": {
+  "version": "2.3.0",
+  "date": "2024-11-26T00:17:49Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.3.0",
+  "excerpt": "NFTokenMintOffer"
+ },
+ "prs": [
+  {
+   "number": 4845,
+   "title": "XLS-52d: NFTokenMintOffer",
+   "url": "https://github.com/XRPLF/rippled/pull/4845",
+   "state": "closed",
+   "author": "tequdev",
+   "createdAt": "2023-12-05T14:32:21Z",
+   "updatedAt": "2024-06-14T23:32:26Z",
+   "closedAt": "2024-06-14T23:32:26Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "tequdev",
+     "date": "2023-12-05T15:39:45Z",
+     "body": "Still need to add some more tests.\n\n- [x] Added fields\n- [x] NFTokenOffer field created in NFTokenMint\n- [x] offer_id added to meta in NFTokenMint",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#issuecomment-1841045727"
+    },
+    {
+     "author": "codecov-commenter",
+     "date": "2024-01-31T14:09:35Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/4845?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `97.83784%` with `4 lines` in your changes missing coverage. Please review.\n> Project coverage is 71.3%. Comparing base [(`3f5e321`)](https://app.codecov.io/gh/XRPLF/rippled/commit/3f5e3212fe232883dce3e0ef4b379c04d4d8f9b3?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`7bc8302`)](https://app.codecov.io/gh/XRPLF/rippled/commit/7bc8302c6d5d865a1b171cceb1c87655812e62f3?dropdown=cover",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#issuecomment-1919178490"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-02-15T15:07:38Z",
+     "body": "Is this ready to review?",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#issuecomment-1946284849"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-02-15T15:10:25Z",
+     "body": "> Is this ready to review?\n\nyes😉",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#issuecomment-1946290087"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-01T00:41:24Z",
+     "body": "For the most part, this is a well done pull request.  The tests seem to have good coverage of the new code.\n\nI have one serious concern with the implementation.  A bunch of the code from NFTokenCreateOffer.cpp has been copied into NFTokenMint.  That means when one part of the code changes for maintenance the copy must change as well.  Inevitably the two copies will fall out of sync.  That's not an immediate problem, but is absolutely a long term problem.\n\nOne way in which this problem is blindingly apparent is when @shawnxie999 asked that you include code for an amendment that is in review.  Optimally that fix should not need to be coded in two different places.\n\nOne way to address this conc",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#issuecomment-2087776751"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-05-01T06:39:52Z",
+     "body": "Thanks, @scottschurr!\nI will check your commit and cherry pick!",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#issuecomment-2088050981"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-01T17:51:04Z",
+     "body": "@shawnxie999, the most recent commit introduced significant changes.  It would be good if you could re-review this pull request.  Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#issuecomment-2088837679"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-06T17:01:19Z",
+     "body": "I think this pull request looks good, but my view is colored by my own changes to the pull request.  So I'm removing myself as a reviewer.  @HowardHinnant has agreed to review this pull request in my place, although he's tied up at the moment.  He can hopefully get to the review in the next week or two.  Sorry for the additional delay.",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#issuecomment-2096506135"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2024-05-15T16:56:49Z",
+     "body": "Needs rebasing against current develop to resolve conflicts.  Doing so will also help me see how this PR would change develop.",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#issuecomment-2113031931"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nFixed to allow creating NFTokenOffer in a NFTokenMint transaction.\n\nAdded 3 optional fields to NFTokenMint transaction:\n- `Amount`\n- `Destination`\n- `Expiration`\n\n\n### Context of Change\n\n- https://github.com/XRPLF/XRPL-Standards/discussions/147\n\n\n### Type of Change\n\n\n\n- [x] New feature (non-breaking change which adds functionality)\n- [x] Tests (you added tests for code that already exists, or your new feature included in this PR)",
+   "merged": true,
+   "mergedAt": "2024-06-14T23:32:26Z",
+   "draft": false,
+   "base": "develop",
+   "head": "tequdev:featureNFTokenMintOffer",
+   "additions": 927,
+   "deletions": 241,
+   "changedFiles": 11,
+   "commits": 24,
+   "reviewComments": 14,
+   "reviews": [
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-03-12T20:51:51Z",
+     "body": "initial set of minor comments..."
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-03-12T20:55:59Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-03-12T21:04:44Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2024-03-14T15:24:41Z",
+     "body": "Looks good."
+    },
+    {
+     "author": "shawnxie999",
+     "state": "CHANGES_REQUESTED",
+     "date": "2024-03-14T19:18:58Z",
+     "body": "There is an outstanding bug in `NFTokenCreateOffer` that we would need to fix in this amendment as well"
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2024-03-15T00:35:53Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-03-15T03:13:26Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2024-03-18T12:44:52Z",
+     "body": "Thanks! Looks good!"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-05-03T15:40:07Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-05-03T20:41:53Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-03T23:06:58Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-03T23:12:01Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-05-06T13:52:22Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2024-05-06T13:52:43Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2024-05-15T18:18:59Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2024-05-15T18:20:14Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2024-05-21T20:15:46Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "shawnxie999",
+     "date": "2024-03-12T20:27:01Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "`exp` should be const",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1522070792"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-03-12T20:27:12Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "`dest` should be const",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1522070984"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-03-12T20:55:59Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "const",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1522100238"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-03-12T21:04:44Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "We may also want to introduce a small test that checks the reserve requirements if the issuer has enough reserve to own both the new NFT and the offer. You can refer to `testFixNFTokenBuyerReserve` test (but doesn't need to be as detailed as this one though)",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1522113926"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-03-14T19:17:56Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "Due to a bug would cause failure if the NFT issuer is also the issuer of the IOU (if transferFee is present), this amendment would also need to change to this\n\n```\n            if (issuer != amount.getIssuer() &&\n                !ctx.view.read(keylet::line(issuer, amount.issue())))\n                return tecNO_LINE;\n```\n\nThis is fixed in another amendment [here](https://github.com/XRPLF/rippled/pull/4946/files). We would need to add test case for this as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1525379850"
+    },
+    {
+     "author": "tequdev",
+     "date": "2024-03-15T00:35:53Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "This Amendment has not yet been merged, so the code in `ctx.view.rules().enabled(fixNFTokenTrustlineSurprise)` cannot be used.\n\nHow can I do this?\nShould this be the default process without `ctx.view.rules().enabled(fixNFTokenTrustlineSurprise)`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1525629385"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-03-15T03:13:26Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "I don't think there is the need to check for the fixNFTokenTrustlineSurprise amendment at all, since the change itself is within the amendment you are proposing.",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1525707601"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-05-03T15:40:06Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "const txFlags?",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1589375235"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-05-03T20:41:52Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "@scottschurr  isn't this test redundant with the tests you introduced in fixEnforceNFTokenTrustline?",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1589707256"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-03T23:06:58Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Yes, they are.  We'll have to see which amendment gets into develop first.  If this one goes in first (which seems likely) then I'll need to remove the nearly identical tests from the `fixEnforceNFTokenTrustline` pull request.\n\nGood spotting.",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1589796818"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-03T23:12:00Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "It could be `const` with absolutely no harm.  Typically literals like this are passed as non-`const` since no harm will come to the calling function if they get modified in the called function.  Since it is a literal, not a reference, this is a copy.  In C++ it is usually cheaper compute-wise to pass small objects, like a `uint32_t`, by value.\n\nSo, I'm happy to add the `const` if you would like.  But I don't think it increases safety in this particular case.",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1589799122"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-05-06T13:52:22Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "cool! i agree we we don't need change here 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1591047548"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2024-05-15T18:18:59Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "The commit message should be prefixed with `[FOLD]` to indicate that this commit should be merged (likely with the previous commit).",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1602070207"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2024-05-15T18:20:14Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "The commit message should be prefixed with `[FOLD]` to indicate that this commit should be merged (likely with the previous commit).",
+     "url": "https://github.com/XRPLF/rippled/pull/4845#discussion_r1602071786"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [
+  {
+   "number": 224,
+   "title": "XLS-52: NFTokenMintOffer Specification",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/224",
+   "state": "closed",
+   "isPr": true,
+   "author": "tequdev",
+   "createdAt": "2024-09-10T04:20:20Z",
+   "updatedAt": "2025-03-27T22:20:00Z",
+   "comments": 2,
+   "labels": []
+  }
+ ],
+ "branches": []
+}

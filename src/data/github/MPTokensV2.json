@@ -1,0 +1,37 @@
+{
+ "name": "MPTokensV2",
+ "fetchedAt": "2026-09-16T10:44:58.104Z",
+ "summary": {
+  "status": "no GitHub trail found",
+  "prs": 0,
+  "open": 0,
+  "merged": 0,
+  "issues": 1,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-13T19:22:30Z",
+  "totalComments": 0
+ },
+ "release": {},
+ "prs": [],
+ "issues": [
+  {
+   "number": 7163,
+   "title": "DomainID accepted on direct XRP and pre-MPTokensV2 MPT payments imposes unnecessary restriction",
+   "url": "https://github.com/XRPLF/rippled/issues/7163",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-05-13T19:22:30Z",
+   "updatedAt": "2026-05-13T19:22:30Z",
+   "closedAt": null,
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 0,
+   "body": "**Severity**: LOW\\\n**Attack vector**: AV-005\n\nThe Payment preflight does not reject sfDomainID for direct XRP payments or pre-MPTokensV2 direct MPT payments. The preclaim then checks that both source and destination accounts are in the domain (lines 391-398), even though no offers are consumed and the domain restriction is meaningless for direct transfers. This imposes an unnecessary constraint: both accounts must hold valid credentials for the domain, even for simple XRP/MPT transfers. While not a security vulnerability, it's a correctness issue that could lead to unexpected tecNO\\_PERMISSION failures for direct payments that should not require domain membership.\n\n**Root cause**: The precla"
+  }
+ ],
+ "proposals": [],
+ "branches": []
+}

@@ -1,0 +1,765 @@
+{
+ "name": "fix1515",
+ "fetchedAt": "2026-09-16T10:51:00.615Z",
+ "summary": {
+  "status": "merged",
+  "prs": 3,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:21:16Z",
+  "lastMerged": "2025-10-23T14:03:29Z",
+  "release": "1.1.0",
+  "totalComments": 100
+ },
+ "release": {
+  "version": "1.1.0",
+  "date": "2018-09-14T23:48:11Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.1.0",
+  "excerpt": "The `rippled` 1.1.0 release release includes the `DepositPreAuth` amendment, which combined with the previously released `DepositAuth` amendment, allows users to pre-authorize incoming transactions to accounts, by whitelisting sender addresses. The 1.1.0 release also includes incremental improvement"
+ },
+ "prs": [
+  {
+   "number": 5920,
+   "title": "Retire amendment fix1515 ",
+   "url": "https://github.com/XRPLF/rippled/pull/5920",
+   "state": "closed",
+   "author": "pratikmankawde",
+   "createdAt": "2025-10-22T13:28:46Z",
+   "updatedAt": "2026-05-20T17:21:16Z",
+   "closedAt": "2025-10-23T14:03:29Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-10-22T19:56:57Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5920?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 79.5%. Comparing base ([`5e33ca5`](https://app.codecov.io/gh/XRPLF/rippled/commit/5e33ca56fd51b02a5490e8e156e2de65937cf88e?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`1772bbd`](https://app.codecov.io/gh/XRPLF/rippled/commit/1772bbd3ce85183803033b213ae7dae40403b887?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5920#issuecomment-3434002257"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-10-23T12:23:13Z",
+     "body": "looks good! feel free to add a ready to merge label",
+     "url": "https://github.com/XRPLF/rippled/pull/5920#issuecomment-3436647237"
+    }
+   ],
+   "body": "## High Level Overview of Change\nThis change retires the `fix1515` amendment.\n\n### Context of Change\nAmendments activated for more than 2 years can be retired.\n\n### Type of Change\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e",
+   "merged": true,
+   "mergedAt": "2025-10-23T14:03:29Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:pratik/Retire_fix1515_amendment",
+   "additions": 8,
+   "deletions": 36,
+   "changedFiles": 2,
+   "commits": 1,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-10-22T13:33:42Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-10-22T13:34:45Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-10-22T14:16:07Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-10-22T14:16:14Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "APPROVED",
+     "date": "2025-10-22T17:27:48Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-10-23T12:18:32Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2025-10-23T12:22:48Z",
+     "body": "LGTM"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "a1q123456",
+     "date": "2025-10-22T13:33:42Z",
+     "path": "src/xrpld/app/paths/detail/BookStep.cpp",
+     "body": "ctx is not referenced so we can remove the name making it `StrandContext const&` only",
+     "url": "https://github.com/XRPLF/rippled/pull/5920#discussion_r2452123717"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-10-22T13:34:45Z",
+     "path": "src/xrpld/app/paths/detail/BookStep.cpp",
+     "body": "Actually, it's only used once in BookStep.cpp, I think we can just define a constexpr variable in the cpp file to replace this function",
+     "url": "https://github.com/XRPLF/rippled/pull/5920#discussion_r2452126653"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-10-22T14:16:07Z",
+     "path": "src/xrpld/app/paths/detail/BookStep.cpp",
+     "body": "Actually, we should just make `maxOffersToConsume_` a static constexpr variable",
+     "url": "https://github.com/XRPLF/rippled/pull/5920#discussion_r2452260418"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-10-22T14:16:14Z",
+     "path": "src/xrpld/app/paths/detail/BookStep.cpp",
+     "body": "I agree with the above, having a function just for returning a constant value can be simplified.",
+     "url": "https://github.com/XRPLF/rippled/pull/5920#discussion_r2452260958"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-10-23T12:18:32Z",
+     "path": "src/xrpld/app/paths/detail/BookStep.cpp",
+     "body": "Done",
+     "url": "https://github.com/XRPLF/rippled/pull/5920#discussion_r2454933765"
+    }
+   ]
+  },
+  {
+   "number": 2546,
+   "title": "Use liquidity from strands that consume too many offers (RIPD-1515):",
+   "url": "https://github.com/XRPLF/rippled/pull/2546",
+   "state": "closed",
+   "author": "seelabs",
+   "createdAt": "2018-05-16T18:42:00Z",
+   "updatedAt": "2018-06-20T01:50:41Z",
+   "closedAt": "2018-06-20T01:05:08Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "seelabs",
+     "date": "2018-05-16T18:44:09Z",
+     "body": "Note: I wrote the `testAutoBridgedLimitsFlowCross` test in CrossingLimits_test.cpp. However, @scottschurr made the changes to the other tests. I'll respond to the comments in the one test I wrote, but Scott S. is going to be better able to respond to comments in the other test.\n\nI will however volunteer to be a review for the changes made in those other tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#issuecomment-389624634"
+    },
+    {
+     "author": "ripplelabs-jenkins",
+     "date": "2018-05-17T01:55:06Z",
+     "body": "## Jenkins Build Summary\n\nBuilt from [this commit](https://github.com/ripple/rippled/commit/7cda30a4c452fed31caccfec797094ccd3477c39)\n\nBuilt at __20180608 - 22:29:44__\n\n### Test Results\n\nBuild Type | Log | Result | Status\n---------- | --- | ------ | ------\nmsvc.debug | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2546/6//artifact/msvc.debug.txt) | 1029 cases, 0 failed, t: 582s | PASS :white_check_mark: \ngcc.release.unity <br/>-Dassert=true, <br/>MANUAL_TESTS=true | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2546/6//artifact/gcc.release.unity_Dassert_true_MANUAL_TESTS_true.txt) | 1101 cases, 0 failed, t: 808s | PASS :white_check_mark: \ndocs | [logfile](http://ci.op",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#issuecomment-389719694"
+    },
+    {
+     "author": "codecov-io",
+     "date": "2018-05-17T01:55:29Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2546?src=pr&el=h1) Report\n> Merging [#2546](https://codecov.io/gh/ripple/rippled/pull/2546?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/fd4636b0560900bd040b03004a1efc7ddb8369a0?src=pr&el=desc) will **decrease** coverage by `<.01%`.\n> The diff coverage is `61.9%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2546/graphs/tree.svg?height=150&token=y0OgJuslsq&src=pr&width=650)](https://codecov.io/gh/ripple/rippled/pull/2546?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2546      +/-   ##\n===========================================\n- Covera",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#issuecomment-389719743"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-18T22:56:38Z",
+     "body": "With Flow now having a limit of 1000 (not 2000) offers at the same quality, I needed to adjust the CrossingLimits Offer Overflow test so it could demonstrate a case where:\n\n- Taker stops consuming offers and returns `tesSUCCESS` while\n- FlowCross attempts to consume too many offers and fails, returning `tecOVERSIZE`.\n\nHere's a commit with the adjusted test: https://github.com/scottschurr/rippled/commit/8dfb7949aad455679d24d02f22ca1bfc1eac1fbe.  The test is not in good enough shape to be cherry-picked.  The final conditions need tuning based on how we decide to resolve the issue.\n\nI'm not saying that the case demonstrated is important enough to deserve attention.  We could very well decide th",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#issuecomment-390353137"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-18T23:05:07Z",
+     "body": "I'm gonna be picky here.  The commit message is pretty wide.  When I see it on an 80 character wide terminal window using `git log` it looks like this:\n```\n    Use liquidity from strands that consume too many offers (RIPD-1515):\n    \n    This changes the rules for payments in two ways:\n    \n    1) It sets the maximum number of offers any book step can consume from 2000\nto\n    1000.\n    \n    2) When a strand contains a step that consumes too many offers, currently th\ne\n    liquidity is not used at all and the strand will be considered dry. This cha\nnges\n    things so the liquidity is used, however the strand will still be considered\n    dry.\n```\n\nCould you consider a 70 character line width l",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#issuecomment-390354436"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-19T00:12:29Z",
+     "body": "@scottschurr I currently use an 80-char max width, but yes, I will reformat the commit messages to a 70 character max width.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#issuecomment-390362732"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-19T00:47:20Z",
+     "body": "@scottschurr w.r.t. flowcross failing with tecOversize; \n\nThere will definitely be cases where this simpler fix fails with tecOversize where @scottschurr's other fix does not. However, this should be both a rare and short-lived condition. The order books should quickly be cleared by both other payments and offer crossing. So I don't think the cost of the extra complexity is worth the very small number of payments/offer crossings I expect it would allow to succeed.\n\nI do welcome other options. If we decide the other fix is the way to go @scottschurr was pretty far along with it, as seen in the patch.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#issuecomment-390365918"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-06-07T19:30:51Z",
+     "body": "Still :+1:.  Thanks for adding the test.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#issuecomment-395538104"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-06-07T19:36:24Z",
+     "body": "@ximinez I believe I addressed your concerns in this PR. Can you take a quick look and give a thumbs up when you get a chance?",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#issuecomment-395539627"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-06-08T21:42:31Z",
+     "body": "Squashed and forced pushed. Also rewrote the commit message to use a 70 line character limit instead of 80 lines, as requested by @scottschurr",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#issuecomment-395899051"
+    },
+    {
+     "author": "mellery451",
+     "date": "2018-06-20T01:05:08Z",
+     "body": "in 833fae57d",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#issuecomment-398591912"
+    }
+   ],
+   "body": "This changes the rules for payments in two ways:\n\n1) It sets the maximum number of offers any book step can consume from 2000 to\n1000.\n\n2) When a strand contains a step that consumes too many offers, currently the\nliquidity is not used at all and the strand will be considered dry. This changes\nthings so the liquidity is used, however the strand will still be considered\ndry.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "seelabs:dry-strand",
+   "additions": 422,
+   "deletions": 49,
+   "changedFiles": 6,
+   "commits": 1,
+   "reviewComments": 34,
+   "reviews": [
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2018-05-18T23:23:57Z",
+     "body": "If I'm reading this right, there's a minor bug here."
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-19T00:14:52Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2018-05-22T00:01:34Z",
+     "body": "Changes look right as far as I can tell.  I left some comments, but you can apply them at your discretion.  Thanks for taking the time to work on this.  :+1:"
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-22T14:46:24Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-22T14:46:28Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-22T14:47:53Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-22T14:47:58Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-22T14:48:00Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-22T14:48:05Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-22T14:49:03Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-22T14:49:09Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-22T14:49:12Z",
+     "body": ""
+    },
+    {
+     "author": "JoeLoser",
+     "state": "COMMENTED",
+     "date": "2018-05-23T01:50:12Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2018-05-23T08:04:32Z",
+     "body": "Generally a :+1: from me. I left some minor comments."
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-23T13:00:56Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-23T13:01:11Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-23T13:01:21Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-23T13:01:35Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-06-06T18:36:10Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2018-06-07T08:01:25Z",
+     "body": "Still :+1:"
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2018-06-08T21:36:27Z",
+     "body": "Looks good with all the fixes :+1:"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ximinez",
+     "date": "2018-05-18T23:07:21Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "`markInactiveOnUse` is `reset` on every pass through the loop, so if the `best` strand is `inactive`, and is any position other than last, it will not be removed below.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189411555"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-19T00:14:51Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "@ximinez Yes, that is a bug. I reset the `markInactiveOnUse` when `best` is consumed; there was never a reason to reset it here, and as you note it's a bug. Pushing a fix now.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189417325"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-21T17:35:05Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "Typo?  \"unfundedleaving\" -> \"unfunded\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189659526"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-21T17:38:22Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "Typo? \"give\" -> \"gives\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189660362"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-21T17:59:24Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "Nice tests, especially the second one.  And good comments.  Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189666051"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-21T18:03:44Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "Typo?  \"Bob spent 500\" -> \"Bob spends 500\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189667213"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-21T18:05:47Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "Typo? \"unfundedleaving\" -> \"unfunded\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189667800"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-21T18:28:02Z",
+     "path": "src/ripple/app/paths/impl/Steps.h",
+     "body": "This state indicates that the offer limit was hit, right?  If I got that right, my preference would be for the name to indicate that.  Something like `offerLimited` perhaps?  Or `tooManyOffers`?  Whatever you pick would spread to the other `inactive` thingies that were added.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189674058"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-21T18:29:12Z",
+     "path": "src/ripple/app/paths/impl/Steps.h",
+     "body": "Good rename. :+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189674379"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-21T19:13:22Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "Consider replacing this `for` loop with `std::any_of()`.  It might look like this:\n```\n        bool const inactive {std::any_of (strand.begin(), strand.end(),\n            [] (std::unique_ptr<Step> const& step)\n            {\n                return step->inactive();\n            })};\n```\nJust a thought.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189685997"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-21T20:45:11Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "Nit: For the most part our code base limits lines to 80 characters (with some exceptions).  This makes it a lot easier to work with side-by-side comparisons from GitHub.  These two comment lines are 103 characters long.  Any chance you could pare them down a bit?  Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189708641"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-21T21:04:00Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "@ximinez, good eyes! :eyes:",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189713454"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-21T23:45:54Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "I'd like to see the Overflow test modified so it actually exercises the intended case.  That will mean that the FlowCross case will generate `tecOVERSIZE` rather than `tecSUCCESS`.  But we should be honest with ourselves.\n\nAn example of how the test could be changed is shown here: https://github.com/scottschurr/rippled/commit/8dfb7949aad455679d24d02f22ca1bfc1eac1fbe.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189743649"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-22T14:46:23Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "Fixed. Also, the formatting got messed up here  the a/b/c should be on their own lines. Fixed that too.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189929780"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-22T14:46:28Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "Fixed. The formatting here got messed up as well (clang-format was too helpful). The a/b/c should be on their own lines. Fixed that as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189929811"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-22T14:47:53Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "I took the comments from your style of explaining what a tests does step by step in a paragraph, which I like a lot for complex tests like payments/offer crossing.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189930359"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-22T14:47:58Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "I think that's correct, we're in the past tense here, describing what happened. He \"spent 500\".",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189930385"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-22T14:48:00Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189930403"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-22T14:48:05Z",
+     "path": "src/ripple/app/paths/impl/Steps.h",
+     "body": "I named it `inactive` for the desired effect of the function \"this step should be marked inactive, for whatever reason\" rather than the cause \"this step exceeded the offer limit\". When we're writing the main loop that's exploring strands and executing steps, I'd rather check \"is this step/strand inactive\", rather than the more specific \"offerLimited\".\n\nI do see your perspective. We're unlikely to add more reasons for a step to be inactive and giving the implementation detail at the high lever can be both a pro and con.\n\nI'm not going to change it in the this next change set, but you did give me something to think about. Let me think about it.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189930439"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-22T14:49:02Z",
+     "path": "src/ripple/app/paths/impl/Steps.h",
+     "body": "I dislike that that's part of the interface at all, but it's a consequence of not having a discriminating field in `EitherAmount`, which was a design requirement.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189930832"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-22T14:49:08Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "I think they're about equivalent.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189930878"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-22T14:49:12Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r189930901"
+    },
+    {
+     "author": "JoeLoser",
+     "date": "2018-05-23T01:50:12Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "I can see both perspectives here with this code snippet.  In general, I prefer using those in `<algorithm>` first. In C++14, you should be able to get away with `auto const& step` in the lambda's function parameters which makes it just a tad nicer in my opinion.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r190102938"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-23T07:07:14Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "You `return` from the above block. The `else` is unnecessary. Same for line 744.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r190141855"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-23T07:09:10Z",
+     "path": "src/ripple/app/paths/impl/Steps.h",
+     "body": "I'm fine with keeping it \"generic\" but I'd prefer `active()` vs. `inactive()` personally, but that's more of a personal preference and I don't have a engineering justification for that.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r190142217"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-23T07:16:31Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "I sorta prefer the `std::any_of` call too... it just makes the code a little more self-documenting, but it also prevents bugs. Granted, this loop has no bugs, but counting loops can be off-by-one very easy.\n\nI'll leave it up to you to decide whether to take or leave this suggestion. If you do decide to take, for the love of all that is good and holy, please use good ol' `=` as opposed to curly uniform initialization. I can never read that stuff!",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r190143811"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-23T07:54:56Z",
+     "path": "src/ripple/app/paths/impl/Steps.h",
+     "body": "I wish we could improve on this.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r190153173"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-23T07:56:38Z",
+     "path": "src/ripple/app/paths/impl/Steps.h",
+     "body": "The second sentence is a little confusing. Consider: _\"A strand that has additional liquidity may be marked inactive if a step has consumed too many offers.\"_",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r190153598"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-23T08:01:27Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "I know this is outside the scope, but we can just change `!bool(best)` to cast to `! static_cast<bool>(best)`",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r190154788"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-23T13:00:56Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "Fixed. I'm fine with either; I really do find them about the same. I also prefer `=` here.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r190235980"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-23T13:01:11Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r190236071"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-23T13:01:21Z",
+     "path": "src/ripple/app/paths/impl/Steps.h",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r190236144"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-23T13:01:35Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "Fixed. The cast isn't needed; I removed it. Also, I still tend to use c-style casts, which I know is a bad habit. I'll try to break it.",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r190236212"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-06-06T18:36:10Z",
+     "path": "src/test/app/CrossingLimits_test.cpp",
+     "body": "Pushed a commit with a test for tecOVERSIZE",
+     "url": "https://github.com/XRPLF/rippled/pull/2546#discussion_r193516417"
+    }
+   ]
+  },
+  {
+   "number": 2208,
+   "title": "Minimize use of jtx::with_only_features (RIPD-1515)",
+   "url": "https://github.com/XRPLF/rippled/pull/2208",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2017-08-17T23:45:17Z",
+   "updatedAt": "2018-01-12T18:48:52Z",
+   "closedAt": "2017-12-01T23:37:09Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov-io",
+     "date": "2017-08-18T00:13:03Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2208?src=pr&el=h1) Report\n> Merging [#2208](https://codecov.io/gh/ripple/rippled/pull/2208?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/6dc79c23ed18bf23dca8c216022e1366bde3fdab?src=pr&el=desc) will **decrease** coverage by `0.01%`.\n> The diff coverage is `100%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2208/graphs/tree.svg?height=150&width=650&token=y0OgJuslsq&src=pr)](https://codecov.io/gh/ripple/rippled/pull/2208?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2208      +/-   ##\n===========================================\n- Coverag",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#issuecomment-323226762"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-08-18T21:04:47Z",
+     "body": "Corrected a comment in a unit test...",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#issuecomment-323460489"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-09-06T02:09:21Z",
+     "body": "Rebased onto 0.80.0.rc2.  Also sitting atop two passed pull requests.  Also squashed the previous fold into the top-most commit.",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#issuecomment-327353882"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-09-06T15:36:12Z",
+     "body": "@ximinez: travis failure is due to a timeout. we just have to tolerate that for now.\n\nThere's another pull request built atop this one: https://github.com/ripple/rippled/pull/2216.  If you have non-critical suggestions for changes, we could consider applying those changes to that pull request (instead of directly to this one) to reduce rebasing pain.  Just a consideration...",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#issuecomment-327523436"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-10-14T06:56:57Z",
+     "body": "@ximinez: Thanks for catching the javadoc errors.  Those are now fixed and the branch is rebased to 0.80.0-rc3.  CI passes except for Travis timeouts.  Marked as passed.",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#issuecomment-336615457"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-10-23T22:46:44Z",
+     "body": "Rebased to 0.80.0.  CI passed except for a Travis timeout.",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#issuecomment-338818733"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-11-30T23:31:53Z",
+     "body": "Rebased to 0.80.1.",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#issuecomment-348355082"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-12-01T23:37:09Z",
+     "body": "Merged as commits feb7582aca40e0b660ffd79de645651c7596a92d, aa76632bb3fbe24ee0501420f6c5e0385a272d64, and 3523cee63d6f43f86e70cacdc2fc9faa22b05257.",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#issuecomment-348642807"
+    }
+   ],
+   "body": "First, only the (currently) top-most commit needs review.  Preceding commits are fixes that are in review and are prerequisites to the top-most commit.  They are: https://github.com/ripple/rippled/pull/2196, https://github.com/ripple/rippled/pull/2200, and https://github.com/ripple/rippled/pull/2202.  Presuming those three pull requests pass review this pull request is the next logical step.\n\nIn order to automatically run unit tests with newly created amendments, prefer to start with `jtx::supported_features()` and then subtract unwanted features.  This approach replaces most uses of `jtx::with_only_features()`, since that always excludes newly added features.\n\nSome number of the modified te",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:subtract-features",
+   "additions": 962,
+   "deletions": 752,
+   "changedFiles": 38,
+   "commits": 3,
+   "reviewComments": 8,
+   "reviews": [
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2017-08-28T22:59:01Z",
+     "body": "Left some nits, but nothings that should hold this up. Up to your discretion which ones you want to address. :+1:"
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2017-08-31T01:24:15Z",
+     "body": "Thanks for the improvements.  I think the latest commit incorporates those."
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-31T14:06:34Z",
+     "body": ":+1:"
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2017-10-10T00:50:14Z",
+     "body": "Other than a couple of javadoc errors included below, this looks great. It's a little odd to read the lists of tests by what they exclude rather than what they include, but I'm sure we'll get used to it. And the benefit of testing new features by default will be well worth it."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "seelabs",
+     "date": "2017-08-28T22:44:52Z",
+     "path": "src/test/app/PayStrand_test.cpp",
+     "body": "This can be simplified to:`return features[featureToBitsetIndex(feat)];`. There are also three of the `hasFeature` functions. Let's get rid of the three and just put one inside `Feature.h` and `Feature.cpp`",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#discussion_r135654131"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-28T22:47:22Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "This is the only place where `featuresWoTickSize` is used. I'd remove the variable and replace this with `features & ~with_only_features(featureTickSize)`",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#discussion_r135654631"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-28T22:50:53Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "I'd remove this `fsPlus` and change the caller to `testTickSize(features | with_only_features(featureTickSize)`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#discussion_r135655177"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-28T22:54:43Z",
+     "path": "src/test/app/SetAuth_test.cpp",
+     "body": "I'd remove the `trustSetAuth` var and replace `features | trustSetAuth` with `addFeatures(features, featureTrustSetAuth)`",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#discussion_r135655833"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-28T22:57:26Z",
+     "path": "src/test/jtx/Env.h",
+     "body": "See my comment in the other PR for names, but I don't like all these functions of the form `primitive1_and_primitive2(){primitive1(); primitive2();}`.\n\nI have some ideas for how to refactor this, we don't need to do it in this PR. Just a placeholder comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#discussion_r135656286"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-08-31T00:23:26Z",
+     "path": "src/test/app/SetAuth_test.cpp",
+     "body": "Tried this one.  In its current incarnation `addFeatures` doesn't behave well with a single `uint256`.  It really wants a collection.  I got the following to work, which is relatively low cost, but kind of wordy:\n```\naddFeatures(features, std::initializer_list<uint256 const>({featureTrustSetAuth}))\n```\nI ended up punting and using\n```\nfeatures & ~with_only_features(featureTrustSetAuth)\n```\non line 55.  I think that will be okay for now.",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#discussion_r136221279"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-10-10T00:44:34Z",
+     "path": "src/test/jtx/Env.h",
+     "body": "`features to include in the resulting collection`",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#discussion_r143609428"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-10-10T00:45:22Z",
+     "path": "src/test/jtx/Env.h",
+     "body": "`features to include in the resulting collection`",
+     "url": "https://github.com/XRPLF/rippled/pull/2208#discussion_r143609505"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

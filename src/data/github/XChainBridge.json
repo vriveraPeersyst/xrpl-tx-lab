@@ -1,0 +1,1604 @@
+{
+ "name": "XChainBridge",
+ "fetchedAt": "2026-09-16T10:49:31.896Z",
+ "summary": {
+  "status": "merged",
+  "prs": 3,
+  "open": 0,
+  "merged": 3,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-06-25T18:38:45Z",
+  "lastMerged": "2026-06-25T17:25:10Z",
+  "release": "2.2.0",
+  "totalComments": 231
+ },
+ "release": {
+  "version": "2.2.0",
+  "date": "2024-06-04T23:09:54Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.2.0",
+  "excerpt": "fixXChainRewardRounding amendment: Modifies the behavior of the XChainBridge amendment: fixes rounding so reward shares are always rounded down, even when the `fixUniversalNumber` amendment is active. [#4933](https://github.com/XRPLF/rippled/pull/4933)"
+ },
+ "prs": [
+  {
+   "number": 7615,
+   "title": "feat: remove XChainBridge from scope",
+   "url": "https://github.com/XRPLF/rippled/pull/7615",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2026-06-24T20:16:53Z",
+   "updatedAt": "2026-06-25T18:38:45Z",
+   "closedAt": "2026-06-25T17:25:10Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-06-24T21:47:58Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7615?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `92.30769%` with `1 line` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 82.2%. Comparing base ([`494391b`](https://app.codecov.io/gh/XRPLF/rippled/commit/494391b4ab77bc6b70a9c5adcdfece2fa8c0970a?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`b37912a`](https://app.codecov.io/gh/XRPLF/rippled/commit/b37912a2585e71393572749f02773262561e0c4b?dropdo",
+     "url": "https://github.com/XRPLF/rippled/pull/7615#issuecomment-4793953387"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nRemoves sponsor handling from all XChainBridge txs\n\n### Context of Change\n\nScope cut\n\n### API Impact\n\nN/A",
+   "merged": true,
+   "mergedAt": "2026-06-25T17:25:10Z",
+   "draft": false,
+   "base": "xrplf/sponsor",
+   "head": "XRPLF:mvadari/sponsor/xcb",
+   "additions": 17,
+   "deletions": 198,
+   "changedFiles": 2,
+   "commits": 5,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-24T20:18:17Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-24T20:21:48Z",
+     "body": "## Pull request overview\n\nThis PR removes reserve-sponsorship behavior from XChainBridge-related transaction processing, simplifying reserve checks and owner-count adjustments so they no longer consider a transaction-provided sponsor.\n\n**Changes:**\n- Removed SponsorHelpers usage and all tx-provided sponsor handling from XChainBridge transactors.\n- Replaced `checkInsufficientReserve(..., sponsor, ...)` with direct `accountReserve(...)` comparisons.\n- Simplified `applyCreateAccountAttestations` by removing the `STTx` parameter and related sponsorship logic.\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/xrplf/sponsor?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target="
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-24T21:17:17Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-25T00:11:20Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "oleks-rip",
+     "state": "APPROVED",
+     "date": "2026-06-25T17:03:42Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-25T17:08:29Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "Kassaking7",
+     "state": "APPROVED",
+     "date": "2026-06-25T17:12:07Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-06-24T20:21:48Z",
+     "path": "src/libxrpl/tx/transactors/bridge/XChainBridge.cpp",
+     "body": "`finalizeClaimHelper` now decrements owner counts via `adjustOwnerCount(..., {}, -1, ...)` after erasing the ClaimID SLE. That bypasses the existing `adjustOwnerCountObj` logic, which correctly accounts for a possibly-sponsored ledger object (sfSponsor) when updating `sfSponsoredOwnerCount`/`sfSponsoringOwnerCount`. Even if new XChain txs no longer create sponsored objects, previously-created (or otherwise sponsored) ClaimID entries would be deleted incorrectly and can trip the sponsorship invariants.",
+     "url": "https://github.com/XRPLF/rippled/pull/7615#discussion_r3470030926"
+    }
+   ]
+  },
+  {
+   "number": 4292,
+   "title": "XLS-38d: XChainBridge (side chains)",
+   "url": "https://github.com/XRPLF/rippled/pull/4292",
+   "state": "closed",
+   "author": "seelabs",
+   "createdAt": "2022-09-01T20:33:17Z",
+   "updatedAt": "2023-09-26T22:48:55Z",
+   "closedAt": "2023-09-14T20:08:42Z",
+   "labels": [
+    "API Change",
+    "Amendment",
+    "Testable",
+    "Will Need Documentation",
+    "Clio Reviewed"
+   ],
+   "comments": [
+    {
+     "author": "cjcobb23",
+     "date": "2022-09-07T21:41:54Z",
+     "body": "Just wanted to confirm, this doesn't add any new RPCs, but simply expands the functionality of `ledger_entry`. Is that correct?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1239923738"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-09-07T22:01:53Z",
+     "body": "> Just wanted to confirm, this doesn't add any new RPCs, but simply expands the functionality of `ledger_entry`. Is that correct?\n\nYes, `ledger_entry` can return the new xchain ledger objects. It also has updates to the `account_objects` (you can request `jss::xchain_claim_id`) and the `subscribe` RPC commands (new `boundary` tag).",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1239950254"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-10-19T19:48:41Z",
+     "body": "I tried signing attestations using accounts that are present in the ledger.  Then I gave the in-ledger accounts regular keys and disabled the master keys.  That works with ordinary multisigning, but is not currently working for XChain XRP transfers.\n\nI have a unit test that reproduces the problem here: https://github.com/scottschurr/rippled/commit/5f15add691eeefde3c615f3c667148c44a755a9b#diff-b4e237ef0eaad4f10295147c159b78f2258452beb7f25b5a3256452af51a7916R800\n\nI think this is an important test case because fixing it requires changes to the `XChainClaimAttestationBatchElement` object members.  An `XChainClaimAttestationBatchElement` currently looks like this:\n```\n            \"XChainClaimAtte",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1284495909"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-04T19:50:12Z",
+     "body": "I have a question about whether we want to disallow a bridge where `LockingChainDoor` is the same as the `LockingChainIssue::issuer`.\n\nHere's a bridge with that configuration:\n```\n{\n   \"IssuingChainDoor\" : \"ra8zzeHjuHrwxAnDKHbXXoxXEe5mDxM8mq\",\n   \"IssuingChainIssue\" : {\n      \"currency\" : \"SAU\",\n      \"issuer\" : \"ra8zzeHjuHrwxAnDKHbXXoxXEe5mDxM8mq\"\n   },\n   \"LockingChainDoor\" : \"rUR5mVQjdEH6HEvUKrcBMhZh9Rcsh45GT6\",\n   \"LockingChainIssue\" : {\n      \"currency\" : \"XAU\",\n      \"issuer\" : \"rUR5mVQjdEH6HEvUKrcBMhZh9Rcsh45GT6\"\n   }\n}\n```\nNote that the `LockingChainDoor` and `LockingChainCurrency:issuer` values are identical.\n\nFirst, it works.  I tried it.  No problems.\n\nBut it feels funny.  If thes",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1304094812"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-04T23:58:34Z",
+     "body": "On a related note, let's look at the `IssuingChain` side of a bridge.\n\nHere's one example of a bridge:\n```\n{\n   \"IssuingChainDoor\" : \"ra8zzeHjuHrwxAnDKHbXXoxXEe5mDxM8mq\",\n   \"IssuingChainIssue\" : {\n      \"currency\" : \"SAU\",\n      \"issuer\" : \"ra8zzeHjuHrwxAnDKHbXXoxXEe5mDxM8mq\"\n   },\n   \"LockingChainDoor\" : \"rUR5mVQjdEH6HEvUKrcBMhZh9Rcsh45GT6\",\n   \"LockingChainIssue\" : {\n      \"currency\" : \"XAU\",\n      \"issuer\" : \"rHzYmgPBCipE63Mzd3tBvd1Au3Ev1EMt6N\"\n   }\n}\n```\nNotice that the `IssuingChainDoor` and `IssuingChainIssue:issuer` are identical.  It turns out that is mandatory.  There's a bit of code that enforces that rule.  If the creator of the bridge doesn't follow that rule they get `temSIDECH",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1304346314"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-11-10T13:16:12Z",
+     "body": "Do we really need 14k LOC to implement cross chain functionality?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1310267895"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-18T19:49:47Z",
+     "body": "Judging by some of the added commits I thought that maybe the problem with in-ledger attestors with disabled master keys had been addressed.  But it looks like I was wrong on that.  Here's a link to a commit that demonstrates the problem is still present: https://github.com/scottschurr/rippled/commits/scottd-xchain-in-ledger-multisigners",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1320459433"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-02-14T15:23:36Z",
+     "body": "@scottschurr I added a patch to address the multisig issue you brought up. The relevant patch is b67562614  [WIP] More complete multi sign scheme for door accounts (and I just noticed the [WIP] tag. That should me [FOLD] - oh well). Peng is writing tests for this and the tests will be merged shortly.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1429924998"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-02-23T19:11:27Z",
+     "body": "Since attestations are no longer batched I think it would be worthwhile to audit XChain related names that include \"batch\".  Maybe you want to save some of these names intentionally, but I'd guess that most of these names should be fixed in some way.\n\nHere are the suspect names I found using `grep`:\n\n- STXChainAttestationBatch.cpp\n- STXChainAttestationBatch.h\n- STXChainAttestationBatch (in a comment)\n- `sfXChainClaimAttestationBatch`\n- `sfXChainClaimAttestationBatchElement`\n- `sfXChainCreateAccountAttestationBatch`\n- `sfXChainCreateAccountAttestationBatchElement`\n- `XChainClaimAttestation::TBatchAttestation`\n- `XChainCreateAccountAttestation::TBatchAttestation`\n- `TAttestation::TBatchAttesta",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1442297705"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-02-28T22:27:43Z",
+     "body": "@scottschurr Note: the \"[Make build more mainstream like](https://github.com/XRPLF/rippled/pull/4292/commits/5a45d19d6e031b634759701ec00d6993a14adf66)\" Does not need to be reviewed. It's there because I don't want to rebase onto develop while the review is still in progress.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1449020452"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-07-31T16:49:07Z",
+     "body": "Squashed and rebased onto the latest develop branch.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1658760106"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-07-31T16:55:51Z",
+     "body": "Note: I noticed a couple of tasks that I need to resolve:\n1) I need to add a ticket sequence to the bridge transactions.\n2) When merging I changed some AMM ids. I need to change these back to the origionals.\n3) Disallow sidechains with IOUs that can clawback funds.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1658770180"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-08-15T08:05:00Z",
+     "body": "Can you give an update on the following?\n\n> The first commit in this PR introduces structured logging. That does not need to be reviewed in this pull request. I'll make a separate PR for that.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1678562523"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-09-07T18:36:41Z",
+     "body": "- some integration tests are being expanded/improved.\n  - therefore, recommend waiting a couple days before merging this.\n- @seelabs plans to rebase on `develop` ~next week (after testing is done)\n\n\nnote: developers are not blocked, and can already experiment/develop on the existing sidechain devnet.\n- planning for a sidechain devnet reset ~next week, after this PR is merged.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1710608821"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-09-11T23:56:15Z",
+     "body": "notes: sidechains testing is expected to complete in a couple days; also verifying one potential bug. can tag the release on Wednesday/Thursday, and use the beta release on Devnet when it is reset on Sep 19th.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1714760138"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-09-13T22:05:56Z",
+     "body": "Squashed and merged onto the latest develop",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1718377786"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-09-14T18:18:36Z",
+     "body": "note: to make this commit easier to find in the future, consider adding \"XChainBridge\" (name of amendment) in the commit title",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1719929660"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-09-14T20:07:08Z",
+     "body": "suggested commit message title line:\n```\n`XChainBridge`: Introduce sidechain support (XLS-38): (#4292)\n```\n\n(the pattern of putting the amendment name first [has been used before](https://github.com/XRPLF/rippled/commit/724a3015998bfc7b301fd0bd285f27e6f9e1b1b9))",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#issuecomment-1720071281"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis pull request introduces the functionality needed to support bridging assets across ledgers. This implementation focus on connecting two XRPL-like ledgers. It is meant to be used in conjunction with a witness server. The witness server has not been released, but an in-development version can be found here: https://github.com/seelabs/xbridge_witness and may be used to test this functionality. A python library to help setup and experiment with this code can be found here: https://pypi.org/project/xrpl-sidechain-cli/\n\nThe [XLS-38d specification](https://github.com/XRPLF/XRPL-Standards/blob/master/XLS-38d-XChainBridge/README.md) gives an overview of the new ",
+   "merged": true,
+   "mergedAt": "2023-09-14T20:08:42Z",
+   "draft": false,
+   "base": "develop",
+   "head": "seelabs:xbridge",
+   "additions": 12142,
+   "deletions": 174,
+   "changedFiles": 59,
+   "commits": 2,
+   "reviewComments": 665,
+   "reviews": [
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2022-09-15T18:08:42Z",
+     "body": "First pass."
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2022-09-21T01:16:11Z",
+     "body": "Just a few initial comments on the spec as I try to get oriented.  I've not looked at any code yet."
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2022-09-22T18:10:41Z",
+     "body": "Intermediate review comments.  Spotted a couple of weird looking things while trying to understand transactors..."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-09-26T21:25:40Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-09-26T22:05:48Z",
+     "body": ""
+    },
+    {
+     "author": "greg7mdp",
+     "state": "COMMENTED",
+     "date": "2022-09-26T22:11:29Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-09-26T22:13:15Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-09-26T22:19:16Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-09-28T15:00:58Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-09-28T17:25:26Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-10-04T19:27:08Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-10-04T20:36:37Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2022-10-05T07:02:01Z",
+     "body": ""
+    },
+    {
+     "author": "greg7mdp",
+     "state": "COMMENTED",
+     "date": "2022-10-05T14:58:19Z",
+     "body": ""
+    },
+    {
+     "author": "greg7mdp",
+     "state": "COMMENTED",
+     "date": "2022-10-05T15:04:53Z",
+     "body": ""
+    },
+    {
+     "author": "greg7mdp",
+     "state": "COMMENTED",
+     "date": "2022-10-10T21:04:35Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2022-10-21T18:57:08Z",
+     "body": "Just a few extra intermediate comments..."
+    },
+    {
+     "author": "scottschurr",
+     "state": "CHANGES_REQUESTED",
+     "date": "2022-10-25T21:40:03Z",
+     "body": ""
+    },
+    {
+     "author": "greg7mdp",
+     "state": "COMMENTED",
+     "date": "2022-10-25T21:59:01Z",
+     "body": ""
+    },
+    {
+     "author": "greg7mdp",
+     "state": "COMMENTED",
+     "date": "2022-10-31T15:11:23Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2022-11-01T23:31:16Z",
+     "body": ""
+    },
+    {
+     "author": "greg7mdp",
+     "state": "COMMENTED",
+     "date": "2022-11-02T00:22:43Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2022-11-02T00:45:58Z",
+     "body": ""
+    },
+    {
+     "author": "greg7mdp",
+     "state": "COMMENTED",
+     "date": "2022-11-02T01:29:00Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-11-02T18:16:13Z",
+     "body": ""
+    },
+    {
+     "author": "greg7mdp",
+     "state": "COMMENTED",
+     "date": "2022-11-03T14:50:36Z",
+     "body": ""
+    },
+    {
+     "author": "greg7mdp",
+     "state": "COMMENTED",
+     "date": "2022-11-03T15:49:16Z",
+     "body": ""
+    },
+    {
+     "author": "greg7mdp",
+     "state": "COMMENTED",
+     "date": "2022-11-03T17:51:33Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2022-11-04T00:14:54Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2022-12-10T01:30:19Z",
+     "body": "A couple more intermediate comments."
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2022-12-10T01:59:19Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-12-12T19:34:07Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-12-12T20:22:12Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2022-12-12T20:22:49Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2022-12-13T17:17:18Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2022-12-20T01:33:20Z",
+     "body": "I've finished my review.  Whew.  Most comments are inline, but there are a few notes that don't fit the inline format.  I'm leaving those here.\n\n### Naming\n\nI disagree with a couple of the naming choices made here.  But just because I disagree doesn't make me right.  Here are naming changes I recommend:\n\n- I think Doors on Bridges make no intuitive sense.  Physical bridges don't have doors.  I think all three of these items (two doors and a bridge) make a Portal.  There would probably be a Portal, and LockingPortal, and an IssuingPortal, but they are all really components of the same Portal.\n\n- I don't think you have Witnesses here, I think you have Attestors instead.  Attestors provide Atte"
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:17:18Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:17:40Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:17:51Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:19:36Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:19:51Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:20:17Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:20:52Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:21:01Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:21:11Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:21:21Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:21:30Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:21:41Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:22:10Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:22:19Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:22:31Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:22:40Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:23:36Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:23:45Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:23:53Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:24:02Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:24:11Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:24:19Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:24:31Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:24:39Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:25:07Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:25:31Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:25:55Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:26:25Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:26:35Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:27:14Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:28:34Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:28:59Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:29:09Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:29:19Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:29:32Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:29:49Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:29:57Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:30:22Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:30:32Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:30:46Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:30:54Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:31:05Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:31:13Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:31:21Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:31:29Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:32:28Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:32:43Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:32:53Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:33:05Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:33:14Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:33:31Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:33:39Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:33:46Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:33:55Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:34:03Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:34:17Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:34:27Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:34:34Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:34:58Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:35:18Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:35:27Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:35:52Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:36:00Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-02-06T16:36:26Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "scottschurr",
+     "date": "2022-09-14T19:37:00Z",
+     "path": "docs/bridge/spec.md",
+     "body": "exiting -> existing",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r971224449"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-14T19:37:20Z",
+     "path": "docs/bridge/spec.md",
+     "body": "ledger -> ledgers",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r971224656"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-14T20:12:40Z",
+     "path": "docs/bridge/spec.md",
+     "body": "This list just shows up concatenated in a single paragraph when rendered.  That could be solved by turning it into a bulleted list.  E.g.,\n```\n- XChainCreateBridge\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r971252603"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-14T20:13:21Z",
+     "path": "docs/bridge/spec.md",
+     "body": "Similarly, these could also be a bulleted list.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r971253137"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-14T22:31:55Z",
+     "path": "docs/bridge/spec.md",
+     "body": "\"Rewards amounts much\" -> \"Reward amounts must\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r971351405"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-14T23:35:16Z",
+     "path": "docs/bridge/spec.md",
+     "body": "\"tho this my change\" -> \"though this may change\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r971384157"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-14T23:38:59Z",
+     "path": "docs/bridge/spec.md",
+     "body": "\"used to by\" -> \"used by\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r971386847"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-14T23:44:06Z",
+     "path": "docs/bridge/spec.md",
+     "body": "\"mount an DOS\" -> \"mount a DOS\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r971389943"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-14T23:46:08Z",
+     "path": "docs/bridge/spec.md",
+     "body": "\"incentive to\" -> \"incentive for\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r971390706"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-14T23:52:21Z",
+     "path": "docs/bridge/spec.md",
+     "body": "\"use a `AccountCreate` -> \"use an `AccountCreate`\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r971393613"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T14:07:16Z",
+     "path": "docs/bridge/spec.md",
+     "body": "Should it be \"`XChainAccountCreate` was run on the source chain\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972034578"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T14:10:23Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "As discussed before, `i + 1 == num_txns` is not always a \"ledger_boundary\". If that is fine, probably change the name of `jss::account_history_ledger_boundary`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972038299"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T14:10:34Z",
+     "path": "src/ripple/app/tx/impl/InvariantCheck.h",
+     "body": "Should `8` be replaced by `AttestationBatch::maxAttestations` as well?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972038518"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T14:16:22Z",
+     "path": "src/ripple/rpc/handlers/LedgerEntry.cpp",
+     "body": "The updated value of `valid` is not used. \n\nShould `jvResult[jss::error] = \"malformedRequest\";` be added here as well?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972046154"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T14:16:54Z",
+     "path": "src/ripple/rpc/handlers/LedgerEntry.cpp",
+     "body": "Same as above, should `jvResult[jss::error] = \"malformedRequest\";` be added here?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972046911"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T14:17:09Z",
+     "path": "src/ripple/rpc/handlers/LedgerEntry.cpp",
+     "body": "Same as above, should `jvResult[jss::error] = \"malformedRequest\";` be added here?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972047236"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T14:20:30Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "Should `{sfSignatureReward, soeREQUIRED},` be moved here instead of in `ttXCHAIN_CREATE_CLAIM_ID`? to match `ttXCHAIN_ACCOUNT_CREATE_COMMIT` that has the `{sfSignatureReward, soeREQUIRED},` field.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972051389"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T14:28:38Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.h",
+     "body": "Should \"use accounts\" be changed to \"user wallets\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972061344"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T15:16:38Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "In general, should 0 reward by allowed? There could be cases that attesters do not change a fee since a sidechain could be setup for any use cases, right?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972122345"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T15:21:37Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "In general, should 0 minAccountCreate be allowed? As a related question, should 0 reserve be allowed for a sidechain account?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972128027"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T15:39:17Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Is zero payment allowed, in general?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972148048"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T15:40:22Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Why is reward set here, because of the potential change of reward value?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972149184"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T15:51:10Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Question here because of above code comment: \n\"// Modify the object before it's potentially deleted, so the meta data\n // will include the new attestations\"\n\nWhat if it has a quorum of signatures and no `sleCID`? It seems the `sleCID` will not be created. I think that is probably fine since the newly created `sleCID` will be deleted immediately. What about metadata, is `sleCID` needed for SDK libs?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972160584"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T17:26:35Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Does any success mean over all success?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972255981"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-09-15T17:28:45Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "The case that a later (in sequence) createAccount gets a quorum of signatures before an earlier one is possible, right? If so, then after creating an account, it should check if the next one is ready too.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r972257804"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T18:36:39Z",
+     "path": "docs/bridge/spec.md",
+     "body": "\"transactions done fail\" -> \"transactions don't fail\" ?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975696499"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T18:39:22Z",
+     "path": "docs/bridge/spec.md",
+     "body": "This doesn't seem quite right to me...\n1. Isn't the private key for the genesis account well known?\n2. On the main XRPL the funds were transferred out of the genesis account into a few other accounts.  It seems like that could be done on a side chain as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975698529"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T18:42:59Z",
+     "path": "docs/bridge/spec.md",
+     "body": "General American English usage prefers \"cannot\" over \"can not\".  There are a number of instances in the file.  Consider a search and replace.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975701474"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T18:46:40Z",
+     "path": "docs/bridge/spec.md",
+     "body": "\"providing a signatures\" -> \"providing signatures\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975704425"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T20:51:39Z",
+     "path": "docs/bridge/spec.md",
+     "body": "Instead of \"Ledger ID\" should this be \"XChain Claim ID\"?  \"Ledger ID\" or similar is used in a lot of places in the API.  Let's not add confusion.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975803337"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T21:11:24Z",
+     "path": "docs/bridge/spec.md",
+     "body": "Hmmm.  I'm far from having a clear vision of what's going on.  But it seems like this feature, which requires accounts to be created in incrementing order, could be open to abuse.  Suppose an account claims one of these integers and then delays using the integer for a long time.  Wouldn't that block any account that wanted to create an account later?  Seems like maybe you need a timeout.  Maybe you also need a way to recover if one of these integers gets lost by accident or on purpose.  Just thoughts...",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975817444"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T21:15:30Z",
+     "path": "docs/bridge/spec.md",
+     "body": "This needs a name other than \"Ledger ID\".",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975820388"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T21:21:48Z",
+     "path": "docs/bridge/spec.md",
+     "body": "\"providing a signatures\" -> \"providing signatures\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975824619"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T21:27:08Z",
+     "path": "docs/bridge/spec.md",
+     "body": "Instead of \"Ledger ID\" should this be \"Bridge ID\" or \"Chain Bridge ID\"?  \"Ledger ID\" is already used for other purposes in the API.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975829336"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T21:37:26Z",
+     "path": "docs/bridge/spec.md",
+     "body": "\"providing a signatures\" -> \"providing signatures\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975836023"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T21:52:44Z",
+     "path": "docs/bridge/spec.md",
+     "body": "I'm not sure what \"used to represent from the locking-chain\" means?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975845237"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-20T21:54:04Z",
+     "path": "docs/bridge/spec.md",
+     "body": "\"must both XRP\" -> \"must both be XRP\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r975846017"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-22T16:39:03Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "I think this should be done with an `InnerObjectFormat`.  Is there a good reason not to do that?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r977875203"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-22T18:05:50Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "From looking at TxFormats.cpp, it looks like this should simply be a `TxFormat`, possibly containing one of more `InnerObjectFormat`s.  Is there a good reason not to do that?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r977948806"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-22T18:08:54Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "This looks wrong.  Why is this not a fleshed out `TxFormat`?  If there's a really good reason it at least deserves a comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r977951252"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-23T18:48:29Z",
+     "path": "src/test/app/XChain_test.cpp",
+     "body": "In this code base classes or structs are typically given an initial capital.  Consider changing the name to `XEnv` or `XchEnv` or the like.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r978976142"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-26T17:29:46Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "`applyRestuls` -> `applyResults`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r980322563"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-09-26T21:25:40Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Is this supposed to be `XChainCreateBridge`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r980517961"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-09-26T22:05:48Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "If I'm understanding this correctly, this only disallows 0 when the currency is not XRP. If you wanted to charge 0 reward, wouldn't it be better to do 0 XRP?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r980541934"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-09-26T22:11:29Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "It checks that the reward is XRP, *and* that it is strictly positive, so it doesn't allow 0 xrp reward.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r980544995"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-09-26T22:13:15Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Right, of course, it's an or 🤦",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r980546124"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-09-26T22:19:15Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Couldn't someone construct a sidechain where they move all the XRP to a different account? i.e. the testnet has [this account](https://testnet.xrpl.org/accounts/rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe) as the faucet account, which contains all the spare XRP",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r980549145"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-09-28T15:00:57Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "On [line 439](https://github.com/XRPLF/rippled/pull/4292/files#diff-f59c1290a2b9bb42469fda9b064384dbe2e9f7376f7937bf3fab225241c15fafR439) in `XChainCreateBridge` the signature reward amount must be strictly positive, but here it must be only nonnegative. Shouldn't those be aligned?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r982522185"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-09-28T17:25:26Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Could we instead do a preclaim check to make sure that the bridge has almost all of the XRP? Not sure where the threshold should be, but it likely shouldn't be _all_ the XRP in case they've already done some setup work on the sidechain.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r982680932"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-10-04T19:27:08Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Also, couldn't someone run a bridge with a signature reward amount of `0`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r987254976"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-10-04T20:36:37Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Is this a typo? Is this supposed to be `applyResults`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r987308041"
+    },
+    {
+     "author": "pwang200",
+     "date": "2022-10-05T07:02:01Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "`jvObj[jss::account_history_ledger_boundary] = true;` should only be added if this is an account history subscribe. So these two lines should be moved into the for loop below.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r987592063"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-10-05T14:58:19Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "> jvObj[jss::account_history_ledger_boundary] = true; should only be added if this is an account history subscribe\n\nHum, I don't think so, the boundary information is useful in both directions (going back for historical txs and forward for new tx). Maybe I should rename `jss::account_history_ledger_boundary` to `jss::ledger_boundary`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r988026114"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-10-05T15:04:53Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "It probably would be better for consistency with the other xchain transaction class names.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r988036413"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-10-10T20:10:04Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Should we increment `(*sleB)[sfXChainAccountClaimCount]` before the return here?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r991608793"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-10-10T20:12:57Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "> The case that a later (in sequence) createAccount gets a quorum of signatures before an earlier one is possible,\n\n~~I think this could happen only if the witness servers do not attest to transactions in the order they occurred. Not sure if this should happen.~~\n\nNever mind, I see how this can happen.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r991610504"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-10-10T21:04:29Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "I think `finalizeClaimHelper`  will return an error if the `sleCID` was never created (when we get all needed attestations in one batch) , because the  `psb.remove()` call will fail.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r991638615"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-10-21T18:40:06Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "I''m thinking the `sfOtherChainDestination` destination should be required, not optional.  Right now if that field is omitted (and the missing field is percolated through the attestation) then the resulting claim must be recovered with an `XChainClaim`.  The `XChainClaim` is used to recover from errors.  So making the `sfOtherChainDestination` field optional feels a bit like making it easy for users to create errors?\n\nI'm not seeing a good user scenario for the `sfOtherChainDestination` field being optional.  Did I miss something?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1002085691"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-10-21T18:55:37Z",
+     "path": "src/test/app/XChain_test.cpp",
+     "body": "I've spent some time writing temporary unit tests as a way to study XChain.  The basics of `xEnv` have been really handy.  So thanks for doing that.\n\nHowever, having the `xEnv` pre-fund magic accounts lead me to avoid using these magic account names all together.  I would much prefer if each unit test defined and funded only the accounts that it needs for the test.  I felt like these accounts (and particularly having them funded in a hidden fashion) were just land mines I had to learn to step around.\n\nMy 2 cents.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1002097412"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-10-25T21:38:19Z",
+     "path": "src/test/app/XChain_test.cpp",
+     "body": "This code is not compiling for me with clang.  I get the following error:\n```\n/Users/scott/Development/rippled/src/test/app/XChain_test.cpp:5533:33: error: call to constructor of 'ripple::STAmount' is ambiguous\n                           amt, STAmount(amt.issue(), divisor), amt.issue()));\n                                ^        ~~~~~~~~~~~~~~~~~~~~\n/Users/scott/Development/rippled/src/ripple/protocol/STAmount.h:130:5: note: candidate constructor\n    STAmount(\n    ^\n/Users/scott/Development/rippled/src/ripple/protocol/STAmount.h:137:5: note: candidate constructor\n    STAmount(\n    ^\n/Users/scott/Development/rippled/src/ripple/protocol/STAmount.h:143:5: note: candidate constructor\n    STAmoun",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1004986666"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-10-25T21:59:01Z",
+     "path": "src/test/app/XChain_test.cpp",
+     "body": "Thanks you Scott, will fix. \nBTW I updated the `xEnv` class to `XEnv` as you suggested, and split it into a `SEnv` parent class without any prefunded account or definitions, and a `XEnv` class with those that saves much repetition in the tests.\n\nThe idea is that people could reuse the `SEnv` class elsewhere if they find it useful. Besides the helper functions, I myself like the fact that calls can be chained, so that you can create an environment, use it, and destroy it within one statement (no curly braces needed).",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1004999867"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-10-31T15:11:14Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Over the weekend I had an idea on how to loosen the strict ordering restriction for the AccountCreate transactions.\nCurrently we store the claimCount in the Bridge ledger object and we allow only the next claimIdx. This is equivalent to the following C++ behavior:\n\n```\n// We process only AccountCreate claims in strict sequence. If one claim\n// is not attested to for some reason, no further claim can be processed.\nstruct A\n{\n    uint32_t claimCount;\n\n    bool\n    canProcessClaim(uint32_t claimIdx) const\n    {\n        return claimIdx == claimCount + 1;\n    }\n\n    void\n    registerClainProcessed(uint32_t claimIdx)\n    {\n        assert(canProcessClaim(claimIdx));\n        ++claimCount;\n    }\n};\n`",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1009534494"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-01T23:31:16Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "I'm playing around with `XChainClaim`.  I see that the `Amount` represents the amount that will be recovered by the `XChainClaim`.  That seems fair.\n\nHowever I'm seeing that the account submitting the `XChainClaim` has two things taken:\n\n- The `Fee` and\n- The `SignatureReward`.\n\nHaving the `Fee` taken is great.  That `Fee` is explicitly filled in by the account submitting the transaction.\n\nHowever, having the `SignatureReward` disappear from the account took me by surprise.  There's nothing explicit in the transaction to indicate that those funds will be removed.  From what I've seen we like folks to explicitly state how much they are expecting to spend when they submit a transaction.\n\nSo my",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1010994084"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-11-02T00:22:43Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "Well, the `XChainClaim` tx will only succeed if a quorum of attestations is present, and those attestations do specify the reward that the `XChainClaim`  deducts from the door account (in addition to the `fee` and the `amount`), so the reward deduction should not come as a surprise. \n\nAlso the `XChainClaim` is not strictly necessary, and the transfer can occur automatically when a quorum of attestations is reached, so you could argue that this would be even more surprising, the  `amount` + `reward` being taken from the door account without the door account submitting *any* transaction.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1011021400"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-02T00:45:58Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "I have to disagree.  It is certainly obvious that _someone_ will need to pay the `SignatureReward` for the claim.  But in the case of the `XChainClaim` it's not obvious _who_ will pay the reward.\n\nFor a normal XChain transfer I see both the `Amount` and the `SignatureReward` being paid by the door account.  That makes sense to me.  The door account explicitly signed up for the job of supplying cross-chain funds.  And the `SignatureReward` is subtracted from the `Amount`.  So only the total `Amount` moves out of the door account.\n\nHowever in the `XChainClaim` case, the door account is no longer paying the `SignatureReward`.  This time it's the account that submits the `XChainClaim` transactio",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1011032095"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-11-02T01:29:00Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "I do see your point. I believe that the reward is always taken from the account which created the claimID to begin with (whether there is a `XChainClaim` or not).",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1011053913"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-11-02T18:16:13Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "I agree, I thought the signature reward was taken out at the `XChainCreateClaimID` transaction, and not the `XChainClaim` transaction",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1012141482"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-11-03T14:50:36Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "@mvadari I don't think so, I see the reward being deducted either when a quorum of attestation is reached (for the case when a dest account is specified) or when the `XChainClaim` transaction is executed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1013010674"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-11-03T15:49:16Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "> Potentially the actual problem is that the door should be paying the SignatureReward for the XChainClaim\n\nWell, we want the amounts locked on the door in the locking chain to match the amounts issued by the door on the issuing chain. Since in the current design, only the `amount` (not the `reward`) is locked in the door account on the locking chain, it makes sense that the reward is *not* issued by the door on the issuing chain. I think that is why the reward is always paid by the account which reserved the `claimID`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1013086867"
+    },
+    {
+     "author": "greg7mdp",
+     "date": "2022-11-03T17:51:33Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "We can also use this to prevent any locking of the accountCreate flow altogether, by failing the blocking AccountCreate and incrementing the `claimCount` if `claimIdx == claimCount + N` and the `claimedAhead` array is mostly true (maybe 50% threshold).",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1013234674"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-04T00:14:54Z",
+     "path": "src/ripple/protocol/impl/TxFormats.cpp",
+     "body": "Well, I was wrong and @greg7mdp is correct.  I had misunderstood some behaviors.  Going back to earlier explorations I'm seeing consistent behavior that the `SignatureReward` is always paid by the creator of the `XChainClaimID`.  And the transaction that creates the `XChainClaimID` does explicitly specify exactly what `SignatureReward` is being offered for providing the attestations.\n\nSorry for the noise.  I got this one wrong.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1013502670"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-30T02:10:00Z",
+     "path": "src/ripple/protocol/STObject.h",
+     "body": "You've added `STIssue` as a new kind of `SField`.  I think you should add the corresponding \n```\nSTIssue const&\ngetFieldIssue(SField const& field) const;\n\nvoid\nsetFieldIssue(SField const& field, STIssue const&);\n```\nmethods here in `STObject`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1035459768"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-30T02:35:08Z",
+     "path": "src/ripple/protocol/SField.h",
+     "body": "I said this before a while back.  In my opinion it is just dead wrong to have types that are as complex and structured as `STChainBridge` and `STXChainAttestationBatch` handled as `SField`s.  Up to this point the most complicated `SField` datatype has been the `STAmount`.\n\nBoth `STXChainBridge` and `STXChainAttestationBatch` should be handled as `InnerObjectFormats`.  That may require some changes to how `InnerObjectFormats` are handled by the code, but in my opinion that is the right place to put the complexity.\n\nIn contrast, I _don't_ have similar concerns about adding `STIssue`.  `STIssue` has less structure than `STAmount`.  I think `STAmount` provides a good working upper threshold for ",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1035471117"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-10T01:59:18Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "It looks like this code is intended to allow an attestor to sign an attestation using the Door account's master or RegularKey.  It that's what is happening I don't think that's a good idea.\n\nThe attestations are modeled after commonly used multisignatures in the XRPLedger.  You can't use the master key or regular key of the signed-for account if you use multisignatures.  You can _only_ use the multisigners in the `SignerList` owned by the account.\n\nMy strong recommendation would be to remove the code that allows a master or regular key to be used in this way.\n\nI'm afraid that this change was the result of misunderstanding a comment I made earlier: https://github.com/XRPLF/rippled/pull/4292#i",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1044946259"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-10T02:17:39Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "I'm puzzled how adding this field could have anything to do with XChain.  The XChain branch is complex enough that I think side fixes (like this?) should go in another pull request.\n\nCan someone justify that is change is needed for XChain?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1044948219"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-10T02:21:15Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "And, as noted earlier, I don't understand how this change could be related to XChain.  If it is not needed by XChain the change should go in a different pull request.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1044948569"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-10T02:25:20Z",
+     "path": "src/ripple/app/tx/impl/InvariantCheck.cpp",
+     "body": "Nice invariant check and good catch!",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1044948975"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T18:01:50Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Probably should be 2022?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046194958"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T18:10:12Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Nit: \"To address there\" -> To address this\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046206926"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T18:13:47Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Nit: \"the box an put\" -> \"the box and put\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046212008"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T18:15:27Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Nit: \"and attests that\" -> \"and attest that\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046213507"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T18:40:53Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "This `!amt.native()` check allows a simple transfer of sufficient XRP (not an account creation) to create an account.  This gives XChain transfers two distinct ways to create an account:\n\n1. With a regular claimID and cross-chain transfer of sufficient XRP.\n2. With an `XChainAccountCreateCommit` transaction.\n\nI feel like having two very different ways to achieve the same end complicates things for documentation and for users.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046238293"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T18:43:51Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "I see this `LCOV_EXCL_LINE` comment, and similar comments, a lot throughout this file.  I believe these are used to annotate to code coverage that the line is not expected to be exercisable?  I'd like to discourage these annotations.  This is the only file in the code base where they are used.\n\nIf we we decide to make similar annotations across the code base, that should be a separate discussion.  For now, let's keep the code base uniform for how such concerns are annotated by not using any special annotations at all.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046240801"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T18:55:29Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "I'd be inclined to wrap these lines in braces.  That would limit the scope of `ownerCount` and `reserve` to only where they are used.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046250790"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T18:59:55Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Thanks for these comments.  It's too bad that function parameters like these are not easier to read in C++.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046254885"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T19:08:45Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Could be formulated as:\n```\n    if (auto const r = result.result();\n        isTesSuccess(r) || isTecClaim(r) || isTerRetry(r))\n        return r;\n    return tecXCHAIN_PAYMENT_FAILED;\n```\nThat would remove one level of brace nesting.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046267458"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-12-12T19:34:06Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Shouldn't this have the same check that is done in `XChainClaim`?\n```cpp\nif (amount.signum() <= 0 ||\n  (amount.issue() != bridgeSpec.lockingChainIssue() &&\n   amount.issue() != bridgeSpec.issuingChainIssue()))\n{\n    return temBAD_AMOUNT;\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046300046"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T19:37:49Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "I'd be inclined to rename `sleCID` to `sleClaimID` to improve casual readability.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046304732"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T19:39:59Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "It's not just the sequence number, you're removing the whole `ClaimID`.  So maybe the comment should say \"Remove the ClaimID\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046307426"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T19:41:09Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Similar to above, perhaps the comment should say \"Remove the ClaimID from the ledger\".",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046308898"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T19:49:11Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "I suggest renaming `ra` to `rewardAccount` to improve casual readability.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046321825"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T20:02:00Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "`ApplyView& view` should be `ReadView const& view`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046336603"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T20:05:14Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "This feature makes no sense to me.  If they can handle the complexity of setting up a cross chain bridge, then they can handle the complexity of multisigning.  Please don't try to hybridize single-signing and multisigning.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046339246"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T20:09:37Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "In line with the above comment, this code should be removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046342727"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T20:16:27Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "I appreciate this comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046348374"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-12-12T20:22:12Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "This is also a feature because I requested it - it's a lot easier to bootstrap a bridge when you don't need to create a temporary multisign in order to set up the initial accounts (e.g. the witness submission accounts). \n\nI believe the reason it was believed to be fine to do it this way is because the threat model is the same regardless - you need to trust whoever controls the account, whether that is via owning the master key/regular key or via a quorum of multisigners, since they could theoretically sign any transaction to mishandle those funds. Also, any properly set up bridge should disable the master key and should not have a regular key enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046352849"
+    },
+    {
+     "author": "mvadari",
+     "date": "2022-12-12T20:22:49Z",
+     "path": "src/ripple/protocol/SField.h",
+     "body": "I agree - it's also more of a pain for developers when working with attestations.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046353346"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T20:28:56Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Given the above confusion, I think it would be good to add a comment like, \"Reward may only be XRP and must be greater than zero\".",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046359338"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T20:47:15Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "Given that we're talking about a side chain, precautions like insisting on a specific issuing account or a minimum amount of XRP in that account end up only being guidelines.  Side chains don't run the same code as the main chain.\n\n1. It would be easy for a side chain to have a different genesis account.\n2. It would be easy for a side chain to have a different starting amount of XRP.\n\nWhile that's true, I don't have a strong opinion about whether any of these guidelines are retained/used.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046374439"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-12-12T21:13:16Z",
+     "path": "src/ripple/app/tx/impl/XChainBridge.cpp",
+     "body": "@mvadari, I can see how that feature add would be a convenience in certain testing scenarios.\n\nPart of what I'm driving toward is to keep the rules and behavior for attestation handling as similar as possible to multisigning of XRPL transactions, since attestations model multisigning.  I think maintaining this kind of consistency helps users, developers, and doc folks.\n\n>  it's a lot easier to bootstrap a bridge when you don't need to create a temporary multisign in order to set up the initial accounts\n\nReally?  A _lot_ easier?  Setting up multisigning requires a single transaction, two transactions if you also disable the master key.  And you have to do that once for each of the two chains.",
+     "url": "https://github.com/XRPLF/rippled/pull/4292#discussion_r1046396216"
+    }
+   ]
+  },
+  {
+   "number": 4709,
+   "title": "[TRIVIAL] Change `XChainBridge` amendment to `Supported::yes`",
+   "url": "https://github.com/XRPLF/rippled/pull/4709",
+   "state": "closed",
+   "author": "seelabs",
+   "createdAt": "2023-09-15T13:20:03Z",
+   "updatedAt": "2023-09-15T15:08:18Z",
+   "closedAt": "2023-09-15T15:08:17Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "intelliot",
+     "date": "2023-09-15T15:03:37Z",
+     "body": "notes:\n- updated base branch to `develop-next` (Proposed 2.0.0-b1)\n- @gregtatcam confirmed the unit test patch looks fine",
+     "url": "https://github.com/XRPLF/rippled/pull/4709#issuecomment-1721429370"
+    }
+   ],
+   "body": "",
+   "merged": true,
+   "mergedAt": "2023-09-15T15:08:17Z",
+   "draft": false,
+   "base": "develop-next",
+   "head": "seelabs:xchain-supported-yes",
+   "additions": 3,
+   "deletions": 3,
+   "changedFiles": 3,
+   "commits": 3,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2023-09-15T13:34:38Z",
+     "body": "👍 LGTM"
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2023-09-15T13:35:53Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2023-09-15T14:36:56Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

@@ -1,0 +1,120 @@
+{
+ "name": "TicketBatch",
+ "fetchedAt": "2026-09-16T10:48:59.221Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:22:34Z",
+  "lastMerged": "2025-11-14T13:33:34Z",
+  "release": "1.7.0",
+  "totalComments": 6
+ },
+ "release": {
+  "version": "1.7.0",
+  "date": "2021-02-24T16:31:44Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.7.0",
+  "excerpt": "New Ticket feature: Tickets are a mechanism to prepare and send certain transactions outside of the normal sequence order. This version reworks and completes the implementation for Tickets after more than 6 years of development. This feature is now open for voting as the newly-introduced TicketBatch"
+ },
+ "prs": [
+  {
+   "number": 6032,
+   "title": "Retire TicketBatch",
+   "url": "https://github.com/XRPLF/rippled/pull/6032",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2025-11-13T12:23:01Z",
+   "updatedAt": "2026-05-20T17:22:34Z",
+   "closedAt": "2025-11-14T13:33:35Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-11-13T12:53:38Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6032?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.6%. Comparing base ([`f81d0d8`](https://app.codecov.io/gh/XRPLF/rippled/commit/f81d0d8c988aa6d7d9ad96e29dd7cdf014c703b0?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`fcd2de7`](https://app.codecov.io/gh/XRPLF/rippled/commit/fcd2de74497ed9663e843392f18d6c1025009b56?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/6032#issuecomment-3527677537"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-11-14T13:33:34Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/retire-TicketBatch",
+   "additions": 26,
+   "deletions": 109,
+   "changedFiles": 5,
+   "commits": 2,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-11-13T13:53:51Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "APPROVED",
+     "date": "2025-11-13T13:58:04Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 3703,
+   "title": "Make TicketBatch a SupportedAmendment so it can be enabled.",
+   "url": "https://github.com/XRPLF/rippled/pull/3703",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2020-12-15T01:10:09Z",
+   "updatedAt": "2021-01-11T17:32:19Z",
+   "closedAt": "2021-01-11T17:15:53Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "scottschurr",
+     "date": "2021-01-04T19:42:50Z",
+     "body": "Rebased to 1.7.0-b9 with no conflicts.",
+     "url": "https://github.com/XRPLF/rippled/pull/3703#issuecomment-754176635"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n`TicketBatch` has been in the code base for a while, but it has not been part of the `SupportedAmendments`.  This was to prevent accidental enablement.\n\nSince we're thinking that it may make sense to enable `TicketBatch` after the release of 1.7.0 this commit adds it to `SupportedAmendments`.  The commit also removes a number of workarounds in the unit tests.  The workarounds are no longer needed now that `TicketBatch` is in `SupportedAmendments`.\n\nThis commit does not to be reflected in the release notes, unless it is to note that `TicketBatch` is a `SupportedAmendment` with all of the attendant risks and benefits :wink:\n\n### Type of Change\n\n- [x] Allow fea",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:enable-ticket-batch",
+   "additions": 40,
+   "deletions": 68,
+   "changedFiles": 19,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "intelliot",
+     "state": "APPROVED",
+     "date": "2021-01-04T19:19:45Z",
+     "body": "I do think this commit should be reflected in the release notes, even if just to note that TicketBatch is now a SupportedAmendment. That is important to know!"
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2021-01-06T15:04:12Z",
+     "body": ":+1: \nSorry for the late review."
+    }
+   ],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

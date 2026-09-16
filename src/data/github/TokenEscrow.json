@@ -1,0 +1,261 @@
+{
+ "name": "TokenEscrow",
+ "fetchedAt": "2026-09-16T10:49:08.337Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 2,
+  "branches": [],
+  "lastActivity": "2026-02-06T16:41:24Z",
+  "lastMerged": "2025-06-05T12:54:46Z",
+  "release": "2.5.0",
+  "totalComments": 28
+ },
+ "release": {
+  "version": "2.5.0",
+  "date": "2025-06-24T18:19:49Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.5.0",
+  "excerpt": "Amendment-guard `TokenEscrow` preclaim and expand tests (#5473)"
+ },
+ "prs": [
+  {
+   "number": 5473,
+   "title": "fix: Amendment Guard `TokenEscrow` preclaim",
+   "url": "https://github.com/XRPLF/rippled/pull/5473",
+   "state": "closed",
+   "author": "dangell7",
+   "createdAt": "2025-06-04T17:40:51Z",
+   "updatedAt": "2026-02-06T16:41:24Z",
+   "closedAt": "2025-06-05T12:54:46Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-06-04T18:55:41Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5473?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAll modified and coverable lines are covered by tests :white_check_mark:\n> Project coverage is 79.1%. Comparing base [(`11edaa4`)](https://app.codecov.io/gh/XRPLF/rippled/commit/11edaa441db07d527fe16c300b822239de7d7012?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`efb8800`)](https://app.codecov.io/gh/XRPLF/rippled/commit/efb88000607f31d33f0e9a8389d0f90bb7ae825a?dropdown=coverage&el=desc&utm_medium=referral&",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#issuecomment-2941090028"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-06-04T19:46:47Z",
+     "body": "@dangell7 can you please ensure that all the new code you added as part of the Token Escrow change are fully tested? For instance, the newly added logic in GatewayBalances.cpp was only tested to 20%.\n\n@Bronek can you please list the additional issues you identified?",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#issuecomment-2941268065"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-06-04T20:53:12Z",
+     "body": "> @dangell7 can you please ensure that all the new code you added as part of the Token Escrow change are fully tested? For instance, the newly added logic in GatewayBalances.cpp was only tested to 20%.\n> \n> @Bronek can you please list the additional issues you identified?\n\nThis should bring it to 100% except for the JLOG in View.cpp? I can wrap those paths with a full LCOV? I didn't realize the log would trigger a non testable coverage.\n\nhttps://github.com/XRPLF/rippled/pull/5473/commits/1180a24ef525b7d0854046c433d8daea7e4ffb02",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#issuecomment-2941425776"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-06-05T09:27:52Z",
+     "body": "> > @dangell7 can you please ensure that all the new code you added as part of the Token Escrow change are fully tested? For instance, the newly added logic in GatewayBalances.cpp was only tested to 20%.\n> > @Bronek can you please list the additional issues you identified?\n> \n> This should bring it to 100% except for the JLOG in View.cpp? I can wrap those paths with a full LCOV? I didn't realize the log would trigger a non testable coverage.\n> \n> [1180a24](https://github.com/XRPLF/rippled/commit/1180a24ef525b7d0854046c433d8daea7e4ffb02)\n\n@dangell7 we normally use `// LCOV_EXCL_START` . . . `// LCOV_EXCL_STOP` for multi-line defensive blocks of code, for example see `isVaultPseudoAccountFroze",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#issuecomment-2943435544"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-06-05T09:31:35Z",
+     "body": "> > @dangell7 can you please ensure that all the new code you added as part of the Token Escrow change are fully tested? For instance, the newly added logic in GatewayBalances.cpp was only tested to 20%.\n> > @Bronek can you please list the additional issues you identified?\n> \n> This should bring it to 100% except for the JLOG in View.cpp? I can wrap those paths with a full LCOV? I didn't realize the log would trigger a non testable coverage.\n> \n> [1180a24](https://github.com/XRPLF/rippled/commit/1180a24ef525b7d0854046c433d8daea7e4ffb02)\n\nRe. already merged #5185 , I see the following deficiencies in unit tests coverage:\n\n* missing 6 lines from `Escrow.cpp` where 2 lines are badly marked defe",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#issuecomment-2943447291"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-06-05T10:48:11Z",
+     "body": "> * escrowLockApplyHelper\n\nThank you for this review.\n\n`tecINSUFFICIENT_FUNDS` fixed\n\nThe return from `escrowLockApplyHelper` cannot be tested because `rippleCredit` only returns `tefBAD_LEDGER` errors. Unless someone has found a test for that and not included it in the repo its probably a very difficult test to write. For the MPT its the same scenario, defensive overflow/underflow checks that can only be tested by creating isolated function tests...\n\nDo you want me to create functional tests for this?\n\n`tecOBJECT_NOT_FOUND`. You cannot delete the issuance if there is an `EscrowAmount`.\n\nBut... I believe it is possible inject a Escrow object into the open ledger and potentially write a test ",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#issuecomment-2943696948"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-06-05T11:49:45Z",
+     "body": "> The return from escrowLockApplyHelper cannot be tested because rippleCredit only returns tefBAD_LEDGER errors.\n> Do you want me to create functional tests for this?\n\nNo, it's cool.\n\nPS. apologies for editing your comment, I somehow confused the \"reply\" and \"edit comment\" function in Github, unintentionally abusing my maintainer privileges. 🙈 😳  Really sorry for this !",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#issuecomment-2943872943"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-06-05T12:05:05Z",
+     "body": "@dangell7 is the PR ready to merge?",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#issuecomment-2943924991"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-06-05T12:18:06Z",
+     "body": "> @dangell7 is the PR ready to merge?\n\nReady\n\n@Bronek I was able to test `tecOBJECT_NOT_FOUND` by injecting an Escrow object into the ledger: https://github.com/XRPLF/rippled/pull/5473/commits/efb88000607f31d33f0e9a8389d0f90bb7ae825a\n\nMight be useful for later amendments",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#issuecomment-2943997704"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-06-05T12:54:46Z",
+   "draft": false,
+   "base": "develop",
+   "head": "Transia-RnD:patch-token-escrow",
+   "additions": 467,
+   "deletions": 145,
+   "changedFiles": 8,
+   "commits": 8,
+   "reviewComments": 10,
+   "reviews": [
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-06-04T17:50:47Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-06-04T17:54:55Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-06-04T17:59:53Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-06-04T18:05:49Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-06-04T19:14:56Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-06-04T19:21:58Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2025-06-04T19:25:21Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2025-06-04T20:48:15Z",
+     "body": "👍"
+    },
+    {
+     "author": "Bronek",
+     "state": "APPROVED",
+     "date": "2025-06-05T11:30:56Z",
+     "body": "nice, thank you for unit tests coverage cleanup !"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mvadari",
+     "date": "2025-06-04T17:50:47Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "This error needs to be thrown in `doApply` in both transactions",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#discussion_r2127134806"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-06-04T17:54:54Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "It is already thrown in doApply for Cancel & Finish. It wasn't \"moved\" but rather copied.",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#discussion_r2127142256"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-06-04T17:59:53Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "In that case, should the `doApply` one return `tecINTERNAL` if the amendment is enabled?",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#discussion_r2127150098"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-06-04T18:05:49Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "sure: https://github.com/XRPLF/rippled/pull/5473/commits/dacc53996334a891b779ba044ad9359b311da3f5",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#discussion_r2127159137"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-06-04T19:14:56Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "I think it's fine to keep these blocks in just in case",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#discussion_r2127272195"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-06-04T19:21:58Z",
+     "path": "src/xrpld/app/tx/detail/Escrow.cpp",
+     "body": "fixed: https://github.com/XRPLF/rippled/pull/5473/commits/55d03e2c913a73a830cc7eec87d1b1946fb36d5c",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#discussion_r2127282384"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-06-05T11:28:38Z",
+     "path": "src/libxrpl/protocol/STAmount.cpp",
+     "body": "👍",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#discussion_r2128615869"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-06-05T11:28:49Z",
+     "path": "src/libxrpl/protocol/STAmount.cpp",
+     "body": "👍",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#discussion_r2128616231"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-06-05T11:29:34Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "👍",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#discussion_r2128617455"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-06-05T11:29:52Z",
+     "path": "src/test/ledger/Invariants_test.cpp",
+     "body": "nice ! 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/5473#discussion_r2128617913"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [
+  {
+   "number": 373,
+   "title": "Add AccountSet Flag to TokenEscrow Spec",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/373",
+   "state": "closed",
+   "isPr": true,
+   "author": "dangell7",
+   "createdAt": "2025-09-17T17:38:09Z",
+   "updatedAt": "2025-10-03T21:47:09Z",
+   "comments": 1,
+   "labels": []
+  },
+  {
+   "number": 292,
+   "title": "Minor changes to TokenEscrow specification",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/292",
+   "state": "closed",
+   "isPr": true,
+   "author": "dangell7",
+   "createdAt": "2025-06-26T06:19:55Z",
+   "updatedAt": "2025-10-03T21:27:10Z",
+   "comments": 2,
+   "labels": []
+  }
+ ],
+ "branches": []
+}

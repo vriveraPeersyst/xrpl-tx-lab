@@ -1,0 +1,2682 @@
+{
+ "name": "Escrow",
+ "fetchedAt": "2026-09-16T10:42:49.857Z",
+ "summary": {
+  "status": "in development",
+  "prs": 12,
+  "open": 5,
+  "merged": 3,
+  "issues": 0,
+  "proposals": 8,
+  "branches": [
+   "dangell7/fix-token-escrow-v2",
+   "mvadari/smart-escrow-escrow-tx",
+   "mvadari/smart-escrow-fee-voting",
+   "mvadari/smart-escrow-update-se-fees",
+   "ripple/smart-escrow",
+   "ripple/smart-escrow2",
+   "ripple/smart-escrow-srlabs",
+   "smart-escrow/perf-test",
+   "smart-escrow/versioning"
+  ],
+  "lastActivity": "2026-09-15T18:19:59Z",
+  "lastMerged": "2026-09-11T13:30:10Z",
+  "release": "0.60.0",
+  "totalComments": 345
+ },
+ "release": {
+  "version": "0.60.0",
+  "date": "2017-03-17T23:54:37Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/0.60.0",
+  "excerpt": "Escrow**"
+ },
+ "prs": [
+  {
+   "number": 7882,
+   "title": "refactor: Extract escrow lock helpers and paychan test helpers",
+   "url": "https://github.com/XRPLF/rippled/pull/7882",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-07-28T00:05:30Z",
+   "updatedAt": "2026-09-15T18:19:59Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-28T00:50:06Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7882?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5098573546"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-07T16:00:58Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5219273225"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-31T16:06:07Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5481021980"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-15T18:19:59Z",
+     "body": "@dangell7 ready to merge?",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5685679631"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nPulls the refactoring out of #5448 (XLS-93d Token-Enabled Payment Channels) into its own PR so it can merge ahead of the feature. Code motion only, no functional change.\n\n- Moves the escrow lock/unlock helpers from the Escrow transactors into `EscrowHelpers.h`.\n- Moves the jtx `paychan` helpers from `TestHelpers.h` into their own `test/jtx/paychan.h`, and hoists the file-local helpers from `PayChan_test.cpp` into them.\n- Moves the escrowed balance test helpers from `EscrowToken_test.cpp` into the shared jtx `TestHelpers.h`.\n\n### Context of Change\n\nSplit out of #5448 per review feedback. The token paychan transactors reuse the escrow lock/unlock helpers, so t",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "Transia-RnD:dangell7/escrow-paychan-refactor",
+   "additions": 592,
+   "deletions": 572,
+   "changedFiles": 13,
+   "commits": 5,
+   "reviewComments": 4,
+   "reviews": [
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-29T14:08:58Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-29T14:12:44Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-02T19:56:46Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-02T19:56:48Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "APPROVED",
+     "date": "2026-08-04T13:50:39Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:19:05Z",
+     "body": "### 🟢 Approval recommended\n\nThe changes are mechanical extractions with updated call sites/includes and no detected behavioral deltas in the moved logic.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR performs a pure refactor (code motion) to centralize token-escrow lock/unlock logic and payment-channel JTx test helpers, enabling reuse by upcoming token-enabled payment channel work while keeping transactor behavior unchanged.\n\n**Changes:**\n- Extracts escrow token lock/unlock preclaim/apply helper templates into `EscrowHelpers.h` and updates Escrow transactors to use them.\n- Splits payment channel JTx helpers out of `TestHelpers.h` into `test/jtx/paychan.h` (+ implementation) a"
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2026-09-15T17:51:39Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-29T14:08:58Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "just a nit, but it might be worthwhile to considering moving these explicit template instantiations into a source file.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675042241"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-29T14:12:44Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "super nit and a problem not for this PR, but we don't need to construct most of these variables until after line 355.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675074494"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-02T19:56:46Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "The inline specialization pattern is inherited from develop's EscrowHelpers.h, the unlock helpers already live there. Happy to move the whole family into an EscrowHelpers.cpp as a follow up, kept this PR to code motion.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156269"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-02T19:56:48Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/82ede27f1020f380e44beade2f19bef75490b98b",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156299"
+    }
+   ]
+  },
+  {
+   "number": 6329,
+   "title": "feat: Smart Escrows (XLS-100)",
+   "url": "https://github.com/XRPLF/rippled/pull/6329",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-02-04T23:44:48Z",
+   "updatedAt": "2026-09-15T17:06:23Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-02-05T18:56:12Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `79.19643%` with `466 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [crates/xrpl-wasm-vm-ffi/src/lib.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=c",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-3855573798"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-02-18T19:22:24Z",
+     "body": "Cannot be updated from the base branch right now due to modularization updates",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-3922719703"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-02T23:07:33Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-4180933624"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-02T23:23:09Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-4180975807"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-08T13:58:47Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-4206799634"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-08T14:00:44Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-4206813348"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-08T17:52:28Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-4208325828"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-08T17:53:54Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-4208334382"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-20T20:38:21Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-4502446683"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-27T18:14:34Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-4557329078"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-09T21:11:50Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-4664075276"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-27T13:14:34Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-5091766184"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-09T21:29:45Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-5233937523"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-09T23:32:17Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-5234415705"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-28T12:31:07Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-5452530846"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-02T13:46:42Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-5510550442"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-09T19:08:59Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-5607275214"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-14T13:56:36Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-5665129898"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\nStack of PRs (from `develop` outwards):\n* https://github.com/XRPLF/rippled/pull/5999\n* https://github.com/XRPLF/rippled/pull/6075\n* https://github.com/XRPLF/rippled/pull/5810\n* This PR\n* https://github.com/XRPLF/rippled/pull/5811\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests f",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:ripple/smart-escrow",
+   "additions": 39494,
+   "deletions": 250,
+   "changedFiles": 342,
+   "commits": 746,
+   "reviewComments": 59,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-04-02T23:27:55Z",
+     "body": "## Pull request overview\n\nThis PR implements the core on-ledger mechanics for **Smart Escrows (XLS-100)** by allowing Escrow objects to carry WASM finish logic (`FinishFunction`) and arbitrary `Data`, charging fees/reserve accordingly, and executing the WASM during `EscrowFinish` using a user-supplied `ComputationAllowance` (gas). It also plumbs WASM execution metadata (`GasUsed`, `WasmReturnCode`) into transaction metadata and adds a comprehensive test suite plus updated WASM fixtures.\n\n**Changes:**\n- Extend EscrowCreate/Escrow ledger entries with `FinishFunction` + `Data`, and extend EscrowFinish with `ComputationAllowance`; execute WASM during EscrowFinish and persist updated `Data` even "
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-04-13T21:09:28Z",
+     "body": "Took a pass through this\n\nThree correctness bugs flagged: a critical missing field-presence guard in `Transactor.cpp` that will crash on non-WASM escrows, an off-by-one in the fee ceiling calculation in `EscrowFinish.cpp`, and a signed/unsigned promotion bug in both `EscrowCancel.cpp` and `EscrowFinish.cpp` — see inline comments.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Opus 4.6* · Prompt: V14"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-05-27T18:20:23Z",
+     "body": "Gave this a review\n\nTwo identical UB bugs flagged: `-1 * uint32_t` silently wraps — see inline comments in both `EscrowCancel.cpp` and `EscrowFinish.cpp`.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-06-16T01:07:23Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-06-16T01:16:47Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-06-16T01:21:34Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-06-16T15:47:35Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-06-17T16:56:25Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-06-17T17:44:15Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-06-17T17:44:42Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-06-17T17:46:18Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-06-17T17:46:25Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-06-17T17:46:42Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-05T23:32:28Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-20T16:40:11Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-27T16:40:08Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T03:23:13Z",
+     "body": "Off-by-one error in escrow reserve calculation — see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T03:23:14Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T03:23:16Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T03:23:17Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T03:23:18Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T03:23:19Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T03:23:21Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T03:23:22Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T03:23:23Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T03:23:24Z",
+     "body": ""
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T03:26:55Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T23:37:48Z",
+     "body": "Reserve calculation bug - see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T23:37:49Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T23:37:51Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T23:37:53Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T23:37:54Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T23:37:55Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T23:37:57Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T23:37:58Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T23:37:59Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T23:38:00Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-09T23:38:02Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-02T13:50:23Z",
+     "body": "Reviewed the Smart Escrow (XLS-100) changes across protocol fields, escrow transactors, WASM host-function wiring, and persistence replay logic for rejected WASM runs. Most of the new plumbing (new TER codes, new SFields, ServiceRegistry::getFees(), metadata gas/return-code fields, and the tecBYTECODE_REJECTED persistence-replay path in Transactor::processPersistentChanges) is internally consistent and matches the accompanying tests. One concrete off-by-one bug was found in the new additional-reserve calculation used by EscrowCreate/EscrowCancel/EscrowFinish."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-02T13:58:54Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-08T20:00:36Z",
+     "body": "This diff is limited to test-only changes: fixing a trailing-space typo in the `dillon` account name and adding two more `testWithFeats` invocations to cover `featureSmartEscrow` amendment combinations. The referenced new file `src/test/app/Wasm_test.cpp` has no diff content shown, so it cannot be reviewed here. No correctness, security, or maintainability issues were found in the visible changes."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-10T10:39:45Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-10T11:11:12Z",
+     "body": "Three bugs found—see inline comments."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-11T13:51:10Z",
+     "body": "Integer underflow vulnerability flagged - see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-14T14:16:42Z",
+     "body": "Signed integer overflow vulnerability, incorrect documentation, and duplicate code attributes flagged inline."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-15T16:51:08Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-15T17:06:23Z",
+     "body": "Documentation mismatch and data-loss bug on rejection — see inline."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-04-02T23:27:54Z",
+     "path": "src/xrpld/app/main/Application.cpp",
+     "body": "ServiceRegistry::getFees is used to enforce Smart Escrow limits that are described as being controlled by fee voting, but this implementation returns the startup config (config_->FEES) rather than the currently-active ledger fee settings. That means preflight can validate against stale values until the next fee-setting transaction/ledger update. Consider sourcing these values from the validated/published ledger (e.g., LedgerMaster::getValidatedLedger()->fees()) and falling back to config only when no ledger is available (startup/standalone).",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3030799812"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-04-02T23:27:54Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "calculateAdditionalReserve() claims the first 500 bytes are included in the normal reserve, but the current formula `1 + (size / 500)` charges an extra reserve at exactly 500 bytes (and every exact multiple). If the intent is “extra reserve per additional 500 bytes beyond the first”, use a rounding scheme like `1 + ((size - 1) / 500)` (and handle size==0 defensively). If the current behavior is intended, the comment should be corrected to match it.\n```suggestion\n    return 1 + ((finishFunction->size() - 1) / 500);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3030799827"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-04-02T23:27:55Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "The fee rounding for ComputationAllowance currently always adds 1 drop: `(...)/MICRO_DROPS_PER_DROP + 1`. That overcharges by 1 drop when the division is exact (e.g., allowance*gasPrice is already a whole drop). If you need ceiling division, compute it as `(x + denom - 1) / denom` (or add 1 only when there is a non-zero remainder).\n```suggestion\n        uint64_t const microDropFee =\n            (*allowance) * view.fees().gasPrice;\n        uint64_t const allowanceFee =\n            (microDropFee / MICRO_DROPS_PER_DROP) +\n            ((microDropFee % MICRO_DROPS_PER_DROP) != 0 ? 1 : 0);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3030799843"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-04-02T23:27:55Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "modifyWasmDataFields takes `beast::Journal viewJ` but doesn't use it. If unused parameters are not consistently suppressed in all build configs, this can trigger warnings. Either remove the parameter, mark it [[maybe_unused]], or use it for trace logging (e.g., when an expected escrow SLE is missing).",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3030799850"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-04-02T23:27:55Z",
+     "path": "include/xrpl/tx/ApplyContext.h",
+     "body": "The doc comment for setWasmReturnCode says \"Sets the gas used in the metadata\" but the method sets the WASM return code. Please update the comment so it matches the API behavior.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3030799856"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-04-13T21:09:28Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "Signed/unsigned mixing: `-1 * reserveToSubtract` promotes to `uint32_t`, passing a large positive value instead of negative. Cast explicitly:\n```suggestion\n    adjustOwnerCount(ctx_.view(), sle, -static_cast<std::int32_t>(reserveToSubtract), ctx_.journal);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3075836780"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-04-13T21:09:28Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "Missing `sfData` presence check — non-WASM escrows don't set this field, so this throws/returns garbage for every non-WASM escrow. Guard with `isFieldPresent`:\n```suggestion:-0+1\n                if (after->isFieldPresent(sfData))\n                    modifiedWasmObjects.push_back(std::make_pair(index, after->getFieldVL(sfData)));\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3075836791"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-04-13T21:09:28Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "`/ b + 1` is not ceiling division — overcharges by 1 drop when exactly divisible. Use `(a + b - 1) / b`:\n```suggestion:-0+1\n            ((*allowance) * view.fees().gasPrice + MICRO_DROPS_PER_DROP - 1) / MICRO_DROPS_PER_DROP;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3075836799"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-05-27T18:20:23Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "`-1 * reserveToSubtract` is implementation-defined: `-1` promotes to `UINT32_MAX` via unsigned arithmetic. Use a safe cast:\n```suggestion\n    adjustOwnerCount(ctx_.view(), sle, -static_cast<std::int32_t>(reserveToSubtract), ctx_.journal);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3312907024"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-05-27T18:20:23Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "`-1 * reserveToSubtract` is implementation-defined: `-1` promotes to `UINT32_MAX` via unsigned arithmetic. Use a safe cast:\n```suggestion\n    adjustOwnerCount(ctx_.view(), sle, -static_cast<std::int32_t>(reserveToSubtract), ctx_.journal);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3312907042"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-06-16T01:07:23Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "should the error use a tel code instead of a tem code because it is not malformed, and the node is using local config to disable the feature?",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3417515056"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-06-16T01:16:47Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "The `code.size() > fees.extensionSizeLimit` check should be in preclaim and use the ledger fee info. (assuming the `fees` is from local config.) \n\nUsing local fee info might lead to consensus issue since nodes' configs could be different. (I assume the previous check `(fees.extensionSizeLimit == 0 || fees.extensionComputeLimit == 0)` is for emergency in situations where the consequence is worse than no consensus.)",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3417541363"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-06-16T01:21:34Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "I suggest to add a flat (max data field size / 500) to the reserve. Because data should charge reserve, and data might be empty now and populated later in finish.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3417556600"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-06-16T15:47:35Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "Same as the comment on escrow create. Local config should not be used.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3422138123"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-06-17T16:56:25Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "does it make sense to add a `getFieldVLSize()` function to avoid create the data and only get the size from it? I",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3430011631"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-06-17T17:44:15Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "This is not local config, it's the `FeeSettings` object",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3430312401"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-06-17T17:44:41Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "`fees` is using the `FeeSettings` info (you can see other uses of it in other transactors)",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3430315072"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-06-17T17:46:18Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "The max is only 1kb, I don't mind giving that for free (MPT metadata doesn't charge additional reserve, for example)",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3430325234"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-06-17T17:46:25Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "Not local config",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3430325880"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-06-17T17:46:41Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "Wouldn't that helper function just do the same thing?",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3430327630"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-05T22:59:45Z",
+     "path": "include/xrpl/protocol_autogen/ledger_entries/Escrow.h",
+     "body": "nit:  Can these `std::decay_t<typename SF_VL::type::value_type>` just be aliases within the scope of this type?",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3525777968"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-05T23:00:44Z",
+     "path": "include/xrpl/protocol_autogen/transactions/EscrowCreate.h",
+     "body": "nit:  Previous file didn't use curly braces on one line conditionals.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3525779096"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-05T23:02:47Z",
+     "path": "include/xrpl/protocol_autogen/transactions/EscrowCreate.h",
+     "body": "similar nit here, can these `std::decay_t<typename SF_UINT32::type::value_type>` just be aliases within the scope of the type?",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3525781552"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-05T23:03:59Z",
+     "path": "include/xrpl/protocol_autogen/transactions/EscrowFinish.h",
+     "body": "Same nit about the use of `std::decay_t` in each of these function signatures.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3525782772"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-05T23:27:03Z",
+     "path": "src/test/app/wasm_fixtures/fixtures.cpp",
+     "body": "Can we just do a bulk insert here instead of a loop?",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3525818379"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-05T23:29:41Z",
+     "path": "src/test/app/wasm_fixtures/fixtures.cpp",
+     "body": "Maybe reserve the space needed in these containers?",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3525821631"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-05T23:30:26Z",
+     "path": "src/test/app/wasm_fixtures/fixtures.cpp",
+     "body": "Would it be useful to pass a parameter for how much space to reserve on the `out` container?",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3525822469"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-07-27T16:40:09Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "⚪ **Severity: LOW**\n\nWhen WASM execution fails (e.g., `tecOUT_OF_GAS`), `re.error().cost` contains gas consumed but is discarded. The WASM engine comment explicitly states the caller must write this cost to tx metadata, but `gasUsed` and `vmReturnCode` are never set on this path.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** On the WASM error path (lines 451-455), `re.error().cost` contains the gas consumed but is silently discarded. Per the `WasmTER` documentation, the caller should write this cost to tx metadata. Add a call to `ctx_.setGasUsed()` when `re.error().cost` has a value, mirroring the success path. Since `WasmTER` has no `result` field, `s",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3659131188"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T03:23:13Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "Off-by-one: 500-byte multiples charge extra reserve. Fix with ceiling division:\n\n```suggestion\n    return 1 + ((finishFunction->size() - 1) / 500);\n```\n\n```suggestion\n    return 1 + ((finishFunction->size() - 1) / 500);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3742476923"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T03:23:14Z",
+     "path": "src/xrpld/app/main/Application.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3742476951"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T03:23:16Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3742477001"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T03:23:17Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3742477034"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T03:23:18Z",
+     "path": "include/xrpl/tx/ApplyContext.h",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3742477068"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T03:23:19Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3742477109"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T03:23:21Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3742477163"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T03:23:22Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3742477205"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T03:23:23Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3742477247"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T03:23:24Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3742477269"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-08-09T03:26:55Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "🟡 **Severity: MEDIUM**\n\n`preflight` validates gas limit using **registry config fees** (`ctx.registry.get().getFees()`), while `calculateBaseFee` computes the required fee using **ledger fees** (`view.fees().gasPrice`). If these diverge (e.g., `gasPrice` is 0 in ledger but `gasLimit` is non-zero in config), WASM execution is allowed at near-zero cost (1 drop).\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** The `preflight` function validates gas using config fees (`ctx.registry.get().getFees()`), but `calculateBaseFee` computes the actual fee using ledger fees (`view.fees().gasPrice`). If ledger `gasPrice` is 0 (which is its default in the `Fees` struct",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3742484284"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T23:37:48Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "Reserve formula overcharges for exact 500-byte multiples - use ceiling division:\n```suggestion\n    return (finishFunction->size() + 499) / 500;\n```\n\n```suggestion\n    return static_cast<int32_t>((finishFunction->size() + 499) / 500);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3745679542"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T23:37:49Z",
+     "path": "src/xrpld/app/main/Application.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3745679623"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T23:37:51Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3745679721"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T23:37:52Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3745679801"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T23:37:54Z",
+     "path": "include/xrpl/tx/ApplyContext.h",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3745679863"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T23:37:55Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3745679935"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T23:37:57Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3745680025"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T23:37:58Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3745680081"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T23:37:59Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3745680133"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T23:38:00Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3745680198"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-09T23:38:02Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3745680288"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-02T13:58:54Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "⚪ **Severity: LOW**\n\n`EscrowCreate::preflight` checks `gasLimit == 0` but not `gasPrice == 0`. When `gasPrice` is 0, bytecode is stored on-chain and later `EscrowFinish::calculateBaseFee` computes gas cost as only 1 drop (`(allowance * 0) / microDropsPerDrop + 1`), enabling near-free WASM execution.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add `fees.gasPrice == 0` to the deactivation check on line 225 of `EscrowCreate.cpp` so that WASM is also considered deactivated when `gasPrice` is zero. This prevents storing bytecode on-chain when the gas price would make execution essentially free. The same check should also be added to `EscrowFinish::preflig",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3914886605"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-10T10:39:45Z",
+     "path": "include/xrpl/tx/wasm/WasmCommon.h",
+     "body": "⚪ **Severity: LOW**\n\n`FieldLocator`'s vector constructor accesses `buf[0]` without checking that `buf` is non-empty. If an empty vector is passed, `&buf[0]` is undefined behavior. Although current callers (`invokeWithLocator`) validate non-emptiness before construction, the constructor itself lacks this precondition check, creating a latent UB path for future callers.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add a precondition check at the beginning of the vector constructor to guard against empty vectors. You can use an assertion or throw an exception if `buf` is empty, before accessing `buf[0]`. For example, add `assert(!buf.empty())` or `if (bu",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3978184087"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-10T11:11:12Z",
+     "path": "include/xrpl/tx/wasm/WasmCommon.h",
+     "body": "Empty vector access via operator[] is UB. Use buf.data():\n\n```suggestion\nptr_(buf.data())\n```\n\n```suggestion\n        : ptr_(buf.data()), size_(buf.size()), buf_(std::move(buf))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3978438003"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-11T13:51:09Z",
+     "path": "include/xrpl/tx/wasm/HostFuncImpl.h",
+     "body": "Integer underflow on untrusted input - validate bounds before decrementing:\n\n```suggestion\nif (cacheIdx <= 0 || cacheIdx > maxCache) return std::unexpected(HostFunctionError::SlotOutRange);\n--cacheIdx;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r3989780294"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-14T14:16:42Z",
+     "path": "include/xrpl/tx/wasm/HostFuncImpl.h",
+     "body": "Attacker-controlled cacheIdx can overflow on decrement. Validate before decrementing:\n\n```suggestion\n    if (cacheIdx <= 0 || cacheIdx >= maxCache) return error;\n    cacheIdx--;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4006099568"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-14T14:16:42Z",
+     "path": "crates/README.md",
+     "body": "README module reference is incorrect. Should be xrpl.libxrpl.tx:\n\n```suggestion\n`xrpl_wasm_vm_ffi_cxxbridge` is a `PUBLIC` dependency of\n`xrpl.libxrpl.tx` (see `cmake/XrplCore.cmake`).\n```\n\n```suggestion\n`xrpl.libxrpl.tx` (see `cmake/XrplCore.cmake`). The Rust toolchain pinned in\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4006099617"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-14T14:16:42Z",
+     "path": "include/xrpl/tx/wasm/HostFunc.h",
+     "body": "Duplicate `[[nodiscard]]` attributes throughout file. Remove one per declaration:\n\n```suggestion\n    [[nodiscard]] virtual Keylet getTxField(...) const noexcept = 0;\n```\n\n```suggestion\n    [[nodiscard]] virtual std::expected<std::uint32_t, HostFunctionError>\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4006099653"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-15T16:51:08Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "⚪ **Severity: LOW**\n\n`gasPrice` defaults to 0. In `EscrowFinish::calculateBaseFee`, the fee formula `(allowance * gasPrice) / microDropsPerDrop + 1` yields only 1 drop when `gasPrice` is 0. The new preflight checks in `EscrowCreate` and `EscrowFinish` guard on `gasLimit == 0` but not `gasPrice == 0`, allowing WASM bytecode to be stored and later executed at near-zero cost if fee voting has not yet set a non-zero `gasPrice`.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add `gasPrice == 0` to the existing deactivation guard checks in both `EscrowCreate::preflight` and `EscrowFinish::preflight` so that WASM execution is blocked when `gasPrice` has not be",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4018083736"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-15T17:06:22Z",
+     "path": "crates/README.md",
+     "body": "README incorrectly names `ledger` as the CMake target. Update to `xrpl.libxrpl.tx` to match XrplCore.cmake:\n\n```suggestion\n`xrpl.libxrpl.tx` (see `cmake/XrplCore.cmake`). The Rust toolchain pinned in\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4018215813"
+    }
+   ]
+  },
+  {
+   "number": 8228,
+   "title": "Decide the Smart Escrow fee limits from the ledger, not local configuration",
+   "url": "https://github.com/XRPLF/rippled/pull/8228",
+   "state": "open",
+   "author": "pwang200",
+   "createdAt": "2026-09-14T19:04:58Z",
+   "updatedAt": "2026-09-15T04:46:51Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-15T02:36:35Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8228?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `96.00000%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8228?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/system/Change.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8228?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_c",
+     "url": "https://github.com/XRPLF/rippled/pull/8228#issuecomment-5673823014"
+    }
+   ],
+   "body": "## The defect\n\n`gasLimit`, `bytecodeSizeLimit` and `gasPrice` are voted network parameters,\ncarried in `FeeSettings`. Two paths let a node's own config decide them instead.\n\n`EscrowCreate::preflight` and `EscrowFinish::preflight` read them from\n`ServiceRegistry::getFees()`, i.e. this node's `FeeSetup`. So two nodes with\ndifferent limits admit different transactions from the same ledger; voting a\nlimit to `0` disabled nothing; and after activation gas was nearly free, because\n`gasPrice` came from the ledger (absent, so `0`) while the guard that would have\nrefused execution read a non-zero `gasLimit` from config.\n\nSeparately, `Ledger::setup` assigned a field only when `FeeSettings` carried it,",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "ripple/smart-escrow",
+   "head": "pwang200:se-fees-bugfix",
+   "additions": 522,
+   "deletions": 126,
+   "changedFiles": 24,
+   "commits": 2,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 8216,
+   "title": "Decide the Smart Escrow fee limits from the ledger, and lower the default values of the limits",
+   "url": "https://github.com/XRPLF/rippled/pull/8216",
+   "state": "closed",
+   "author": "pwang200",
+   "createdAt": "2026-09-10T21:21:54Z",
+   "updatedAt": "2026-09-15T02:35:13Z",
+   "closedAt": "2026-09-15T02:22:38Z",
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-10T21:22:04Z",
+     "body": "⚠️ This PR contains unsigned commits. To get your PR merged, please sign them. ⚠️\n\nIf only the most recent commit is unsigned, you can run:\n1. Amend the commit: `git commit --amend --no-edit -n -S`\n2. Overwrite the commit: `git push --force-with-lease`\n\nIf multiple commits are unsigned, you can run:\n1. Go into interactive rebase mode: `git rebase --interactive HEAD~<NUM_OF_COMMITS>`, where `NUM_OF_COMMITS` is the number of most recent commits that will be available to edit.\n2. Change \"pick\" to \"edit\" for the commits you need to sign, and then save and exit.\n3. For each commit, run: `git commit --amend --no-edit -n -S`\n4. Continue the rebase: `git rebase --continue`\n5. Overwrite the commit(s)",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#issuecomment-5625616498"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-10T21:24:27Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8216?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `90.16393%` with `6 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8216?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8216?src=pr&el=tree&utm_medium=referral&utm_source=github",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#issuecomment-5625642828"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-11T13:32:25Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#issuecomment-5635182137"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-15T02:22:38Z",
+     "body": "I am gonna close this PR and open 3 separate PRs one for each topic. Also because the base had a lot of changes. I feel a new PR is cleaner.",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#issuecomment-5673703112"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-15T02:35:13Z",
+     "body": "New PR https://github.com/XRPLF/rippled/pull/8228",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#issuecomment-5673812666"
+    }
+   ],
+   "body": "## The defect\n\n`gasLimit`, `bytecodeSizeLimit` and `gasPrice` are network parameters: voted, and\ncarried in the `FeeSettings` ledger object. Two paths let a node's own config\ndecide them instead.\n\n**Admission read the config file.** `EscrowCreate::preflight` and\n`EscrowFinish::preflight` took their limits from `ServiceRegistry::getFees()`,\nwhich returns this node's `FeeSetup`. So:\n\n* **Nodes could disagree.** Two nodes with different limits configured admit\n  different sets of transactions from the same ledger.\n* **The kill switch did not work.** Voting a limit to `0` writes it to\n  `FeeSettings`, which admission never read — so a successful vote to disable\n  changed nothing.\n* **Gas was nea",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "ripple/smart-escrow",
+   "head": "pwang200:smart-escrow-fees-fix",
+   "additions": 689,
+   "deletions": 296,
+   "changedFiles": 22,
+   "commits": 4,
+   "reviewComments": 8,
+   "reviews": [
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T16:09:23Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T16:10:16Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T16:11:11Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T16:11:38Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-09-15T02:18:53Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-09-15T02:20:18Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-09-15T02:20:36Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-09-15T02:21:03Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T16:09:23Z",
+     "path": "cfg/xrpld-example.cfg",
+     "body": "Do these matter? We haven't decided on final limits anyways",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r3991092278"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T16:10:17Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "This is different from the other fee settings amounts - why?",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r3991099475"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T16:11:11Z",
+     "path": "include/xrpl/tx/transactors/system/Change.h",
+     "body": "This is a confusing name - I thought it was about something called a \"seed extension\" for a second. Perhaps something like `initializeVMFees`?",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r3991106592"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T16:11:39Z",
+     "path": "src/libxrpl/ledger/Ledger.cpp",
+     "body": "The grammar in this comment doesn't make sense to me",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r3991110069"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-15T02:18:52Z",
+     "path": "cfg/xrpld-example.cfg",
+     "body": "I am gonna open another PR for these changes.",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r4011317232"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-15T02:20:18Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "The  base, reserve and increment are grandfathered and not amendment-dependent. Genesis writes one representation or the other unconditionally, so those fields are always present in FeeSettings and Ledger::setup always overwrites whatever the Fees was constructed with. Their 0 initializers are never observed.                          \n                                                                                                                                                                       \nThe three extension fields are amendment-dependent: nothing writes them until featureSmartEscrow activates, so there is a real window where the Fees value is what gets used. That is the differenc",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r4011325721"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-15T02:20:36Z",
+     "path": "include/xrpl/tx/transactors/system/Change.h",
+     "body": "Will change.",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r4011327560"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-15T02:21:03Z",
+     "path": "src/libxrpl/ledger/Ledger.cpp",
+     "body": "Claude picked up my grammar. I will change it.",
+     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r4011330432"
+    }
+   ]
+  },
+  {
+   "number": 8214,
+   "title": "feat: Add Smart Escrow fee voting",
+   "url": "https://github.com/XRPLF/rippled/pull/8214",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-09-10T20:26:46Z",
+   "updatedAt": "2026-09-11T14:16:50Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-10T20:28:56Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8214?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `89.47368%` with `14 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8214?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/main/Application.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8214?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=co",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#issuecomment-5625005994"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds `GasLimit`, `BytecodeSizeLimit` and `GasPrice` to the network's votable fee\nsettings, gated on `featureSmartEscrow`. These are the three settings that bound\nwhat a Smart Escrow contract may cost: how much gas one run may burn, how large\na contract may be, and what a unit of gas costs in micro-drops.\n\nExtracted from the `ripple/smart-escrow` feature branch. Replaces the closed #5810.\n\n## Context of Change\n\n`ripple/smart-escrow` is being upstreamed piece by piece. #8157 landed the\n`.macro` and autogen plumbing for these fields; this adds the behavior behind\nthem — config parsing, fee voting, `SetFee`, `FeeSettings` genesis and load, and\nthe RPC surfaces t",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:mvadari/smart-escrow-fee-voting",
+   "additions": 888,
+   "deletions": 73,
+   "changedFiles": 17,
+   "commits": 5,
+   "reviewComments": 9,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-10T20:33:12Z",
+     "body": "Gas vote triggers spuriously pre-amendment when feature is disabled — see inline."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-10T20:37:06Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-10T20:41:20Z",
+     "body": "### 🟡 Changes recommended\n\n`FeeSetup::toFees()` does not propagate the newly added Smart Escrow fee fields into `Fees`, and one key stream output (`gas_price`) is not asserted in the updated Subscribe test.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR extends XRPLD’s fee-voting and fee-settings plumbing to support Smart Escrow (Feature Extensions) resource/price bounds—`GasLimit`, `BytecodeSizeLimit`, and `GasPrice`—all gated behind `featureSmartEscrow`. It threads these settings through config parsing, fee voting/SetFee application, ledger fee-settings initialization/loading, and"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-10T22:10:30Z",
+     "body": "The Smart Escrow fee-voting feature is thoroughly implemented and well-tested (config parsing, voting, SetFee application, genesis/load, and the three RPC surfaces all correctly gate on featureSmartEscrow, with good regression tests for the pre-amendment zero-vote case). I traced the VotableValue templatization, the Ledger genesis/setup gas-field handling, the Change.cpp preclaim/apply changes, and the RPC publish paths (getServerInfo, publishLedgerStreams, subLedger, pubValidation) and found the gating logic consistent and correctly tested. The one thing worth cleaning up is a duplicated field-mapping in ApplicationImp::getFees() that could drift from FeeSetup::toFees() over time."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-10T22:14:51Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T14:13:03Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T14:14:03Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T14:15:06Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T14:16:50Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-10T20:33:12Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "Gas changed-flags trigger spuriously pre-amendment: ledger=0, target=1M+ default. Gate on rules.enabled(featureSmartEscrow):\n\n```suggestion:-0+1\n    if ((baseFeeChanged || baseReserveChanged || incReserveChanged) ||\n        (rules.enabled(featureSmartEscrow) && (gasLimitChanged || bytecodeSizeLimitChanged || gasPriceChanged)))\n```\n\n```suggestion\n    if (baseFeeChanged || baseReserveChanged || incReserveChanged ||\n        (rules.enabled(featureSmartEscrow) &&\n         (gasLimitChanged || bytecodeSizeLimitChanged || gasPriceChanged)))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983240716"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-10T20:37:06Z",
+     "path": "src/xrpld/core/Config.h",
+     "body": "⚪ **Severity: LOW**\n\nThese three new `FeeSetup` fields (`gasLimit`, `bytecodeSizeLimit`, `gasPrice`) are never propagated by the existing `toFees()` method (line 93), which uses the 3-arg `Fees` constructor. All genesis ledger and ledger-loading call sites use `toFees()`, so the FeeSettings ledger entry will silently get zeros for all gas fields regardless of configured values.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Update the `toFees()` method (lines 90-94 of `src/xrpld/core/Config.h`) to propagate the three new gas-related fields. Since `Fees` only has a 3-arg constructor, construct the `Fees` object and then set the additional fields before r",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983273103"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-10T20:41:19Z",
+     "path": "src/xrpld/core/Config.h",
+     "body": "`FeeSetup::toFees()` only copies the XRP fee fields; the newly added Smart Escrow fee settings (gasLimit/bytecodeSizeLimit/gasPrice) are not propagated into the `Fees` object. This prevents the configured values from being applied during ledger construction/genesis when `featureSmartEscrow` is enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983307241"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-10T20:41:20Z",
+     "path": "src/test/rpc/Subscribe_test.cpp",
+     "body": "The validations-stream assertions cover `gas_limit` and `bytecode_size_limit` but not `gas_price`, even though the PR adds `gas_price` to the same surfaces. This leaves the new field untested for both the enabled and disabled amendment cases.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983307334"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-10T22:14:51Z",
+     "path": "src/xrpld/core/detail/Config.cpp",
+     "body": "⚪ **Severity: LOW**\n\nConfig parsing for `gas_price` lacks an upper-bound check, unlike `gas_limit` (capped at `kMaxGasLimit`) and `bytecode_size_limit` (capped at `kMaxBytecodeSizeLimit`). Negative config strings (e.g. `gas_price = -1`) silently wrap to near-`UINT32_MAX` and are accepted, causing the validator to vote for an extreme gas price.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add an upper-bound check for `gas_price` to match the pattern used by `gas_limit` and `bytecode_size_limit`. This requires two changes:\n\n1. In `include/xrpl/protocol/Fees.h`, add a `kMaxGasPrice` constant alongside the existing `kMaxGasLimit` and `kMaxBytecodeSizeLimi",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983969677"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T14:13:03Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "Confirmed, and worse than spurious flags — pre-amendment the ledger reports 0 for all three while the config targets default to non-zero, and the validator-vote loop is itself amendment-gated, so the vote map holds only our own target and all three report a change. Every node would have emitted a no-op `SetFee` on every flag ledger until the amendment activated.\n\nGated as suggested in 052782a, with a regression test asserting `doVoting` adds nothing when no fee change is wanted and the amendment is off.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3989989629"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T14:14:03Z",
+     "path": "src/xrpld/core/Config.h",
+     "body": "Right, and it is a real bug — `startGenesisLedger` is the one caller that matters, and the gas fields it writes into `FeeSettings` were always zero. Fixed in e4476e5.\n\nPropagating through `toFees()` alone was not sufficient, though. Every `Ledger` built from stored data is seeded with the same `Fees`, and `Ledger::setup()` only overwrites fields the `FeeSettings` entry actually carries — a pre-amendment ledger carries none, so the seed survived and the node read its own config back as if the network had agreed to it, then never voted for the values it wanted. The genesis constructor now clears the three whenever it does not write them, so a ledger reports what its `FeeSettings` entry holds a",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3989999079"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T14:15:06Z",
+     "path": "src/xrpld/core/Config.h",
+     "body": "Confirmed and fixed in e4476e5 — see the reply on the same line for why `toFees()` alone was not enough.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3990009796"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T14:16:50Z",
+     "path": "src/test/rpc/Subscribe_test.cpp",
+     "body": "Added in 4cca584, on both the enabled and disabled paths.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3990027288"
+    }
+   ]
+  },
+  {
+   "number": 8215,
+   "title": "feat: Handle Smart Escrow's Bytecode, Data and Gas fields",
+   "url": "https://github.com/XRPLF/rippled/pull/8215",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-09-10T20:27:06Z",
+   "updatedAt": "2026-09-11T14:06:34Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [],
+   "body": "## High Level Overview of Change\n\nAdds the transaction handling for `EscrowCreate.Bytecode` / `EscrowCreate.Data`\nand `EscrowFinish.Gas`, gated on `featureSmartEscrow`: the validation rules, the\nfee a contract costs to store, and the owner reserve it occupies.\n\n**Nothing in this PR runs the bytecode.** The WASM engine is not on `develop`,\nso `EscrowFinish` stops at a `TODO` where the contract would run and reports\n`tecFAILED_PROCESSING`.\n\nExtracted from the `ripple/smart-escrow` feature branch; this is the escrow half\nof #6329, which is left holding the WASM engine alone.\n\nStacked on #8214. Retarget to `develop` once that merges.\n\n## Context of Change\n\n#8157 landed the fields and result code",
+   "merged": false,
+   "mergedAt": null,
+   "draft": true,
+   "base": "mvadari/smart-escrow-fee-voting",
+   "head": "XRPLF:mvadari/smart-escrow-escrow-tx",
+   "additions": 994,
+   "deletions": 34,
+   "changedFiles": 9,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 8201,
+   "title": "fix: Port smart escrow tests to new design",
+   "url": "https://github.com/XRPLF/rippled/pull/8201",
+   "state": "closed",
+   "author": "TimothyBanks",
+   "createdAt": "2026-09-09T00:59:04Z",
+   "updatedAt": "2026-09-11T13:30:13Z",
+   "closedAt": "2026-09-11T13:30:10Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-09T14:24:25Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8201?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8201#issuecomment-5603480184"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-09-11T13:30:10Z",
+   "draft": false,
+   "base": "ripple/smart-escrow",
+   "head": "XRPLF:timothybanks/port-smart-escrow-tests",
+   "additions": 1528,
+   "deletions": 4519,
+   "changedFiles": 20,
+   "commits": 8,
+   "reviewComments": 9,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-09T14:46:08Z",
+     "body": "This is largely a well-structured test-porting change (deleting the old EscrowSmart_test.cpp/Wasm_test.cpp fixtures and replacing them with a layered transactor test suite under src/tests/libxrpl/tx/wasm/transactor/, plus TxTest/TestServiceRegistry helper additions for metadata capture and fee overrides). The logic in TxTest.cpp/h, EscrowWasm.cpp/h, and ModuleBuilder.cpp/h looks internally consistent and carefully documented. The main actionable finding is that the fee-arithmetic helpers introduced in this same PR (EscrowWasm.h's escrowCreateFee/escrowFinishFee) are not reused everywhere — BytecodeSize.cpp and DataOnReject.cpp reimplement the identical formulas locally, which risks silent dr"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-09T15:50:05Z",
+     "body": "This MR is a large, mostly mechanical port of the smart-escrow/WASM tests to the new TxTest-based transactor harness (new fixtures, TxTest additions for fees/metadata/balances, and several new transactor-level test files). The new TxTest helpers (submitAndClose, getMetadata, getOwnerCount, getXrpBalance, closeTimeOffset, createAccounts) and the fee-calculation fixtures (escrowCreateFee/escrowFinishFee) look correct and consistent with the documented production fee formulas. The only concrete issue found is an unused local variable in one of the new BytecodeSize tests, which is a likely -Wunused-variable / -Werror build break."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-09T15:58:25Z",
+     "body": "This is a large, well-documented test-porting change (old EscrowSmart_test.cpp/Wasm_test.cpp fixtures replaced by a new layered `transactor/` test suite plus TxTest harness extensions for fees, metadata, and owner/balance helpers). I read through the new TxTest.cpp/h changes, the WASM ModuleBuilder binary encoder, the fee-calculation helpers, and all new transactor test files. The binary module builder (type/function/memory/export/code/data sections, LEB128 encoding) is internally consistent and correctly ordered per the wasm spec. The fee-arithmetic helpers are explicitly documented to mirror production `calculateBaseFee` logic and are exercised by dedicated exact/one-drop-short tests, so I"
+    },
+    {
+     "author": "kuznetsss",
+     "state": "COMMENTED",
+     "date": "2026-09-10T13:02:24Z",
+     "body": "Overall looks good, a few small comments"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-09-10T13:42:52Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-09-10T13:44:45Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-10T13:46:19Z",
+     "body": "This is a well-executed port of the smart-escrow/WASM tests onto the new transactor-level design. The TxTest harness additions (submitAndClose, getMetadata, getOwnerCount/getXrpBalance, per-call fee override) are consistent and well-documented, the fee-arithmetic helpers in EscrowWasm.cpp mirror the documented production formulas (EscrowCreate/EscrowFinish::calculateBaseFee), and the hand-rolled WASM binary builder in ModuleBuilder.cpp produces structurally valid modules (type/function/export/code/data sections line up correctly, LEB128 encoding is correct). I traced the const-correctness of the new free functions (escrowCreateFee/escrowFinishFee take TxTest const& and call getOpenLedger()) "
+    },
+    {
+     "author": "kuznetsss",
+     "state": "COMMENTED",
+     "date": "2026-09-10T14:02:44Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-09-10T16:52:41Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-10T17:12:06Z",
+     "body": "This is a large, well-documented port of the smart-escrow/WASM tests onto the new TxTest harness (TxTest gains fee overrides, metadata capture, submitAndClose, and balance/owner-count helpers; new fixtures build WASM modules and fee arithmetic; new transactor test files cover preflight, size limits, execution, gas fees, and failure modes). The changes are internally consistent and each new helper is well justified by its accompanying doc comments (e.g. fee must be set on both the view and the registry, metadata only exists after close). I did not find clear correctness, security, or resource-leak bugs in the added code. The one item worth double-checking is the gas-fee rounding helper below,"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-09-10T17:57:04Z",
+     "body": ""
+    },
+    {
+     "author": "kuznetsss",
+     "state": "APPROVED",
+     "date": "2026-09-11T13:03:30Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "kuznetsss",
+     "date": "2026-09-10T11:09:18Z",
+     "path": "src/tests/libxrpl/helpers/TxTest.h",
+     "body": "nit: Why overload instead of default value?",
+     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3978424346"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-09-10T11:19:40Z",
+     "path": "src/tests/libxrpl/tx/wasm/fixtures/EscrowWasm.h",
+     "body": "`kRejects` is not used anywhere",
+     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3978499731"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-09-10T11:21:34Z",
+     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodePreflight.cpp",
+     "body": "Once merged `the old compiled fixtures` will not have any meaning",
+     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3978515865"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-09-10T12:49:11Z",
+     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodeRun.cpp",
+     "body": "GoogleTest recommends to use constructor/destructor over SetUp/TearDown where possible:\nhttps://google.github.io/googletest/faq.html#CtorVsSetUp",
+     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3979214104"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-09-10T13:42:52Z",
+     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodeRun.cpp",
+     "body": "Right, that is a guideline.  It is forward looking though to use setup as asserts are respected within a call to Setup whereas they are not within a constructor.",
+     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3979690996"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-09-10T13:44:45Z",
+     "path": "src/tests/libxrpl/helpers/TxTest.h",
+     "body": "They both work perfectly fine as a solution to this and comes down to mainly preference.  But I made the change.",
+     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3979709100"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-09-10T14:02:44Z",
+     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodeRun.cpp",
+     "body": "The problem with `SetUp()` and `TearDown()` we had before (and the guideline says about it) is when an inherited fixture is used. For example, if someone would add later a subset of tests they would have to remember to call `SetUp()` of the base class:\n```cpp\nstruct BytecodeRunFailureTest : BytecodeRun {\n  void SetUp() override {\n    ByteCodeRun::SetUp();\n    // init specific for BytecodeRunFailureTest\n  }\n};\n```\n\nWhile without `SetUp()` there is nothing to remember because base class is initialised automatically:\n```cpp\nstruct BytecodeRunFailureTest : BytecodeRun {\n  BytecodeRunFailureTest() {\n    // init specific for BytecodeRunFailureTest\n  }\n};\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3979887967"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-09-10T16:52:41Z",
+     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodeRun.cpp",
+     "body": "Calling the base type `SetUp` would normally be the rule anyways if the `SetUp` function is being overridden in the derived type.  If you don't need to override it, then there is nothing to remember.  But as a rule, if you override `SetUp`, you should be calling the base version regardless of if that base type has an overridden version or not.  In this case, I should probably call `Test::Setup` but that is just noop virtual method in the root type.",
+     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3981490072"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-09-10T17:57:03Z",
+     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodeRun.cpp",
+     "body": "Made the requested changes since I don't have a strong opinion on this.",
+     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3982007908"
+    }
+   ]
+  },
+  {
+   "number": 8157,
+   "title": "feat: Apply .macro changes from ripple/smart-escrow",
+   "url": "https://github.com/XRPLF/rippled/pull/8157",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2026-09-01T17:59:48Z",
+   "updatedAt": "2026-09-10T19:29:01Z",
+   "closedAt": "2026-09-09T20:40:13Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-01T18:02:19Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8157?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `97.45763%` with `3 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8157?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8157?src=pr&el=tree&utm_medium=referral&utm_source=github",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#issuecomment-5498205449"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-03T22:21:45Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#issuecomment-5532900809"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-04T19:56:01Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#issuecomment-5545765759"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-04T23:32:39Z",
+     "body": "Should the gas fields also be added to `STValidation`'s SOTemplate? smart-escrow adds them there too, and without it a gas-carrying validation fails `applyTemplate` and is dropped.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#issuecomment-5547646794"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-05T00:57:15Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#issuecomment-5548236836"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-08T15:50:28Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#issuecomment-5587948161"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-09T10:39:36Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#issuecomment-5600510094"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nPorts the sfields/transactions/ledger_entries/features macro diffs between develop and ripple/smart-escrow directly onto develop.\n\nNote: should be merged after 3.4.0-rc1 is cut\n\n### Context of Change\n\nLimit future merge conflicts and shrink the size of the Smart Escrow diff\n\n### API Impact\n\nAdds the `SmartEscrow` amendment (currently `Supported::No`) and new protocol fields (`sfGasLimit`, `sfBytecodeSizeLimit`, `sfGasPrice`, `sfGas`, `sfGasUsed`, `sfVMReturnCode`, `sfBytecode`) to public headers under `include/xrpl`, along with amendment-gated accessors on `EscrowCreate`, `EscrowFinish`, `FeeSettings`, and `SetFee`. No behavior changes take effect until `Sma",
+   "merged": true,
+   "mergedAt": "2026-09-09T20:40:13Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:mvadari/smart-escrow-macros",
+   "additions": 744,
+   "deletions": 30,
+   "changedFiles": 20,
+   "commits": 15,
+   "reviewComments": 18,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-01T18:00:57Z",
+     "body": "This MR mechanically ports feature/field/ledger-entry/transaction macro definitions from the ripple/smart-escrow branch onto develop (new SmartEscrow amendment flag, new sfGasLimit/sfBytecodeSizeLimit/sfGasPrice/sfGas/sfGasUsed/sfVMReturnCode/sfBytecode fields, and corresponding additions to FeeSettings, Escrow, EscrowCreate, EscrowFinish, and SetFee). All new SField codes appear sequential/non-colliding within their respective type blocks as shown in the diff, the new amendment is correctly added to the top of the sorted list per the file's own convention, and sfData (used in Escrow/EscrowCreate) is a pre-existing VL field from the DID amendment rather than a new undefined symbol. The Escro"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-01T19:13:42Z",
+     "body": "This MR is a mechanical port of sfields/ledger_entries/transactions/features macro additions (Smart Escrow: gas/bytecode fields, SmartEscrow amendment) from the ripple/smart-escrow branch, along with the corresponding autogenerated getter/setter headers and round-trip tests. I checked field-code numbering for collisions (sfGasLimit/BytecodeSizeLimit/GasPrice/Gas/GasUsed UINT32 77-81, sfVMReturnCode INT32 3, sfBytecode VL 47 — all sequential, no collisions), verified the EscrowCreate field reordering (sfDestinationTag moved earlier, sfBytecode/sfData appended) is mirrored consistently across the macro, the generated header (no duplicate/dangling getDestinationTag definitions), and the tests. "
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-01T19:14:54Z",
+     "body": "This MR is a mechanical port of macro-level diffs (sfields, transactions, ledger_entries, features) from the ripple/smart-escrow branch onto develop, plus the corresponding autogenerated wrapper headers and round-trip tests. I checked the new field codes for collisions (sfGasLimit/78, sfBytecodeSizeLimit/79... wait sequential 77-81 UINT32, sfVMReturnCode/3 INT32, sfBytecode/47 VL) and they are all sequential extensions of existing numbering with no apparent duplicates. The macro placements (FeeSettings ledger entry, SetFee transaction, EscrowCreate/EscrowFinish transactions) are consistent between sfields/ledger_entries/transactions macros, and the autogenerated headers/tests mirror the macr"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:05:16Z",
+     "body": "### 🔵 Needs a closer look\n\nIt modifies core protocol SField/amendment definitions and public installed headers, so it needs careful human validation of serialization/compatibility and release/process implications.\n\n<details>\n<summary>Pull request overview</summary>\n\nPorts protocol macro updates from `ripple/smart-escrow` onto `develop` to reduce future merge conflicts and align autogen protocol wrappers/tests with the Smart Escrow field set.\n\n**Changes:**\n- Add SmartEscrow amendment entry and introduce new SFields for gas-related limits/usage and VM return code.\n- Extend EscrowCreate/EscrowFinish/SetFee transaction field sets and Escrow/FeeSettings ledger entry field sets to include Smart E"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "APPROVED",
+     "date": "2026-09-03T22:48:25Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-04T19:57:34Z",
+     "body": "This is a mechanical, low-risk port of sfield/transaction/ledger-entry/feature macro diffs from the ripple/smart-escrow branch onto develop, plus the matching autogenerated wrapper classes and tests. I checked all new field/error codes for numeric collisions against the immediately preceding entries shown in context (sfields.macro UINT32/INT32/VL ranges, TEC/TEF/TEM codes) and found the new values are all the next sequential, non-colliding numbers. The SOTemplate field reordering in EscrowCreate (moving sfDestinationTag) doesn't affect wire format since STObject serialization is by field code, not template order. The autogenerated getter/setter/test changes are internally consistent with the"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-04T20:17:24Z",
+     "body": "### 🔵 Needs a closer look\n\nIt introduces consensus/protocol-surface changes (new SFields, TER codes, and an amendment flag) that warrant careful human verification for compatibility and correctness beyond what this automated review can guarantee.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 16/16 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-09-04T23:10:09Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-09-04T23:48:05Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-09-04T23:48:45Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-09-04T23:54:11Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-08T15:53:05Z",
+     "body": "This is a mechanical port of the sfields/transactions/ledger_entries/features macro diffs from the smart-escrow branch onto develop, gating all new behavior behind the new (currently Supported::No) SmartEscrow amendment. I checked the amendment-gating logic in EscrowCreate::checkExtraFeatures, EscrowFinish::checkExtraFeatures, and Change.cpp's ttFEE preclaim/applyFee paths, the new sfields/TER codes for numbering collisions with visible context, and the autogenerated header/test changes for consistency with the macro edits. Everything lines up correctly: bytecode/data/gas fields are rejected unless SmartEscrow is enabled, the new SetFee fields are required when the amendment is on and forbid"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-08T15:59:49Z",
+     "body": "### 🔵 Needs a closer look\n\nIt introduces protocol-level schema changes, new TER codes, and amendment-gated transaction validation that should receive final human review for spec/compatibility alignment.\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**src/libxrpl/protocol/TER.cpp:212**\n* Error message text is a bit redundant/unclear: use the standard term \"bytecode\" (one word) and remove the duplicated \"currently temporarily\" phrasing for better readability.\n```\n        MAKE_ERROR(temINVALID_BYTECODE,          \"Malformed: Provided byte code is invalid.\"),\n        MAKE_ERROR(temTEMP_DISABLED,             \"The transaction requires logic that is currently temporaril"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-08T16:22:06Z",
+     "body": "This is a mechanical port of sfield/transaction/ledger-entry/feature macro diffs from the ripple/smart-escrow branch onto develop, adding a new (currently unsupported/disabled) SmartEscrow amendment, associated protocol fields, and amendment-gated validation logic in EscrowCreate, EscrowFinish, and Change (ttFEE). I traced the new field IDs (sfGasLimit=81, sfBytecodeSizeLimit=82, sfGasPrice=83, sfGas=84, sfGasUsed=85 as UINT32; sfVMReturnCode=3 as INT32; sfBytecode=47 as VL) for sequential/non-colliding assignment, verified sfData is a pre-existing field (from DIDSet) so its reuse here doesn't require a new sfields entry, and checked that the amendment-gating logic in EscrowCreate::checkExtr"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-08T16:25:47Z",
+     "body": "This is a mechanical, amendment-gated port of the SmartEscrow field/macro wiring from ripple/smart-escrow onto develop. All new TEM/TEF codes are appended at the end of their enums (not inserted mid-list), so no existing result-code values shift. New sfields codes (81-85 for UINT32, 3 for INT32-common, 47 for VL) don't collide with neighboring entries shown in the diff. The gating logic in EscrowCreate::checkExtraFeatures, EscrowFinish::checkExtraFeatures, and Change.cpp's ttFEE required/forbidden field checks is logically equivalent to (or a correct superset of) the prior code, and the FeeVote_test.cpp changes consistently exclude featureSmartEscrow so ttFEE transactions built without the n"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-08T16:41:08Z",
+     "body": "### 🟡 Changes recommended\n\nSmartEscrow-gated SetFee requirements in `Change::preclaim` are not matched by the existing fee-vote ttFEE construction path, so enabling SmartEscrow would cause malformed fee pseudo-transactions and the tests currently mask this by disabling the amendment.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 21/21 changed files\n- **Comments generated:** 2\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-08T17:23:51Z",
+     "body": "This is a mostly mechanical port of the SmartEscrow field/amendment scaffolding from the ripple/smart-escrow branch onto develop (new amendment definition, new sfields, new ledger-entry/transaction template entries, corresponding autogenerated accessor/builder methods, and matching test updates). I checked the field-code additions in sfields.macro for collisions (sfGasLimit..sfGasUsed=81-85, sfVMReturnCode=3 in the 32-bit-signed-common section, sfBytecode=47 in the VL-common section) and none overlap existing codes. The two amendment-gating checks in EscrowCreate.cpp and EscrowFinish.cpp correctly preserve prior logic while adding the new SmartEscrow-gated checks for sfBytecode/sfData/sfGas."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-08T17:45:39Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-08T17:45:40Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-08T17:45:41Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-08T17:45:42Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-08T17:45:44Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-08T17:45:45Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-08T17:45:47Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-08T17:45:48Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-08T18:20:18Z",
+     "body": "### 🟡 Changes recommended\n\nIt introduces a “temporary forbid” ttFEE gate but returns `temDISABLED` instead of the newly-added `temTEMP_DISABLED`, and there is also a minor TER message consistency fix needed.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**Previously missed (1)** — in code that hasn't changed since the last review.\n\n**src/libxrpl/protocol/TER.cpp:211**\n* Error message uses “byte code” but the field/code name throughout the codebase is “Bytecode”/sfBytecode; standardizing to “bytecode” improves consistency and avoids looking like a typo.\n\n- **Files revi"
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2026-09-08T18:35:10Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-08T18:36:10Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-09T18:06:59Z",
+     "body": "This is a mechanical port of macro/header diffs from the ripple/smart-escrow branch (new SmartEscrow amendment, new sfields, new TER codes, and amendment-gated accessors/checks on EscrowCreate, EscrowFinish, FeeSettings, SetFee). I traced the field additions across sfields.macro, transactions.macro, ledger_entries.macro, and the corresponding autogen headers/tests, and they're internally consistent (no field-code collisions visible, TEM/TEF/TEC codes appended at the end so no enum-value shifts for existing codes, builder/getter refactors in the autogen headers are just reordering with no dropped or duplicated methods). The two behavioral gating changes (EscrowCreate::checkExtraFeatures, Escr"
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2026-09-09T18:39:10Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:05:15Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "PR description states \"API impact N/A\", but this change adds a new amendment (SmartEscrow) in a public installed header under include/xrpl, along with new protocol fields/wrapper accessors in other public headers. That is an externally visible API/protocol surface change and should be reflected in the PR metadata/release notes so downstream consumers are not surprised.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3908843129"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-04T23:10:09Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "Did we miss this one, when we discussed renaming? others `tefNO_BYTECODE, tefBYTECODE_NOT_INCLUDED, tecBYTECODE_REJECTE` use bytecode.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3938476229"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-04T23:48:05Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Should the `checkExtraFeatures` gates come along too? Without them `sfBytecode`/`sfData`/`sfGas` are accepted the moment this ships while nodes running old code can't parse them — smart-escrow already has the checks in `EscrowCreate::checkExtraFeatures` and `EscrowFinish::checkExtraFeatures`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3938622556"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-04T23:48:45Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Same about `checkExtraFeatures` gate",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3938624868"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-04T23:54:11Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "smart-escrow also gates these in `Change::preflight` (required when `featureSmartEscrow` is on, `temDISABLED` when off) — worth porting alongside.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3938646648"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-08T15:59:48Z",
+     "path": "src/libxrpl/protocol/TER.cpp",
+     "body": "This message is hard to parse due to the repeated \"included\" phrasing; consider a clearer rewording so the user understands which field is missing.\n\nThis issue also appears on line 211 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3959835673"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-08T16:41:07Z",
+     "path": "src/libxrpl/tx/transactors/system/Change.cpp",
+     "body": "When featureSmartEscrow is enabled, ttFEE transactions are treated as requiring sfGasLimit/sfBytecodeSizeLimit/sfGasPrice, but the fee-voting code that constructs ttFEE pseudo-transactions does not populate these fields (see src/xrpld/app/misc/FeeVoteImpl.cpp:275-294). This means enabling SmartEscrow would cause fee-vote ttFEE transactions to fail preclaim with temMALFORMED, preventing fee updates (and potentially disrupting consensus expectations around fee votes).",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3960183283"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-08T16:41:08Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "This test now disables featureSmartEscrow in all cases to avoid failures, which also removes coverage for the new SmartEscrow-gated ttFEE validation path added in Change::preclaim. Consider instead adding a dedicated test case that runs with featureSmartEscrow enabled and constructs a ttFEE with the required gas fields, so the SmartEscrow gate is exercised.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3960183336"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-08T17:45:39Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Updated the PR description's API Impact section to call out the new amendment, fields, and amendment-gated accessors.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3960683475"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-08T17:45:40Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "Fixed in a856aa1543 — renamed to `temINVALID_BYTECODE`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3960683652"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-08T17:45:41Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Fixed in a856aa1543 — `EscrowCreate::checkExtraFeatures` now gates `sfBytecode`/`sfData` on `featureSmartEscrow`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3960683801"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-08T17:45:42Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Fixed in a856aa1543 — `EscrowFinish::checkExtraFeatures` now gates `sfGas` on `featureSmartEscrow`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3960683969"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-08T17:45:44Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Tried the require/forbid pattern first, but it broke real validator fee-voting since `FeeVoteImpl` doesn't populate these fields yet (caught via `xrpl.app.NFTokenBurn` failing after crossing a flag ledger). Landed a simpler unconditional forbid instead in 121dc6521f — full support lands with the `FeeVoteImpl` port.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3960684134"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-08T17:45:45Z",
+     "path": "src/libxrpl/protocol/TER.cpp",
+     "body": "Line 139 reworded in 1196ab4630. Line 211 (`temINVALID_BYTECODE`) doesn't have the repeated-\"included\" phrasing — looks like a line-reference slip, no change needed there.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3960684292"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-08T17:45:46Z",
+     "path": "src/libxrpl/tx/transactors/system/Change.cpp",
+     "body": "Confirmed and fixed in 121dc6521f — replaced the require/forbid gate with an unconditional forbid so it can't interfere with fee-voting.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3960684469"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-08T17:45:48Z",
+     "path": "src/test/app/FeeVote_test.cpp",
+     "body": "Reverted the exclusion entirely in 121dc6521f — the gate is now unconditional (no `featureSmartEscrow` branch), so there's nothing amendment-specific left to cover yet.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3960684628"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-08T18:20:17Z",
+     "path": "src/libxrpl/tx/transactors/system/Change.cpp",
+     "body": "The new sfGasLimit/sfBytecodeSizeLimit/sfGasPrice guard is described as a temporary, non-amendment gate (“unconditionally forbidden until FeeVoteImpl is updated”), but it returns temDISABLED, which is also used elsewhere for feature/amendment-disabled logic. Since this PR introduces temTEMP_DISABLED, returning that code here would better reflect the actual reason and avoid confusing clients that interpret temDISABLED as an amendment gate.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3960953146"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-08T18:36:10Z",
+     "path": "src/libxrpl/tx/transactors/system/Change.cpp",
+     "body": "`temTEMP_DISABLED` is not to be used here, it's to be used elsewhere. `temDISABLED` is correct here.",
+     "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3961082269"
+    }
+   ]
+  },
+  {
+   "number": 5999,
+   "title": "feat: Add WASMI dependency (Smart Escrows)",
+   "url": "https://github.com/XRPLF/rippled/pull/5999",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2025-11-04T20:58:59Z",
+   "updatedAt": "2026-09-09T18:53:41Z",
+   "closedAt": "2026-09-09T18:53:41Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "Bronek",
+     "date": "2025-11-07T16:08:16Z",
+     "body": "@mvadari we would normally upload our custom recipes to https://github.com/XRPLF/conan-center-index",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-3503422931"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2025-11-24T21:51:58Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5999?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-3572865102"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2026-01-07T11:17:09Z",
+     "body": "Could you please resolve the conflict?",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-3718404848"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-01-07T19:35:24Z",
+     "body": "> Could you please resolve the conflict?\n\n@vvysokikh1 done",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-3720450207"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-26T00:43:53Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4130767335"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-02T21:54:39Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4180694255"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-06T15:27:22Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4389591331"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-15T15:37:10Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4461152899"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-06-01T15:59:47Z",
+     "body": "@mvadari what's the status of this PR? Is it still needed and by when?",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4594293304"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-23T21:16:04Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4783534450"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-08T13:44:16Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4915427257"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-07-08T14:04:50Z",
+     "body": "CI is currently failing because new nixos based docker images don't have rust so wasmi fails to compile. This will be fixed after #7571  is merged.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4915628038"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-23T18:19:56Z",
+     "body": "> @mvadari what's the status of this PR? Is it still needed and by when?\n\nThis is part of the Smart Escrow stack of PRs. Updated the PR title to make that clear.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-5061871429"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR adds Wasmi as a dependency to rippled, in preparation for Smart Escrows.\n\n### Context of Change\n\nSplitting up #5600 into more managably reviewable chunks\n\nStack of PRs (from `develop` outwards):\n* This PR\n* https://github.com/XRPLF/rippled/pull/6075\n* https://github.com/XRPLF/rippled/pull/5810\n* https://github.com/XRPLF/rippled/pull/6329\n* https://github.com/XRPLF/rippled/pull/5811\n\n### Type of Change\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [x] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breakin",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:ripple/wasmi",
+   "additions": 5,
+   "deletions": 0,
+   "changedFiles": 4,
+   "commits": 66,
+   "reviewComments": 18,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-11-24T22:47:00Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2025-12-02T23:44:54Z",
+     "body": "## Pull request overview\n\nThis PR adds WASMI (WebAssembly interpreter) version 0.42.1 as a dependency to rippled in preparation for the Smart Escrows feature (XLS-102). The integration includes custom patches to the upstream WASMI library, Conan package configuration, and updates to the build system and CI/CD pipelines.\n\n### Key Changes\n- Added WASMI 0.42.1 dependency with custom patches for C API modifications and build system integration\n- Integrated WASMI into the Conan build system with local recipe export workflow\n- Updated CI/CD Docker images (SHA: `ca4517d`) and build scripts to support WASMI compilation\n\n### Reviewed changes\n\nCopilot reviewed 11 out of 12 changed files in this pull r"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-12-05T19:51:42Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2025-12-08T18:02:04Z",
+     "body": "Copilot encountered an error and was unable to review this pull request. You can try again by re-requesting a review."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2025-12-08T19:47:56Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 6 out of 7 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-01-07T19:38:36Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 5 out of 6 changed files in this pull request and generated 2 comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-01-07T21:55:20Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 3 out of 4 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-01-08T22:44:11Z",
+     "body": "This looks good. I'll hold off with approving until the Conan recipe has been updated to use the newly created wasmi fork."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-01-12T17:30:45Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-01-12T18:36:06Z",
+     "body": "Copilot encountered an error and was unable to review this pull request. You can try again by re-requesting a review."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-01-21T18:00:06Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-01-27T18:29:49Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-01-29T18:56:21Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-02-04T23:09:44Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 299 out of 802 changed files in this pull request and generated 4 comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-02-04T23:14:08Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-02-18T17:39:28Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-02-27T21:48:53Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated 3 comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-03T15:22:29Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-04-22T21:23:02Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-04-22T21:24:48Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 3 out of 4 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-15T15:37:45Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-18T22:25:50Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-08T13:45:49Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-21T11:40:56Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-23T15:31:04Z",
+     "body": "Looks good."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-04T14:24:37Z",
+     "body": "This MR wires up Wasmi as a new dependency (CMake find_package/link, conan.lock pin, conanfile.py requirement and package_info) in preparation for Smart Escrows. The changes are purely dependency plumbing and are mechanically consistent with how other third-party libs (secp256k1, xxHash, sqlite3, soci) are already wired into the same files, so there's little to flag from a correctness standpoint. No actual usage code is introduced yet."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-09T19:52:42Z",
+     "body": "Straightforward dependency-wiring change adding wasmi (Conan package + CMake find_package + link) in preparation for Smart Escrows. Changes are consistent across all four files (CMakeLists.txt, cmake/XrplCore.cmake, conan.lock, conanfile.py) and follow the existing patterns used for other dependencies (secp256k1, sqlite3, etc.). No logic, security, or correctness issues found in this diff."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-19T16:50:38Z",
+     "body": "This MR is a purely mechanical dependency-wiring change that adds the `wasmi` conan package (a WebAssembly interpreter, presumably used later for Smart Escrows) to the build system. It touches only `CMakeLists.txt`, `cmake/XrplCore.cmake`, `conan.lock`, and `conanfile.py`. The version (`1.0.9`) is consistent between `conanfile.py` and `conan.lock`, the `find_package`/`target_link_libraries` insertions follow the existing alphabetical ordering conventions in each file, and no application logic is introduced yet. No bugs, security issues, or inconsistencies were found in the diff itself."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-20T14:10:56Z",
+     "body": "This is a small, mechanical dependency-wiring change that adds WASMI (a WASM interpreter) as a required Conan dependency ahead of the Smart Escrows work. Changes are limited to CMakeLists.txt, cmake/XrplCore.cmake, conan.lock, and conanfile.py, and are internally consistent (package name, version, and lock hash all match across files; placement follows existing alphabetical/ordering conventions in each file). No application logic is introduced yet, so there isn't meaningful correctness or security surface to review in this diff."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-26T15:59:02Z",
+     "body": "This MR adds wasmi as a new build dependency (CMake find_package, target_link_libraries, conan.lock, conanfile.py) in preparation for Smart Escrows. The changes are minimal and mechanical — just dependency wiring, no logic. No obvious correctness, security, or infrastructure issues found in the diff itself."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "bthomee",
+     "date": "2025-11-24T22:46:03Z",
+     "path": ".github/workflows/reusable-build-test-config.yml",
+     "body": "Is this change here and in the other CI file still required? I suspect this is an older hash than what is currently used by the `develop` branch.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2557949628"
+    },
+    {
+     "author": "Copilot",
+     "date": "2025-12-02T23:44:51Z",
+     "path": "external/wasmi/patches/0001-xrplf-0.42.1.patch",
+     "body": "Trailing whitespace on empty line. This should be removed to maintain code cleanliness.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140601"
+    },
+    {
+     "author": "Copilot",
+     "date": "2025-12-02T23:44:52Z",
+     "path": "external/wasmi/patches/0001-xrplf-0.42.1.patch",
+     "body": "Commented-out code should be removed rather than left in the codebase. If these functions are needed in the future, they can be retrieved from version control. If they're not intended to be used yet, consider removing them from the patch entirely.\n```suggestion\n\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140609"
+    },
+    {
+     "author": "Copilot",
+     "date": "2025-12-02T23:44:52Z",
+     "path": "external/wasmi/patches/0001-xrplf-0.42.1.patch",
+     "body": "[nitpick] Excessive visual separator comment lines (4 lines of forward slashes). This adds clutter without providing value. Consider reducing to a single line separator or using a more conventional Rust doc comment style.\n```suggestion\n\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140621"
+    },
+    {
+     "author": "Copilot",
+     "date": "2025-12-02T23:44:53Z",
+     "path": ".github/actions/build-deps/action.yml",
+     "body": "[nitpick] The TODO comment suggests this is a temporary workaround. Consider creating a GitHub issue to track the work needed to switch to a conan package instead of relying on local export, and reference it in the comment (e.g., `#TODO: Switch to conan package (issue #XXXX)`).\n```suggestion\n        conan export --version 0.42.1 external/wasmi  #TODO: Switch to conan package (issue #1234)\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140633"
+    },
+    {
+     "author": "Copilot",
+     "date": "2025-12-02T23:44:53Z",
+     "path": "external/wasmi/conanfile.py",
+     "body": "Unused import: `tools` is imported from `conan` but never used in this file. This should be removed to keep the imports clean.\n```suggestion\nfrom conan import ConanFile\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140642"
+    },
+    {
+     "author": "Copilot",
+     "date": "2025-12-02T23:44:53Z",
+     "path": "external/wasmi/conanfile.py",
+     "body": "The `cpp_info.names` attributes (`cmake_find_package` and `cmake_find_package_multi`) are deprecated in Conan 2.0 and should not be used. These attributes were for Conan 1.x compatibility. Since this recipe specifies `required_conan_version = \">=2.0.0\"`, these lines should be removed. Conan 2.0 uses the package name directly.\n```suggestion\n\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140651"
+    },
+    {
+     "author": "Copilot",
+     "date": "2025-12-02T23:44:53Z",
+     "path": "BUILD.md",
+     "body": "Incorrect path for conan export. The instruction should be `conan export --version 0.42.1 external/wasmi` but it's located in a section where other exports use paths like `recipes/ed25519/all`. This instruction appears in the wrong location - it's shown after checking out recipes from the conan-center-index repository, but `external/wasmi` is part of the rippled repository itself, not the conan-center-index. This line should be moved outside the git sparse-checkout section, or the section should be clarified to indicate when to run this command.\n```suggestion\nrm -rf .git\n```\n\n### Exporting the local wasmi recipe\n\nThe `wasmi` recipe is part of the rippled repository itself, not the conan-cent",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140658"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-12-05T19:51:41Z",
+     "path": ".github/workflows/reusable-build-test-config.yml",
+     "body": "@oleks-rip",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2593811602"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-01-07T19:38:36Z",
+     "path": ".github/workflows/upload-conan-deps.yml",
+     "body": "The action reference has been updated to use a different path format and commit SHA, but other actions in this file still use the old format and commit SHA. For consistency, consider updating all XRPLF/actions references in this file to use the same commit SHA and path format.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2669835345"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-01-07T19:38:36Z",
+     "path": ".github/workflows/reusable-build-test-config.yml",
+     "body": "The action reference has been updated to use a different path format and commit SHA, but other actions in this file still use the old format and commit SHA. For consistency, consider updating all XRPLF/actions references in this file to use the same commit SHA and path format.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2669835363"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-02-04T23:09:43Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Inconsistent spacing: the line uses 11 spaces after 'sfData' while line 58 uses only 1 space after 'sfFinishFunction'.\n```suggestion\n    {sfData, soeOPTIONAL},\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2766353370"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-02-04T23:09:44Z",
+     "path": "include/xrpl/protocol/jss.h",
+     "body": "The macro parameter was changed from variadic `...` to named `fields`, but the parameter is not used in the macro body. Consider either using the parameter or keeping it as `...` to indicate it's intentionally unused.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2766353390"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-02-04T23:09:44Z",
+     "path": "include/xrpl/protocol/jss.h",
+     "body": "The macro parameter was changed from variadic `...` to named `fields`, but the parameter is not used in the macro body. Consider either using the parameter or keeping it as `...` to indicate it's intentionally unused.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2766353401"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-02-04T23:09:45Z",
+     "path": "include/xrpl/protocol/Protocol.h",
+     "body": "Grammatical error: should be 'parameters passed' not 'a parameters passed'.\n```suggestion\n/** The maximum length of parameters passed from Wasm code*/\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2766353425"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-02-27T21:48:52Z",
+     "path": "CMakeLists.txt",
+     "body": "`wasmi` is now a REQUIRED package at configure time, but the codebase currently has no references to `wasmi` (no includes/usages found under `src/` or `include/`). This makes configuring/building rippled depend on an extra third-party package even though nothing uses it yet. Consider making this `find_package(wasmi)` conditional behind a feature option (e.g., Smart Escrows) or deferring it until the first actual usage is introduced.\n```suggestion\noption(wasmi \"Enable wasmi support\" OFF)\nif (wasmi)\n    find_package(wasmi REQUIRED)\nendif ()\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2866339612"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-02-27T21:48:53Z",
+     "path": "cmake/XrplCore.cmake",
+     "body": "`wasmi::wasmi` is linked into `xrpl.imports.main`, which is installed/exported. Since there are currently no `wasmi` references in the source tree, this needlessly introduces a new transitive link/runtime dependency for all builds and downstream consumers. Consider not linking `wasmi` until the first call site exists, or gate it behind a build option so consumers that don't need Smart Escrows aren't forced to pull it in.",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2866339626"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-02-27T21:48:53Z",
+     "path": "conanfile.py",
+     "body": "Adding `wasmi::wasmi` to `libxrpl`'s exported Conan component requirements makes `wasmi` a transitive requirement for consumers of the `xrpl` package. Given there are currently no `wasmi` references in the repo, consider leaving it out of `package_info()` until it is actually needed (or make it conditional), to avoid forcing downstream projects to resolve an unused dependency.\n```suggestion\n\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2866339635"
+    }
+   ]
+  },
+  {
+   "number": 8187,
+   "title": "Smart escrow develop branch",
+   "url": "https://github.com/XRPLF/rippled/pull/8187",
+   "state": "closed",
+   "author": "kuznetsss",
+   "createdAt": "2026-09-08T12:53:40Z",
+   "updatedAt": "2026-09-09T13:11:40Z",
+   "closedAt": "2026-09-09T13:11:16Z",
+   "labels": [
+    "DraftRunCI"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-08T12:56:10Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8187?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `83.13501%` with `737 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8187?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [crates/xrpl-wasm-vm-ffi/src/lib.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/8187?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=c",
+     "url": "https://github.com/XRPLF/rippled/pull/8187#issuecomment-5585478089"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": true,
+   "base": "develop",
+   "head": "XRPLF:ripple/smart-escrow-develop",
+   "additions": 47734,
+   "deletions": 234,
+   "changedFiles": 323,
+   "commits": 703,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 8196,
+   "title": "Update ripple/smart-escrow from base ripple/se/fees",
+   "url": "https://github.com/XRPLF/rippled/pull/8196",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2026-09-08T18:52:32Z",
+   "updatedAt": "2026-09-08T20:04:37Z",
+   "closedAt": "2026-09-08T20:04:37Z",
+   "labels": [],
+   "comments": [],
+   "body": "## High Level Overview of Change\n\nMerges `ripple/se/fees` (30 commits, including the Wasm VM redesign and Wasmi 2.0 upgrade already resolved on `se/wasmi-tests`/`se/fees` by @TimothyBanks) into `ripple/smart-escrow`.\n\n## Context of Change\n\nThree modify/delete conflicts, resolved as follows:\n\n- `src/test/app/Wasm_test.cpp`: deleted. `smart-escrow`'s only change here was a local rename (`runFinishFunction` -> `runFinish`); no unique test content. Per @TimothyBanks's review on #8194, this suite has already been ported to the new harness.\n- `src/test/app/wasm_fixtures/fixtures.cpp` / `fixtures.h`: kept `smart-escrow`'s version rather than deleting. Unlike `Wasm_test.cpp`, these files carry genui",
+   "merged": false,
+   "mergedAt": null,
+   "draft": true,
+   "base": "ripple/smart-escrow",
+   "head": "XRPLF:mvadari/smart-escrow-update-se-fees",
+   "additions": 4866,
+   "deletions": 13404,
+   "changedFiles": 303,
+   "commits": 31,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 8142,
+   "title": "fix: Recycle the escrow reserve in EscrowCancel and EscrowFinish",
+   "url": "https://github.com/XRPLF/rippled/pull/8142",
+   "state": "closed",
+   "author": "dangell7",
+   "createdAt": "2026-08-31T13:38:01Z",
+   "updatedAt": "2026-09-03T17:24:48Z",
+   "closedAt": "2026-09-03T17:24:47Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-31T13:40:24Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8142?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8142#issuecomment-5479208027"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-08-31T15:35:47Z",
+     "body": "As discussed separately, please also add `fixCleanup3_4_0` to the equivalent fix in `EscrowFinish`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8142#issuecomment-5480644427"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n`EscrowCancel` and `EscrowFinish` release the escrow's owner reserve before the funds move, gated on `fixCleanup3_4_0`.\n\n### Context of Change\n\nCreating an IOU escrow moves the owner's whole balance out of the trust line, so the owner can delete the now-zero line while the escrow is still pending. Returning those IOUs has to re-create the line, and `escrowUnlockApplyHelper` checks the reserve for one additional owner object before it calls `trustCreate`.\n\nThat check ran while the escrow was still counted in `sfOwnerCount`, because `decreaseOwnerCountForObject` came after the transfer. The transaction destroys one object and creates one, so the reserve requir",
+   "merged": true,
+   "mergedAt": "2026-09-03T17:24:46Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:dangell7/fix-escrow-cancel-reserve",
+   "additions": 119,
+   "deletions": 23,
+   "changedFiles": 4,
+   "commits": 5,
+   "reviewComments": 8,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-31T13:43:01Z",
+     "body": "The core fix reorders decreaseOwnerCountForObject to run before the fund transfer/trustCreate when fixCleanup3_4_0 is enabled, matching the EscrowFinish/featureSponsor precedent, and adds an explicit view().update(sle) to make sure later mutations to the account root are persisted regardless of which branch ran first. The logic for the reserve-recycle scenario described in the MR checks out. The one thing I'd want confirmed before merging is whether any other failure path inside the transfer logic (frozen line, auth, etc., not just the reserve check) can still return a tec after the owner count has already been decremented, since tec results in rippled generally retain doApply's side effects"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-08-31T15:07:26Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-31T15:09:14Z",
+     "body": "The production fix in EscrowCancel.cpp reorders the owner-reserve release ahead of the fund transfer, gated on fixCleanup3_4_0, mirroring the already-shipped EscrowFinish/featureSponsor pattern described in the MR. The added conditional decreaseOwnerCountForObject call plus the explicit ctx_.view().update(sle) correctly account for the case where the account-count decrement now happens before the balance/trust-line mutation instead of after, so the reserve check inside trustCreate sees the correct net owner-object count. The accompanying test (testIOUCancelReserveRecycle) is well constructed and exercises both the fixed and unfixed behavior including the tec-recovery path. The one thing that"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-31T15:21:25Z",
+     "body": "## Pull request overview\n\nThis pull request adjusts `EscrowCancel` transaction application ordering so the escrow’s owner reserve is released *before* returning escrowed funds when `fixCleanup3_4_0` is enabled, preventing a false “insufficient reserve” failure when canceling an IOU escrow that must recreate a previously deleted trust line.\n\n**Changes:**\n- In `EscrowCancel`, gate a “reserve recycle” path on `fixCleanup3_4_0` that decrements owner count before the return transfer, then updates the account root accordingly.\n- Add a new regression test that reproduces the IOU cancel reserve edge case and verifies behavior both with and without the amendment enabled.\n\n### Reviewed changes\n\nCopilo"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-31T15:44:46Z",
+     "body": "This change mirrors the reserve-recycling pattern already applied to EscrowFinish under featureSponsor, now applying it to EscrowCancel under fixCleanup3_4_0 (and extending EscrowFinish to trigger on either amendment). The core logic looks correct: decreaseOwnerCountForObject is called before the fund transfer when the amendment is enabled, an explicit ctx_.view().update(sle) is added to persist balance changes made directly to the peeked SLE in that path, and the legacy ordering is preserved when the amendment is off. The added test testIOUCancelReserveRecycle exercises both amendment states and the recoverable tec path, and the Sponsor_test.cpp changes correctly extend coverage to test eac"
+    },
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2026-08-31T15:49:52Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-31T15:58:41Z",
+     "body": "The reorder in EscrowCancel and EscrowFinish moves decreaseOwnerCountForObject before the fund transfer so the reserve check inside trustCreate sees the correct (post-cancel) owner count. Since the account root SLE is a shared, cached object within the view's sandbox, decrementing sfOwnerCount before the transfer makes that decrement visible to the reserve check performed during trustCreate, and the trailing ctx_.view().update(sle) calls correctly ensure any balance mutations from the transfer are persisted regardless of which branch ran. The double-gating in EscrowFinish (featureSponsor || fixCleanup3_4_0) preserves the existing Sponsor behavior while extending early release to the unsponso"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-02T21:49:49Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes consensus-critical transaction application ordering and amendment-gated reserve accounting, which warrants final human review despite targeted tests.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 4/4 changed files\n- **Comments generated:** 1\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-09-03T01:06:14Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-09-03T01:06:52Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-09-03T01:17:18Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-03T11:48:52Z",
+     "body": "The change moves `decreaseOwnerCountForObject` earlier (gated by `fixCleanup3_4_0` in EscrowCancel, and by `featureSponsor || fixCleanup3_4_0` in EscrowFinish) so the escrow being destroyed isn't double-counted against the reserve check performed when the destination/owner's trust line is re-created. In both files the call is invoked exactly once per code path (either in the new early branch or the original late branch, mutually exclusive via `if (recycleReserve)` / `if (!recycleReserve)`), so there's no double-decrement or missed-decrement risk introduced. The EscrowFinish gate correctly ORs the two amendments so the fix applies whichever activates first, matching the stated intent. Test ch"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-03T14:52:32Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2026-09-03T15:49:50Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-09-03T15:50:16Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T16:08:19Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes amendment-gated transaction application ordering in consensus-critical escrow transactors, so it warrants final human review despite solid targeted test coverage.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 4/4 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mvadari",
+     "date": "2026-08-31T15:07:27Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "The `update` should be after the `decreaseOwnerCountForObject`",
+     "url": "https://github.com/XRPLF/rippled/pull/8142#discussion_r3895688517"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-31T15:21:24Z",
+     "path": "src/test/app/EscrowToken_test.cpp",
+     "body": "The loop that advances time to `cancelAfter` closes the ledger ~20 times per 100 seconds (Env::close() advances 5s per call). This makes the test slower than necessary; you can advance directly to just after `cancelAfter` with a single `close(time_point)` call.",
+     "url": "https://github.com/XRPLF/rippled/pull/8142#discussion_r3895797009"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-02T21:49:49Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "`ctx_.view().update(sle)` is only required when `recycleReserve` is true (because the later `decreaseOwnerCountForObject` call is skipped). In the legacy path (`recycleReserve == false`) this causes an unnecessary extra `update` because `decreaseOwnerCountForObject` already calls `view.update(accountSle)` internally (via `adjustOwnerCountImpl` in `AccountRootHelpers.cpp`). Consider making the update conditional to avoid redundant state-table modifications.",
+     "url": "https://github.com/XRPLF/rippled/pull/8142#discussion_r3918999031"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-03T01:06:13Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "Claude disagrees on this point. In short, it thinks `update()` sets a `dirty` flag that will be used later, and set once is enough. \n\nIn more detail: \n\nThe redundancy is real, but it isn't branch-specific — the `update` is a no-op on *both* paths, so making it conditional wouldn't help.                 \n                                                                                                                                                            \n`ApplyStateTable::update` doesn't snapshot the SLE; it stores the `shared_ptr` and only flips `Action::Cache` → `Action::Modify`. When `recycleReserve` is true, the early `decreaseOwnerCountForObject` on line 176 has already marked that s",
+     "url": "https://github.com/XRPLF/rippled/pull/8142#discussion_r3920101097"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-03T01:06:52Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "@dangell7 @oleks-rip `EscrowFinish` recycles the escrow reserve under `featureSponsor || fixCleanup3_4_0` but `EscrowCancel` only under `fixCleanup3_4_0` — was     \n  leaving Cancel out of the reorder in #7350 deliberate, or should `featureSponsor ||` be added here too?",
+     "url": "https://github.com/XRPLF/rippled/pull/8142#discussion_r3920103999"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-09-03T01:17:18Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "It was an oversight on EscrowCancel I think and here I didn't think we needed to add it.",
+     "url": "https://github.com/XRPLF/rippled/pull/8142#discussion_r3920153586"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-03T14:52:31Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "Yeah, it was just missed. We can't add the `featureSponsor` gate because that amendment has already been released.",
+     "url": "https://github.com/XRPLF/rippled/pull/8142#discussion_r3925764902"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-09-03T15:50:15Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp",
+     "body": "I see. Thanks for the explanation.",
+     "url": "https://github.com/XRPLF/rippled/pull/8142#discussion_r3926224674"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [
+  {
+   "number": 593,
+   "title": "Smart Escrow spec updates",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/593",
+   "state": "closed",
+   "isPr": true,
+   "author": "mvadari",
+   "createdAt": "2026-08-05T16:39:56Z",
+   "updatedAt": "2026-08-05T16:58:46Z",
+   "comments": 1,
+   "labels": []
+  },
+  {
+   "number": 579,
+   "title": "Smart Escrow spec updates",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/579",
+   "state": "closed",
+   "isPr": true,
+   "author": "mvadari",
+   "createdAt": "2026-07-13T19:19:40Z",
+   "updatedAt": "2026-07-14T22:05:45Z",
+   "comments": 0,
+   "labels": []
+  },
+  {
+   "number": 395,
+   "title": "Update Escrow Object Creation requirements",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/395",
+   "state": "closed",
+   "isPr": true,
+   "author": "dangell7",
+   "createdAt": "2025-10-17T17:41:12Z",
+   "updatedAt": "2026-01-16T10:33:37Z",
+   "comments": 3,
+   "labels": []
+  },
+  {
+   "number": 405,
+   "title": "XLS-100: Smart Escrows",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/405",
+   "state": "closed",
+   "isPr": true,
+   "author": "mvadari",
+   "createdAt": "2025-10-28T17:19:34Z",
+   "updatedAt": "2025-11-25T20:42:22Z",
+   "comments": 0,
+   "labels": []
+  },
+  {
+   "number": 345,
+   "title": "Add XLS-51d: 0051 XLS-51d: NFToken Escrows",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/345",
+   "state": "closed",
+   "isPr": true,
+   "author": "mvadari",
+   "createdAt": "2025-09-05T16:14:48Z",
+   "updatedAt": "2025-09-10T13:38:18Z",
+   "comments": 0,
+   "labels": []
+  },
+  {
+   "number": 272,
+   "title": "XLS-85d Token Escrow",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/272",
+   "state": "closed",
+   "isPr": true,
+   "author": "dangell7",
+   "createdAt": "2025-02-26T16:50:55Z",
+   "updatedAt": "2025-07-08T17:19:23Z",
+   "comments": 15,
+   "labels": []
+  },
+  {
+   "number": 291,
+   "title": "Update MPT spec with changes from Token Escrow",
+   "url": "https://github.com/XRPLF/XRPL-Standards/issues/291",
+   "state": "open",
+   "isPr": false,
+   "author": "sappenin",
+   "createdAt": "2025-06-23T17:04:42Z",
+   "updatedAt": "2025-06-23T17:04:42Z",
+   "comments": 0,
+   "labels": []
+  },
+  {
+   "number": 112,
+   "title": "XLS-34d: Token-Enabled Escrows and Payment Channels",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/112",
+   "state": "closed",
+   "isPr": true,
+   "author": "dangell7",
+   "createdAt": "2023-05-23T18:30:45Z",
+   "updatedAt": "2023-10-20T06:11:39Z",
+   "comments": 15,
+   "labels": []
+  }
+ ],
+ "branches": [
+  "dangell7/fix-token-escrow-v2",
+  "mvadari/smart-escrow-escrow-tx",
+  "mvadari/smart-escrow-fee-voting",
+  "mvadari/smart-escrow-update-se-fees",
+  "ripple/smart-escrow",
+  "ripple/smart-escrow2",
+  "ripple/smart-escrow-srlabs",
+  "smart-escrow/perf-test",
+  "smart-escrow/versioning"
+ ]
+}

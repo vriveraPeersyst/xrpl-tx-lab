@@ -1,0 +1,1074 @@
+{
+ "name": "SingleAssetVault",
+ "fetchedAt": "2026-09-16T10:47:49.744Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-06-09T03:38:35Z",
+  "lastMerged": "2025-09-04T08:54:24Z",
+  "release": "3.0.0",
+  "totalComments": 151
+ },
+ "release": {
+  "version": "3.0.0",
+  "date": "2025-12-09T18:31:40Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/3.0.0",
+  "excerpt": "Add `Scale` to SingleAssetVault by @Bronek in https://github.com/XRPLF/rippled/pull/5652"
+ },
+ "prs": [
+  {
+   "number": 5652,
+   "title": "Add `Scale` to SingleAssetVault",
+   "url": "https://github.com/XRPLF/rippled/pull/5652",
+   "state": "closed",
+   "author": "Bronek",
+   "createdAt": "2025-08-06T16:20:18Z",
+   "updatedAt": "2026-06-09T03:38:35Z",
+   "closedAt": "2025-09-04T08:54:24Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-08-07T12:09:01Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5652?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `97.92531%` with `5 lines` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 78.7%. Comparing base ([`c38f2a3`](https://app.codecov.io/gh/XRPLF/rippled/commit/c38f2a3f2e44c00885c703fba035fb606c7a61c5?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`011c3c6`](https://app.codecov.io/gh/XRPLF/rippled/commit/011c3c6b9894a6754907c2145b80791ab16894fd?dropd",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#issuecomment-3163921929"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-20T11:40:14Z",
+     "body": "@Tapanito re. https://github.com/XRPLF/rippled/pull/5652#discussion_r2287821904\n\nNot sure, how about `tecPRECISION_LOSS` ? Or maybe you can find something better in `include/xrpl/protocol/TER.h`",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#issuecomment-3205858781"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2025-08-20T14:25:04Z",
+     "body": "@Bronek, I went through the codes, I really like your  proposal to use `tecPRECISION_LOSS` , it's great.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#issuecomment-3206647143"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis change adds `Scale` to SAV when asset is an IOU, per https://github.com/XRPLF/XRPL-Standards/pull/301\n\nIt also removes empty `MPToken` for vault shares when `VaultClawback` or `VaultWithdraw` zeroes the holders shares balance.\n\n\n\n### Context of Change\n\nSAV shares are always expressed as an integer, since they are MPTs. We need to ensure that this loss of precision does not cause problems when asset has fractional part, like IOUs do.\n\n\n\n\n### Type of Change\n\n\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionalit",
+   "merged": true,
+   "mergedAt": "2025-09-04T08:54:24Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:Bronek/Vault_add_AssetScale",
+   "additions": 1862,
+   "deletions": 214,
+   "changedFiles": 17,
+   "commits": 43,
+   "reviewComments": 81,
+   "reviews": [
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2025-08-19T19:54:11Z",
+     "body": "I gave this a \"quick\" once-over for everything _except_ the `Vault_test` changes."
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2025-08-20T11:16:46Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-20T11:31:41Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-20T11:53:56Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-08-20T13:54:07Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-08-20T13:59:53Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-08-20T14:33:31Z",
+     "body": "Partial approval. All my previous concerns have been addressed, but I haven't gone through the bulk of the unit test changes yet."
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-20T15:26:28Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-20T17:14:31Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-20T17:23:16Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-20T17:26:26Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-20T17:38:23Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-20T17:40:21Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-20T17:41:21Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-20T17:47:57Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-20T17:49:43Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-20T17:56:49Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-20T17:57:53Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-20T18:04:06Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-21T08:43:09Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-21T15:58:38Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-21T17:12:05Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-21T19:08:33Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-21T19:10:47Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-22T14:32:43Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-22T14:38:20Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-22T14:51:07Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-22T14:54:33Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-26T16:58:52Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2025-08-27T00:33:04Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2025-08-27T14:56:34Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-28T12:10:27Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-28T13:12:32Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-28T13:35:34Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-28T13:41:08Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-08-28T13:46:35Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-08-28T22:57:27Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-08-28T23:00:32Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2025-08-28T23:13:32Z",
+     "body": "I have one suggestion about a log message, but it's so minor that I'm going to approve this whether you add it or not."
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-09-02T15:36:21Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-09-03T08:45:42Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-09-03T08:47:22Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-09-03T09:02:03Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-09-03T09:46:50Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2025-09-03T09:57:32Z",
+     "body": "👍 LGTM"
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2025-09-03T15:50:53Z",
+     "body": "I have couple of stylistic-ish nits, but otherwise looks good."
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-09-03T16:34:19Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-09-03T16:34:25Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-09-03T16:34:36Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2025-09-03T16:34:48Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2025-09-03T16:38:57Z",
+     "body": "I'm realizing there's a lot of duplicated code between `VaultClawback` and `VaultWithdraw` that can be refactored into helper functions, but that can be done later."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T16:01:52Z",
+     "path": "src/test/jtx/Account.h",
+     "body": "Typo:\n```suggestion\n    /** Create an Account from an account ID. Should only be used when the secret\n     * key is unavailable, such as for pseudo-accounts. */\n    explicit Account(std::string name, AccountID const& id);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2285708622"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T17:10:10Z",
+     "path": "src/test/jtx/impl/Env.cpp",
+     "body": "I don't think this `#include` is necessary\n```suggestion\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2285855977"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T17:19:04Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "```suggestion\n    [[maybe_unused]] auto const lossUnrealized = vault->at(sfLossUnrealized);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2285873480"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T17:48:34Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "This _could_ be a `tec`.\n```suggestion\n                return tecINTERNAL;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2285932675"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T17:57:29Z",
+     "path": "src/xrpld/app/tx/detail/VaultCreate.cpp",
+     "body": "Magic number alert. Where did this `18` come from? I assume it's that 10^18 overflows, but please at least add a comment. There's something similar in `STAmount.cpp`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2285949543"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T18:54:57Z",
+     "path": "src/xrpld/app/tx/detail/VaultCreate.cpp",
+     "body": "```suggestion\n    std::uint8_t const assetScale = (asset.holds<MPTIssue>() || asset.native())\n        ? 0\n        : ctx_.tx[~sfScale].value_or(vaultDefaultIOUScale);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2286078752"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T19:05:17Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "This could also be a `tec`\n```suggestion\n            return tecINTERNAL;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2286099925"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T19:07:33Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "You should be able to pass `amount` directly to `assetsToSharesWithdraw` without copying it first.\n```suggestion\n            // Fixed assets, variable shares.\n            shares = assetsToSharesWithdraw(vault, sleIssuance, amount);\n            if (shares == beast::zero)\n                return tecINSUFFICIENT_FUNDS;\n            assets = sharesToAssetsWithdraw(vault, sleIssuance, shares);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2286105407"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T19:09:55Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "```suggestion\n    [[maybe_unused]] auto const lossUnrealized = vault->at(sfLossUnrealized);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2286110392"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T19:46:44Z",
+     "path": "src/xrpld/ledger/View.h",
+     "body": "Suggestion: On the summary of `assetsToSharesDeposit`, add a note that the shares are always truncated to a whole number.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2286179946"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T19:47:49Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "```suggestion\n    Number const assetTotal = vault->at(sfAssetsTotal);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2286181825"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T19:47:57Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "```suggestion\n    Number const assetTotal = vault->at(sfAssetsTotal);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2286182052"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-19T19:48:54Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "```suggestion\n    Number const shareTotal = issuance->at(sfOutstandingAmount);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2286183789"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2025-08-20T10:28:13Z",
+     "path": "src/xrpld/app/tx/detail/VaultCreate.cpp",
+     "body": "```suggestion\n        auto const vaultAsset = ctx.tx[sfAsset];\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2287721444"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2025-08-20T10:41:40Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "```suggestion\n            Asset const share = *(*vault)[sfShareMPTID];\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2287758153"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2025-08-20T10:46:50Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "nit: perhaps these could be renamed to better reflect that these are shares that will be burned and assets that will be clawedback? For example, `sharesToBurn` and `assetsToReturn`,",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2287769605"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2025-08-20T11:05:11Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "Similarly to a comment in `VaultWithdraw.cpp` you can directly pass `amount`  to `assetsToSharesDeposit` and check `assetsToTake` against amount. It makes the code slightly clearer, and does not require a copy :thinking: \n\n```suggestion\n    STAmount shares = {vault->at(sfShareMPTID)}, assets;\n    try\n    {\n        // Compute exchange before transferring any amounts.\n        shares = assetsToSharesDeposit(vault, sleIssuance, amount);\n        if (shares == beast::zero)\n            return tecINSUFFICIENT_FUNDS;\n\n        XRPL_ASSERT(\n            shares.asset() != assets.asset(),\n            \"ripple::VaultDeposit::doApply : assets are not shares\");\n        auto const assetsToTake =\n            sh",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2287813432"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2025-08-20T11:08:56Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "```\nif (shares == beast::zero)\n    return tecINSUFFICIENT_FUNDS;\n````\n\nIf my understanding is correct, shares will equal zero when user tried to withdraw fewer assets than permitted by the scale factor. \n`tecINSUFFICIENT_FUNDS`  suggests that the user doesn't have enough funds, where as in reality they tried to withdraw too small of an amount. \n\nIs there an alternative `tec` code we could return to clarify this distinction?",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2287821904"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-20T11:31:41Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "if I go this way, I feel I would have to do it consistently in other transactions; and that would be needlessly loquacious",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2287877578"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-20T11:53:56Z",
+     "path": "src/xrpld/app/tx/detail/VaultCreate.cpp",
+     "body": "Added to `include/xrpl/protocol/Protocol.h` with a comment to explain how it was chosen",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2287929044"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-20T13:54:07Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "> If my understanding is correct, shares will equal zero when user tried to withdraw fewer assets than permitted by the scale factor. `tecINSUFFICIENT_FUNDS` suggests that the user doesn't have enough funds, where as in reality they tried to withdraw too small of an amount.\n> \n> Is there an alternative `tec` code we could return to clarify this distinction?\n\n`tecPATH_DRY`?",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288255721"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-20T13:59:53Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "> if I go this way, I feel I would have to do it consistently in other transactions; and that would be needlessly loquacious\n\nLoquacious can be good... I'm thinking of a few years down the line when someone who hasn't looked at this code in a long time has to make a change. Having slightly more verbose variable names could reduce the cognitive load when figuring out what's going on. This might be even _more_ true in a case like Vault where you've got a bunch of different transactions using the same names (currently) for different purposes.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288279295"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-20T14:15:22Z",
+     "path": "include/xrpl/protocol/Protocol.h",
+     "body": "Typo, plus a suggestion.\n```suggestion\n/** Maximum scale factor for a Vault. The number is chosen to ensure that\n1 IOU can be always converted to shares.\n10^19 > maxMPTokenAmount (2^64-1) > 10^18 */\nstd::uint8_t constexpr vaultMaximumIOUScale = 18;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288330277"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-20T15:26:28Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "Fair enough. I will not be using `assetsTo...` or `sharesTo...` though, since there are conversions functions, used in the same code location which start with such prefix - so it would be visually confusing.\n\nInstead I will use adjectives e.g. `assetsDeposited` `sharesCreated` `assetsRecovered` `sharesDestroyed` `assetsWithdrawn` `sharesRedeemed` (and I hope you can guess which one of these goes where)",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288535905"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-20T17:14:31Z",
+     "path": "include/xrpl/protocol/detail/ledger_entries.macro",
+     "body": "```suggestion\n    {sfScale,                soeOPTIONAL},\n```\nIf the default value `sfScale` in the Vault object is `vaultDefaultIOUScale`, it should be `soeOPTIONAL`.  Making it `soeDEFAULT` would mean that this scale has a default value of 0, which is not the case here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288816275"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-20T17:23:15Z",
+     "path": "src/xrpld/app/tx/detail/VaultCreate.cpp",
+     "body": "If the vault object always has a sfScale field, then we could also declare it as soeREQUIRED in the ledger entry macro",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288834045"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-20T17:26:26Z",
+     "path": "src/xrpld/app/tx/detail/VaultCreate.cpp",
+     "body": "it is `soeDEFAULT` , I am not sure what this will do when we set this to zero ? This field will be always zero for vaults which hold assets other than IOU. Should I make this line conditional on `if (scale)` ?",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288840729"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-20T17:38:23Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "fyi: tecPATH_DRY is only used by the payment engine when the payment fails to find liquidity in the paths.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288865241"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-20T17:40:21Z",
+     "path": "src/xrpld/app/tx/detail/VaultCreate.cpp",
+     "body": "Yeah i think a condition would work.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288869355"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-20T17:41:21Z",
+     "path": "include/xrpl/protocol/detail/ledger_entries.macro",
+     "body": "resolving this as the default value will be zero for MPT",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288871400"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-20T17:47:57Z",
+     "path": "src/xrpld/app/tx/detail/VaultCreate.cpp",
+     "body": "What soeDEFAULT does is that when sfScale is read like vault->at(sfScale), it will return a default value of zero if the field doesn't exist. In the our case, we are always setting this field, so  soeREQUIRED is more suitable, unless we add a condition like you've suggested.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288885753"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-20T17:49:43Z",
+     "path": "src/xrpld/app/tx/detail/VaultCreate.cpp",
+     "body": "soeREQUIRED: The field must always be present and must always have an explicit value.\n\nsoeDEFAULT; If the field is not actually \"present\" in the object, then it is assumed to have a default value of zero.  So it's okay to read an soeDEFAULT field that has never been initialized; you'll get back zero.  But you also cannot explicitly initialize an soeDEFAULT field to that default state.\n\nsoeOPTIONAL : This field may or may not be present.  If the field is not present, then reading the value produces an exception.\n\nEDIT: this was an explanation from Scott Schurr.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288889254"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-20T17:56:49Z",
+     "path": "src/xrpld/app/tx/detail/VaultCreate.cpp",
+     "body": "Just added the condition",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288903685"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-20T17:57:53Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "We also return `tecPATH_DRY` if MPT payment hits a limit of `maxMPTokenAmount`, see `rippleSendMPT` in `View.cpp`. So this use is consistent with that error.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288905753"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-20T18:04:05Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "Yes, MPT returns this to mimic the payment engine, since MPTV1 is a more of a hardcoded version of payment engine that only supports direct transfer. The idea was to treat it as a generic error and keep the details hidden from the user. That said, this may not have been the best choice of error code—users would probably prefer something more specific. I don’t have a strong stance on using this error code for vault though, since I wasn’t directly involved in the vault design. I'm okay with leaving it as it is.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2288917880"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-21T08:43:09Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "I am open to switching to a different code, just do not have any idea what a better code could be.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2290346097"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-21T15:58:38Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "Alternatively, we could construct STAmount in preclaim.  if it throws, we return temMALFORMED (some transactors throw tem code in preclaim). I dont have a strong opinion tho\n\n```\nSTAmount{\n            shares.asset(),\n            Number(assets.mantissa(), assets.exponent() + vault->at(sfScale))\n                .truncate()}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2291499757"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-21T17:12:05Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "Just want to make sure I understand this correctly. Please let me know if I’m missing something - I’m still pretty new to SAV, so apologies if this is a naive question.\n\nWe’re trying to address a precision loss issue when converting an IOU amount (stored as a floating point) into an MPT amount (stored as an integer). Currently, during `STAmount::canonicalize`, if the asset type is MPT(in the case of vault, it is always MPT), the conversion forces the exponent down to 0 by dividing repeatedly, which results in losing decimal places.\n\nTo fix this, we’re introducing an Scale, which shifts the decimal point by increasing the exponent during `STAmount` construction, so fractional IOU amounts can ",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2291680830"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-21T19:08:32Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "I don't think that would be better. We can also throw in the computation where we calculate shares from assets. In principle we could perform identical computations in `preclaim` and in `doApply` but this seems like unnecessary duplication - and even if factored out, I do not like the complexity it would create.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2291911466"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-21T19:10:47Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "Yes, the representation of transaction metadata (e.g. transfer of shares in `VaultDeposit`) will have the scale applied, and in this specific example it would be indeed `20300000` shares moved to the depositor.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2291915816"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-22T14:32:43Z",
+     "path": "include/xrpl/basics/Number.h",
+     "body": "what's the reason for needing to truncate the shares? Wouldn't it work without it?",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2293903280"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-22T14:38:20Z",
+     "path": "include/xrpl/basics/Number.h",
+     "body": "the assignment to `shares` would perform rounding to nearest and we do not want that in two cases\n- calculation of assets to take from the depositor in `VaultDeposit`\n- calculation of assets to clawback when the original (rounded) calculation hits `AssetsAvailable` limit\n\nIn all cases we first calculate `shares` (which, depending on context would be rounded or truncated - as listed above) and then calculate `assets` to match the `shares`",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2293916228"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-22T14:51:06Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "so what would be the next steps for the user if they get this error? is the recommended proposal to deposit/withdraw less amount?",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2293956683"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-22T14:54:33Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "yes.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2293964595"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-26T16:57:24Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "some other places in this PR uses isTesSuccess to check the result. I think we'd prefer to use this for explicitness and consistency",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2301598329"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-26T16:58:14Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "same here",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2301600353"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-26T16:58:40Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "same here",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2301601367"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-26T22:31:35Z",
+     "path": "src/xrpld/app/tx/detail/VaultDelete.cpp",
+     "body": "This is only fine if it fails because the MPToken doesn't exist. If it fails for any other reason, then the `VaultDelete` should fail.\n\nYou could just check for `techOBJECT_NOT_FOUND`, but I would go so far as to say that you should only call `removeEmptyHolding` if the `MPToken` exists, and return any non-success result. \n```suggestion\n    // Try to remove MPToken for vault shares for the vault owner if it exists.\n    auto const shareMPTID = vault->at(sfShareMPTID);\n    if (auto const mptoken = view.peek(keylet::mptoken(shareMPTID, account_)))\n    {\n\t    if (auto const ter = removeEmptyHolding(\n\t            view(), account_, MPTIssue(vault->at(sfShareMPTID)), j_);\n\t        !isTesSuccess(ter",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2302288404"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-26T22:55:39Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "1. `vault` is a ledger object, so you should be checking `lsfVaultPrivate`. Fortunately, the values are equivalent, but that's not guaranteed, and could cause major havoc if they aren't. (As an aside, we really need stronger typing on these flags...)\n2. What happens if `lsfVaultPrivate` is set, but `account_ != vault->at(sfOwner)`?",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2302324013"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-26T23:44:25Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "I'm wondering if this should be an actual check that returns instead of (or in addition to) an assert. The consequences would be pretty bad if some edge case slipped through.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2302399806"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-26T23:55:06Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "I know I'm splitting hairs, here. The comment specifies \"Depositor withdraws shares\". That doesn't make sense to me. It would make more sense as \"Depositor redeems shares\", or \"Depositor withdraws assets\".",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2302419259"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-27T00:10:02Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "No objection, but is there a reason you pass `keylet` as a parameter instead of capturing it?",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2302448896"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-27T00:12:18Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "I think this test case is identical to the previous one, `\"Scale deposit overflow on second deposit\"`",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2302452136"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-28T12:10:27Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "Re 1. well spotted, I fixed it here and in a small number of locations.\n\nRe 2. this check `account_ == vault->at(sfOwner)` is redundant, I removed it and replaced with a comment to explain why exactly it is redundant (hint: see outer enclosing `if`)",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2307211832"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-28T13:12:32Z",
+     "path": "src/xrpld/ledger/detail/View.cpp",
+     "body": "Thanks, added defensive checks.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2307378737"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-28T13:35:34Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "I do not remember which compiler/version was that, but we had problems with capture of variables introduced from tuple-like structured binding declaration, so `keylet` had to be captured (for some compiler) using explicitly captured variable. You can see this applied through this file; I decided to use simpler syntax in this case instead.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2307443435"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-28T13:41:08Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "it's not. The 5 being deposited here does not result in an exception (thrown, then captured and converted into `tecPATH_DRY`) like in the above test, where the amount was 10. Instead we go one step further to attempt to create new shares for the depositor, and receive an error inside `accountSend` from `maximumAmount` check inside `rippleSendMPT` at https://github.com/XRPLF/rippled/blob/d145666198610d73e32951d9b9039c3ecb7caa92/src/xrpld/ledger/detail/View.cpp#L2056",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2307458549"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-08-28T13:46:35Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "thanks, added explicit `isTesSuccess(ter)` . I also prefer it, only missed in few places, thanks for spotting it !",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2307473566"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-28T22:57:26Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "> I do not remember which compiler/version was that, but we had problems with capture of variables introduced from tuple-like structured binding declaration, so `keylet` had to be captured (for some compiler) using explicitly captured variable. You can see this applied through this file; I decided to use simpler syntax in this case instead.\n\nThat makes sense!",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2308716673"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-28T23:00:32Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "> it's not. The 5 being deposited here does not result in an exception (thrown, then captured and converted into `tecPATH_DRY`) like in the above test, where the amount was 10. Instead we go one step further to attempt to create new shares for the depositor, and receive an error inside `accountSend` from `maximumAmount` check inside `rippleSendMPT` at\n\nOh! Ok, I missed that the second deposit was 10 in the first test case and 5 in the second. Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2308719686"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-28T23:05:12Z",
+     "path": "src/xrpld/app/tx/detail/VaultDelete.cpp",
+     "body": "Maybe add `transToken(ter)` to the output to give a clue why it couldn't be deleted?",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2308724092"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-28T23:12:59Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "> Re 2. this check `account_ == vault->at(sfOwner)` is redundant, I removed it and replaced with a comment to explain why exactly it is redundant (hint: see outer enclosing `if`)\n\nI don't think I had the full context from the diff. This is a good improvement.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2308739325"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-09-02T11:14:54Z",
+     "path": "include/xrpl/basics/Number.h",
+     "body": "Can simplify or maybe just use combination of `towards_zero` rounding and `static_cast` since `truncate()` usage is limited.\n\n    inline Number\n    Number::truncate() const noexcept\n    {\n        if (exponent_ >= 0 || mantissa_ == 0)\n            return *this;\n    \n        NumberRoundModeGuard mg(Number::towards_zero);\n        return static_cast<rep>(*this);\n    }",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2315767194"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-09-02T14:09:12Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Should this be `sfShareScale` to stress that it applies to the shares?",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2316216004"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-09-02T14:23:02Z",
+     "path": "src/xrpld/app/tx/detail/VaultDeposit.cpp",
+     "body": "Consider defining `assetsDeposited` on a separate line. I don't think we really do this chained definition. It's also easier to read if defined on a separate line.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2316256774"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-09-02T14:38:14Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "Consider defining `assetsWithdraw` on a separate line for a better readability and style consistency.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2316300437"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-09-02T15:02:32Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "Because of the truncation/recalculation, which is done on deposit and recalculation here then is it possible that if I deposit A and get S; if I withdraw A then I'll redeem more than S and likewise, if I withdraw S then I'll get less than A? Another case would be also bad; i.e. I withdraw A and redeem less than S and I withdraw S and get more than A. The same concern applies to `VaultClawback`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2316372045"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-09-02T15:03:35Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "Consider defining `assetsRecovered` on a separate line.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2316374812"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-09-02T15:22:05Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "Shouldn't error be returned on failure?",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2316424457"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-09-03T08:45:42Z",
+     "path": "include/xrpl/basics/Number.h",
+     "body": "I am not sure if that would be an improvement, given the complexity of `operator rep()`. On the other hand, `normalize()` is also quite complex. However with the current implementation we can guarantee `noexcept` and I am not sure how this would look like if we used `operator rep()`\n\nI will add a comment about `noexcept` and leave it like this for now.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2318249819"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-09-03T08:47:22Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "The `sfScale` is used to similar effect elsewhere already; I think it's better to stick to this name.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2318254872"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-09-03T09:02:03Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "Maybe. We are opportunistically trying to remove `MPToken` in case if its balance is zero. This is expected to fail if the balance is not zero, and we want to ignore this error.\n\nOn the other hand, reporting other errors would be useful here. I will add it.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2318303499"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-09-03T09:46:49Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "If we are given an A (number of assets) then we _always_ (i.e. in `VaultDeposit` `VaultClawback` `VaultWithdraw`) do _roundtrip_ _calculation_ : first from assets to shares, then from such rounded shares to assets again. This guarantees that the number of assets _always_ corresponds with the number of shares, bar rounding of assets (for MPT or XRP) which can go either way. This is similar how DEX works when one side is XRP - which also can go either way due to rounding. If the asset is an IOU then there is no rounding of assets (other than epsilon) which is also similar to how DEX works.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2318417133"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-09-03T15:39:26Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "Rather than using the `*` operator every time you access `mptIssuanceID`, you could do it when you do the initial lookup:\n```suggestion\n    auto const mptIssuanceID = *(*vault)[sfShareMPTID];\n    auto const sleIssuance = view().read(keylet::mptIssuance(mptIssuanceID));\n\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2319375019"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-09-03T15:43:07Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "Even with the `else if`, `ter` is only used in the context of the `if`, so you can put it back.\n```suggestion\n        if (auto const ter =\n                removeEmptyHolding(view(), holder, sharesDestroyed.asset(), j_);\n            isTesSuccess(ter))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2319384649"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-09-03T15:44:24Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "Same as in `VaultClawback`, `mptIssuanceID` can be declared with the `*`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2319388308"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-09-03T15:44:53Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "Same as in `VaultClawback`, `ter` can be put back into the `if` statement.",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2319389612"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-09-03T16:34:19Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "thanks, implemented in https://github.com/XRPLF/rippled/pull/5652/commits/6893015759ad8b7041611551c453b6efd9ac9051 (with extra parents for readability)",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2319514550"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-09-03T16:34:25Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "thanks, implemented in https://github.com/XRPLF/rippled/pull/5652/commits/6893015759ad8b7041611551c453b6efd9ac9051 (with extra parents for readability)",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2319514771"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-09-03T16:34:35Z",
+     "path": "src/xrpld/app/tx/detail/VaultClawback.cpp",
+     "body": "thanks, implemented in https://github.com/XRPLF/rippled/pull/5652/commits/6893015759ad8b7041611551c453b6efd9ac9051",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2319515166"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-09-03T16:34:48Z",
+     "path": "src/xrpld/app/tx/detail/VaultWithdraw.cpp",
+     "body": "thanks, implemented in https://github.com/XRPLF/rippled/pull/5652/commits/6893015759ad8b7041611551c453b6efd9ac9051",
+     "url": "https://github.com/XRPLF/rippled/pull/5652#discussion_r2319515632"
+    }
+   ]
+  },
+  {
+   "number": 5444,
+   "title": "Enable `SingleAssetVault` feature",
+   "url": "https://github.com/XRPLF/rippled/pull/5444",
+   "state": "closed",
+   "author": "Bronek",
+   "createdAt": "2025-05-21T16:18:28Z",
+   "updatedAt": "2026-02-07T18:08:50Z",
+   "closedAt": "2026-01-07T17:44:34Z",
+   "labels": [
+    "Triaged"
+   ],
+   "comments": [
+    {
+     "author": "RomThpt",
+     "date": "2025-06-03T08:17:11Z",
+     "body": "Hey, just checking in on this PR. Wanted to know how it’s going — I’d like to start testing the feature.",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-2934073999"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-06-03T11:30:10Z",
+     "body": "> Hey, just checking in on this PR. Wanted to know how it’s going — I’d like to start testing the feature.\n\nYou can start testing it now; I try to keep this branch up-to-date with the current `develop`. The remaining planned changes related to this PR won't change much in your experience (see comment https://github.com/XRPLF/rippled/pull/5224#issuecomment-2895251022 for details)",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-2934799284"
+    },
+    {
+     "author": "RomThpt",
+     "date": "2025-06-05T08:18:03Z",
+     "body": "Hi @Bronek, thanks for the help.\n\nI’ve been trying to test the SingleAssetVault feature myself, but it seems like the feature isn’t enabled yet—I’m getting a message that it’s not supported. Could you clarify how the Ripple team is enabling or testing it on their end?\n\nShould we be toggling a specific feature flag or config to activate it locally? Any guidance would be appreciated!\n\nThanks!",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-2943206295"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-06-05T09:01:38Z",
+     "body": "> Hi @Bronek, thanks for the help.\n> \n> I’ve been trying to test the SingleAssetVault feature myself, but it seems like the feature isn’t enabled yet—I’m getting a message that it’s not supported. Could you clarify how the Ripple team is enabling or testing it on their end?\n> \n> Should we be toggling a specific feature flag or config to activate it locally? Any guidance would be appreciated!\n> \n> Thanks!\n\nYes, you need to cherry pick this commit onto `develop` or whatever branch you are working on, or change `Supported::no` to `Supported::yes` in the `features.macro` file",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-2943343260"
+    },
+    {
+     "author": "RomThpt",
+     "date": "2025-06-05T09:05:38Z",
+     "body": "Hey, thank you, but I think in this branch the feature is enabled. Am I wrong?",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-2943356045"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-06-05T09:10:29Z",
+     "body": "> Hey, thank you, but I think in this branch the feature is enabled. Am I wrong?\n\nOops. lol yes this branch will work. I'm assuming you are running standalone? Then you need to either use a genesis.json or add the feature to the config. https://github.com/XRPLF/xrpl.js/blob/392a2037074ab53e4c40aad734117bdf13a69296/.ci-config/rippled.cfg#L187",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-2943372943"
+    },
+    {
+     "author": "RomThpt",
+     "date": "2025-06-05T16:42:24Z",
+     "body": "I’m running on my standalone this : \n\n```zsh\n\ncurl -s -X POST http://localhost:5007 -H \"Content-Type: application/json\" -d '{\"method\": \"feature\", \"params\": [{}]}' | grep -A 5 SingleAssetVault\n```\n\nand after running it I get :\n```\n\"81BD2619B6B3C8625AC5D0BC01DE17F06C3F0AB95C7C87C93715B87A4FD240D8\":{\"count\":0,\"enabled\":false,\"name\":\"SingleAssetVault\",\"supported\":true,\"threshold\":1,\"validations\":0,\"vetoed\":false} \n```\n\nMy standalone config is :  \n```cfg\n[server]\nport_peer\nport_ws\nport_http\nport_ws_admin\nport_ws_public\n\n[port_peer]\nport = 51235\nip = 0.0.0.0\nprotocol = peer\n\n[port_ws]\nport = 6005\nip = 0.0.0.0\nprotocol = ws\nadmin = 0.0.0.0\nsend_queue_limit = 500\n\n[port_http]\nport = 5005\nip = 0.0.0.",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-2945207424"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-06-23T11:43:34Z",
+     "body": "> I’m running on my standalone this :\n> \n> ```shell\n> curl -s -X POST http://localhost:5007 -H \"Content-Type: application/json\" -d '{\"method\": \"feature\", \"params\": [{}]}' | grep -A 5 SingleAssetVault\n> ```\n> . . . \n> What do I need to do to enable it ?\n\nYou should not need a long list of `[rpc_startup]` commands to enable a feature which is already listed in `[features]` section. Also, if you switch your `rippled` command line options from `--standalone` to `--start` you will just run an isolated ledger with everything you want.",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-2996152244"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2025-07-17T09:06:35Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5444?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.6%. Comparing base ([`13a12c6`](https://app.codecov.io/gh/XRPLF/rippled/commit/13a12c6402615c224e053764feaac7ed0286241a?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`94a1fac`](https://app.codecov.io/gh/XRPLF/rippled/commit/94a1facf7b6e50640d1806a2b66bbf445e4b24c2?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-3083264760"
+    },
+    {
+     "author": "Bronek",
+     "date": "2025-09-26T16:28:38Z",
+     "body": "> Maybe a stupid question, but what's the point of enabling Vault if there's nothing else that can use it yet? (e.g. Lending)\n\nSo we do not have a PR enabling more features at once ?",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-3339487709"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-09-29T17:41:15Z",
+     "body": "> So we do not have a PR enabling more features at once ?\n\n1. I don't think there's any harm in enabling more than one feature at once.\n2. I think the transitive enabling we talked about last week is a viable option.\n3. I don't think SAV should be enabled until we've resolved the `VaultWithdraw.Destination` payment issues that I took a first crack at in #5629.",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-3348215800"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-09-29T22:32:49Z",
+     "body": "> > So we do not have a PR enabling more features at once ?\n> \n>     1. I don't think there's any harm in enabling more than one feature at once.\n> \n>     2. I think the transitive enabling we talked about last week is a viable option.\n> \n>     3. I don't think SAV should be enabled until we've resolved the `VaultWithdraw.Destination` payment issues that I took a first crack at in [DRAFT: Ximinez/lending vault payments #5629](https://github.com/XRPLF/rippled/pull/5629).\n\nDraft PR: #5826, assuming unit tests pass.",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-3349273756"
+    },
+    {
+     "author": "vlntb",
+     "date": "2025-10-17T15:17:06Z",
+     "body": "Should be enabled after Lending Protocol is done.",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-3416006806"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-01-07T17:44:34Z",
+     "body": "Closing in favor of #5632.",
+     "url": "https://github.com/XRPLF/rippled/pull/5444#issuecomment-3720016109"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nSwitch `Supported::yes` for `SingleAssetVault` feature.\n\n## High Level Overview of Change\n\nThis PR will enable `SingleAssetVault` feature, implemented in #5224.\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [x] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation upda",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:Bronek/vault_enable",
+   "additions": 1,
+   "deletions": 1,
+   "changedFiles": 1,
+   "commits": 39,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2025-09-26T15:47:53Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-09-26T16:25:33Z",
+     "body": "Maybe a stupid question, but what's the point of enabling Vault if there's nothing else that can use it yet? (e.g. Lending)"
+    }
+   ],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

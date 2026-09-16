@@ -1,0 +1,262 @@
+{
+ "name": "fixTrustLinesToSelf",
+ "fetchedAt": "2026-09-16T11:01:24.601Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:22:06Z",
+  "lastMerged": "2025-11-05T14:56:20Z",
+  "release": "1.10.0",
+  "totalComments": 28
+ },
+ "release": {
+  "version": "1.10.0",
+  "date": "2023-03-14T18:20:01Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.10.0",
+  "excerpt": "`fixTrustLinesToSelf`**: Trust lines must be between two different accounts, but two exceptions exist because of a bug that briefly existed. This amendment removes those trust lines. [69bb2be](https://github.com/XRPLF/rippled/pull/4270/commits/69bb2be446e3cc24c694c0835b48bd2ecd3d119e)"
+ },
+ "prs": [
+  {
+   "number": 5989,
+   "title": "Retire fixTrustLinesToSelf",
+   "url": "https://github.com/XRPLF/rippled/pull/5989",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2025-11-03T16:23:53Z",
+   "updatedAt": "2026-05-20T17:22:06Z",
+   "closedAt": "2025-11-05T14:56:20Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "a1q123456",
+     "date": "2025-11-03T16:24:23Z",
+     "body": "The code is here but we need to double check if there's no buggy trust lines so I'll update later.",
+     "url": "https://github.com/XRPLF/rippled/pull/5989#issuecomment-3481396178"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-03T17:43:28Z",
+     "body": "```\n[\n    {\n        \"Balance\": {\n            \"currency\": \"KZC\",\n            \"issuer\": \"rrrrrrrrrrrrrrrrrrrrBZbvji\",\n            \"value\": \"-1.01\"\n        },\n        \"Flags\": 131072,\n        \"HighLimit\": {\n            \"currency\": \"KZC\",\n            \"issuer\": \"r3cte32EE48W6muEUG2dFnfPmP2Q6bSgi3\",\n            \"value\": \"0\"\n        },\n        \"HighNode\": \"0\",\n        \"LedgerEntryType\": \"RippleState\",\n        \"LowLimit\": {\n            \"currency\": \"KZC\",\n            \"issuer\": \"r3cte32EE48W6muEUG2dFnfPmP2Q6bSgi3\",\n            \"value\": \"0\"\n        },\n        \"LowNode\": \"0\",\n        \"PreviousTxnID\": \"79AAFF16B3AFDCB46724BB69EADD154F3524106F6F01FC4A8494E02904758DF9\",\n        \"PreviousTxnLgrSeq\": 639027,",
+     "url": "https://github.com/XRPLF/rippled/pull/5989#issuecomment-3481754024"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-03T17:43:59Z",
+     "body": "Attaching my script here:\n```python\n#!/usr/bin/env python3\n\"\"\"\nFetch all RippleState trust lines from a given XRP Ledger ledger\nand return only those where LowLimit.issuer == HighLimit.issuer.\n\nNotes\n- Uses JSON-RPC over HTTP POST to the server (e.g. Ripple's public Clio).\n- Ignores any 'id' field from examples; not needed.\n- Forces type = \"RippleState\" and binary = false.\n- Handles both plain and 'FinalFields' wrapped entries.\n- Streams results to a JSONL file to avoid high memory usage.\n\nExample:\n  python find_same_issuer_trustlines.py \\\n      --server https://s1.ripple.com:51234 \\\n      --ledger-hash 842B57C1CC0613299A686D3E9F310EC0422C84D3911E5056389AA7E5808A93C8 \\\n      --out matches.js",
+     "url": "https://github.com/XRPLF/rippled/pull/5989#issuecomment-3481757651"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-11-03T19:33:29Z",
+     "body": "@a1q123456 Can you post just the ledger entry IDs of the objects your script found? They should have been impossible to create, so I'm wondering if the amendment actually failed to do what it was supposed to.",
+     "url": "https://github.com/XRPLF/rippled/pull/5989#issuecomment-3482172819"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-04T13:54:49Z",
+     "body": "> @a1q123456 Can you post just the ledger entry IDs of the objects your script found? They should have been impossible to create, so I'm wondering if the amendment actually failed to do what it was supposed to.\n\nI think I was checking against an old ledger, and they don't exist anymore now. The ledger entry hash are `326035D5C0560A9DA8636545DD5A1B0DFCFF63E68D491B5522B767BB00564B1A` and `2F8F21EFCAFD7ACFB07D5BB04F0D2E18587820C7611305BB674A64EAB0FA71E1` and they exist on the `842B57C1CC0613299A686D3E9F310EC0422C84D3911E5056389AA7E5808A93C8` ledger",
+     "url": "https://github.com/XRPLF/rippled/pull/5989#issuecomment-3486124278"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-04T13:56:02Z",
+     "body": "Checked against the ledger `F8A1E664EC9DDAE2922F798E2B4D6B02804502022EC24AC1AE1A94E8742AF9E9` and I don't see any trust lines that the two accounts are the same.\n\n```\npython test.py --ledger-hash F8A1E664EC9DDAE2922F798E2B4D6B02804502022EC24AC1AE1A94E8742AF9E9\nScanned RippleState entries: 4318\nMatches where LowLimit.issuer == HighLimit.issuer: 0\nWrote matches to: matches.jsonl\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5989#issuecomment-3486130676"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2025-11-05T10:22:50Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5989?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.3%. Comparing base ([`f28ba57`](https://app.codecov.io/gh/XRPLF/rippled/commit/f28ba57b81ee63c300f8b45c4ae45be9eddade81?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`47d8200`](https://app.codecov.io/gh/XRPLF/rippled/commit/47d820071f77f73be7125372cb5a1e5ef14bebb5?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5989#issuecomment-3490375680"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-11-05T14:56:20Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/retire-fixTrustLinesToSelf",
+   "additions": 5,
+   "deletions": 128,
+   "changedFiles": 5,
+   "commits": 2,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "vvysokikh1",
+     "state": "APPROVED",
+     "date": "2025-11-05T12:00:42Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-11-05T14:32:04Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 4105,
+   "title": "`fixTrustLinesToSelf`: Introduce amendment to handle trustlines to self",
+   "url": "https://github.com/XRPLF/rippled/pull/4105",
+   "state": "closed",
+   "author": "a-noni-mousse",
+   "createdAt": "2022-02-20T07:33:49Z",
+   "updatedAt": "2023-05-18T05:29:56Z",
+   "closedAt": "2023-03-15T04:12:24Z",
+   "labels": [
+    "Tech Debt",
+    "Amendment",
+    "Testable"
+   ],
+   "comments": [
+    {
+     "author": "manojsdoshi",
+     "date": "2022-05-04T19:04:51Z",
+     "body": "@cryptobrad can you please rebase your PR to 1.9 it is giving us merge conflicts while adding this to the next beta. Thanks 🙏",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#issuecomment-1117705720"
+    },
+    {
+     "author": "a-noni-mousse",
+     "date": "2022-07-29T19:20:21Z",
+     "body": "I have finished the rebase. Will this be merged?",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#issuecomment-1199873977"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-16T05:46:17Z",
+     "body": "Because this PR was originally merged with only 1 approval (and we generally require 2 from core ledger engineers), I asked @drlongle to review. @a-noni-mousse @nbougalis could you respond to the thoughts above?\n\nWe see that there are two trust lines hard-coded to be deleted. Can someone share how they verified that these trust lines are actually to self? Also, can you share how you confirmed that there are no other trust lines to self?",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#issuecomment-1432557131"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-23T00:53:57Z",
+     "body": "@a-noni-mousse @nbougalis if either of you would like to make the changes suggested by **drlongle** above, please open a new PR with your changes. Thank you!",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#issuecomment-1441084522"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-27T22:12:11Z",
+     "body": "- Take current ledger; iterate all trustline (RippleState) objects, and list any trustlines where the two sides of the trustline are equal to each other, i.e. if A and B are the same.\n\nWe know of these:\n- [2F8F21EFCAFD7ACFB07D5BB04F0D2E18587820C7611305BB674A64EAB0FA71E1](https://xrpl.org/websocket-api-tool.html?server=wss%3A%2F%2Fs1.ripple.com%2F&req=%7B%22command%22%3A%22ledger_entry%22%2C%22index%22%3A%222F8F21EFCAFD7ACFB07D5BB04F0D2E18587820C7611305BB674A64EAB0FA71E1%22%2C%22ledger_index%22%3A%22validated%22%7D)\n- [326035D5C0560A9DA8636545DD5A1B0DFCFF63E68D491B5522B767BB00564B1A](https://xrpl.org/websocket-api-tool.html?server=wss%3A%2F%2Fs1.ripple.com%2F&req=%7B%22command%22%3A%22ledger_",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#issuecomment-1447193522"
+    },
+    {
+     "author": "a-noni-mousse",
+     "date": "2023-03-01T03:52:37Z",
+     "body": "> * Take current ledger; iterate all trustline (RippleState) objects, and list any trustlines where the two sides of the trustline are equal to each other, i.e. if A and B are the same.\n> \n> \n> We know of these:\n> \n>     * [2F8F21EFCAFD7ACFB07D5BB04F0D2E18587820C7611305BB674A64EAB0FA71E1](https://xrpl.org/websocket-api-tool.html?server=wss%3A%2F%2Fs1.ripple.com%2F&req=%7B%22command%22%3A%22ledger_entry%22%2C%22index%22%3A%222F8F21EFCAFD7ACFB07D5BB04F0D2E18587820C7611305BB674A64EAB0FA71E1%22%2C%22ledger_index%22%3A%22validated%22%7D)\n> \n>     * [326035D5C0560A9DA8636545DD5A1B0DFCFF63E68D491B5522B767BB00564B1A](https://xrpl.org/websocket-api-tool.html?server=wss%3A%2F%2Fs1.ripple.com%2F&req=%7",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#issuecomment-1449291302"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-03-01T17:57:30Z",
+     "body": "> I wrote code to parse the SHA Map with objects and find all the trustline where high and low accounts are same and only two you show exist in the recent ledger and no more can be created, but did not put it into this pr because it's not appropriate.\n\nFor transparency and reproducibility, we would appreciate if you could share that code. If it's not much code, you can paste it here. If it's larger, you can put it in a public [GitHub gist](https://gist.github.com/) or repository.",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#issuecomment-1450604631"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-03-04T06:42:50Z",
+     "body": "@sgramkumar At your convenience, please write up the results of your testing here.",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#issuecomment-1454557452"
+    },
+    {
+     "author": "sgramkumar",
+     "date": "2023-03-07T17:46:37Z",
+     "body": "> @sgramkumar At your convenience, please write up the results of your testing here.\n\nThis was tested with mainnet db dump, and accelerated amendment activation (`fixTrustLinesToSelf`) on 1.10.0-rc3\nAfter the amendment was activated, the following 2 trustlines were removed\n\n- [2F8F21EFCAFD7ACFB07D5BB04F0D2E18587820C7611305BB674A64EAB0FA71E1](https://xrpl.org/websocket-api-tool.html?server=wss%3A%2F%2Fs1.ripple.com%2F&req=%7B%22command%22%3A%22ledger_entry%22%2C%22index%22%3A%222F8F21EFCAFD7ACFB07D5BB04F0D2E18587820C7611305BB674A64EAB0FA71E1%22%2C%22ledger_index%22%3A%22validated%22%7D)\n- [326035D5C0560A9DA8636545DD5A1B0DFCFF63E68D491B5522B767BB00564B1A](https://xrpl.org/websocket-api-tool.ht",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#issuecomment-1458581953"
+    }
+   ],
+   "body": "Trust lines to self are impossible but because of the old bug there are two such trust lines which exist: \n2F8F21EFCAFD7ACFB07D5BB04F0D2E18587820C7611305BB674A64EAB0FA71E1 and 326035D5C0560A9DA8636545DD5A1B0DFCFF63E68D491B5522B767BB00564B1A. The fixTrustLinesToSelf fix amendment will remove them when it activates. I do not know how to test this change.\n\n\n\n## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [x] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking chang",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "a-noni-mousse:patch7",
+   "additions": 123,
+   "deletions": 22,
+   "changedFiles": 5,
+   "commits": 1,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2022-03-21T18:27:37Z",
+     "body": ""
+    },
+    {
+     "author": "drlongle",
+     "state": "COMMENTED",
+     "date": "2023-02-15T12:07:38Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "COMMENTED",
+     "date": "2023-02-27T22:09:47Z",
+     "body": ""
+    },
+    {
+     "author": "drlongle",
+     "state": "COMMENTED",
+     "date": "2023-02-27T22:37:22Z",
+     "body": ""
+    },
+    {
+     "author": "a-noni-mousse",
+     "state": "COMMENTED",
+     "date": "2023-03-01T03:49:45Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "drlongle",
+     "date": "2023-02-15T11:56:30Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "If the first call to `removeTrustLineToSelf` fails, the second call to `removeTrustLineToSelf` will not be executed. This is due to [short-circuit evaluation](https://en.wikipedia.org/wiki/Short-circuit_evaluation).\n\nI am not sure if this is intended but just want to point it out.",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#discussion_r1107030614"
+    },
+    {
+     "author": "drlongle",
+     "date": "2023-02-15T12:07:03Z",
+     "path": "src/ripple/app/tx/impl/SetTrust.cpp",
+     "body": "I would drop `!view().rules().enabled(fixTrustLinesToSelf)` because I don't know if all trust lines to self have been deleted. I feel that this is less defensive as it could be.",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#discussion_r1107041061"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-27T22:09:46Z",
+     "path": "src/ripple/app/tx/impl/SetTrust.cpp",
+     "body": "- Can't drop that because there are currently two trustlines to self. Without the check, servers with and without this PR would behave differently.",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#discussion_r1119365263"
+    },
+    {
+     "author": "drlongle",
+     "date": "2023-02-27T22:37:16Z",
+     "path": "src/ripple/app/tx/impl/SetTrust.cpp",
+     "body": "The code says that if `fixTrustLinesToSelf` is disabled and `account_ == uDstAccountID`, we can delete a trustline. Once `fixTrustLinesToSelf` is enabled, no other self-issued trustlines will be deleted because the first operand of the `&&` operator will be false.\n\nThis is fine as long as we know that there are **only** two self-issued trustlines on the ledger.",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#discussion_r1119386516"
+    },
+    {
+     "author": "a-noni-mousse",
+     "date": "2023-03-01T03:49:44Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "I did on purpose so if deletion fails amendment activation fails and does a roll back, but deletion would not fail.",
+     "url": "https://github.com/XRPLF/rippled/pull/4105#discussion_r1121104785"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

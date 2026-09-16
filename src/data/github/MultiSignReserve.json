@@ -1,0 +1,614 @@
+{
+ "name": "MultiSignReserve",
+ "fetchedAt": "2026-09-16T10:45:37.766Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 2,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:21:57Z",
+  "lastMerged": "2025-11-13T11:42:45Z",
+  "release": "3.2.0",
+  "totalComments": 81
+ },
+ "release": {
+  "version": "3.2.0",
+  "date": "2026-06-16T00:36:47Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/3.2.0",
+  "excerpt": "Retire MultiSignReserve and ExpandedSignerList by @a1q123456 in https://github.com/XRPLF/rippled/pull/5981"
+ },
+ "prs": [
+  {
+   "number": 5981,
+   "title": "Retire MultiSignReserve and ExpandedSignerList",
+   "url": "https://github.com/XRPLF/rippled/pull/5981",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2025-11-01T08:49:28Z",
+   "updatedAt": "2026-05-20T17:21:57Z",
+   "closedAt": "2025-11-13T11:42:45Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-11-01T09:15:05Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5981?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.6%. Comparing base ([`8580a57`](https://app.codecov.io/gh/XRPLF/rippled/commit/8580a5795af647f4274d6210faaa3b96bbac7cd2?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`117e54d`](https://app.codecov.io/gh/XRPLF/rippled/commit/117e54df8a36e10405c97ac055e7950f897a476c?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#issuecomment-3476043224"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-04T17:04:24Z",
+     "body": "Going to combine this with another feature retirement PR. Making this PR a draft temporarily.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#issuecomment-3487086754"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-11-10T14:12:58Z",
+     "body": "Left a suggestion on passing features arg to Env. Otherwise looks good to me. I can approve once it is ready.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#issuecomment-3511917494"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-10T14:16:41Z",
+     "body": "> Left a suggestion on passing features arg to Env. Otherwise looks good to me. I can approve once it is ready.\n\nYep it's ready. If you could take a look it'd be great. Let me know if you have any questions.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#issuecomment-3511938332"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-11-13T11:42:45Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/retire-MultiSignReserve",
+   "additions": 105,
+   "deletions": 306,
+   "changedFiles": 13,
+   "commits": 20,
+   "reviewComments": 32,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-11-01T10:35:52Z",
+     "body": "Lots of test cases now only require 1 signer for Alice - are those test cases still different or are there now many duplicate tests being run?\n\nI'm also noticing a few test cases towards the end of the review where the number of enabled/disabled features should now be different, but it hasn't changed - are those correct?"
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-03T11:56:05Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-03T11:58:58Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-03T13:33:38Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-11-03T19:22:05Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-04T16:43:37Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-11-05T11:53:47Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-05T15:12:02Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-07T13:15:15Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-07T14:32:28Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-07T14:42:45Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-11-10T13:03:20Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-11-10T13:22:22Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-10T13:31:18Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-10T14:15:40Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-10T14:18:13Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-10T15:40:49Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-10T15:55:17Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-11-10T16:11:28Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-11T14:46:36Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-11-11T16:49:39Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-11-11T16:50:36Z",
+     "body": "Left a question on a change in features.macro file. Otherwise looks good."
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-11T17:01:32Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-11T17:02:33Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-11T17:04:42Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "APPROVED",
+     "date": "2025-11-13T10:39:18Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:23:21Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "The last part of the comment needs to be removed, it mentions the other number that now has been removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483526208"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:27:23Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "These two lines can probably be combined as you've already done elsewhere.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483535569"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:29:22Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "Same here, can be combined.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483540237"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:30:43Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "Won't this always be true at this point?",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483543444"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:31:23Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "Is this still true, since only one feature is set?",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483544747"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:31:50Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483546012"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-03T11:56:05Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "Fixed. Thanks, Bart!",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2486225083"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-03T11:58:58Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "Took a second look at what I did here and I think it was wrong even though it didn't produce an error. I initially removed `featureMultiSignReserve` from those tests because we were removing the feature. However, I think what those tests do is that it takes 2 random features, passes them to the `Env`, and checks if they're enabled. So what we should do here is replace `featureMultiSignReserve` with something else.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2486231848"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-03T13:33:38Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "There's 2 features on the list now just as before except that the first feature is replaced with `featureDynamicMPT` which doesn't make too much difference here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2486510898"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-03T19:11:57Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "You can consider removing `signersCount` and in the appropriate lines below by `BEAST_EXPECT(ownerCount(env, bob) == 2)`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2487574582"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-03T19:12:27Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2487576040"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-03T19:16:02Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "This test seems to be run with the feature enabled, and seems to be different from other tests. Why is this test removed?",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2487586246"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-03T19:20:25Z",
+     "path": "src/test/app/AMMExtended_test.cpp",
+     "body": "The `ExpandedSignerList` feature can also be retired. Do you want to combine that in this PR, or do it separately? \n\n@pratikmankawde was originally going to work on retiring `ExpandedSignerList `.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2487595561"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-04T16:43:37Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "Yeah, this test and the one above are just checking what will happen if we attach a big signer list and give the account insufficient money and see what's going to happen. It makes sense to do it before the fix but I don't think it makes any difference with the feature enabled. \nBut I can add it back if you like.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2491265962"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-05T11:52:39Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "I think this can now be changed to `testMultisig()` and the function body updated to use all features. I don't see any other uses of this test function with different features enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2494142709"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-05T15:12:01Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "Thanks, Bart, fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2494993209"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-07T13:15:14Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "I'm just wondering if it's possible to add some test feature (inside of jtx). I don't want us to mess with tests each time we retire the feature which happens to be used for some unrelated tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2503481495"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-07T14:32:27Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "could be simply env.fund(XRP(250) - drops(1), ...), this variable is not required",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2503853319"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-07T14:42:44Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "I would suggest to re-enable it to check that reserve requirements don't change regardless of the size of this list. \n\nI understand that from the code perspective it does not make much sense. But from the perspective of the user, this allows to verify that signer list is only counted as 1 object (thus 1 reserve equivalent), regardless of the size",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2503919488"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-11-10T13:03:20Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "Shouldn't we pass `features` to the `env` initialiser list (here and in other similar functions)?\n\nNot passing it might lead to a potential bug. Because caller of this function will assume that the env. in these functions are initialised with the passed in features.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2510503779"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-11-10T13:22:22Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "`featureDynamicMPT` where did this come from? :-)",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2510559414"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-10T13:31:18Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "it's just a random feature. I'm thinking about adding the test only features/fixes so that tests like these can be done without addressing real amendments",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2510587719"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-10T14:15:28Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "Have re-enabled the test.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2510740347"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-10T14:18:13Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "> it's just a random feature. I'm thinking about adding the test only features/fixes so that tests like these can be done without addressing real amendments\n\nWe'll have to do this soon. We've got only one obsolete feature and it'll get retired soon.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2510748532"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-10T15:40:00Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "return `features` here as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2511056367"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-10T15:55:17Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "Thanks Vlad. Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2511107814"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-11-10T16:11:28Z",
+     "path": "src/xrpld/app/tx/detail/SetSignerList.cpp",
+     "body": "Should this be capitalized? I don't have a strong opinion but I feel like its kind of unnecessary. I think `view().fees().accountReserve(oldOwnerCount + 1)};` is just fine and inline with the rest of the codebase.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2511162171"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-11T14:46:35Z",
+     "path": "src/xrpld/app/tx/detail/SetSignerList.cpp",
+     "body": "Thanks Denis! I've fixed it.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2514517716"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-11-11T16:49:39Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Is this intensional removal or a merge issue?",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2514952791"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-11T17:01:32Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "I think you're looking at an old commit",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2514988148"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-11T17:02:33Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "The latest changes show that MultiSignReserve and ExpandedSignerList are removed from the list.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2514990533"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-11T17:04:42Z",
+     "path": "src/xrpld/app/tx/detail/SetSignerList.cpp",
+     "body": "I think `addedOwnerCount` makes it clearer as `1` is just a magic number and we won't know why there is a `1` here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2514997462"
+    }
+   ]
+  },
+  {
+   "number": 2649,
+   "title": "Implement MultiSignReserve amendment [RIPD-1647]:",
+   "url": "https://github.com/XRPLF/rippled/pull/2649",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2018-08-06T22:35:56Z",
+   "updatedAt": "2018-11-19T19:52:34Z",
+   "closedAt": "2018-10-10T19:16:32Z",
+   "labels": [
+    "Tx Change",
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "ripplelabs-jenkins",
+     "date": "2018-08-07T01:20:37Z",
+     "body": "## Jenkins Build Summary\n\nBuilt from [this commit](https://github.com/ripple/rippled/commit/6572fc8e955dd493c5c9079a3c8a6a8712ca57f4)\n\nBuilt at __20181002 - 06:45:44__\n\n### Test Results\n\nBuild Type | Log | Result | Status\n---------- | --- | ------ | ------\nrpm | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2649/6//artifact/rpm.txt) | no test results, t: n/a | FAIL :red_circle: \nmsvc.Debug | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2649/6//artifact/msvc.Debug.txt) | 1068 cases, 0 failed, t: 537s | PASS :white_check_mark: \nmsvc.Debug, <br/>NINJA_BUILD=true | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2649/6//artifact/msvc.Debug_NINJA_BUILD_true.txt)",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#issuecomment-410901961"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-08-11T01:38:15Z",
+     "body": "Fixed name and rebased.  Thanks for the review, @seelabs!",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#issuecomment-412242128"
+    },
+    {
+     "author": "codecov-io",
+     "date": "2018-08-11T03:52:46Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2649?src=pr&el=h1) Report\n> Merging [#2649](https://codecov.io/gh/ripple/rippled/pull/2649?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/8a02903fa5eda4daa10972800d2598b9542b02d2?src=pr&el=desc) will **decrease** coverage by `<.01%`.\n> The diff coverage is `100%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2649/graphs/tree.svg?width=650&token=y0OgJuslsq&height=150&src=pr)](https://codecov.io/gh/ripple/rippled/pull/2649?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2649      +/-   ##\n===========================================\n- Coverag",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#issuecomment-412248586"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-08-28T16:14:18Z",
+     "body": "Squashed and rebased to 1.1.0-rc3.",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#issuecomment-416647456"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-10-02T01:20:23Z",
+     "body": "Rebased to 1.2.0-b2.",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#issuecomment-426115282"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-10-10T19:18:16Z",
+     "body": "In 1.2.0-b3",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#issuecomment-428697908"
+    }
+   ],
+   "body": "Reduces the account reserve for a multisigning SignerList:\n\n- From (currently) 3 to 10 OwnerCounts, based on the number of signers in the list,\n- To 1 OwnerCount, independent of the number of signers in the list.\n\nIncludes a transition process.  Implements the changes described in the internal spec.\n\nNo hurry on the review.  We probably don't want to merge this until after 1.1.0 is in the bag.",
+   "merged": true,
+   "mergedAt": "2018-10-10T19:16:32Z",
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:multisig-reserve",
+   "additions": 391,
+   "deletions": 209,
+   "changedFiles": 7,
+   "commits": 1,
+   "reviewComments": 7,
+   "reviews": [
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2018-08-10T19:00:04Z",
+     "body": ":+1: Nice job."
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "state": "COMMENTED",
+     "date": "2018-08-10T19:01:46Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2018-08-10T19:10:26Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-08-10T19:15:08Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2018-08-11T03:13:56Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2018-08-13T17:06:20Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "seelabs",
+     "date": "2018-08-10T18:48:53Z",
+     "path": "src/ripple/app/tx/impl/SetSignerList.cpp",
+     "body": "Calling functions `old...` or `new...` get awkward if we modify this code again. Sometimes during a transition we can name things `old...` and eventually remove the function, but this function needs to stay around forever. For a function like this, I'm OK with a long cumbersome name if you can think of one. Maybe `multiOwnerCountDelta`?",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#discussion_r209353697"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-08-10T18:58:03Z",
+     "path": "src/ripple/protocol/LedgerFormats.h",
+     "body": "I wish we didn't have to do this, but I don't see another way.",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#discussion_r209356122"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2018-08-10T19:01:46Z",
+     "path": "src/ripple/app/tx/impl/SetSignerList.cpp",
+     "body": "`preMultiSignReserveAmendmentOwnerCountDelta`? ;-)",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#discussion_r209357053"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-08-10T19:10:26Z",
+     "path": "src/ripple/app/tx/impl/SetSignerList.cpp",
+     "body": "Great point about the \"old\" name.  I struggled with this a bit and then punted.  Maybe `signerCountBasedOwnerCountDelta()`?  That reflects what the function does and what we moved away from.  I'll go with that unless I hear objections or a better suggestion.",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#discussion_r209359032"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-08-10T19:15:08Z",
+     "path": "src/ripple/app/tx/impl/SetSignerList.cpp",
+     "body": "Yeah, that works :+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#discussion_r209360244"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-08-11T03:10:25Z",
+     "path": "src/ripple/app/tx/impl/SetSignerList.cpp",
+     "body": "The comment is a little weirdly worded and I’m not sure it really adds a lot. I think that “non-default flags specified” works better.",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#discussion_r209414631"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-08-13T17:06:20Z",
+     "path": "src/ripple/app/tx/impl/SetSignerList.cpp",
+     "body": "Good point.  I've revised the wording on this comment.  Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/2649#discussion_r209686584"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

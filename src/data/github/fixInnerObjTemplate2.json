@@ -1,0 +1,150 @@
+{
+ "name": "fixInnerObjTemplate2",
+ "fetchedAt": "2026-09-16T10:57:15.890Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2024-07-05T20:44:49Z",
+  "lastMerged": "2024-06-27T18:52:02Z",
+  "release": "2.3.0",
+  "totalComments": 14
+ },
+ "release": {
+  "version": "2.3.0",
+  "date": "2024-11-26T00:17:49Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.3.0",
+  "excerpt": "fixInnerObjTemplate2"
+ },
+ "prs": [
+  {
+   "number": 5047,
+   "title": "fixInnerObjTemplate2 amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/5047",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2024-06-14T20:54:21Z",
+   "updatedAt": "2024-07-05T20:44:49Z",
+   "closedAt": "2024-06-27T18:52:02Z",
+   "labels": [
+    "Ready to merge",
+    "Bug",
+    "Amendment",
+    "QE impact not expected"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2024-06-14T21:17:58Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5047?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `86.36364%` with `3 lines` in your changes missing coverage. Please review.\n> Project coverage is 71.3%. Comparing base [(`ef02893`)](https://app.codecov.io/gh/XRPLF/rippled/commit/ef02893f2f638fd10ff8a11ee12b4a52619c89de?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`80f0120`)](https://app.codecov.io/gh/XRPLF/rippled/commit/80f012090bc2d51acd04c53b80e3839ac04d8763?dropdown=cover",
+     "url": "https://github.com/XRPLF/rippled/pull/5047#issuecomment-2168775984"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-25T18:19:09Z",
+     "body": "Thanks for the reviews!  This PR needs to go through the physical restructure re-mapping process before it can be merged.  So I'll do the remapping soon.  Once that is done I'll mark the PR as passed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5047#issuecomment-2189669160"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-26T01:31:47Z",
+     "body": "The physical restructure is done.  Unit tests, start, sync, and graceful stop all work on my Mac for both debug and release builds.  The CI problem with coverage looks like a host thing.  I'm marking this pull request passed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5047#issuecomment-2190343141"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nApply inner object templates to all remaining (non-AMM) inner objects.\n\n### Context of Change\n\nIt was discovered that the inner objects added to the code base for the AMM were not properly protected by their templates.  That oversight was corrected by the `fixInnerObjTemplate` amendment.\n\nAn audit showed that there were additional inner objects that did not have their templates applied.  This pull request applies templates to those additional inner objects.\n\nAdds a unit test for applying the template to sfMajorities. Other remaining inner objects showed no problems having templates applied.\n\n### Type of Change\n\n- [x] Bug fix (non-breaking change which fixes ",
+   "merged": true,
+   "mergedAt": "2024-06-27T18:52:02Z",
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:apply-more-innerobj-templ",
+   "additions": 219,
+   "deletions": 194,
+   "changedFiles": 12,
+   "commits": 8,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-06-17T16:46:26Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-06-17T17:00:01Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-06-17T18:06:13Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2024-06-17T18:06:39Z",
+     "body": "👍 LGTM"
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2024-06-25T18:09:32Z",
+     "body": ":+1:"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-06-25T18:13:47Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "gregtatcam",
+     "date": "2024-06-17T16:46:26Z",
+     "path": "src/ripple/protocol/impl/STObject.cpp",
+     "body": "Why should the template be applied if there is no `Rules`?",
+     "url": "https://github.com/XRPLF/rippled/pull/5047#discussion_r1643106027"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-17T17:00:01Z",
+     "path": "src/ripple/protocol/impl/STObject.cpp",
+     "body": "@gregtatcam, great question.\n\nThe way `getCurrentTransactionRules()` works is:\n\n1. If we're currently inside a transaction then the `Rules` are set and available.\n2. If this code is ever called when we're not inside a transaction, then the optional is unseated.\n\nThis means that if the optional is unseated then we're not inside a transaction, and any changes we make will not be transaction breaking.  We have two choices we could make at this point:\n\n1. If we're not inside a transaction, stick with the old behavior.\n2. If we're not inside a transaction apply the new behavior.\n\nIn my opinion the new behavior (apply the template) is strictly safer than the old behavior (don't apply the template)",
+     "url": "https://github.com/XRPLF/rippled/pull/5047#discussion_r1643127049"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-06-17T18:06:13Z",
+     "path": "src/ripple/protocol/impl/STObject.cpp",
+     "body": "Thanks for the clarification. Applying the new behavior sounds right to me. One argument to use the new behavior is when a unit-test doesn't call a transaction but does call a function with this amendment, for instance some utility. We want to make sure that the unit-test fails in this case if there is a difference in before/after.",
+     "url": "https://github.com/XRPLF/rippled/pull/5047#discussion_r1643207639"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-06-25T18:09:20Z",
+     "path": "src/ripple/protocol/impl/STObject.cpp",
+     "body": "This code was my only concern. Usually, when we introduce an amendment I want code where it's trivially clear that the code with the amendment switched off is not transaction breaking. That's not true here. I understand why it's not true, but that means we need to audit the old code to make sure all the old existing calls to `makeInnerObject` are for auction slots or vote entries. \n\nI took a look at the old code and that does appear to be true. No action needed on this comment, I just wanted to add a note that I did that audit in case anyone wants to dummy check me.",
+     "url": "https://github.com/XRPLF/rippled/pull/5047#discussion_r1653309709"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-06-25T18:13:47Z",
+     "path": "src/ripple/protocol/impl/STObject.cpp",
+     "body": "This block of code also got my attention and I did review the old existing calls to `makeInnerObject` to make sure it looked right.",
+     "url": "https://github.com/XRPLF/rippled/pull/5047#discussion_r1653315100"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

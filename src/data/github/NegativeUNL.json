@@ -1,0 +1,1822 @@
+{
+ "name": "NegativeUNL",
+ "fetchedAt": "2026-09-16T10:46:05.027Z",
+ "summary": {
+  "status": "merged",
+  "prs": 4,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:22:36Z",
+  "lastMerged": "2025-11-17T14:02:10Z",
+  "release": "1.7.3",
+  "totalComments": 260
+ },
+ "release": {
+  "version": "1.7.3",
+  "date": "2021-08-27T21:29:32Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.7.3",
+  "excerpt": "This is the 1.7.3 release of rippled, the reference implementation of the XRP Ledger protocol. This release addresses an OOB memory read identified by Guido Vranken, as well as an unrelated issue identified by the Ripple C++ team that could result in incorrect use of SLEs. Additionally, this version"
+ },
+ "prs": [
+  {
+   "number": 6033,
+   "title": "Retire NegativeUNL",
+   "url": "https://github.com/XRPLF/rippled/pull/6033",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2025-11-13T12:35:17Z",
+   "updatedAt": "2026-05-20T17:22:36Z",
+   "closedAt": "2025-11-17T14:02:10Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-11-13T13:01:38Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6033?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.6%. Comparing base ([`13a12c6`](https://app.codecov.io/gh/XRPLF/rippled/commit/13a12c6402615c224e053764feaac7ed0286241a?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`a06048c`](https://app.codecov.io/gh/XRPLF/rippled/commit/a06048ccdabde7ea4d836621576a606adca1a2f2?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/6033#issuecomment-3527714797"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-11-17T14:02:10Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/retire-NegativeUNL",
+   "additions": 9,
+   "deletions": 60,
+   "changedFiles": 7,
+   "commits": 2,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-11-13T13:57:12Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "APPROVED",
+     "date": "2025-11-17T10:34:13Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 4267,
+   "title": "refactor NegativeUNL class - use PublicKey instead of NodeID",
+   "url": "https://github.com/XRPLF/rippled/pull/4267",
+   "state": "closed",
+   "author": "ckeshava",
+   "createdAt": "2022-08-04T21:03:11Z",
+   "updatedAt": "2024-01-25T01:16:54Z",
+   "closedAt": "2023-12-02T00:55:16Z",
+   "labels": [
+    "Tech Debt",
+    "Amendment",
+    "QE test desired"
+   ],
+   "comments": [
+    {
+     "author": "ckeshava",
+     "date": "2022-08-04T23:05:50Z",
+     "body": "I executed this command `git-clang-format --extensions c,cpp,h,cxx,ipp develop` but it did not modify any files. Any idea on why the CI checks are failing?",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1205861094"
+    },
+    {
+     "author": "wojake",
+     "date": "2022-08-05T08:10:01Z",
+     "body": "What's the benefit of this?",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1206169391"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2022-08-09T02:52:32Z",
+     "body": "> What's the benefit of this?\n\nThis is a WIP and, once complete, will improve the code is several ways, including by making sure the implementation of the `NegativeUNL` feature more faithfully aligns with the specification, eliminating the need for converting public keys to node IDs, simplifying the code that calculate the set of changes to the negative UNL and more, and pave the way to simplifying the `SecretKey` and `PublicKey` classes, by eliminating their default constructors, which will help simplify other parts of the code.\n\nIt will require an amendment, when it's ready.",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1208852959"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-03-20T17:40:17Z",
+     "body": "@ckeshava do you still think this change is worth making?",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1476669006"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-03-20T18:18:23Z",
+     "body": "Hello,\nYes, this change would reduce the memory usage of the rippled servers. It's been quite a while since I looked at the codebase, so some refactoring might be required.",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1476723869"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-03-21T16:52:34Z",
+     "body": "thanks for the comments @drlongle  It's been a while since I made these changes, so I have lost context. I'll take a look at your suggestions and make the necessary changes.",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1478245532"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-05T20:31:12Z",
+     "body": "note: this simplifies parts of the NegativeUNL calculation and may add value to the code base",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1749599263"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-10T16:22:53Z",
+     "body": "I have not looked closely at this pull request.  That said, I'm not convinced that the proposed change brings enough value to justify...\n\n1. The risk associated with the change, or\n2. The costs associated with the change (review time spent, testing costs, and an additional amendment).\n\nIt looks like this change was initially intended to be part of a larger sweep of changes that @nbougalis had in mind.  Without Nik's hand on the rudder I don't foresee that larger sweep coming to fruition.  So I need to look at this proposed change in isolation.\n\nFor my eyes, at least, the risk and costs associated with this proposed change out weigh any benefits I perceive.\n\nI'm open to being convinced otherw",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1755788715"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-10-11T19:05:53Z",
+     "body": "Hello,\n1. **Correctness**\nThe documentation states that we have to use the public keys to choose a candidate for the negative UNL. But we are using the `NodeID` in such calculations [here](https://github.com/XRPLF/rippled/blob/1151fba415a5949adfa1bca8bebf135355a0619c/src/ripple/app/misc/NegativeUNLVote.cpp#L149)\n<img width=\"916\" alt=\"image\" src=\"https://github.com/XRPLF/rippled/assets/21219765/88a19815-1538-4675-ad87-636974e3fd88\">\n\nThis would entail changes to the consensus portion of the code. But in my perspective, this fixes a mistake in the code, it is not a new feature addition. Hence, an amendment should not be required, as much as an extensive code review.\n\nI'm not familiar with the ",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1758342218"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-11T20:36:42Z",
+     "body": "@ckeshava, thanks for that documentation.  That helps.  And I too would appreciate hearing @pwang200's opinion regarding this change.\n\nRegarding the three points you bring up:\n\n1. Correctness: you are citing part of the XRPL.org documentation: https://xrpl.org/negative-unl.html#choosing-from-multiple-candidate-validators.  It seems like the easier path would be to fix that documentation.  Adding an amendment so that (working) code matches the documentation seems backwards to me.\n2. Efficiency: you have a point here, that the interconversion is unnecessary.  However, does improving this particular efficiency measurably impact the efficiency of the server?  The efficiency argument should come ",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1758496027"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-10-11T21:10:34Z",
+     "body": "@scottschurr  thanks for looking into it.\nI agree with all of your points. Since this code runs only during the flag ledgers, the marginal improvements to efficiency might not amount to much.\n\nI noticed the point-3 a few minutes ago and I thought I'll discuss it here. But, I don't have the foggiest idea on how to tackle it, I'll explore it 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1758547651"
+    },
+    {
+     "author": "pwang200",
+     "date": "2023-10-11T22:43:47Z",
+     "body": "I agree with what Scott said. \n\nRegarding point-1, the goal is that validators can agree on the candidate if there are more than 1, assuming the validators have the same set of candidates. So what we need is a deterministic way to sort them. It doesn't matter if public key or the nodeID is used. Although inconsistent with the doc, but the code does what it should do. It is easier to change the doc. \n\nThis will need an amendment. Because if some nodes use nodeID to sort and some nodes use public key to sort, they will pick different candidates. An amendment ensures that all nodes use the same data to sort. \n\nRegarding point-2, if we can avoid the inter-converting between NodeID and PublicKey,",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1758647261"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-10-12T18:30:51Z",
+     "body": "@pwang200 thanks for weighing in your opinions. I agree with your points 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1760156724"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-12-02T00:55:16Z",
+     "body": "Hello,\nConsidering the pros and cons of this PR, I'm choosing to close it. As rightly pointed out by Scott Schurr and Peng Wang, the efficiency benefits brought about by this PR is eclipsed by the risk and amendment requirements.\n\nThanks for looking into this PR!",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#issuecomment-1836967839"
+    }
+   ],
+   "body": "Summary of changes:\n\n- refactor NegativeUNL class to use PublicKey instead of NodeID \n- modify the constructors of STValidation to include masterPubKey_ \n- major changes to unit tests of NegativeUNL and STValidation\n\n\n\n- [ x] Refactor (non-breaking change that only restructures code)\n- [ x] Tests (You added tests for code that already exists, or your new feature included in this PR)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "ckeshava:nodeIDToPubKey",
+   "additions": 284,
+   "deletions": 234,
+   "changedFiles": 10,
+   "commits": 1,
+   "reviewComments": 7,
+   "reviews": [
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2022-08-04T21:52:04Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2022-08-04T21:55:44Z",
+     "body": ""
+    },
+    {
+     "author": "a-noni-mousse",
+     "state": "COMMENTED",
+     "date": "2022-08-09T19:16:19Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2022-08-10T00:41:19Z",
+     "body": ""
+    },
+    {
+     "author": "drlongle",
+     "state": "COMMENTED",
+     "date": "2023-03-21T13:01:52Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2023-10-11T17:26:01Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ckeshava",
+     "date": "2022-08-04T21:52:04Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "@nbougalis  Is this a good way to compare the candidate validators? I'm not sure if `*candidates[j].data()` is the best way to extract the data in the public key.",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#discussion_r938275427"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2022-08-04T21:55:44Z",
+     "path": "src/ripple/protocol/PublicKey.h",
+     "body": "@nbougalis  I added this additional method. Is this okay?",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#discussion_r938277511"
+    },
+    {
+     "author": "a-noni-mousse",
+     "date": "2022-08-09T19:16:19Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "This is very wrong. You XOR the pointers so this will be different only every mahcine. Also if you change the NodeID to PublicKey will require amendment because it changes the selection logic for the candidate.",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#discussion_r941717164"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2022-08-10T00:41:19Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "1. I'm dereferencing the pointers, so I'm using the data contained within these pointers. I'm not using the actual pointer themselves.\n2. Yes, this code change will require an amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#discussion_r941912615"
+    },
+    {
+     "author": "drlongle",
+     "date": "2023-03-21T12:22:27Z",
+     "path": "src/ripple/protocol/PublicKey.h",
+     "body": "Please don't remove this function. It's could be useful for debugging.\n\nFor example\n`PublicKey pk\nstd::cout << \"pk: \" << pk << std::endl`",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#discussion_r1143292665"
+    },
+    {
+     "author": "drlongle",
+     "date": "2023-03-21T12:22:40Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Maybe change to `(candidates[j]->data() ^ randomPadData->data())` to make the intention clear.\n\nOther things to consider.\n- You can cache `randomPadData->data()` instead of calling it multiple times\n- Since `PublicKey::data()` returns `std::uint8_t const*` and `base_uint::data()`returns `unsigned char*`, you use only one byte to compare. This probably works OK but it could be more robust.",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#discussion_r1143292892"
+    },
+    {
+     "author": "drlongle",
+     "date": "2023-03-21T12:23:21Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": ">Yes, this code change will require an amendment.\n\nI don't see the amendment that you mentioned.",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#discussion_r1143294481"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2023-10-11T17:26:00Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "I believe it requires an amendment because it changes the rules for Negative UNL selection. At the moment, Node IDs are used in the selection, but the specification and the documentation for NegativeUNL indicates that PublicKey is used for the same.",
+     "url": "https://github.com/XRPLF/rippled/pull/4267#discussion_r1355433878"
+    }
+   ]
+  },
+  {
+   "number": 3566,
+   "title": "NegativeUNL SField Changes",
+   "url": "https://github.com/XRPLF/rippled/pull/3566",
+   "state": "closed",
+   "author": "pwang200",
+   "createdAt": "2020-08-03T13:08:40Z",
+   "updatedAt": "2020-08-07T00:43:13Z",
+   "closedAt": "2020-08-07T00:43:13Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "pwang200",
+     "date": "2020-08-03T22:34:36Z",
+     "body": "Changed sfNegativeUNL to sfDisabledValidators",
+     "url": "https://github.com/XRPLF/rippled/pull/3566#issuecomment-668274132"
+    }
+   ],
+   "body": "Several declarations in SField are changed so that the symbolic names and the text representations are consistent. \n-- the SField declarations are sfDisabledValidator, sfValidatorToDisable, and sfValidatorToReEnable\n-- their corresponding gRPC declarations are also changed\n-- the related function names are also changed\n-- changed negativeUnl to negativeUNL too\n\nTested with unit test and local network tests.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "pwang200:nUNL_SField",
+   "additions": 201,
+   "deletions": 194,
+   "changedFiles": 19,
+   "commits": 2,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "cjcobb23",
+     "state": "APPROVED",
+     "date": "2020-08-03T18:47:59Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2020-08-03T19:11:05Z",
+     "body": "These changes look great.  However there's still one place that squeaks a bit.\n\nIn the `SField`s the plural of `sfDisabledValidator` is spelled `sfNegativeUNL`.  That's kinda weird.  The gRPC calls the plural of `DisabledValidator` `DisabledValidators`.  That feels like the right name.\n\nJust for comparison, in the SFields many of the plural types follow the singular/plural idiom.  Here are the ones that I've noted in the unit test I'm working on:\n```\n        // All of the repeated types that the test currently supports.\n        static const std::map<std::string, SField const*> repeatsWhat\n        {\n            {sfAmendments.getName(), &sfAmendment},\n            {sfHashes.getName(), &sfLedger"
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-08-03T22:33:57Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2020-08-03T23:40:06Z",
+     "body": "Looks great!  In its current for this is passing the current state of my test.  I did spot one nit, which could be addressed later if you prefer."
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-08-03T23:52:50Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2020-08-04T00:10:16Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "scottschurr",
+     "date": "2020-08-03T16:45:32Z",
+     "path": "src/ripple/proto/org/xrpl/rpc/v1/ledger_objects.proto",
+     "body": "Just as a drive-by fix, I suggest you add...\n```\nFlags flags = 4;\n```\nat the end and update `Next field` to 5.  Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/3566#discussion_r464532949"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-08-03T22:33:57Z",
+     "path": "src/ripple/proto/org/xrpl/rpc/v1/ledger_objects.proto",
+     "body": "Added, also in `void convert(org::xrpl::rpc::v1::NegativeUNL& to, STObject const& from)`.",
+     "url": "https://github.com/XRPLF/rippled/pull/3566#discussion_r464696810"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2020-08-03T23:03:10Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "This could be addressed later, but I wonder whether this method should be named `disabledValidators()` now?",
+     "url": "https://github.com/XRPLF/rippled/pull/3566#discussion_r464706120"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-08-03T23:52:50Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "I thought about it, but did not change it. My reasoning was that the same thing (the `negativeUNL`) was accessed here and used somewhere else. If I change here, I probably should change other places as well, which I felt confusing. I see the `disabledValidator` more as a type and `disabledValidators` as its plural (or container). And I see negativeUNL as a usage of the container. Iirc, the skip list has type hashes, but it is protocol meaning is the skip list.",
+     "url": "https://github.com/XRPLF/rippled/pull/3566#discussion_r464721159"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2020-08-04T00:10:16Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "That's fine.  It's one that we can think about.  I've been thinking of the `NegativeUNL` as a heterogeneous container of three elements:\n\n- DisabledValidators,\n- ValidatorToDisable, and\n- ValidatorToReEnable\n\nThis specific entry point returns only DisabledValidators.  That's why I think the rename is appropriate.  But this name doesn't leak out into the API.  So we can change it, or not, later.",
+     "url": "https://github.com/XRPLF/rippled/pull/3566#discussion_r464725816"
+    }
+   ]
+  },
+  {
+   "number": 3380,
+   "title": "Implemented NegativeUNL",
+   "url": "https://github.com/XRPLF/rippled/pull/3380",
+   "state": "closed",
+   "author": "pwang200",
+   "createdAt": "2020-04-28T04:47:40Z",
+   "updatedAt": "2020-06-30T22:35:25Z",
+   "closedAt": "2020-06-30T22:35:25Z",
+   "labels": [
+    "Ready to merge",
+    "API Change",
+    "Amendment"
+   ],
+   "comments": [
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2020-04-28T07:36:59Z",
+     "body": "Is there a more technical description available of this, ideally including some mathematics?",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-620435544"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2020-04-28T07:49:20Z",
+     "body": "I'm especially worried about the consensus mechanism starting to bleed into the on-ledger representation with this amendment. If servers are unreliable, a UNL registry should remove them immediately, I don't see why it would be so important to vote (some of) them out collectively after 256 ledgers and create spam objects on-ledger for everyone else. Also I don't see why this should be globally coordinated - if nodes just keep their private nUNL, the effects would be nearly the same with no need to do extra work in consensus on which widely trusted validators are globally seen as unreliable. For this reason I'd really like to see the mathematical models and proofs(!) behind this change.\n\nIf t",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-620441068"
+    },
+    {
+     "author": "codecov-io",
+     "date": "2020-04-28T14:45:02Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/3380?src=pr&el=h1) Report\n> Merging [#3380](https://codecov.io/gh/ripple/rippled/pull/3380?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/023f5704d07d09e70091f38a0d4e5df213a3144b&el=desc) will **increase** coverage by `0.19%`.\n> The diff coverage is `93.55%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/3380/graphs/tree.svg?width=650&height=150&src=pr&token=y0OgJuslsq)](https://codecov.io/gh/ripple/rippled/pull/3380?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #3380      +/-   ##\n===========================================\n+ Coverage    ",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-620652419"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-04-28T15:34:56Z",
+     "body": "@MarkusTeufelberger \nThe engineering spec is added to docs/0001-negative-unl/. Hope that can answer some of your concerns. We can discuss after.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-620681899"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2020-04-28T15:46:17Z",
+     "body": "I'd still like my question answered why this has to be coordinated through a (voted + recorded) pseudo transaction instead of decided privately by each server instead (if necessary, only every flag ledger instead of every ledger to slow the reaction time down a bit) - or was this not even considered? The doc links to internal data that's not published (yet?), so it is a bit hard to know why David proposed this feature the way it is designed here.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-620688903"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2020-04-29T05:21:00Z",
+     "body": "Hey @MarkusTeufelberger. First off, apologies that we didn't actually include the spec alongside the commit. It's been added with the latest commit.\n\n>The doc links to internal data that's not published (yet?), so it is a bit hard to know why David proposed this feature the way it is designed here.\n\nAck, that should have been caught; apologies. The document primarily discusses the rationale for \"simplifying\" the original proposal by limiting the number of changes that can be done at once. Here's the relevant content:\n\n> ### Executive Summary\n> \n> The initial negative UNL specification had a lot of complexity around handling changes to the negative UNL across flag ledgers. It required some co",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-620993931"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2020-04-29T08:05:20Z",
+     "body": "Thanks for the additional background! :-)",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-621052270"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-04-29T08:35:54Z",
+     "body": "@MarkusTeufelberger \"why this has to be coordinated through a (voted + recorded) pseudo transaction instead of decided privately by each server instead\"\nSorry for the late reply. This is what I think: the voted + recorded approach has two desired properties. First, the negative UNL on the ledger is agreed by the network. As a result, the UNLs of nodes are affected the same way. Hence we don't hurt the UNL overlapping condition in the network. If nodes decide privately, they could disable different validators, that leads to reduced UNL overlapping, which lowers the network safety. Secondly, a ledger can be considered as a synchronization point (or a discrete logical clock time), an on ledger ",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-621066136"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2020-04-29T09:02:56Z",
+     "body": "As long as UNLs mostly overlap, removing nodes wouldn't necessarily reduce that overlap. It can also increase it. Also network safety isn't reduced in any way (recorded+ coordinated, private + coordinated or private + uncoordinated implementation), only network liveness.\n\nI already suggested using flag ledgers as synchronization points, there's no need to synchronize with others though. A node could just update its nUNL without consulting others at every 256th ledger (which happens to be coordinated with others anyways, so all nUNLs network wide get updated at the same time - they would just look potentially different, e.g. in case some node has severe routing problems to parts of the networ",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-621078767"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-04-29T15:25:19Z",
+     "body": "I share your concerns. But without on-ledger negative UNL, if nodes disable validators privately, I cannot see if it's safe. It will be like simply lower the quorum from 80% to a lower percentage (with a delay due to flag ledgers).",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-621284263"
+    },
+    {
+     "author": "movitto",
+     "date": "2020-04-30T00:59:14Z",
+     "body": "I find this feature fascinating though am no expert on Byzantine Consensus so can't comment too much on the theory behind the implementation. A couple things to note though\n\n- This introduces a 'quasi' on-ledger UNL management mechanism, where nodes are responsible for constructing the list privately off ledger, but UNL entries may be added/removed via an on-ledger mechanism. Obviously there are tradeoffs here but this does result in an inconsistency in UNL management which raises some flags. Would it be possible to extend the concept presented here further and allow nodes to recommend validators to be included in the UNL for non-performance reasons? (expanded my datacenter, recommend a new ",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-621549996"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2020-04-30T08:26:35Z",
+     "body": "> Consider calling this feature 'UNL Blacklist' (or perhaps UNBL - Unique Node BlackList)\n\nHow about the \"global Synchronized Healthcheck Interval Transgressor list\"? :-P",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-621691107"
+    },
+    {
+     "author": "carlhua",
+     "date": "2020-04-30T14:55:28Z",
+     "body": "> > Consider calling this feature 'UNL Blacklist' (or perhaps UNBL - Unique Node BlackList)\n> \n> How about the \"global Synchronized Healthcheck Interval Transgressor list\"? :-P\n\nAh! I think going forward, we should solicit more community feedback during the design/spec writing phase! Would you be interested to review those design artifacts? I am thinking perhaps we can open issues ahead of time to describe what we are doing - or maybe an open repo for improvement proposals. Any thought on this?",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-621906250"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-04-30T18:37:10Z",
+     "body": "@movitto \n-- I realized the inconsistency in UNL management as well. Extending the concept to recommend validators is an interesting idea. That leads me thinking about David's Two-layer Consensus post. I personally think recommending validators of the lower layer could be one of the responsibilities of the top layer (or the governing layer). \n\n-- Yes, so far \"it just seems like a good number\". I acknowledge the need for analysis of the network. It has not been a priority yet. A targeted scenario of the negative UNL, and an important one, is like several validators go offline during a long weekend. In these kinds of cases, 50% seems a good number. Of course, 60% may seem good too. I will coll",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-622029060"
+    },
+    {
+     "author": "JoelKatz",
+     "date": "2020-05-18T20:49:46Z",
+     "body": "It is extremely important to keep in mind that this doesn't change the consensus logic or which validators vote on which transactions to include in a ledger. It only affects a server's local decision of when to consider a ledger validated. Being on this list in no way affects a server's ability to contribute to the network's censorship resistance.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-630427838"
+    },
+    {
+     "author": "codecov-commenter",
+     "date": "2020-05-20T01:19:33Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/3380?src=pr&el=h1) Report\n> Merging [#3380](https://codecov.io/gh/ripple/rippled/pull/3380?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/97712107b71a8e2089d2e3fcef9ebf5362951110&el=desc) will **increase** coverage by `0.19%`.\n> The diff coverage is `90.97%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/3380/graphs/tree.svg?width=650&height=150&src=pr&token=y0OgJuslsq)](https://codecov.io/gh/ripple/rippled/pull/3380?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #3380      +/-   ##\n===========================================\n+ Coverage    ",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-631176680"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2020-05-20T09:04:20Z",
+     "body": "> It is extremely important to keep in mind that this doesn't change the consensus logic or which validators vote on which transactions to include in a ledger. It only affects a server's local decision of when to consider a ledger validated. **Being on this list in no way affects a server's ability to contribute to the network's censorship resistance.**\n\nHow does this work if the following is true?\n\n> The quorum logic is as follows:\n> 1. Only validations from validators that are on your local UNL but not on the negative UNL count.\n\nAs long as you are on someone's Synchronized Healthcheck Interval Transgressor list, they will treat your validations as noise, if I understand this correctly and",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#issuecomment-631344306"
+    }
+   ],
+   "body": "The Negative UNL is a protocol change to improve the network’s reliability in the face of failed validators without sacrificing network safety. The Negative UNL protocol uses the existing consensus algorithm for the network to agree on a list of validators that are believed to be unreliable at the moment and lists the validators on the ledgers. If a validator V is on that list, it would still participate in consensus in precisely the same way. But nodes with V in their UNL adjust the quorum and V’s validation message is not counted when verifying if a ledger is fully validated. When V becomes reliable, nodes use the consensus algorithm to vote it off the list.\n\nThis feature adds a new pseudo",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "pwang200:nUnl",
+   "additions": 8593,
+   "deletions": 1722,
+   "changedFiles": 157,
+   "commits": 34,
+   "reviewComments": 183,
+   "reviews": [
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2020-04-29T05:55:58Z",
+     "body": "Did a quick first read. Will follow-up with more thorough comments."
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-04-29T08:07:59Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-04-29T08:08:17Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2020-04-29T23:27:40Z",
+     "body": "I'm not finished with the review,  (I really just looked at the code in `NegativeUNLVote`). Here's a patch with all the suggested changes for a reference: https://github.com/seelabs/rippled/commit/d2319434f59d55c989f59b43efd0f21cd06a2360\n\nIf you do decide to accept some of the comments I thought it might be easier to grab them from that patch.\n\nI also have some larger issues I need to think about, and I obviously need to look at the other code as well, but I wanted to leave the comments I had now instead of waiting to finish the whole thing."
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2020-04-29T23:34:01Z",
+     "body": ""
+    },
+    {
+     "author": "carlhua",
+     "state": "CHANGES_REQUESTED",
+     "date": "2020-04-30T14:50:43Z",
+     "body": "Good stuff @pwang200  I left some comments and I have one major comment that I would like to ask you to consider. The implementation as it stands performs bulk of the calculation at a single synchronization point - which is at a flag ledger. This increases the node's workload at every 256 ledger. Depending on the amount of work, we can potentially see a jitter in the network due to a spike in work load. Although I doubt its \"that much\" work, we should generally try to avoid doing lots of work at any single one point. Instead, its good practice to distribute the work over a period of time \"naturally\". In this case, I would ask to do the actual accumulation of scores and other housekeeping ove"
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2020-05-03T03:55:19Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2020-05-03T03:56:35Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2020-05-03T04:31:04Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:18:11Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:18:30Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:18:48Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:22:16Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:22:22Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:22:26Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:24:58Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:25:03Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:25:09Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:25:19Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:25:26Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:26:33Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:26:39Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:27:11Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:27:18Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:27:25Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:27:28Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-04T06:27:33Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2020-05-04T18:20:48Z",
+     "body": "Round 2"
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2020-05-06T04:32:20Z",
+     "body": "Did a quick first pass to leave some comments. Good stuff @pwang200 ."
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2020-05-06T04:34:57Z",
+     "body": ""
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "state": "COMMENTED",
+     "date": "2020-05-06T08:04:59Z",
+     "body": ""
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2020-05-06T17:58:10Z",
+     "body": ""
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2020-05-06T19:37:18Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2020-05-06T21:16:09Z",
+     "body": ""
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2020-05-06T21:19:31Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2020-05-06T21:22:33Z",
+     "body": ""
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2020-05-06T22:04:10Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-07T19:43:53Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:40:39Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:40:43Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:40:58Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:41:06Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:41:21Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:41:30Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:41:40Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:41:46Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:42:10Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:43:24Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:43:29Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:44:02Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:48:35Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:49:21Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:57:32Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:57:51Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T04:58:43Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T05:00:25Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T05:01:43Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T05:02:05Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T05:02:28Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T05:03:03Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T05:03:28Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-08T05:16:46Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-09T02:19:11Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2020-05-09T03:44:13Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2020-05-09T04:00:04Z",
+     "body": ""
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2020-05-11T19:28:57Z",
+     "body": ""
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2020-05-11T19:33:29Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-12T05:36:59Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-12T05:38:05Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-12T05:38:07Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-12T05:39:24Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-12T05:39:55Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-12T05:40:25Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-12T05:54:16Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-12T06:14:27Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-12T06:20:18Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-12T06:31:17Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-12T06:40:25Z",
+     "body": ""
+    },
+    {
+     "author": "cjcobb23",
+     "state": "COMMENTED",
+     "date": "2020-05-14T18:18:57Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-14T21:01:27Z",
+     "body": ""
+    },
+    {
+     "author": "carlhua",
+     "state": "APPROVED",
+     "date": "2020-05-27T15:27:16Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2020-05-27T16:10:56Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-05-27T16:15:37Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2020-06-08T15:10:21Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-09T18:17:55Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-09T18:18:42Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2020-06-10T16:25:02Z",
+     "body": "I finished going through the code (sorry for the long delay). Didn't find any major issues, but left a few comments. Here's a patch with the `README.md` reformatting and one rvalue ref change: https://github.com/seelabs/rippled/commit/4bd54c1d73006a13ffa9d8a4f5c1c0bca17497f2"
+    },
+    {
+     "author": "nbougalis",
+     "state": "CHANGES_REQUESTED",
+     "date": "2020-06-11T00:00:22Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T14:20:08Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T14:20:52Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T14:21:27Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T14:24:24Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T14:24:35Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T14:27:28Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T14:29:34Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T14:58:28Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T15:01:25Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T15:02:01Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T15:02:14Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2020-06-17T15:02:45Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "nbougalis",
+     "date": "2020-04-29T05:31:06Z",
+     "path": "src/ripple/app/consensus/RCLValidations.cpp",
+     "body": "This entire function basically reduces to this (untested, typed on my phone):\n\n    /* Remove validations that are from validators on the negative UNL. */\n    if (!nUnl.empty())\n    {\n        validations.erase(\n            std::remove_if(\n                validations.begin(), validations.end(), [&nUnl](auto const& v) {\n                    return nUnl.find(v->getNoideID()) != nUnl.end();\n                }, validations.end());\n    }\n\nWe call this function from several places, which is unfortunate. If it was called once, we could simply inline it with no loss in readability.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417075180"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2020-04-29T05:50:37Z",
+     "path": "src/ripple/protocol/TxFormats.h",
+     "body": "Typo (in multiple places): `ttUNL_MODIFY`",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417080450"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2020-04-29T05:53:54Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "I'd remove this. Prefer using `sfFirstLedgerSequence` (we mark it as deprecated, but we can remove that).",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417081350"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-04-29T08:07:59Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "Thanks. Using `sfFirstLedgerSequence` now.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417137778"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-04-29T08:08:17Z",
+     "path": "src/ripple/protocol/TxFormats.h",
+     "body": "Thanks. Changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417137946"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T22:59:28Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "The header should be self-contained, so we need to add includes for `Protocol.h`, `PublicKey.h` and `UintTypes.h`",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417661102"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T22:59:56Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Both parameters should be `const&`",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417661264"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:01:25Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "For a function like this, I prefer returning an `optional` rather than return a `bool` with an out parameter.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417661724"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:02:49Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "People sometimes use an `n` prefix to denote `num`. Maybe rename this `negUnl`?",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417662168"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:05:59Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "As of this pr: https://github.com/ripple/rippled/pull/3348, addGiveItem can take advantage of moves. You can either `std::move(tItem)` or just inline the call to `make_shared`. I'd probably just inline the call since I'd rather not leave a moved-from variable around.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417663195"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:07:04Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Member vars of type `mutex` should almost always be `mutable`",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417663563"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:09:43Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "We may want to cache the `txNodeID ^ randomPad` so it's not computed on every loop iteration. I suspect the optimizer will do this for us, but we may want to do this anyway. Your call. I'm OK with it as-is too.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417664418"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:10:30Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Both of the above could be `const`",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417664684"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:11:23Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "I don't think we need the `idx` variable. Just do `numAncestors -i -1` as the index.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417665021"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:14:49Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "I'd change  `myValidationCount` to a `std::uint32_t const` (for portability). We should probably do that for most of the other uses of `unsigned int` as well.\n\nI'd also make the variable `const` and initialize it with a lambda. Something like:\n```\n    auto const myValidationCount = [&]() -> std::uint32_t {\n        if (auto const it = scoreTable.find(myId_); it != scoreTable.end())\n            return it->second;\n        return 0;\n    }();\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417666246"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:16:29Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "`static_cast` instead of c-style cast.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417666795"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:17:24Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "I might change the above to a lamba that initialized `canAdd` and moves the rest into the lambda. Something like:\n```\n    auto const canAdd = [&]() -> bool {\n        std::size_t negativeListed = 0;\n        for (auto const& n : unl)\n        {\n            if (negUnl.find(n) != negUnl.end())\n                ++negativeListed;\n        }\n        bool const result = negativeListed < maxNegativeListed;\n        JLOG(j_.trace()) << \"N-UNL: my nodeId \" << myId_ << \" lowWaterMark \"\n                         << nUnlLowWaterMark << \" highWaterMark \"\n                         << nUnlHighWaterMark << \" canAdd \" << result\n                         << \" negativeListed \" << negativeListed\n                        ",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417667082"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:18:15Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Could use a range-based for loop and a structured binding:\n```\n    for (auto const& [nodeId, score] : scoreTable)\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417667327"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-04-29T23:34:01Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Don't search the `scoreTable` twice, use the iterator returned by `find`",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r417672256"
+    },
+    {
+     "author": "carlhua",
+     "date": "2020-04-30T13:46:07Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "I am generally not a fan of using \"using\" for something this simple. this obfuscate the underlying type which makes the code less informative.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r418021700"
+    },
+    {
+     "author": "carlhua",
+     "date": "2020-04-30T13:47:17Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "If we choose to provide comments here we should explain the meaning of each param. what are trusted master keys for example? more clarification would be beneficial",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r418022557"
+    },
+    {
+     "author": "carlhua",
+     "date": "2020-04-30T13:56:05Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "uint32?",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r418029157"
+    },
+    {
+     "author": "carlhua",
+     "date": "2020-04-30T13:58:34Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Can we calculate these numbers vs listing them as magic numbers",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r418030886"
+    },
+    {
+     "author": "carlhua",
+     "date": "2020-04-30T14:21:06Z",
+     "path": "src/ripple/app/consensus/RCLConsensus.cpp",
+     "body": "this function is called even when the amendment is not enabled?",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r418047108"
+    },
+    {
+     "author": "carlhua",
+     "date": "2020-04-30T14:22:55Z",
+     "path": "src/ripple/app/ledger/impl/LedgerMaster.cpp",
+     "body": "Samething here, i dont think we should call filterValsWithnUnl if the amendment is not activated. even though I don't think it will do anything. good to have conditional here",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r418048443"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-04-30T22:42:30Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "```suggestion\n    if (auto& sle = read(keylet::negativeUNL()))\n```\nSo we don't copy. Copying `shared_ptr` requires incrementing the reference count, which is atomic and therefore somewhat expensive. This appears in other places that I think should change as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r418329898"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-04-30T22:45:35Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "```suggestion\n    if (auto& sle = read(keylet::negativeUNL()))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r418330937"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-04-30T22:45:49Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "```suggestion\n    if (auto& sle = read(keylet::negativeUNL()))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r418330998"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2020-05-03T03:55:19Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "I like this. \n\nAllow me a philosophical comment: I've come to dislike code like this:\n```\n        std::size_t negativeListed = 0;\n        for (auto const& n : unl)\n        {\n            if (negUnl.find(n) != negUnl.end())\n                ++negativeListed;\n        }\n```\n\nWhile simple enough, I think that using the \"shared vernacular\" of `std::count_if` is much better, since it communicates the intent of the code precisely, with no loss in performance:\n\n```\nauto negativeListed = std::count_if(unl.begin(), unl.end(),\n    [&negUnl](auto const& entry) {\n        return negUnl.find(entry) != negUnl.end();\n    });\n```\n\nThe one downside is that it returns a signed type `std::unordered_map<...>::diffe",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419042803"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2020-05-03T03:56:35Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Agreed. Please avoid this.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419042909"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2020-05-03T04:31:04Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "We should simply just allow the compiler to do the calculation:  \n\n`static constexpr std::size_t nUnlLowWatermark = 256 * 0.5;`\n\nThe result _should_ be well-defined on all platforms.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419045528"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:18:11Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Thanks, added.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419229861"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:18:30Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Thanks, changed to const&.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419229964"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:18:48Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419230053"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:22:16Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Thanks, changed. Now I realize there are other `nUnl*` in the code. I might change this back or change the others to `negUnl*` too.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419231011"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:22:22Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419231040"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:22:25Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419231049"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:24:58Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Since you are OK with it as-is, I did not change, because I think most likely candidates will have one element inside.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419231728"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:25:02Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419231748"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:25:09Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419231778"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:25:19Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419231828"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:25:26Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419231851"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:26:33Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Thanks, used the version in Scott's comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419232207"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:26:39Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419232232"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:27:11Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419232396"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:27:18Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Thanks, removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419232427"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:27:24Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Thanks, add a bit more explanation.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419232462"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:27:28Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419232478"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-04T06:27:33Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419232501"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T17:56:57Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "Could reduce nesting with:\n```\n    if (auto sle = read(keylet::negativeUNL());\n        sle && sle->isFieldPresent(sfNegativeUNL))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419620219"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T17:58:22Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "Could reduce nesting here too (similar to above)",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419621204"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:01:38Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "Consider using early returns to reduce nesting, something like:\n```\nvoid\nLedger::updateNegativeUNL()\n{\n    if (info_.seq % 256 != 0)\n        return;\n\n    auto sle = peek(keylet::negativeUNL());\n    if (!sle)\n        return;\n\n    bool const hasToDisable = sle->isFieldPresent(sfNegativeUNLToDisable);\n    bool const hasToReEnable = sle->isFieldPresent(sfNegativeUNLToReEnable);\n\n    if (!hasToDisable && !hasToReEnable)\n        return;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419623354"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:01:56Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "above two could be const",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419623523"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:05:06Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "What do you think about a switch here:\n```\n    switch (ctx.tx.getTxnType())\n    {\n        case ttAMENDMENT:\n        case ttFEE:\n        case ttUNL_MODIFY:\n            return tesSUCCESS;\n        default:\n            return temUNKNOWN;\n    }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419625356"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:06:02Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "Maybe use a switch here too\n```\n    switch (ctx_.tx.getTxnType())\n    {\n        case ttAMENDMENT:\n            return applyAmendment();\n        case ttFEE:\n            return applyFee();\n        case ttUNL_MODIFY:\n            return applyUNLModify();\n        default:\n            assert(0);\n    }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419625945"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:06:43Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "`const` (both vars)",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419626410"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:06:55Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "`const`",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419626505"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:08:20Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "You could `break` here, no need to check the other elements once this is `true`. But I'd probably wrap this in a lambda instead and return (that way `found` could be `const`)\n```\n\n    bool const found = [&] {\n        if (nUnlObject->isFieldPresent(sfNegativeUNL))\n        {\n            auto const& nUnl = nUnlObject->getFieldArray(sfNegativeUNL);\n            for (auto it = nUnl.begin(); it != nUnl.end(); ++it)\n            {\n                if (it->isFieldPresent(sfPublicKey) &&\n                    it->getFieldVL(sfPublicKey) == validator)\n                    return true;\n            }\n        }\n        return false;\n    }();\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419627313"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:13:05Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "This function modified `validations`. I'd rather have an interface that did not modify `validation`, but if that's difficult we at least need to document the face that `validations` is an in/out parameter and how this function changes that parameter.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419630227"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:14:14Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "This function can modify `validations`. That should be documented (see comment on `buildScoreTable`)",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419630947"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:16:22Z",
+     "path": "src/ripple/app/misc/ValidatorList.h",
+     "body": "Should these be shared locks? (here and below).",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419632210"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:17:40Z",
+     "path": "src/ripple/app/misc/ValidatorList.h",
+     "body": "Nit: In general we try to not to define function implementations in the class definition (it makes it harder to read the interface). These are all very small functions, so it's not a big deal, but I'd probably more them to the cpp file.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419632925"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:18:17Z",
+     "path": "src/ripple/app/misc/ValidatorList.h",
+     "body": "Document that the lock needs to be held here.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419633276"
+    },
+    {
+     "author": "seelabs",
+     "date": "2020-05-04T18:20:16Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "We might want a constant for the flag interval, or an \"isFlagLedger` function. I'm not worried about the interval changing, but it makes the code clearer to see `isFlagLedger(view().seq())` rather than `% 256`",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r419634553"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T03:39:30Z",
+     "path": "src/ripple/app/ledger/Ledger.h",
+     "body": "I think we should use \"negative\" instead of \"n\". `nUNL` is rather cryptic, and `negativeUNL` is in no way excessively long. It would be much clearer to prefix with `negative`, and I don't see a good reason not to. I would apply this change to the entire changeset.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r420528525"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T03:47:17Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Is there a way to avoid doing floating point arithmetic and just work with integers? Floating point arithmetic can cause portabiliy issues.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r420530153"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T03:50:33Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Are the last two parameters output parameters? If so, you can just return them, as a pair. The compiler usually optimizes returns to avoid a copy. It's much cleaner and just as efficient.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r420530853"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T03:52:01Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Just wondering if we do this anywhere else in the code, or if this is the first friend that's a test.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r420531137"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T04:13:50Z",
+     "path": "src/ripple/app/misc/impl/ValidatorList.cpp",
+     "body": "Nit: Unless I am misunderstanding, I think these would be better named something like unlSize, and effectiveUnlSize. numUNL makes me think this variable represents the number of UNLs, as opposed to the size of the UNL.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r420535637"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T04:19:39Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "This is just `std::shared_ptr<SLE>` right? Just a nit, but I prefer using the actual type here. I don't think the type alias actually gives us anything, and using the actual type helps readability.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r420536852"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T04:21:16Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "can you use a range based for loop here? If you can, I think that would be cleaner.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r420537195"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T04:29:06Z",
+     "path": "src/ripple/protocol/LedgerFormats.h",
+     "body": "You have some gRPC work to do. You added a new LedgerEntryType, which means we need to add the corresponding LedgerEntryType in protobuf. They are all defined in ledger_objects.proto. You also need to write some C++ code to serialize the ledger object to protobuf. Reach out to me if you need any help.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r420538830"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T04:34:57Z",
+     "path": "src/ripple/app/ledger/Ledger.h",
+     "body": "I'm ok if you want to leave local variables as `nUNL`. But function names and parameters and classes/structs should use `negative` or at least `neg` instead of just `n`.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r420540179"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2020-05-06T08:04:59Z",
+     "path": "src/ripple/protocol/LedgerFormats.h",
+     "body": "...or you do not create objects on ledger because they might not be necessary and save all that code and work.\n\nI'm somewhat worried that only (nearly) finished implementations are discussed and reviewed here, not feature designs. In my opinion the design of this feature is partially flawed, so I'm not so sure if it makes sense at this stage to discuss about how shared pointers should be used in some places.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r420611943"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T17:58:10Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "I _think_ you should use `makeFieldAbsent` instead of `delField`. I think `delField` executed by itself puts the object in an invalid state. `makeFieldAbsent` does what you want. If you look through the codebase, `delField` is only used internally, in `STObject`. `makeFieldAbsent` is used in a lot of places.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r420984526"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T19:37:18Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "I am not sure this is the best place to call `updateNegativeUNL()`, with the update happening behind the scenes. Updating the negative unl seems similar to updating the skiplist. `updateSkipList()` is called here: \nhttps://github.com/ripple/rippled/blob/develop/src/ripple/app/ledger/impl/BuildLedger.cpp#L60\nI think `updateNegativeUNL()` should be called there too. When I use this constructor, I expect the constructed object to have the exact same state map as the previous ledger, with no differences. After that, I modify the state map based on new transations, fee voting, updating the skip list, etc. These modifications happen after the constructor. I think `updateNegativeUNL()` is a similar",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421043490"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2020-05-06T20:34:33Z",
+     "path": "src/ripple/protocol/impl/Indexes.cpp",
+     "body": "Please remove this function entirely, and inline the body inside the `keylet`.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421074984"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2020-05-06T20:38:33Z",
+     "path": "src/ripple/protocol/impl/Indexes.cpp",
+     "body": "As of **1.6.0-b5** using a functor-like interface for keylets is mostly deprecated. You should consider using the newer style:\n\n```\nKeylet const& negativeunl()noexcept\n{\n    static Keylet const ret {\n        ltNEGATIVE_UNL, indexHash(LedgerNameSpace::NEGATIVE_UNL)};\n    return ret;\n}\n```\n\nNote: you may need to rebase against **1.6.0-b5** in order to get access to `indexHash`.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421077111"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2020-05-06T20:47:43Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "Correct. Please use `makeFieldAbsent`.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421081977"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2020-05-06T21:15:17Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "I agree that sticking to integer arithmetic works; we can always write `INT * FLOAT` as `INT * INT / INT` for almost every `FLOAT` value we care about here:\n\n| Floating Expression | Equivalent Integer |\n|:------------------:|:-------------------------:|\n|`256 * 0.5` | `256 * / 2` |\n|`256 * 0.8` | `(256 * 4) / 5` |\n|`256 * 0.9` | `(256 * 9) / 10` |\n\nI don't _think_ the C++ standard actually mandates IEEE floating-point math⁠ but I don't think that generally \"bites\" us for the numbers we're using—perhaps @HowardHinnant or @scottschurr can correct me. If it does, then we should use the floating point arithmetic format, since it's \"easier\" to read: I understand *`0.8`* as \"80% percent\" without h",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421096987"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T21:19:31Z",
+     "path": "src/ripple/app/ledger/impl/LedgerMaster.cpp",
+     "body": "I don't really like that `filterValsWithnUnl` modifies the passed in argument, yet returns void. What if the functions `getTrustedForLedger()` and `currentTrusted()` accepted a bool parameter, such that if the parameter is true, the values are filtered before returning. I think that would be cleaner and would avoid having a function that modifies its parameter.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421099139"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2020-05-06T21:22:32Z",
+     "path": "src/ripple/app/ledger/impl/LedgerMaster.cpp",
+     "body": "I'd rather just have `negativeUnlFilter` be a function that takes a list and returns a filtered *copy*.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421100652"
+    },
+    {
+     "author": "cjcobb23",
+     "date": "2020-05-06T22:04:10Z",
+     "path": "src/ripple/app/ledger/impl/LedgerMaster.cpp",
+     "body": "I think returning a filtered copy is actually the cleanest way to do this, but I wasn't sure how expensive that copy was going to be. If it's not prohibitively expensive, I also prefer returning a filtered copy.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421119214"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-07T19:43:53Z",
+     "path": "src/ripple/app/consensus/RCLValidations.cpp",
+     "body": "Thanks, changed",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421750002"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:40:38Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421933841"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:40:43Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421933851"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:40:58Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421933922"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:41:05Z",
+     "path": "src/ripple/app/ledger/Ledger.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421933955"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:41:20Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421934023"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:41:30Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421934060"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:41:40Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421934089"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:41:46Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "Thanks, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421934118"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:42:10Z",
+     "path": "src/ripple/app/tx/impl/Change.cpp",
+     "body": "Right, changed, Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421934212"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:43:24Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Right, Added documentation.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421934508"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:43:29Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "Thanks, documented",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421934527"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:44:02Z",
+     "path": "src/ripple/app/misc/ValidatorList.h",
+     "body": "Right, moved to .cpp file.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421934708"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:48:34Z",
+     "path": "src/ripple/app/misc/ValidatorList.h",
+     "body": "Here: I am using an existing mutex because the same field is protected with this mutex in other functions. \nBelow: I am currently using this mutex as well. But I can have a new mutex if you prefer.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421935749"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:49:21Z",
+     "path": "src/ripple/app/misc/ValidatorList.h",
+     "body": "Right, I should. \nNow the function is removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421935957"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:57:31Z",
+     "path": "src/ripple/app/ledger/Ledger.h",
+     "body": "I agree. Changed in this file and other files, as far as I could find.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421937957"
+    },
+    {
+     "author": "pwang200",
+     "date": "2020-05-08T04:57:51Z",
+     "path": "src/ripple/app/misc/NegativeUNLVote.h",
+     "body": "good idea, changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/3380#discussion_r421938025"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

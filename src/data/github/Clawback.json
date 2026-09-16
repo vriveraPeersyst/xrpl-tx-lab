@@ -1,0 +1,2184 @@
+{
+ "name": "Clawback",
+ "fetchedAt": "2026-09-16T10:39:25.636Z",
+ "summary": {
+  "status": "merged",
+  "prs": 9,
+  "open": 0,
+  "merged": 8,
+  "issues": 3,
+  "proposals": 7,
+  "branches": [
+   "dangell7/token-paychan-clawback",
+   "tapanito/vault-clawback-invariants"
+  ],
+  "lastActivity": "2026-09-10T22:00:58Z",
+  "lastMerged": "2026-08-26T18:06:55Z",
+  "release": "1.12.0",
+  "totalComments": 274
+ },
+ "release": {
+  "version": "1.12.0",
+  "date": "2023-09-06T21:51:33Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.12.0",
+  "excerpt": "`Clawback`"
+ },
+ "prs": [
+  {
+   "number": 8057,
+   "title": "fix: Clamp Vault Deposit, Withdraw, and Clawback to assetsTotal grid",
+   "url": "https://github.com/XRPLF/rippled/pull/8057",
+   "state": "closed",
+   "author": "Tapanito",
+   "createdAt": "2026-08-19T17:55:30Z",
+   "updatedAt": "2026-08-26T18:06:57Z",
+   "closedAt": "2026-08-26T18:06:55Z",
+   "labels": [
+    "Ready to merge",
+    "feature: LP1.1"
+   ],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-19T17:56:51Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#issuecomment-5346001497"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-20T09:00:59Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#issuecomment-5353722125"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-20T09:02:53Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8057?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `92.85714%` with `4 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8057?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/ledger/helpers/VaultHelpers.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8057?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_co",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#issuecomment-5353743247"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-20T10:44:30Z",
+     "body": "Pushed 1583772faf addressing outstanding review feedback:\n\n- **`test/app/vault` location** (@gregtatcam): moved `VaultPrecisionFixture.h` and `VaultTransactorPrecision_test.cpp` from `src/test/app/lending/` to `src/test/app/vault/` via `git mv`. Include paths updated.\n- **`clampToAssetsTotalScale` docstring** (Copilot): now states the function returns a non-negative magnitude; the caller applies the sign.\n- **`clampToAssetsTotalScale` preconditions** (Copilot): added `XRPL_ASSERT` for `delta.asset() == vault->at(sfAsset)` to match sibling helpers.\n- **`totalBefore` rounding mode** (@gregtatcam): both `totalBefore` and `totalAfter` now canonicalize under the same `NumberRoundModeGuard`.\n- **C",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#issuecomment-5354815462"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-21T13:13:01Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#issuecomment-5370228794"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-24T09:17:44Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#issuecomment-5393138685"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-24T14:16:14Z",
+     "body": "@a1q123456 Done in 67b0991fbc — added `LCOV_EXCL_START`/`LCOV_EXCL_STOP` around the untestable dust/zero-collapse and overflow_error paths, plus `UNREACHABLE` on the collapse checks.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#issuecomment-5396490188"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T17:51:51Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#issuecomment-5414457528"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T19:12:33Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#issuecomment-5415415804"
+    }
+   ],
+   "body": "## Summary\n\nThe Vault keeps three related numbers on the ledger: `sfAssetsTotal`, `sfAssetsAvailable`, and the depositor's trust line balance. `sfAssetsTotal` is stored at a coarser precision than the other two, because it's usually the largest number.\n\nWhen a deposit or withdrawal changes all three by the same raw amount, each one gets rounded to its own precision separately. Since `sfAssetsTotal`'s rounding step is bigger, it can end up slightly different from the other two — off by one tiny step, even though nothing is actually wrong. Over time this drift could make the `ValidVault` invariant check fail with `tecINVARIANT_FAILED` on a perfectly normal deposit or withdrawal.\n\nThis PR fixes",
+   "merged": true,
+   "mergedAt": "2026-08-26T18:06:55Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:tapanito/vault-precision-transactor",
+   "additions": 1394,
+   "deletions": 69,
+   "changedFiles": 10,
+   "commits": 24,
+   "reviewComments": 39,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-19T17:59:32Z",
+     "body": "The core clamp logic in VaultHelpers (and its three call sites in VaultDeposit/VaultWithdraw/VaultClawback) is internally consistent — I traced the arithmetic for both the credit and debit directions and it never overshoots, and the deposit-side share recalculation is correctly monotonic (clamped-down assets can only produce equal-or-fewer shares). The one issue worth raising is that the new `clampToAssetsTotalScale` helper's docstring claims the returned value 'has the same sign convention as delta,' but the implementation always returns a non-negative magnitude (all three current callers rely on this and use it correctly), so the doc is misleading for any future caller who takes it literal"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-19T18:13:29Z",
+     "body": "## Pull request overview\n\nThis PR prevents Vault precision drift by clamping Vault deposit/withdraw/clawback asset deltas to the `sfAssetsTotal` rounding grid (behind the `fixCleanup3_4_0` amendment), ensuring the same effective amount is applied across the vault’s related ledger fields and avoiding spurious `ValidVault` invariant failures.\n\n**Changes:**\n- Add `clampToAssetsTotalScale` helper and apply it in `VaultDeposit`, `VaultWithdraw`, and `VaultClawback` when `fixCleanup3_4_0` is enabled.\n- Add a shared precision test fixture plus a comprehensive new precision test suite covering deposits/withdrawals/clawbacks (including sub-ULP rejection and amendment on/off behavior).\n- Adjust an exi"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-19T20:31:38Z",
+     "body": "Added Vault* modules should go into test/app/vault"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-20T09:03:31Z",
+     "body": "The core fix (clamping deposit/withdraw/clawback amounts to sfAssetsTotal's rounding grid before applying them) looks sound and well-tested. The one issue worth raising is a documentation/implementation mismatch in the new clampToAssetsTotalScale helper's doc comment."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-20T09:03:32Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-20T09:03:33Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-20T10:16:28Z",
+     "body": "This is a focused, well-scoped fix: it introduces `clampToAssetsTotalScale` and threads it through `VaultDeposit`, `VaultWithdraw`, and `VaultClawback` so that the amount applied to the trust line/MPT, `sfAssetsAvailable`, and `sfAssetsTotal` is first snapped to `sfAssetsTotal`'s coarser rounding grid before being applied uniformly to all three fields. I traced the rounding direction for each call site (Downward on credit for deposit, Upward on the negated debit for withdraw/clawback) and it consistently favors the vault over the user, matching the PR description. The zero-guards (`tecPRECISION_LOSS` when the clamp collapses the amount to zero) and the non-recomputation of burned shares in w"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-20T10:16:29Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-20T10:16:31Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-20T10:43:26Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-20T10:43:30Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-20T10:44:16Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-20T10:44:16Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-20T10:44:16Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-20T10:48:07Z",
+     "body": "This is a precision-rounding fix that clamps deposit/withdraw/clawback amounts to sfAssetsTotal's coarser rounding grid before applying them, gated behind fixCleanup3_4_0. I traced the new clampToAssetsTotalScale helper and its three call sites (VaultDeposit, VaultWithdraw, VaultClawback) carefully: the rounding-mode direction (Downward for deposit credits, Upward on negated deltas for withdraw/clawback debits) matches the stated intent of always favoring the vault, the clamp is applied before the amount is used for the actual ledger mutation in each transactor, shares are correctly re-derived after the deposit clamp but deliberately left un-recalculated after the withdraw/clawback clamp (as"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-20T10:48:08Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-20T11:23:20Z",
+     "body": "Overflow handling gap in VaultWithdraw — see inline."
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-20T12:56:08Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-20T12:59:49Z",
+     "body": "This is a well-scoped, carefully-reasoned fix. The new `clampToAssetsTotalScale` helper is used consistently across Deposit/Withdraw/Clawback with the correct rounding direction in each case (Downward on credits so the vault is never over-credited; Upward on the negated debit so payouts are trimmed down, never exceeding vault capacity), and the re-derivation of shares in VaultDeposit (but intentionally not in Withdraw/Clawback, per the documented design rationale of leaving dust for remaining shareholders) is internally consistent with the stated intent. All new paths are gated behind fixCleanup3_4_0, overflow paths are caught and mapped to tecPATH_DRY, and zero-collapse is mapped to tecPREC"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-20T12:59:50Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2026-08-20T15:00:08Z",
+     "body": "LGTM\n\nOne nit in VaultTransactorPrecision_test.cpp:\n\n`BEAST_DEFINE_TESTSUITE(VaultTransactorPrecision, tx, xrpl);` -> should be `app` instead of `tx`."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-21T08:41:01Z",
+     "body": "This is a well-reasoned, heavily-tested precision fix. The core primitive (`clampToAssetsTotalScale`) correctly rounds the applied delta to `sfAssetsTotal`'s STAmount grid before it's used to update `sfAssetsTotal`/`sfAssetsAvailable`/the trust line together, and the rounding direction in each caller (Downward for deposit credits, Upward on the negated delta for withdraw/clawback debits) matches the stated \"never let the user overpay, never let the vault overpay\" invariant. The overflow_error handling, zero-collapse rejection (`tecPRECISION_LOSS`), and the `fixCleanup3_4_0` gating all look consistent across VaultDeposit/VaultWithdraw/VaultClawback. I did not find a confident correctness bug "
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-21T09:23:08Z",
+     "body": "This PR adds a `clampToAssetsTotalScale` helper and wires it into VaultDeposit, VaultWithdraw, and VaultClawback (gated behind `fixCleanup3_4_0`) to force the credited/debited amount onto sfAssetsTotal's own rounding grid before applying it to sfAssetsAvailable and the trust line/MPT balance. I traced the rounding-direction logic for each call site (Downward for deposit credits, Upward on the negated delta for withdraw/clawback debits) against the stated invariants (vault never over-credits, never over-pays) and it checks out: deposit can only shrink the credited amount and re-derives shares from the shrunk amount, while withdraw/clawback shrink only the payout without re-deriving the alread"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-24T09:20:43Z",
+     "body": "This is a well-reasoned and heavily-tested precision fix. I traced the rounding math in `clampToAssetsTotalScale` and its three call sites (VaultDeposit, VaultWithdraw, VaultClawback): the Downward/Upward rounding directions are applied correctly to guarantee the vault is never over-credited on deposit and never over-pays on withdraw/clawback, and the amendment gating (`fixCleanup3_4_0`) is applied consistently. I did not find correctness or security bugs in the added code. The one thing worth a second look is a log-level inconsistency in VaultDeposit that could produce noisier logs than the equivalent debug-level messages used for the same class of rejection elsewhere in this PR."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-24T09:36:24Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "APPROVED",
+     "date": "2026-08-24T12:18:44Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-24T13:13:55Z",
+     "body": "tests and implementation are solid, let's add gcovr comments."
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-24T14:15:50Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-24T14:16:06Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-24T14:16:07Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-24T14:16:09Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-24T14:16:12Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-24T14:16:14Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-24T14:31:34Z",
+     "body": "UNREACHABLE macro on documented reachable path—see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-25T09:57:03Z",
+     "body": "This is a careful, well-reasoned fix to a real correctness gap: independent per-field rounding of sfAssetsTotal vs. sfAssetsAvailable/trust-line balances could drift and trip the ValidVault invariant. The new clampToAssetsTotalScale helper snaps the applied delta to sfAssetsTotal's own rounding grid before it's applied to all three rails, always rounding in the vault's favor (down for deposits, down-via-ceiling for withdraw/clawback). I traced the sign/rounding-direction algebra for all three call sites (deposit: Downward on a positive delta bounds the credit by the requested amount; withdraw/clawback: Upward on a negative delta bounds the payout by the pre-clamp amount) and it holds togethe"
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-25T12:42:36Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-25T12:46:20Z",
+     "body": "The core rounding-clamp logic (clampToAssetsTotalScale and its use in VaultDeposit/VaultWithdraw/VaultClawback) is internally consistent with the PR's stated design: deposits round the credited amount down, withdrawals/clawbacks round the payout down (by rounding the remaining total up), and all three ledger rails are debited/credited by the exact clamped magnitude. One concrete inconsistency stands out in VaultClawback::doApply's restructured dust-rejection check."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-25T12:59:42Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-25T13:39:53Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-25T13:53:23Z",
+     "body": "Depositor overcharge risk if clamp amplifies across grid boundary - see inline."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-25T13:59:13Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-08-25T15:52:52Z",
+     "body": "all concerns have been addressed."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-25T19:15:38Z",
+     "body": "This is a well-reasoned and thoroughly tested fix: it addresses sfAssetsTotal/sfAssetsAvailable/trust-line rounding drift at its source by clamping deposit/withdraw/clawback amounts to the posterior sfAssetsTotal scale before applying them, always rounding in the vault's favor. The math in clampToAssetsTotalScale (downward-rounded posterior minus current total for credits, downward-rounded magnitude for debits) is sound: it guarantees the returned magnitude never exceeds the requested delta, and a non-positive result is correctly rejected as tecPRECISION_LOSS. The removal of the assetsAvailable leg from the pre-existing debitIsNonZeroDust check in VaultWithdraw/VaultClawback is intentional a"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-26T10:48:55Z",
+     "body": "The vault deposit/withdraw/clawback precision-clamp fix is thorough and the accompanying description documents an already-fixed ambient-rounding defect in the credit-path *sum* (`assetsTotal + magnitude`). However, the very next arithmetic step in the same credit branch — the final subtraction `roundedPosterior - assetsTotal` — is not guarded the same way, and can hit the identical failure mode (ambient rounding mode corrupting a result that needs more than Number's 19-digit mantissa) whenever a deposit is many orders of magnitude larger than the vault's current `sfAssetsTotal`."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-26T10:50:29Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 10 out of 10 changed files in this pull request and generated 1 comment."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-26T11:15:31Z",
+     "body": "The core fix in VaultHelpers.cpp (`clampToAssetsTotalScale`) and its wiring into VaultDeposit/VaultWithdraw/VaultClawback is careful and well-tested — the credit-path Downward-guard fix, the post-clamp `roundsToZeroForDepositor` re-check in VaultDeposit, and the availability-before-clamp check in VaultWithdraw all match the MR's stated rationale and look internally consistent. One repeated behavioral change stood out that isn't called out in the PR description: in both VaultWithdraw and VaultClawback, the pre-existing dust check that also compared the debit against `sfAssetsAvailable` was dropped, leaving only the `sfAssetsTotal` check. This is very likely safe (assetsAvailable's magnitude, "
+    },
+    {
+     "author": "a1q123456",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-26T13:15:20Z",
+     "body": "looks good, just one small thing."
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-26T13:23:05Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-26T13:26:21Z",
+     "body": "This is a well-scoped, carefully reasoned fix that clamps the deposit/withdraw/clawback amount to sfAssetsTotal's rounding grid before applying it, so all three ledger rails (trust line/MPT, sfAssetsAvailable, sfAssetsTotal) move by an identical, exact delta. The core helper (clampToAssetsTotalScale) and its call sites in VaultDeposit/VaultWithdraw/VaultClawback are internally consistent: rounding direction always favors the vault, the dust checks that were narrowed to only check sfAssetsTotal are safe because the new clamp guarantees sfAssetsAvailable (finer-or-equal precision) can't independently go dust, overflow paths are caught and mapped to tecPATH_DRY, and the change is backed by an u"
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-08-26T14:22:52Z",
+     "body": "lgtm"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-08-19T18:13:28Z",
+     "path": "include/xrpl/ledger/helpers/VaultHelpers.h",
+     "body": "The doc states the returned value keeps the same sign as the input `delta`, but the current implementation returns a non-negative magnitude for both credit and debit (for negative input it returns `totalBefore - totalAfter`). Please update the doc (or change the function) so callers aren’t misled about the return semantics.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3815582589"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-19T18:13:29Z",
+     "path": "src/libxrpl/ledger/helpers/VaultHelpers.cpp",
+     "body": "Other VaultHelpers conversion helpers use `XRPL_ASSERT` to validate basic preconditions (asset match, etc.), but `clampToAssetsTotalScale` currently has no such guards. Adding consistent asserts would make incorrect call sites easier to diagnose during testing while remaining a no-op in release builds.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3815582634"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-19T20:20:07Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "Nit: should be fix340Enabled for consistency with other fix*Enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3816422488"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-19T20:20:20Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultDeposit.cpp",
+     "body": "Nit: should be fix340Enabled for consistency with other fix*Enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3816423845"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-19T20:30:35Z",
+     "path": "src/libxrpl/ledger/helpers/VaultHelpers.cpp",
+     "body": "`totalBefore` is rounded to whatever the current mode is.  Should `totalBefore` be rounded to the same mode as `totalAfter`?",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3816489555"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-20T09:03:32Z",
+     "path": "include/xrpl/ledger/helpers/VaultHelpers.h",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3820113544"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-20T09:03:33Z",
+     "path": "src/libxrpl/ledger/helpers/VaultHelpers.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3820113762"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-20T10:16:29Z",
+     "path": "include/xrpl/ledger/helpers/VaultHelpers.h",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3820622057"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-20T10:16:31Z",
+     "path": "src/libxrpl/ledger/helpers/VaultHelpers.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3820622222"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-20T10:43:26Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultDeposit.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3820799970"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-20T10:43:30Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3820800337"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-20T10:44:16Z",
+     "path": "src/libxrpl/ledger/helpers/VaultHelpers.cpp",
+     "body": "Fixed in 1583772faf. Added `XRPL_ASSERT(delta.asset() == vault->at(sfAsset), ...)` to match the pattern used by `sharesToAssetsDeposit` and the other sibling helpers.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3820805292"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-20T10:44:16Z",
+     "path": "src/libxrpl/ledger/helpers/VaultHelpers.cpp",
+     "body": "Good catch — fixed in 1583772faf. Hoisted the `NumberRoundModeGuard` so both `totalBefore` and `totalAfter` canonicalize under the same mode. The returned delta now reflects only the effect of `delta`, never a rounding difference between the two endpoints.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3820805295"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-20T10:44:16Z",
+     "path": "include/xrpl/ledger/helpers/VaultHelpers.h",
+     "body": "Fixed in 1583772faf. The docstring now states the function returns a non-negative magnitude and the caller applies the sign (add for credits, subtract for debits). All three current call sites already use it that way.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3820805306"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-20T10:48:08Z",
+     "path": "include/xrpl/ledger/helpers/VaultHelpers.h",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3820830451"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-20T11:23:19Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "Uncaught overflow on clampToAssetsTotalScale. Wrap in try/catch for std::overflow_error like VaultDeposit/VaultClawback:\n\n```suggestion:-0+10\n    if (fix340Enabled && !isFinalWithdrawal && assetsWithdrawn > beast::kZero)\n    {\n        try\n        {\n            // Round Upward on the negative delta: the stored total is decremented by no more than it\n            // can represent, so the payout is trimmed downward and the vault never pays out more than\n            // it can account for.\n            assetsWithdrawn =\n                clampToAssetsTotalScale(vault, -assetsWithdrawn, Number::RoundingMode::Upward);\n            // Payout collapsed to zero. Return tecPRECISION_LOSS instead of burning ",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3821065229"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-20T12:56:08Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "Fixed in 38e7a6dd21. Wrapped the clamp in try/catch for `std::overflow_error`, mirroring the pattern in VaultDeposit/VaultClawback.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3821734843"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-20T12:59:50Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3821761745"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-08-24T09:36:24Z",
+     "path": "src/libxrpl/ledger/helpers/VaultHelpers.cpp",
+     "body": "🟡 **Severity: MEDIUM**\n\nWhen `sfAssetsTotal` is mid-grid (>16 significant digits, e.g. from loan operations), rounding both `totalBefore` and `totalAfter` under the same mode can produce a delta **larger** than the input `|delta|`. E.g., T=10000000000000005, W=6, Upward: `round_up(T)-round_up(T-6)=10000000000000010-9999999999999999=11>6`. This contradicts the callers' safety assumptions.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** After computing the clamped result, add a guard to ensure it never exceeds the absolute value of the original `delta`. When `sfAssetsTotal` sits mid-grid (>16 significant digits), rounding both endpoints under the same mod",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3842258825"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-08-24T13:10:39Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "let's add // LCOV_EXCL_START and // LCOV_EXCL_END",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3843745010"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-08-24T13:10:46Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "same here",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3843745988"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-08-24T13:10:55Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultDeposit.cpp",
+     "body": "same here",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3843747004"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-08-24T13:11:07Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "same here",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3843748490"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-08-24T13:11:16Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3843749505"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-24T14:15:50Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "Done in 67b0991fbc. Wrapped this dust path with `LCOV_EXCL_START`/`LCOV_EXCL_STOP` (the markers this repo uses) and an `UNREACHABLE` — it's leftover once `assetsToClawback` has already snapped to the grid.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3844286594"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-24T14:16:06Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "Done in 67b0991fbc. `overflow_error` catch wrapped with `LCOV_EXCL_START`/`LCOV_EXCL_STOP`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3844289197"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-24T14:16:07Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultDeposit.cpp",
+     "body": "Done in 67b0991fbc. Both post-clamp zero-collapse returns (`assetsDeposited <= 0` and `sharesCreated == 0`) now have `LCOV_EXCL_START`/`LCOV_EXCL_STOP` plus `UNREACHABLE`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3844289371"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-24T14:16:09Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "Done in 67b0991fbc. `debitIsNonZeroDust` overflow catch wrapped with `LCOV_EXCL_START`/`LCOV_EXCL_STOP`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3844289583"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-24T14:16:12Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "Done in 67b0991fbc. Clamp-to-zero return wrapped with `LCOV_EXCL_START`/`LCOV_EXCL_STOP` and `UNREACHABLE` — `debitIsNonZeroDust` already rejected amounts too small to move `sfAssetsTotal`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3844290133"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-24T14:16:14Z",
+     "path": "src/libxrpl/ledger/helpers/VaultHelpers.cpp",
+     "body": "Disagree — that amplification is the intended mid-grid behavior, not a bug.\n\n`clampToAssetsTotalScale` is explicitly *not* \"round `|delta|` then apply it\". Both endpoints are canonicalized under the same mode so the returned magnitude is the actual change in `sfAssetsTotal`'s STAmount representation. The helper docstring already calls this out: when `sfAssetsTotal` sits mid-grid, the quantized delta can differ from `|delta|`.\n\nCapping to `|delta|` would apply a value that is *not* the STAmount-grid delta. `sfAssetsTotal` / `sfAssetsAvailable` / the trust line would then move by different representable amounts, which is the ValidVault failure this PR is fixing.\n\nThe example (T=100000000000000",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3844290355"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-24T14:31:33Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "UNREACHABLE contradicts owner-burn reachability documented above; will assert instead of returning tecPRECISION_LOSS cleanly. Remove:\n\n```suggestion:-0+2\n\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3844435809"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-25T12:42:36Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "Agreed, and fixed in 79a0e98050. On closer look the comment above this check was itself internally inconsistent: it says the check is \"kept ... to cover the owner-burn path, where assetsRecovered is not put through that clamp\" -- i.e. it documents this as a path the check is meant to actually guard, not one that can never happen. Marking it UNREACHABLE contradicted that.\n\nOn top of that, even on the issuer-clawback path the two computations do not fully agree: assetsToClawback's clampToAssetsTotalScale canonicalizes under RoundingMode::Upward, while this check runs under the ambient (ToNearest) mode, so a boundary assetsTotal/assetsAvailable value could in principle disagree between the two.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3853045194"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-08-25T12:59:42Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "🟡 **Severity: MEDIUM**\n\n`assetsRecovered` was clamped to `assetsAvailable` at line 295, but `clampToAssetsTotalScale` can **amplify** the delta when `sfAssetsTotal` sits mid-grid (see existing review on VaultHelpers.cpp:85). After this call, `assetsRecovered` may exceed `assetsAvailable`, yet no re-check occurs before the debit at line 460-461 (`assetsAvailable -= assetsRecovered`), potentially making `assetsAvailable` negative and corrupting ledger state.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add a post-clamp re-check after `clampToAssetsTotalScale` to ensure `assetsRecovered` has not been amplified beyond `*assetsAvailable`. VaultWithdraw al",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3853189207"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-25T13:39:53Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "Confirmed real, thanks. Traced it: `assetsToClawback` clamps `assetsRecovered` to `*assetsAvailable` at what's now line ~293, then (post-fixCleanup3_4_0) runs it through `clampToAssetsTotalScale(vault, -assetsRecovered, Upward)` at line ~327. Since `sfAssetsTotal`/`sfAssetsAvailable` are NUMBER fields (more precise than an STAmount's 16 significant digits), that scale-clamp canonicalizes both endpoints to STAmount precision and can amplify the magnitude when `sfAssetsTotal` sits mid-grid — e.g. T=10000000000000005, delta=6: round_up(T) - round_up(T-6) = 10000000000000010 - 9999999999999999 = 11 > 6, exceeding the 6 that was just clamped to `assetsAvailable`. There was no re-check before the ",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3853552803"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-25T13:53:23Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultDeposit.cpp",
+     "body": "Clamp can amplify delta when sfAssetsTotal mid-grid. Bound result to requested amount:\n\n```suggestion\n            if (assetsDeposited > amount)\n                assetsDeposited = amount;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3853673508"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-08-25T13:59:14Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "⚪ **Severity: LOW**\n\nMid-grid amplification can inflate `assetsWithdrawn` beyond the burned shares' fair value. Unlike VaultClawback (which re-clamps to `assetsAvailable`), there is no equivalent cap here. When the vault has ample `assetsAvailable`, the amplified payout flows to `doWithdraw` at line 579, causing the vault to overpay the withdrawer at other shareholders' expense.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add a defensive re-clamp after the `clampToAssetsTotalScale` call to cap `assetsWithdrawn` to `assetsAvailable`, matching the pattern already used in `VaultClawback.cpp` at lines 338-339. Also fix the misleading comment at lines 452",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3853729246"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-26T10:50:29Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "Comment has a punctuation typo (`stays consistent;.`) which reads like an accidental semicolon. This is likely meant to end the sentence normally.",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3862008725"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-08-26T13:10:08Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "worth adding // LCOV_EXCL_LINE",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3863037096"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-08-26T13:23:05Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "Added in 5538aec034.\n\n`debitIsNonZeroDust` already rejects sub-ULP withdrawals before the clamp, so this `tecPRECISION_LOSS` return is defense-in-depth only and isn't reachable from tests. Marked `LCOV_EXCL_LINE` to match the other untestable returns in these transactors.\n\nThe same `if (!maybeClamped)` line is left uncovered in VaultDeposit and VaultClawback — those paths are live (deposit: sub-ULP credit; clawback: clamp runs before the dust check).",
+     "url": "https://github.com/XRPLF/rippled/pull/8057#discussion_r3863146214"
+    }
+   ]
+  },
+  {
+   "number": 8111,
+   "title": "fix: Refuse a pseudo-account as the vault clawback holder",
+   "url": "https://github.com/XRPLF/rippled/pull/8111",
+   "state": "closed",
+   "author": "tyalymov",
+   "createdAt": "2026-08-25T16:58:32Z",
+   "updatedAt": "2026-08-26T15:13:53Z",
+   "closedAt": "2026-08-26T15:13:51Z",
+   "labels": [
+    "Ready to merge",
+    "feature: LP1.1"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-25T17:01:25Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8111?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8111#issuecomment-5413880770"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n`VaultClawback` accepted a pseudo-account as `Holder`. A pseudo-account issues the shares it stands\nfor and therefore holds none of them, so the request could never move anything, yet it was allowed\npast validation. It now fails in `preclaim` with `tecPSEUDO_ACCOUNT`, gated on `fixCleanup3_4_0`.\n\n### Context of Change\n\n`VaultClawback::preclaim` checks the asset, the submitter, the clawback flags and, in the asset\nbranch, that the issuer is not clawing from itself. Nothing looked at the holder, so the vault's own\npseudo-account was accepted and the outcome fell out of whatever arithmetic ran out first:\n\n- with an implicit `Amount`, which means \"everything the",
+   "merged": true,
+   "mergedAt": "2026-08-26T15:13:51Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:tialymov/FN-31-clawback_pseudo_account_holder",
+   "additions": 95,
+   "deletions": 0,
+   "changedFiles": 2,
+   "commits": 7,
+   "reviewComments": 6,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-25T16:59:23Z",
+     "body": "The change adds a preclaim check in VaultClawback that rejects any pseudo-account named as Holder with tecNO_PERMISSION, gated behind fixCleanup3_4_0, replacing the previous behavior of falling through to tecPRECISION_LOSS or tripping the ValidVault invariant (tecINVARIANT_FAILED). The logic is narrowly scoped (checks isPseudoAccount for any pseudo-account, not just the vault's own, matching the stated rationale for loan-broker cover and future AMM cases), amendment-gated correctly, and backed by a test that exercises both amendment states and both implicit/explicit amount paths while asserting AssetsTotal is untouched either way. I don't see a correctness or security issue in the added code"
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-08-25T17:01:48Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-08-25T17:43:09Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-25T17:43:44Z",
+     "body": "The change adds a straightforward, correctly-gated preclaim check that rejects a pseudo-account as the Holder of a VaultClawback with tecNO_PERMISSION once fixCleanup3_4_0 is enabled, matching the pre-amendment fallback behavior (tecPRECISION_LOSS / tecINVARIANT_FAILED) described in the MR. The added code is small, scoped to the new lines, and the accompanying test exercises both amendment states and both implicit/explicit amount paths while asserting AssetsTotal is untouched. No correctness, security, or consistency issues found in the changed lines."
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-08-26T09:43:23Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-26T09:43:51Z",
+     "body": "The change adds a preclaim check in VaultClawback that rejects a pseudo-account named as Holder, gated behind fixCleanup3_4_0, with a matching test covering both the implicit-amount (tecPRECISION_LOSS) and explicit-amount (tecINVARIANT_FAILED) pre-amendment paths and the new tecNO_PERMISSION post-amendment path. The logic, gating, and test coverage look correct and consistent with the stated intent; the check is placed sensibly among the other holder/asset validations and doesn't interfere with the existing self-clawback (issuer == holder) check. I found no correctness, security, or consistency issues in the added code."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-26T11:29:28Z",
+     "body": "## Pull request overview\n\nThis PR tightens `VaultClawback` validation to reject pseudo-accounts as the `Holder`, preventing transactions that cannot move vault shares from progressing into later-stage arithmetic/invariant failures. The change is consensus-affecting and is gated on the `fixCleanup3_4_0` amendment, with new tests pinning both pre- and post-amendment behavior.\n\n**Changes:**\n- Add a `preclaim` rule (gated on `fixCleanup3_4_0`) to refuse pseudo-account holders for `VaultClawback`.\n- Add a regression test covering both implicit-amount and explicit-amount clawbacks against the vault pseudo-account, with amendment on/off expectations.\n\n### Reviewed changes\n\nCopilot reviewed 2 out of"
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-08-26T12:32:08Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-08-26T12:32:09Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-26T12:33:04Z",
+     "body": "The change adds a preclaim check in VaultClawback that rejects a pseudo-account Holder with tecPSEUDO_ACCOUNT once fixCleanup3_4_0 is active, correctly gated behind the amendment and consistent with the described pre-amendment tecPRECISION_LOSS/tecINVARIANT_FAILED fallback paths. The accompanying test exercises both the implicit- and explicit-amount cases with the amendment on and off, and verifies AssetsTotal is unchanged either way. I don't see correctness, security, or resource issues in the added lines; the logic, placement (before the ambiguous-amount branch), and test coverage look sound."
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-08-26T12:35:57Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-08-26T13:18:06Z",
+     "body": "lgtm"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Tapanito",
+     "date": "2026-08-25T17:01:48Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "nit: could you clean up this comment please? \n\n```\nA pseudo-account is the issuer of shares, a clawback from the issuer is a no-op.\nPre-fixCleanup3_4_0: ...\nPost-fixCleanup3_4_0: ...\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8111#discussion_r3855334732"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-25T17:43:09Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8111#discussion_r3855649654"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-26T11:29:27Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "The comment says a pseudo-account is the issuer of the shares, but this check rejects any pseudo-account Holder (Vault/LoanBroker/AMM). That wording is only true for the vault’s own pseudo-account and is misleading for other pseudo-accounts; reword to describe the actual rule being enforced.",
+     "url": "https://github.com/XRPLF/rippled/pull/8111#discussion_r3862269831"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-26T11:29:28Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "This path returns tecNO_PERMISSION, but the surrounding rationale (and other transactors like VaultWithdraw/Clawback) use tecPSEUDO_ACCOUNT to make the failure reason explicit. If the intent is to “name the reason” for refusal, consider returning tecPSEUDO_ACCOUNT here (and updating the new test expectations accordingly).",
+     "url": "https://github.com/XRPLF/rippled/pull/8111#discussion_r3862269875"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-26T12:32:08Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8111#discussion_r3862723244"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-08-26T12:32:09Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8111#discussion_r3862723438"
+    }
+   ]
+  },
+  {
+   "number": 8075,
+   "title": "fix: Prevent vault clawback and withdraw overrun",
+   "url": "https://github.com/XRPLF/rippled/pull/8075",
+   "state": "closed",
+   "author": "Tapanito",
+   "createdAt": "2026-08-21T10:42:11Z",
+   "updatedAt": "2026-08-26T11:01:11Z",
+   "closedAt": "2026-08-25T18:29:21Z",
+   "labels": [
+    "Ready to merge",
+    "feature: LP1.1"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-21T13:02:29Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8075?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8075#issuecomment-5370124268"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-21T13:13:03Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8075#issuecomment-5370229066"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-21T13:27:58Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8075#issuecomment-5370381236"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-24T13:53:05Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8075#issuecomment-5396196755"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-24T14:28:06Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8075#issuecomment-5396653149"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n`VaultClawback` and `VaultWithdraw` can move strictly more assets than the transaction requested when share rounding rounds up during the asset → shares → assets round-trip. Gate a behavior change under `fixCleanup3_4_0` that truncates shares in the asset-denominated branch of both transactors, so the delivered asset amount is always less than or equal to the requested amount by construction.\n\n### Context of Change\n\nBoth transactors convert a requested asset amount to shares with `assetsToSharesWithdraw(..., TruncateShares::No)`, which rounds to nearest, then round-trip back through `sharesToAssetsWithdraw`. Whenever the share rounding rounds up, the round-t",
+   "merged": true,
+   "mergedAt": "2026-08-25T18:29:21Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:tapanito/vault-clawback-bug",
+   "additions": 310,
+   "deletions": 57,
+   "changedFiles": 4,
+   "commits": 9,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-21T13:58:19Z",
+     "body": "The fix is a tightly-scoped, well-reasoned change: it gates `TruncateShares::Yes` under the existing `fixCleanup3_4_0` amendment in both `VaultClawback::assetsToClawback` and `VaultWithdraw::doApply`, addressing the round-to-nearest overshoot in the asset→shares→asset round-trip. Both call sites pass the amendment-gated `truncate` value correctly into `assetsToSharesWithdraw` in the same argument position as before, preserving the existing `waiveUnrealizedLoss` parameter in `VaultWithdraw` and the existing clamp-branch behavior in `VaultClawback`. Test coverage (VaultBugs_test.cpp reproductions plus updated VaultScale_test expectations) matches the documented pre/post-amendment math. I did n"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-24T09:23:40Z",
+     "body": "The change is a narrowly-scoped, amendment-gated rounding-direction fix (round-to-nearest → truncate) applied consistently to both VaultClawback::assetsToClawback and VaultWithdraw::doApply's asset-denominated branch. The math in the MR description checks out (7/5 example, and the VaultScale_test expected-value updates for the shifted chained state and the new tecPRECISION_LOSS tiny-amount cases are internally consistent with floor semantics). Both call sites correctly select TruncateShares::Yes only when fixCleanup3_4_0 is enabled, preserving old behavior pre-amendment, and the accompanying VaultBugs_test additions plausibly reproduce the pre-fix overshoot and the post-fix bound. I did not "
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-24T09:43:18Z",
+     "body": "The core fix is a well-targeted, minimal change: both VaultClawback and VaultWithdraw now gate the share-rounding direction on fixCleanup3_4_0, switching from round-to-nearest to truncation in the asset->shares conversion so the asset amount delivered can never exceed the amount requested. The math in the MR description checks out (e.g., floor(20/7)=2, 7*2/5=2.8 <= 4), the amendment gating follows the existing codebase convention (mirrors the clamp branch that already used TruncateShares::Yes), and the accompanying VaultBugs_test/VaultScale_test updates are internally consistent with the new truncation semantics, including the switch to tecPRECISION_LOSS for near-zero-share requests. I did n"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-24T09:51:25Z",
+     "body": "The core fix (rounding down shares via TruncateShares::Yes in both VaultClawback and VaultWithdraw's asset-denominated branches) is a correct, minimal, root-cause fix that matches the existing clamp-branch pattern in VaultClawback. Test updates in VaultScale_test.cpp are internally consistent with the new truncation math (verified the chained share/asset totals across the withdraw/clawback sequences). One open question worth confirming before merge: whether VaultClawback has an equivalent guard to VaultWithdraw's tecPRECISION_LOSS check for the case where truncation now more frequently drives sharesDestroyed to zero."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-24T10:13:31Z",
+     "body": "## Pull request overview\n\nThis PR fixes an over-delivery bug in VaultClawback and VaultWithdraw where “assets → shares → assets” round-tripping could move **more** than the transaction requested when share rounding rounded up. The behavior change is correctly gated behind the existing `fixCleanup3_4_0` amendment by switching the asset-denominated conversion to **truncate** shares (round down), making over-delivery impossible by construction.\n\n**Changes:**\n- In `VaultWithdraw` fixed-asset withdraw path, use `TruncateShares::Yes` when `fixCleanup3_4_0` is enabled so `assetsWithdrawn <= requested` holds by construction.\n- In `VaultClawback::assetsToClawback` fixed-asset clawback path, similarly"
+    },
+    {
+     "author": "tyalymov",
+     "state": "APPROVED",
+     "date": "2026-08-24T11:00:35Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-08-24T12:58:09Z",
+     "body": "lgtm"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-24T14:29:48Z",
+     "body": "The core fix (gating TruncateShares::Yes for the asset-denominated branches of VaultClawback and VaultWithdraw under fixCleanup3_4_0) is a clean, minimal, correct rounding-direction change consistent with the existing clamp branch. Tests are updated consistently with the new truncation semantics. One open question: VaultWithdraw explicitly documents that zero-shares-after-truncation is caught by the existing tecPRECISION_LOSS guard, but the MR description and diff give no indication that VaultClawback has an equivalent guard for its new truncating branch."
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-08-24T20:17:00Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-25T09:57:37Z",
+     "body": "The diff gates a one-line rounding-direction fix (TruncateShares::No → Yes under fixCleanup3_4_0) in the asset-denominated branches of VaultClawback::assetsToClawback and VaultWithdraw::doApply, exactly as described. Both changes are minimal, symmetric, and match the existing clamp-branch precedent already using TruncateShares::Yes. The accompanying VaultBugs_test.cpp reproductions and VaultScale_test.cpp expected-value updates were checked against the stated math (floor vs round-to-nearest) and are internally consistent — the chained share/asset totals (838, 801, etc.) correctly account for the effects of the prior truncated withdrawal/clawback in the same test sequence, and the new tecPREC"
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-08-25T14:32:54Z",
+     "body": "clean merge, approving"
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 7704,
+   "title": "fix: Prevent silent zero AMM clawbacks due to integer MPT rounding",
+   "url": "https://github.com/XRPLF/rippled/pull/7704",
+   "state": "closed",
+   "author": "bryanjiang1",
+   "createdAt": "2026-07-02T17:36:06Z",
+   "updatedAt": "2026-08-25T15:22:44Z",
+   "closedAt": "2026-08-10T22:16:24Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-07T02:27:50Z",
+     "body": "The fixAMMClawbackRounding amendment actually predates AMM support for MPT pools. When fixAMMClawbackRounding was originally introduced, the codebase only handled IOU pools. Therefore, the description \"regression introduced by fixAMMClawbackRounding\" is inaccurate.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#issuecomment-4899529661"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-07T14:59:47Z",
+     "body": "What if the pool is {1 btc, 111000 xrp}? (I haven’t tested this number, assume it can cause the clawback of 1btc rounded to 0).\nWe can no longer claw 1btc from the holder. We might need to change the rounding for clawback so that 1btc can always be clawed",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#issuecomment-4905211372"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-08-07T19:49:55Z",
+     "body": "@BryanJ1ang please take a look at the comments left by Copilot. At first glance they look like reasonable changes to make.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#issuecomment-5221384584"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-07T20:20:39Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7704?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#issuecomment-5221638431"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nFixes a rounding vulnerability in `AMMClawback` where clawing back a fractional amount of an integer-based Multi-Purpose Token (MPT) could silently result in zero tokens being recovered, while still burning the target's LP tokens.\n\n### Context of Change\nThe guard is gated behind the `fixCleanup3_4_0` amendment.\n\nMPTs are integer-denominated, so for integer MPT pools the proportional clawback math (`clawAmount / amountBalance`) can produce a fraction that floors `amountRounded` — or `amount2Rounded` — down to `0`. Unlike its sibling routine (`equalWithdrawTokens`), this function lacked a guard to check for a zero result. Consequently, the transaction would re",
+   "merged": true,
+   "mergedAt": "2026-08-10T22:16:24Z",
+   "draft": false,
+   "base": "develop",
+   "head": "bryanjiang1:brjiang-amm-clawback",
+   "additions": 156,
+   "deletions": 8,
+   "changedFiles": 2,
+   "commits": 11,
+   "reviewComments": 27,
+   "reviews": [
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-07T02:36:12Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-07T02:38:15Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-07-08T20:37:51Z",
+     "body": "The `amount2Rounded == 0` operand is never exercised. Only the MPT (`amountRounded`) side rounds to zero here; the XRP side is always large. An MPT/MPT pool where the other asset is the tiny integer that floors to zero would do it. \n\nAdd a dedicated case in the RoundsToZero setup that claws a slightly larger amount which rounds non-zero, run it across the same three-amendment matrix, and assert the outcome is identical with `fixCleanup3_3_0` on and off — same `tesSUCCESS`, same MPT clawed, same pool/LP/outstanding deltas. That is the only thing that actually proves the guard fires only in the zero-rounding case and regresses nothing adjacent to it. That is the only thing that actually proves"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-13T19:39:07Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-13T22:24:13Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2026-07-16T16:34:40Z",
+     "body": "-Dunity=ON fails to build"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-21T02:23:50Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-21T03:08:20Z",
+     "body": ""
+    },
+    {
+     "author": "bryanjiang1",
+     "state": "COMMENTED",
+     "date": "2026-07-22T15:57:09Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-22T18:05:06Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-07-28T23:39:44Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-08-06T17:22:06Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-07T19:43:00Z",
+     "body": "## Pull request overview\n\nThis PR addresses a rounding edge case in AMM clawbacks involving integer-denominated MPT assets, where proportional clawback math can round an extracted asset down to zero while still burning the target’s LP tokens. The change introduces a guard (behind an amendment) to fail the transaction when either rounded withdrawal amount becomes zero, and adds a targeted regression test to reproduce the silent-zero scenario.\n\n**Changes:**\n- Add a zero-rounded-amount guard in `AMMClawback::equalWithdrawMatchingOneAmount` to abort with `tecAMM_FAILED` when rounding would cause a one-sided withdrawal.\n- Add a new unit test covering the rounding-to-zero clawback scenario for MPT"
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-08-07T19:43:24Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-08-07T19:48:29Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-07T19:54:11Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-10T17:09:05Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 2 out of 2 changed files in this pull request and generated no new comments.\n\n\n\n\n<details>\n<summary>Suppressed comments (2)</summary>\n\n**src/test/app/AMMClawbackMPT_test.cpp:1962**\n* PR description/test plan says the new rounding-to-zero scenario is tested under three amendment combinations (including fixAMMClawbackRounding off), but run() only exercises fixCleanup3_4_0 on/off while always enabling fixAMMClawbackRounding via `all`. Either update the PR description/test plan to match what’s actually covered, or add the missing fixAMMClawbackRounding-off coverage with the correct expectations.\n```\n        FeatureBitset const all{jtx::testableAmendment"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-08-10T17:50:38Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-07T02:36:12Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMClawback.cpp",
+     "body": "We need to put this behind an amendment guard. Let's use Cleanup3_3_0 (from features.macro) for now: `if (rules.enabled(fixCleanup3_3_0))`\nIf we decide to include this PR in the next upcoming release, we can switch to a new amendment.\n\nWe need to do this because the change alters current behavior and will cause a ledger consensus issue otherwise.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3533202129"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-07T02:38:15Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "We need to test `if (features[fixCleanup3_3_0])` instead, before and after your fix.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3533207609"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-07-08T20:26:23Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "Can be `const`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3547038100"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-13T19:38:05Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "fixAMMClawbackRounding is already active. So we do not need to consider it anymore.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3573603256"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-13T19:38:32Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "fixAMMClawbackRounding is already active. So we do not need to consider it anymore.\nWe should just test the fix amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3573605874"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-13T22:24:13Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "this is not needed. It can be deleted.\nThis is already covered in other test cases, for example:\n`testAMMClawbackAmount(all);`\n\nIt runs with `fixCleanup3_3_0` enabled (by default, it is included in `all`), and it is non-zero-rounding.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3574598265"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-07-16T16:28:20Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMClawback.cpp",
+     "body": "nit: // LCOV_EXCL_LINE on line 259 is now stale — the new test makes equalWithdrawMatchingOneAmount return a reachable tecAMM_FAILED, so that return result; is now executed.\nadding a comment here since line 259 is not visible.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3597208568"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:23:51Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "why do we still need this?\nEven with near-zero rounding, it isn't an exact zero rounding. Non-zero rounding is already covered by our existing unit tests.\nwe just need to add `testAMMClawbackAmount(all - fixCleanup3_3_0)` to cover\n\n(https://github.com/XRPLF/rippled/pull/7704#discussion_r3574598265)",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619002558"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:44:30Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "we can wrap the first case in a `{}`",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619066411"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:46:01Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "`env.close()` is not needed after `amm.deposit`.\nbecause it is already encapsulated in it.\n\nunder AMM.cpp: AMM::submit, it calls:\n```\nif (doClose_)\n        env_.close();\n```\n\nThe other existing code can be cleaned up as well",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619071183"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:50:01Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "nit: \nPost-fixCleanup3_3_0: Clawback fails because of BTC balance would round to zero. All balances must remain untouched.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619085856"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:51:11Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "nit: Pre-fixCleanup3_3_0: ...",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619089727"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:52:07Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "If we wrap the first case in `{}`, we can use `gw`",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619092875"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:52:28Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "If we wrap the first case in {}, we can use mptBtc.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619094045"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T02:52:36Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "If we wrap the first case in {}, we can use amm. And the other variable names can be adjusted",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619094418"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T03:05:37Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "nit: Pre-fixCleanup3_3_0: clawback fails because ETH(Asset2) balance would round to zero. All balances must remain untouched.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619147148"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-21T03:06:55Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "nit: Post-fixCleanup3_3_0:..",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3619150828"
+    },
+    {
+     "author": "bryanjiang1",
+     "date": "2026-07-22T15:57:09Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "this case claws an amount that rounds to 1, one unit above the `== kZero ` guard. It proves the guard fires only at exact zero and doesn't affect the values adjacent to it. I believe previous existing tests only claw large amounts far from that boundary, so they don't cover this. This is the case @gregtatcam asked for.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3631762860"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-22T18:05:06Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "1 or a large number seems to be the same functionally in this case. They are just not zero. @gregtatcam \nIt doesn't matter if the value is far from 0 or close to 0.\n\nI think we can leave it out and add \ntestAMMClawbackAmount(all - fixCleanup3_3_0) to cover.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3632624385"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-07-28T23:39:44Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "^^^^\n@BryanJ1ang This still needs to be addressed",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3669923704"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-07T19:42:59Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMClawback.cpp",
+     "body": "The new zero-rounding guard is gated on fixCleanup3_4_0, but the PR description says it is gated on fixCleanup3_3_0. Please confirm which amendment should control this behavior and align the code (and tests/docs) accordingly; otherwise the fix may activate under the wrong feature flag.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738342660"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-07T19:42:59Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "`lptBefore` is never used here. This can trigger unused-variable warnings in some build configurations; either remove the binding or mark it `[[maybe_unused]]`.\n\nThis issue also appears in the following locations of the same file:\n- line 552\n- line 610\n- line 621",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738342722"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-07T19:42:59Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "In the pre-fix (fixCleanup3_4_0 disabled) branch, the test validates that BTC rounds to zero and LP is burned, but it doesn’t assert that the paired XRP side was actually withdrawn (the key part of the silent-loss scenario described in the PR). Adding an assertion that the XRP pool balance decreased would more directly prove the bug is reproduced.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738342753"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-07T19:43:00Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "The PR description/test plan says the new rounding-to-zero scenario is exercised under three amendment combinations (including fixAMMClawbackRounding off), but `run()` only calls the new test with fixCleanup3_4_0 on/off while always forcing fixAMMClawbackRounding on via `all`. Either update the test plan text or extend this test to cover the fixAMMClawbackRounding-off combination with appropriate expectations.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738342799"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-08-07T19:43:23Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMClawback.cpp",
+     "body": "@gregtatcam I see you approved, but has this been addressed?",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738344936"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-08-07T19:48:29Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "@BryanJ1ang Can you add `[[maybe_unused]]` to all the referenced locations? When C++ 26 is out we can then use `_` to skip the unused variable.",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738374599"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-07T19:54:11Z",
+     "path": "src/test/app/AMMClawbackMPT_test.cpp",
+     "body": "fixAMMClawbackRounding is already enabled, so there's no need to test it off.\n@BryanJ1ang  PR description can change:\n\n\"Before:\nWith fixAMMClawbackRounding enabled but fixCleanup3_4_0 disabled\"\n\nshould leave out fixAMMClawbackRounding here. It is not related to this amendment. The amendment already enabled, the issue is caused by introducing MPT into AMM",
+     "url": "https://github.com/XRPLF/rippled/pull/7704#discussion_r3738402227"
+    }
+   ]
+  },
+  {
+   "number": 6708,
+   "title": "fix: Clamp VaultClawback to assetsAvailable for zero-amount clawback (#6646)",
+   "url": "https://github.com/XRPLF/rippled/pull/6708",
+   "state": "closed",
+   "author": "Tapanito",
+   "createdAt": "2026-04-02T09:31:01Z",
+   "updatedAt": "2026-07-21T09:20:04Z",
+   "closedAt": "2026-04-16T17:43:40Z",
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-04-02T10:04:40Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6708?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `97.14286%` with `1 line` in your changes missing coverage. Please review.\n:warning: Please [upload](https://docs.codecov.com/docs/codecov-uploader) report for BASE (`ripple/staging-313@a92483e`). [Learn more](https://docs.codecov.io/docs/error-reference?utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#section-missing-base-commit) about missing BASE report.\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled",
+     "url": "https://github.com/XRPLF/rippled/pull/6708#issuecomment-4176108652"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-14T01:07:34Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6708#issuecomment-4240594093"
+    },
+    {
+     "author": "mathbunnyru",
+     "date": "2026-04-16T17:43:40Z",
+     "body": "This is already part of staging branch, closing it",
+     "url": "https://github.com/XRPLF/rippled/pull/6708#issuecomment-4262217576"
+    }
+   ],
+   "body": "This is a port of https://github.com/XRPLF/rippled/pull/6646 for the older version of the `rippled` codebase.\n\n## Summary\n\n- **Fix**: Zero-amount `VaultClawback` (meaning \"clawback all\") now clamps recovered assets to `assetsAvailable` when there is an outstanding loan, preventing recovery of more assets than are actually available. The old unclamped behavior is preserved behind the `fixSecurity3_1_3` amendment gate for ledger replay compatibility.\n- **Fix**: Non-zero clawback path now passes the original `clawbackAmount` (rather than `assetsRecovered`) to `assetsToSharesWithdraw`, ensuring correct share-to-asset conversion before clamping.\n- **Test**: Added boundary condition tests for claw",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "ripple/staging-313",
+   "head": "XRPLF:tapanito/staging-fix-vault-clawback-clamp",
+   "additions": 875,
+   "deletions": 46,
+   "changedFiles": 7,
+   "commits": 7,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 7285,
+   "title": "fix: Strengthen Clawback invariant checks for MPT balances",
+   "url": "https://github.com/XRPLF/rippled/pull/7285",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2026-05-17T19:10:37Z",
+   "updatedAt": "2026-07-14T15:09:25Z",
+   "closedAt": "2026-07-14T15:09:24Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-17T19:42:32Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7285?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `74.66667%` with `19 lines` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 82.3%. Comparing base ([`f5e63f8`](https://app.codecov.io/gh/XRPLF/rippled/commit/f5e63f8a91c8b11c594887b68252bbe8b6f0b7cc?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`5a05fc2`](https://app.codecov.io/gh/XRPLF/rippled/commit/5a05fc2acaf67819f5dcd75364bca3b8610b1fc5?drop",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#issuecomment-4472294779"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-21T19:56:07Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#issuecomment-4512271917"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-26T13:39:37Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#issuecomment-4544573211"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-01T17:03:38Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#issuecomment-4594762403"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-01T17:45:50Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#issuecomment-4595073265"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-27T02:11:41Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#issuecomment-4814688018"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-06T23:40:50Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#issuecomment-4898612372"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-07-08T13:50:57Z",
+     "body": "> One correctness issue flagged inline — `iou_.after` can be set independently of `iou_.before`, causing a spurious invariant failure if `visitEntry` is invoked out of order.\n> \n> _Review by Claude Sonnet 4.6_ · Prompt: V15\n\nThe asymmetry is real but can't cause a spurious failure: visitEntry gets a single entry's before/after together, and a legitimate clawback modifies exactly one trustline, so there's only one ltRIPPLE_STATE call and iou_.after is never overwritten — order doesn't matter. Even in a hypothetical multi-line case, clawbackTrustLineBalanceInHolderTerms re-validates the key for both sides, so a mismatched after is caught as \"changed the wrong line\" rather than passing silently",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#issuecomment-4915493654"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n- Renames ValidMPTPayment to ValidMPTBalanceChanges.\n- Extends ValidClawback to validate before/after IOU and MPT holder balance changes.\n- Adds MPT clawback checks against the raw holder MPToken balance instead of accountHolds().\n- Adds regression coverage for invalid IOU/MPT clawback deltas, deleted IOU trustlines, \n  amendment-gated IOU behavior, and mixed IOU+MPT mutations.\n\n## Test Plan\n\nExtends Invariants_test unit-tests",
+   "merged": true,
+   "mergedAt": "2026-07-14T15:09:24Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:gregtatcam/mpt/audit-clawback-invariant-fix",
+   "additions": 666,
+   "deletions": 25,
+   "changedFiles": 5,
+   "commits": 8,
+   "reviewComments": 7,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-17T19:13:58Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T13:53:22Z",
+     "body": "Ship it\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-26T13:42:01Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-01T17:48:06Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-06-05T21:09:44Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-06-06T12:19:56Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-06-06T12:22:25Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-06T13:11:15Z",
+     "body": "Clean changes\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-06T23:44:54Z",
+     "body": "One correctness issue flagged inline — `iou_.after` can be set independently of `iou_.before`, causing a spurious invariant failure if `visitEntry` is invoked out of order.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-07-07T15:59:26Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-08T15:50:53Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "Kassaking7",
+     "state": "APPROVED",
+     "date": "2026-07-08T15:56:52Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-10T23:06:39Z",
+     "body": "## Pull request overview\n\nThis PR strengthens `ttCLAWBACK` invariant validation, especially under `featureMPTokensV2`, by validating before/after balance deltas for both IOU trustlines and MPToken holdings, and expanding regression coverage to catch invalid or mixed ledger mutations.\n\n**Changes:**\n- Rename the MPT invariant checker from `ValidMPTPayment` to `ValidMPTBalanceChanges`.\n- Extend `ValidClawback` to record before/after SLEs and validate that the holder’s IOU/MPT balance delta matches the clawed amount (and reject mixed IOU+MPT mutations under MPTokensV2).\n- Add comprehensive invariant regression tests covering invalid clawback deltas, deletion edge-cases, amendment-gated behavior,"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-07-10T23:40:09Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "yinyiqian1",
+     "date": "2026-06-05T19:03:05Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "How about tracking IOU and MPT entries separately, e.g. `iouBefore_` / `iouAfter_` and `mptBefore_` / `mptAfter_`?\n\nThat would let us make the type checks explicit in each branch instead of relying on one generic `tokenBefore_` / `tokenAfter_` pair. It also keeps the IOU-specific and MPT-specific validation paths easier to extend if we add more checks later.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#discussion_r3364778448"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-06-05T19:47:12Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Moving `mptV2Enabled` outside is easier to read and cleaner\n```\nif (mptV2Enabled)\n{\n    if (trustlinesChanged_ != 0 && mptokensChanged_ != 0)\n    ...\n    if (tokenBefore_ && tokenAfter_ && tokenBefore_->getType() != tokenAfter_->getType())\n    ...\n}\n```\n\nIf mptV2Enabled check is in the inner `if`, even when featureMPTokensV2 not enabled, the code check has no effect but will create some logs.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#discussion_r3364985887"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-06-05T21:09:25Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Similar to https://github.com/XRPLF/rippled/pull/7285/changes#r3364985887\nIt is cleaner to move the amendment guard to a higher level.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#discussion_r3365405073"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-06-06T12:19:56Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "This is intentional so we can catch an issue even before the amendment is enabled. This pattern is used in other invariants.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#discussion_r3367293361"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-06-06T12:22:25Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "This is intentional so we can catch an issue even before the amendment is enabled. This pattern is used in other invariants.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#discussion_r3367296541"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-10T23:06:38Z",
+     "path": "include/xrpl/tx/invariants/MPTInvariant.h",
+     "body": "include/xrpl headers are installed/packaged; renaming ValidMPTPayment to ValidMPTBalanceChanges is an API break for downstream code that references the old name. Consider keeping a compatibility alias (possibly deprecated) to avoid breaking external consumers.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#discussion_r3562448223"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-07-10T23:40:09Z",
+     "path": "include/xrpl/tx/invariants/MPTInvariant.h",
+     "body": "There is no API break for downstream code.",
+     "url": "https://github.com/XRPLF/rippled/pull/7285#discussion_r3562547450"
+    }
+   ]
+  },
+  {
+   "number": 7353,
+   "title": "refactor: Retire Clawback amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/7353",
+   "state": "closed",
+   "author": "TimothyBanks",
+   "createdAt": "2026-05-29T02:51:17Z",
+   "updatedAt": "2026-07-06T00:20:24Z",
+   "closedAt": "2026-06-26T12:09:31Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-29T12:33:40Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7353?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 82.0%. Comparing base ([`dd0b675`](https://app.codecov.io/gh/XRPLF/rippled/commit/dd0b6754d4c33d906d54f317dcc9f4da800488ec?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`c0dd914`](https://app.codecov.io/gh/XRPLF/rippled/commit/c0dd914bc5e2c9fa78ff1f67156a2f5c83b6df29?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/7353#issuecomment-4575030326"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T19:08:15Z",
+     "body": "@a1q123456 Comments have been addressed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7353#issuecomment-4615848622"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-10T11:49:36Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7353#issuecomment-4669841643"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-10T19:34:53Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7353#issuecomment-4673753347"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-10T19:35:00Z",
+     "body": "@a1q123456 @pratikmankawde Please take another look.",
+     "url": "https://github.com/XRPLF/rippled/pull/7353#issuecomment-4673754289"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis change set retires the Clawback amendment.  All tests were updated to work correctly against retirement.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-06-26T12:09:30Z",
+   "draft": false,
+   "base": "develop",
+   "head": "TimothyBanks:retire_clawback_amendment",
+   "additions": 37,
+   "deletions": 120,
+   "changedFiles": 9,
+   "commits": 6,
+   "reviewComments": 6,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-01T17:36:13Z",
+     "body": "## Pull request overview\n\nThis PR retires the **Clawback** amendment by removing runtime feature-gating for Clawback-related behavior and registering the amendment as retired in the protocol feature registry. This aligns Clawback behavior with other retired amendments: the transaction type and related account flag handling are treated as always available, and tests are updated accordingly.\n\n**Changes:**\n- Remove `featureClawback` gating from RPC `account_info` output and from `AccountSet` flag validation/application.\n- Mark **Clawback** as a retired amendment and remove it as a required feature for the `Clawback` transaction type.\n- Update unit tests to no longer exercise “Clawback disabled”"
+    },
+    {
+     "author": "a1q123456",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-06-02T12:06:23Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-03T18:40:48Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-06-11T14:10:36Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "APPROVED",
+     "date": "2026-06-22T14:57:25Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-24T12:32:12Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 9 out of 9 changed files in this pull request and generated 2 comments."
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T14:50:42Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T14:53:33Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T12:05:36Z",
+     "path": "src/test/app/Clawback_test.cpp",
+     "body": "I don't think it makes sense to keep this test case.",
+     "url": "https://github.com/XRPLF/rippled/pull/7353#discussion_r3341017457"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T18:40:48Z",
+     "path": "src/test/app/Clawback_test.cpp",
+     "body": "I will gladly remove it.",
+     "url": "https://github.com/XRPLF/rippled/pull/7353#discussion_r3351010908"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-24T12:32:12Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Retiring `Clawback` here means `featureClawback` will no longer be declared in the public header `xrpl/protocol/Feature.h` (retired features don’t get `extern uint256 const feature<Name>` declarations). That is an external/libxrpl API break for any downstream code that referenced `featureClawback`; please make sure this is an intentional breaking change and is called out in release notes / dependency guidance (or consider keeping a deprecated alias for one release if you need a transition period).",
+     "url": "https://github.com/XRPLF/rippled/pull/7353#discussion_r3467078168"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-24T12:32:12Z",
+     "path": "src/xrpld/rpc/handlers/account/AccountInfo.cpp",
+     "body": "This changes the `account_info` RPC response shape: `account_flags.allowTrustLineClawback` is now always emitted (previously it was omitted unless the Clawback amendment was enabled). Even if the amendment is now retired, this is still a public API behavior change that can affect clients that used field presence as a feature probe; please document it (e.g., API-CHANGELOG / rpc docs) and ensure it matches the intended compatibility story for older ledgers.",
+     "url": "https://github.com/XRPLF/rippled/pull/7353#discussion_r3467078194"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T14:50:42Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "The whole point of the PR",
+     "url": "https://github.com/XRPLF/rippled/pull/7353#discussion_r3468029531"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T14:53:33Z",
+     "path": "src/xrpld/rpc/handlers/account/AccountInfo.cpp",
+     "body": "That happens when a release is made.",
+     "url": "https://github.com/XRPLF/rippled/pull/7353#discussion_r3468049598"
+    }
+   ]
+  },
+  {
+   "number": 6149,
+   "title": "Support equality proof for confidential clawback",
+   "url": "https://github.com/XRPLF/rippled/pull/6149",
+   "state": "closed",
+   "author": "yinyiqian1",
+   "createdAt": "2025-12-17T06:45:11Z",
+   "updatedAt": "2026-06-09T03:40:59Z",
+   "closedAt": "2026-01-02T16:48:06Z",
+   "labels": [
+    "DraftRunCI"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-12-17T07:09:10Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6149?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `67.93478%` with `59 lines` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 79.1%. Comparing base ([`67e8e89`](https://app.codecov.io/gh/XRPLF/rippled/commit/67e8e89e0f702b3ce5de7eba8b1aaa01bea209ef?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`eb36212`](https://app.codecov.io/gh/XRPLF/rippled/commit/eb3621270c8735f9ffcdabd8ab0d30d5f2c8f9d5?drop",
+     "url": "https://github.com/XRPLF/rippled/pull/6149#issuecomment-3663979904"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2026-01-02T16:48:06Z",
+   "draft": false,
+   "base": "ripple/confidential-transfer",
+   "head": "yinyiqian1:equality_proof_claw",
+   "additions": 757,
+   "deletions": 22,
+   "changedFiles": 6,
+   "commits": 2,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-12-18T00:28:40Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-12-18T03:40:03Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-01-02T16:47:06Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "shawnxie999",
+     "date": "2025-12-18T00:28:40Z",
+     "path": "src/xrpld/app/tx/detail/ConfidentialClawback.cpp",
+     "body": "this should be refactored into a helper function at some point",
+     "url": "https://github.com/XRPLF/rippled/pull/6149#discussion_r2629060521"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-12-18T03:40:03Z",
+     "path": "src/xrpld/app/tx/detail/ConfidentialClawback.cpp",
+     "body": "Let's keep it as is for now and refactor as more proofs are introduced.",
+     "url": "https://github.com/XRPLF/rippled/pull/6149#discussion_r2629423299"
+    }
+   ]
+  },
+  {
+   "number": 6646,
+   "title": "fix: Clamp VaultClawback to assetsAvailable for zero-amount clawback",
+   "url": "https://github.com/XRPLF/rippled/pull/6646",
+   "state": "closed",
+   "author": "Tapanito",
+   "createdAt": "2026-03-25T12:19:19Z",
+   "updatedAt": "2026-05-20T17:39:10Z",
+   "closedAt": "2026-04-06T15:29:47Z",
+   "labels": [
+    "Ready to merge",
+    "Amendment",
+    "AI Triage"
+   ],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-26T00:44:36Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#issuecomment-4130769591"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-26T09:41:09Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#issuecomment-4133113620"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-26T09:48:03Z",
+     "body": "/ai-review",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#issuecomment-4133161213"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-03-26T10:05:45Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6646?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 81.4%. Comparing base ([`02fa55d`](https://app.codecov.io/gh/XRPLF/rippled/commit/02fa55df8d13be61d2d66e5c1905a0883d404d7d?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`e663c10`](https://app.codecov.io/gh/XRPLF/rippled/commit/e663c108687e0191b44a3ca442ac5aa70ccf8b93?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#issuecomment-4133266983"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-03-31T17:13:29Z",
+     "body": "@Tapanito how does this handle `sfLockedAmount` in MPTs?",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#issuecomment-4164155666"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-04-01T08:40:20Z",
+     "body": "@mvadari good question, I added vault unit tests to ensure that `sfLockedAmount` is handled correctly.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#issuecomment-4168485584"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-01T19:58:41Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#issuecomment-4172630841"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-01T21:29:00Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#issuecomment-4173076692"
+    }
+   ],
+   "body": "Zero-amount clawback (meaning \"clawback all\") returned early without clamping to assetsAvailable, allowing more assets to be recovered than available when there was an outstanding loan. Move the zero-amount path inside the try block so it shares the same clamping logic as non-zero clawback.\n\nThe old early-return behavior is retained behind an amendment gate for ledger replay compatibility.\n\n\n\n## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrp",
+   "merged": true,
+   "mergedAt": "2026-04-06T15:29:47Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:tapanito/fix-vault-clawback-clamp",
+   "additions": 693,
+   "deletions": 25,
+   "changedFiles": 2,
+   "commits": 14,
+   "reviewComments": 13,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-26T09:51:03Z",
+     "body": "One low-severity naming collision in `setupVault` — see inline.\n\n*Review by Claude Opus 4.6* · Prompt: V12"
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-03-26T10:56:35Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-26T10:56:54Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-27T14:05:34Z",
+     "body": "## Pull request overview\n\nFixes a VaultClawback edge case where a zero-amount clawback (“claw back all”) could recover more than `sfAssetsAvailable` when loans are outstanding, by ensuring the zero-amount path shares the same clamping logic as non-zero clawbacks (while retaining legacy behavior behind a feature gate for replay compatibility).\n\n**Changes:**\n- Update `VaultClawback::assetsToClawback` to compute and clamp recovered assets for zero-amount clawback within the same guarded path as non-zero clawback.\n- Add regression tests covering zero-amount and non-zero clawback clamping when `sfAssetsAvailable < sfAssetsTotal` due to an outstanding loan.\n- Add a legacy-path test to validate pre"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-03-27T18:11:13Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-03-27T18:54:37Z",
+     "body": "LGTM - left minor comment"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-03-31T08:05:13Z",
+     "body": "Looks good.\n\n*Review by Claude Opus 4.6* · Prompt: V12"
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-03-31T09:01:27Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-03-31T09:01:35Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-31T09:06:46Z",
+     "body": "One null-dereference risk in `setupVault` — see inline comment.\n\n*Review by Claude Opus 4.6* · Prompt: V12"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-31T09:46:43Z",
+     "body": "Took a pass through this\n\nTwo issues flagged inline: a pre-patch inverted guard that silently skipped a negative-path security test, and a pre-fix zero-amount clawback bypass of the `assetsAvailable` cap. Both are addressed by this MR; comments request CI validation and an audit of analogous liquidation paths.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Opus 4.6* · Prompt: V12"
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-03-31T16:12:57Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "APPROVED",
+     "date": "2026-03-31T16:13:20Z",
+     "body": "Looks good. Left minor comments on missing tests."
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-03-31T17:06:01Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T09:51:03Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "Each `setupVault` call re-memoizes `\"vault\"` with a different account ID, silently overwriting prior entries. Use a unique name per call (e.g., include a counter or the keylet key) to avoid stale lookups:\n\n```suggestion\n            env.memoize(Account(\"vault_\" + to_string(vaultKeylet.key), vaultSle->at(sfAccount)));\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r2993643391"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-26T10:56:35Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "Vault_test.cpp:4802`** — `setupVault` re-memoizes `\"vault\"` with a different account ID on each call, silently overwriting prior entries. Suggests using a unique name per call (e.g. including the keylet key).\n\nThis is about pre-existing code in `setupVault`, not something introduced by our changes. The memoize call was there before our commit. That said, it's a valid observation — but since each test case creates its own vault and doesn't look up the old one, the overwrite is harmless in practice",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r2993992754"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T10:56:54Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": ":+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r2993994205"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-03-27T14:05:33Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "`sharesBefore` is computed but never used in this test case, which can trigger an unused-variable warning (often treated as an error in CI). Please remove it or use it in an assertion (e.g., verify the expected reduction in shares).\n```suggestion\n\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r3001205838"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-03-27T14:05:33Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "The PR description mentions keeping the legacy behavior behind a `!fixAssortedFixes` gate, but the code gates it on `!fixSecurity3_1_3`. Since `fixAssortedFixes` doesn't appear to exist in the codebase, please either update the PR description to match the actual feature flag or switch the gate to the intended amendment if different.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r3001205880"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-03-27T18:11:13Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "nit - alternatively could be (same for places down below)\n\n```\nif (!BEAST_EXPECT(vaultSle))\n    return;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r3002475792"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-31T09:01:27Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "Resolved.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r3014510436"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-31T09:01:35Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "Resolved.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r3014511257"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-31T09:06:46Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "Non-fatal `BEAST_EXPECT` lets execution fall through to a null dereference on the next line. Use a guard:\n\n```suggestion:-0+1\n            if (!BEAST_EXPECT(vaultSle != nullptr))\n                return;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r3014538261"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-31T09:46:43Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "Pre-patch inverted guard silently skipped this entire negative-path security test — fix is correct. Verify CI now exercises the full test body with the feature flag both enabled and disabled, and confirm `tecNO_PERMISSION` is the expected result.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r3014762021"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-31T09:46:43Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "Pre-fix zero-amount path bypassed `assetsAvailable` clamping, risking vault over-drain when a loan was live — fix correctly routes through the shared clamp logic. Consider auditing analogous full-liquidation paths (vault withdrawal, vault deletion) for the same pattern, and add a targeted test confirming `tefINTERNAL` is never returned from the new path regardless of loan state.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r3014762025"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-03-31T16:12:57Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "Neither tests covers the boundary conditions. Could be good to add this:\n| Boundary case | Covered? | Notes\n-- | -- | --\nPartial clawback < available (e.g. clawback 30 when 60 available) | No | No test with loan + amount < assetsAvailable\nClawback == available (clawback exactly 60 when 60 available) | No | No test at the exact boundary\nZero assetsAvailable (100% borrowed) | No | No test with all assets loaned out\nNon-1:1 ratio + loan | No | Scale tests exist but without loans; loan tests use 1:1 ratio\n\nThe existing \"Scale clawback\" tests (lines ~3908-4082) cover non-1:1 ratios but without any outstanding loans.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r3016915885"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-31T17:06:01Z",
+     "path": "src/test/app/Vault_test.cpp",
+     "body": "Added extra unit tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/6646#discussion_r3017179269"
+    }
+   ]
+  }
+ ],
+ "issues": [
+  {
+   "number": 7339,
+   "title": "trust line may persist after full clawback, locking holder reserve",
+   "url": "https://github.com/XRPLF/rippled/issues/7339",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-05-27T17:44:30Z",
+   "updatedAt": "2026-05-27T17:44:30Z",
+   "closedAt": null,
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 0,
+   "body": "After a full clawback that reduces a holder's trust line balance to zero, the trust line may persist if the issuer has settings (non-zero limit, quality, etc.) on their side. The holder continues paying \\~2 XRP reserve for a zero-balance trust line they cannot unilaterally delete. This is pre-existing trust line behavior (the same occurs with Payment), but Clawback adds a new trigger: the issuer can force the balance to zero without holder consent.\n\nSeverity: Low \\| Confidence: LIKELY \\| Adjusted Points: 12.5\n\n## Root Cause\n\nIn rippleCreditIOU (View.cpp:2076-2078), the trust line deletion check evaluates the issuer's reserve flag:\n\n```cpp\nbDelete = !saBalance // Balance is zero\n && !(uFlags "
+  },
+  {
+   "number": 7148,
+   "title": "AMMClawback doesn't revoke auction slot on LP token clawback",
+   "url": "https://github.com/XRPLF/rippled/issues/7148",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-05-13T19:21:25Z",
+   "updatedAt": "2026-05-13T19:21:25Z",
+   "closedAt": null,
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 0,
+   "body": "**Severity**: LOW\n\n**Feature**: AMM\n\n##### AMMClawback doesn't revoke auction slot on LP token clawback\n\n**Severity**: LOW\n\nWhen an issuer claws back LP tokens from a holder who owns the AMM auction slot, the auction slot is not revoked. The clawed-back holder retains the discounted trading fee privilege (and auth accounts list) for up to 24 hours after their LP tokens are clawed back. This means a user whose tokens have been clawed back still receives preferential treatment on the AMM.\n\n**Root cause**: AMMClawback::applyGuts (lines 100-223) calls AMMWithdraw functions to withdraw and burn LP tokens, but never checks or updates the auction slot. The auction slot's sfAccount field continues t"
+  },
+  {
+   "number": 6882,
+   "title": "[XLS-0096] OA Underflow Without Guard in Clawback doApply",
+   "url": "https://github.com/XRPLF/rippled/issues/6882",
+   "state": "closed",
+   "author": "hgandhi-rx",
+   "createdAt": "2026-04-12T14:59:29Z",
+   "updatedAt": "2026-04-30T20:21:43Z",
+   "closedAt": "2026-04-30T20:21:43Z",
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 2,
+   "body": "## Summary\n\n[XLS-0096] OA Underflow Without Guard in Clawback doApply.\n\n## Details\n\n**Title:** OA underflow without guard in Clawback doApply — direct `oldOA - clawAmount` with no explicit underflow check; transitively safe via `COA <= OA` invariant but asymmetric with Convert's explicit overflow guard  \n\n**Description:**  \nOA underflow without guard in Clawback doApply — direct `oldOA - clawAmount` with no explicit underflow check; transitively safe via `COA <= OA` invariant but asymmetric with Convert's explicit overflow guard.\n\n**Fix:** Add explicit guard: `if (oldOA < clawAmount) return tecINTERNAL`.\n\n## Impact\n\nBranch: [`ripple/attackathon-april-2026`](https://github.com/XRPLF/rippled/t"
+  }
+ ],
+ "proposals": [
+  {
+   "number": 608,
+   "title": "XLS-0096 errata: a field name that does not exist, a contradicted clawback destination, a mechanism with no ledger field, and duplicated section numbers",
+   "url": "https://github.com/XRPLF/XRPL-Standards/issues/608",
+   "state": "closed",
+   "isPr": false,
+   "author": "nandanito",
+   "createdAt": "2026-08-26T02:20:27Z",
+   "updatedAt": "2026-09-10T22:00:58Z",
+   "comments": 2,
+   "labels": []
+  },
+  {
+   "number": 104,
+   "title": "XLS-39d: Clawback specification",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/104",
+   "state": "closed",
+   "isPr": true,
+   "author": "shawnxie999",
+   "createdAt": "2023-04-19T19:47:40Z",
+   "updatedAt": "2025-10-21T16:45:40Z",
+   "comments": 15,
+   "labels": []
+  },
+  {
+   "number": 141,
+   "title": "Information on AMM and Clawback collaboration",
+   "url": "https://github.com/XRPLF/XRPL-Standards/issues/141",
+   "state": "closed",
+   "isPr": false,
+   "author": "tequdev",
+   "createdAt": "2023-10-20T07:29:03Z",
+   "updatedAt": "2023-11-08T18:12:27Z",
+   "comments": 4,
+   "labels": []
+  },
+  {
+   "number": 143,
+   "title": "Clarify AMM<>Clawback behavior on XLS-39d",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/143",
+   "state": "closed",
+   "isPr": true,
+   "author": "kennyzlei",
+   "createdAt": "2023-11-02T22:45:14Z",
+   "updatedAt": "2023-11-08T18:11:20Z",
+   "comments": 0,
+   "labels": []
+  },
+  {
+   "number": 115,
+   "title": "Update XLS-39d (Clawback Support) - To reflect the changes that may come from XLS-34",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/115",
+   "state": "closed",
+   "isPr": true,
+   "author": "dangell7",
+   "createdAt": "2023-06-01T16:56:44Z",
+   "updatedAt": "2023-10-18T06:22:44Z",
+   "comments": 0,
+   "labels": []
+  },
+  {
+   "number": 114,
+   "title": "Add type \"Draft\" to 39d (Clawback Support)",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/114",
+   "state": "closed",
+   "isPr": true,
+   "author": "Silkjaer",
+   "createdAt": "2023-05-25T06:27:04Z",
+   "updatedAt": "2023-09-27T00:22:30Z",
+   "comments": 2,
+   "labels": []
+  },
+  {
+   "number": 120,
+   "title": "add details about clawback to XLS-33",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/120",
+   "state": "closed",
+   "isPr": true,
+   "author": "ledhed2222",
+   "createdAt": "2023-07-12T00:39:13Z",
+   "updatedAt": "2023-07-12T07:55:49Z",
+   "comments": 1,
+   "labels": []
+  }
+ ],
+ "branches": [
+  "dangell7/token-paychan-clawback",
+  "tapanito/vault-clawback-invariants"
+ ]
+}

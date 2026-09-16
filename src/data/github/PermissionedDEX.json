@@ -1,0 +1,547 @@
+{
+ "name": "PermissionedDEX",
+ "fetchedAt": "2026-09-16T10:47:08.832Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 2,
+  "issues": 2,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-09-02T20:10:08Z",
+  "lastMerged": "2026-09-02T20:10:08Z",
+  "totalComments": 67
+ },
+ "release": {},
+ "prs": [
+  {
+   "number": 6827,
+   "title": "fix: PermissionedDEX (CreateOffer/Payment) never deletes expired credentials",
+   "url": "https://github.com/XRPLF/rippled/pull/6827",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-04-09T15:28:45Z",
+   "updatedAt": "2026-09-02T20:10:08Z",
+   "closedAt": "2026-09-02T20:10:08Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-04-09T15:46:36Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6827?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#issuecomment-4215557308"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-20T17:42:09Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#issuecomment-4283025803"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-28T17:57:24Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#issuecomment-4337854208"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-04-29T17:36:51Z",
+     "body": "/ai-review",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#issuecomment-4346069612"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-05-01T17:43:24Z",
+     "body": "/ai-review",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#issuecomment-4360722776"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-03T11:09:30Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#issuecomment-4366022891"
+    },
+    {
+     "author": "godexsoft",
+     "date": "2026-05-04T14:24:23Z",
+     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#issuecomment-4371834284"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-04T19:46:38Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#issuecomment-4373999962"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-02T16:37:24Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#issuecomment-4868052615"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-13T16:27:38Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#issuecomment-4960203076"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThe PermissionedDEX code paths (CreateOffer and Payment) check credential validity via `accountInDomain()` in PermissionedDEXHelpers.cpp, but this function uses a ReadView — making it architecturally impossible to delete expired credential SLEs from the ledger. Expired credentials persist indefinitely, locking owner reserves and causing permanent ledger bloat.\n\n### Root Cause\n\nThe XRPL uses a two-phase cleanup pattern for expired credentials:\n\n1. `preclaim()` (ReadView): identifies expired credentials, suppresses tecEXPIRED to allow doApply() to run\n\n2. `doApply()` (ApplyView): calls verifyValidDomain() → removeExpired() → deleteSLE() to actually delete the ",
+   "merged": true,
+   "mergedAt": "2026-09-02T20:10:08Z",
+   "draft": false,
+   "base": "develop",
+   "head": "Kassaking7:DEFI-625",
+   "additions": 317,
+   "deletions": 10,
+   "changedFiles": 3,
+   "commits": 21,
+   "reviewComments": 24,
+   "reviews": [
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-04-09T15:32:59Z",
+     "body": "This needs to be amendment gated"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-04-29T17:56:19Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "PeterChen13579",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-05-01T18:45:49Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-05-04T14:07:05Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-05-04T14:07:40Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-05-04T14:14:09Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-05-04T14:56:07Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-06-09T18:43:56Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-06-11T15:21:45Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-06-26T16:18:36Z",
+     "body": "Left a comment to add another test run. Need to update the amendment,  it will be in the 3.4 release"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-22T20:31:21Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-11T15:47:10Z",
+     "body": ""
+    },
+    {
+     "author": "PeterChen13579",
+     "state": "APPROVED",
+     "date": "2026-08-12T16:00:42Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-17T18:47:31Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-25T14:43:18Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-08-26T22:22:18Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-08-31T15:55:36Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:19:21Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes core transaction application semantics in `Payment` and `OfferCreate` (including intentional state mutation on tec outcomes), so it warrants final human review despite strong targeted test coverage.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR fixes an issue in Permissioned DEX transaction paths where expired credential ledger entries (SLEs) were never deleted because domain membership checks were performed only against a `ReadView`. The change aligns `OfferCreate` and `Payment` with the intended two-phase cleanup pattern (detect in `preclaim`, delete in `doApply`) so expired credentials no longer persist indefinitely (reducing ledger bl"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "PeterChen13579",
+     "date": "2026-05-01T18:41:14Z",
+     "path": "src/libxrpl/tx/transactors/payment/Payment.cpp",
+     "body": "I think for here, if sender's credential is expired, it deletes only the sender’s credential and returns before checking destination. It would be good to cleanup for both sender and destination in one go",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3174628969"
+    },
+    {
+     "author": "PeterChen13579",
+     "date": "2026-05-01T18:45:46Z",
+     "path": "src/libxrpl/tx/transactors/dex/OfferCreate.cpp",
+     "body": "How to we usually name these? Can it be better names 😄",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3174653339"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-05-04T14:07:05Z",
+     "path": "src/libxrpl/tx/transactors/dex/OfferCreate.cpp",
+     "body": "This is the right name - it's what they came up for the series of bug fixes. This is to group the numerous bug fixes into one amendment",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3182114022"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-05-04T14:07:41Z",
+     "path": "src/libxrpl/tx/transactors/dex/OfferCreate.cpp",
+     "body": "Are you sure that this PR is going into fixSecurity3_1_3? not 3.2? Hasn't 3.1.3 already made a cut off?",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3182117675"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-05-04T14:14:09Z",
+     "path": "src/libxrpl/tx/transactors/payment/Payment.cpp",
+     "body": "should return `tecINTERNAL` here and exclude line coverage `// LCOV_EXCL_LINE`, the existence of domain was already checked in preclaim but we still need to check here for nullptr, but it should never be reachable",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3182158326"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-05-04T14:16:58Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "you should not change the result of an existing test, behavior should not change without a amendment gate. Make sure you have a behavior that switches when amendment is on/off",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3182174666"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-05-04T14:49:30Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "please have a single test setup for the same scenario and then switch the behavior with the amendment on/off. And call the test with \n\n```\ntestExpiredCredentialCleanup(all);\ntestExpiredCredentialCleanup(all - amednemtn);\n```\n\nThis would be much easier to maintain and read.",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3182402727"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-05-04T14:51:17Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "we don't have a pre-fix test for this scenario. Even if it's tested elsewhere, it'd be good to have it for maintainability and readability - it should be easy to do by gating the test behavior with the amendment. see the comment above",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3182413944"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-05-04T14:54:13Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "minor - would be good to that the bob's offer is still alive and bob's cred is alive",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3182431522"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-05-04T14:55:29Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "this seemed to be shared code between the new tests, can be refactored into a lambda",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3182439040"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-05-13T18:06:31Z",
+     "path": "src/libxrpl/tx/transactors/dex/OfferCreate.cpp",
+     "body": "Will go with Cleanup3_2_0 :D",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3236456653"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-06-09T18:43:56Z",
+     "path": "src/libxrpl/tx/transactors/dex/OfferCreate.cpp",
+     "body": "we should update the amendment to whatever the new name is for 3.3 release",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3383039348"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-06-11T14:57:26Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "let's not change the expected code directly. should have a conditional for both before and after amendment activation and this test should be ran for both",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3396943350"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-06-11T14:58:09Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "could just name to `fixEnabled`  for simplicity",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3396948302"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-06-26T16:15:58Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "this test needs to be called without the amendment as well\n\n`testHybridOpenBookAfterCredentialExpiry(all - amendment)`",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3482689473"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-07-22T20:21:47Z",
+     "path": "src/libxrpl/tx/paths/OfferStream.cpp",
+     "body": "why are we changing the amendment name here? This is merged code which is part of 3.3 already.",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3633531363"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-11T15:41:31Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "needs update to fixCleanup3_4_0",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3759428176"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-11T15:46:32Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "why is this still fixCleanup3_3_0? shouldnt it be testing 3.4?",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3759482053"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-11T15:46:53Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "fixCleanup3_4_0",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3759485237"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-08-11T16:58:43Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "this code doesn't belongs to this PR :x , open-book test is not required for this feature fix",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3760020635"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-17T18:47:31Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "why is this removed?",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3797946761"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-08-19T14:42:09Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "brought it back now",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3813998178"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-25T14:43:18Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "is the behavior different without the amendment? if so, we should keep this block, and call this function with all - fixCleanup3_4_0)",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3854149469"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-08-26T18:46:45Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "No — that else-block is pre-fixCleanup3_3_0 (open-book still evicts expired hybrid offers), not 3_4_0. 3_4_0 only changes the later OfferCreate from tecNO_PERMISSION to tecEXPIRED; payment behavior is unchanged, so all - fixCleanup3_4_0 isn’t needed here.",
+     "url": "https://github.com/XRPLF/rippled/pull/6827#discussion_r3865750255"
+    }
+   ]
+  },
+  {
+   "number": 7387,
+   "title": "fix: Update PermissionedDEX invariant domain tracking for valid offer replacement",
+   "url": "https://github.com/XRPLF/rippled/pull/7387",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-06-02T18:03:36Z",
+   "updatedAt": "2026-07-23T22:23:20Z",
+   "closedAt": "2026-07-23T22:23:19Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-06-02T18:25:01Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7387?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7387#issuecomment-4605815447"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis change updates the Permissioned DEX invariant to ignore deleted domain offers when validating the transaction’s active DomainID under `fixCleanup3_4_0`.\n\nPreviously, replacing a Permissioned DEX offer from Domain A with a new offer in Domain B could incorrectly trip `tecINVARIANT_FAILED`, because the invariant still tracked the deleted Domain A offer and compared it against the new transaction’s Domain B. With this change, deleted domain entries are excluded from the post-amendment domain set, while the legacy behavior is preserved before `fixCleanup3_4_0`\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or ne",
+   "merged": true,
+   "mergedAt": "2026-07-23T22:23:19Z",
+   "draft": false,
+   "base": "develop",
+   "head": "Kassaking7:DEFI-831",
+   "additions": 70,
+   "deletions": 4,
+   "changedFiles": 3,
+   "commits": 9,
+   "reviewComments": 6,
+   "reviews": [
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-06-02T20:04:52Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-06-02T20:10:43Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-06-02T20:41:00Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "DISMISSED",
+     "date": "2026-06-04T20:01:32Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-07-03T13:06:28Z",
+     "body": "Looks good - ready to approve once the amendment name is updataed"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-07-13T22:56:42Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-07-21T15:51:06Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-23T20:56:19Z",
+     "body": "## Pull request overview\n\nUpdates the Permissioned DEX invariant’s domain tracking so that, under `fixCleanup3_4_0`, domains referenced only by *deleted* offers/dir nodes don’t cause a false invariant failure when an offer is replaced into a different domain.\n\n**Changes:**\n- Adjust `ValidPermissionedDEX` to track domains in two sets and, post-`fixCleanup3_4_0`, validate only non-deleted domain entries.\n- Add a regression test that replaces a Permissioned DEX offer from Domain A to Domain B via `OfferCreate` + `OfferSequence`, asserting pre-/post-amendment behavior.\n\n### Reviewed changes\n\nCopilot reviewed 3 out of 3 changed files in this pull request and generated 1 comment.\n\n| File | Descrip"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "yinyiqian1",
+     "date": "2026-06-02T20:04:52Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "core check: BEAST_EXPECT(domainA != domainB);",
+     "url": "https://github.com/XRPLF/rippled/pull/7387#discussion_r3344081847"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-06-02T20:06:04Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "make explicit check:\n```\nauto const sle = env.le(...));\nif (!BEAST_EXPECT(sle))\n    return;\n\nBEAST_EXPECT(sle->getFieldH256(sfDomainID) == domainA);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7387#discussion_r3344087777"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-06-02T20:06:51Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "similar to the previous comment, make it an explicit check",
+     "url": "https://github.com/XRPLF/rippled/pull/7387#discussion_r3344092226"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-06-02T20:07:24Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "Add a comment to describe the fix",
+     "url": "https://github.com/XRPLF/rippled/pull/7387#discussion_r3344095200"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-06-02T20:41:00Z",
+     "path": "src/test/app/PermissionedDEX_test.cpp",
+     "body": "This is not a regression.\nThe issue exists since the permissionedDEX was introduced.\n\nThe comment is not clear for the purpose of the fix.\nIt just repeats the code.",
+     "url": "https://github.com/XRPLF/rippled/pull/7387#discussion_r3344285523"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-23T20:56:18Z",
+     "path": "include/xrpl/tx/invariants/PermissionedDEXInvariant.h",
+     "body": "This header is under include/xrpl (installed/packaged), so adding a new data member changes the externally visible libxrpl ABI (class layout). If this is intended, the PR description/checklist should mark it as a `libxrpl` change (and consider any downstream impact). If it’s not intended to be part of the public surface, consider moving the implementation/state out of the public header (e.g., make the invariant check type opaque outside of the invariant registry).",
+     "url": "https://github.com/XRPLF/rippled/pull/7387#discussion_r3641340003"
+    }
+   ]
+  }
+ ],
+ "issues": [
+  {
+   "number": 6694,
+   "title": "[PermissionedDEX] `ValidPermissionedDEX` invariant does not check `badHybrids_` for Payment transactions",
+   "url": "https://github.com/XRPLF/rippled/issues/6694",
+   "state": "closed",
+   "author": "q73zhao",
+   "createdAt": "2026-03-31T15:33:14Z",
+   "updatedAt": "2026-04-01T16:54:26Z",
+   "closedAt": "2026-04-01T16:37:11Z",
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 1,
+   "body": "## Summary\n\nThe `ValidPermissionedDEX` invariant collects `badHybrids_` data in `visitEntry()` for all transaction types, but only checks it in `finalize()` when `txType == ttOFFER_CREATE`. If a Payment transaction resulted in a malformed hybrid offer (e.g. missing `sfDomainID`), the invariant would silently pass.\n\n## Severity\n\nLow. Defense-in-depth gap. No current payment code path modifies hybrid offer structure fields (`lsfHybrid`, `sfDomainID`, `sfAdditionalBooks`), so this cannot be triggered through normal transactions today. However, the invariant's purpose is to catch corruption regardless of which transaction type caused it — future changes to the payment engine could introduce a hy"
+  },
+  {
+   "number": 6693,
+   "title": "[PermissionedDEX] `book_changes` RPC merges domain and open book volumes into same tally entry",
+   "url": "https://github.com/XRPLF/rippled/issues/6693",
+   "state": "open",
+   "author": "q73zhao",
+   "createdAt": "2026-03-31T15:32:55Z",
+   "updatedAt": "2026-03-31T17:44:53Z",
+   "closedAt": null,
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 0,
+   "body": "## Summary\n\nThe `computeBookChanges` function in `src/xrpld/rpc/BookChanges.h` builds its tally map key from the currency pair string only (e.g. `\"XRP_drops|USD/gateway\"`), without incorporating the domain ID. When both a domain offer and an open offer for the same currency pair are crossed in the same ledger, their volumes are incorrectly merged into a single entry and the `domain` field is overwritten by whichever offer is processed last.\n\n## Severity\n\nLow. This is an RPC output issue only — no on-chain or ledger state impact. Downstream consumers of `book_changes` (analytics, compliance tooling, market data feeds) will receive incorrect volume data when domain and open book trades occur f"
+  }
+ ],
+ "proposals": [],
+ "branches": []
+}

@@ -1,0 +1,135 @@
+{
+ "name": "DeletableAccounts",
+ "fetchedAt": "2026-09-16T10:40:54.942Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:22:49Z",
+  "lastMerged": "2025-11-24T11:52:08Z",
+  "release": "1.4.0",
+  "totalComments": 12
+ },
+ "release": {
+  "version": "1.4.0",
+  "date": "2020-01-04T00:48:43Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.4.0",
+  "excerpt": "The **DeletableAccounts** amendment which, if enabled, allow users to delete their XRP Ledger accounts and recover some of their base reserve."
+ },
+ "prs": [
+  {
+   "number": 6056,
+   "title": "Retire DeletableAccounts",
+   "url": "https://github.com/XRPLF/rippled/pull/6056",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2025-11-19T16:23:54Z",
+   "updatedAt": "2026-05-20T17:22:49Z",
+   "closedAt": "2025-11-24T11:52:08Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "a1q123456",
+     "date": "2025-11-19T17:18:45Z",
+     "body": "Some hashes have changed because the code below in `Payment.cpp` changes the sequence number based on whether the feature is enabled and some tests require the feature to be disabled to work\n```c++\n        std::uint32_t const seqno{\n            view().rules().enabled(featureDeletableAccounts) ? view().seq()\n                                                             : 1};\n\n        // Create the account.\n        sleDst = std::make_shared<SLE>(k);\n        sleDst->setAccountID(sfAccount, dstAccountID);\n        sleDst->setFieldU32(sfSequence, seqno);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6056#issuecomment-3553841013"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2025-11-19T17:42:02Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6056?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.6%. Comparing base ([`800a315`](https://app.codecov.io/gh/XRPLF/rippled/commit/800a315383631e3460a51ee164c87d4032687e28?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`ad480e4`](https://app.codecov.io/gh/XRPLF/rippled/commit/ad480e40d1008fd9f8cef6d6e260c497132e5538?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/6056#issuecomment-3553933246"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-11-24T11:52:08Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/retire-DeletableAccounts",
+   "additions": 20,
+   "deletions": 98,
+   "changedFiles": 14,
+   "commits": 8,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-11-19T19:28:07Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-21T13:00:06Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-24T10:27:08Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-24T10:27:45Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "APPROVED",
+     "date": "2025-11-24T11:16:31Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-21T12:55:25Z",
+     "path": "src/test/app/AccountDelete_test.cpp",
+     "body": "I'd say this transition test could be completely removed. I've not checked in details, but there's plenty of account delete tests around",
+     "url": "https://github.com/XRPLF/rippled/pull/6056#discussion_r2549679567"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-21T12:55:48Z",
+     "path": "src/test/app/AccountDelete_test.cpp",
+     "body": "At the very least the name of this test case is now misleading",
+     "url": "https://github.com/XRPLF/rippled/pull/6056#discussion_r2549680700"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-21T12:59:39Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "you can remove // from here, it now formats reasonably",
+     "url": "https://github.com/XRPLF/rippled/pull/6056#discussion_r2549690644"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-24T10:27:08Z",
+     "path": "src/xrpld/app/tx/detail/InvariantCheck.cpp",
+     "body": "Thanks, Vlad. I've fixed the issues.",
+     "url": "https://github.com/XRPLF/rippled/pull/6056#discussion_r2555649579"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-24T10:27:44Z",
+     "path": "src/test/app/AccountDelete_test.cpp",
+     "body": "Yeah I think we should delete this test case because we've got `testBasics()`",
+     "url": "https://github.com/XRPLF/rippled/pull/6056#discussion_r2555652080"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

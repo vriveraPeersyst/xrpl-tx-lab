@@ -1,0 +1,742 @@
+{
+ "name": "ExpandedSignerList",
+ "fetchedAt": "2026-09-16T10:43:01.892Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:21:57Z",
+  "lastMerged": "2025-11-13T11:42:45Z",
+  "release": "1.9.1",
+  "totalComments": 101
+ },
+ "release": {
+  "version": "1.9.1",
+  "date": "2022-05-23T21:58:48Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.9.1",
+  "excerpt": "The **ExpandedSignerList** amendment extends the ledger's built-in multi-signing functionality so that each list can contain up to 32 entries instead of the current limit of 8. Additionally, this amendment allows each signer to have an arbitrary 256-bit data field associated with it. This data can b"
+ },
+ "prs": [
+  {
+   "number": 5981,
+   "title": "Retire MultiSignReserve and ExpandedSignerList",
+   "url": "https://github.com/XRPLF/rippled/pull/5981",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2025-11-01T08:49:28Z",
+   "updatedAt": "2026-05-20T17:21:57Z",
+   "closedAt": "2025-11-13T11:42:45Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-11-01T09:15:05Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5981?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.6%. Comparing base ([`8580a57`](https://app.codecov.io/gh/XRPLF/rippled/commit/8580a5795af647f4274d6210faaa3b96bbac7cd2?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`117e54d`](https://app.codecov.io/gh/XRPLF/rippled/commit/117e54df8a36e10405c97ac055e7950f897a476c?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#issuecomment-3476043224"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-04T17:04:24Z",
+     "body": "Going to combine this with another feature retirement PR. Making this PR a draft temporarily.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#issuecomment-3487086754"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-11-10T14:12:58Z",
+     "body": "Left a suggestion on passing features arg to Env. Otherwise looks good to me. I can approve once it is ready.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#issuecomment-3511917494"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-10T14:16:41Z",
+     "body": "> Left a suggestion on passing features arg to Env. Otherwise looks good to me. I can approve once it is ready.\n\nYep it's ready. If you could take a look it'd be great. Let me know if you have any questions.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#issuecomment-3511938332"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-11-13T11:42:45Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/retire-MultiSignReserve",
+   "additions": 105,
+   "deletions": 306,
+   "changedFiles": 13,
+   "commits": 20,
+   "reviewComments": 32,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-11-01T10:35:52Z",
+     "body": "Lots of test cases now only require 1 signer for Alice - are those test cases still different or are there now many duplicate tests being run?\n\nI'm also noticing a few test cases towards the end of the review where the number of enabled/disabled features should now be different, but it hasn't changed - are those correct?"
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-03T11:56:05Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-03T11:58:58Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-03T13:33:38Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-11-03T19:22:05Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-04T16:43:37Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-11-05T11:53:47Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-05T15:12:02Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-07T13:15:15Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-07T14:32:28Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-07T14:42:45Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-11-10T13:03:20Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-11-10T13:22:22Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-10T13:31:18Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-10T14:15:40Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-10T14:18:13Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-10T15:40:49Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-10T15:55:17Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-11-10T16:11:28Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-11T14:46:36Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-11-11T16:49:39Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-11-11T16:50:36Z",
+     "body": "Left a question on a change in features.macro file. Otherwise looks good."
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-11T17:01:32Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-11T17:02:33Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-11T17:04:42Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "APPROVED",
+     "date": "2025-11-13T10:39:18Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:23:21Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "The last part of the comment needs to be removed, it mentions the other number that now has been removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483526208"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:27:23Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "These two lines can probably be combined as you've already done elsewhere.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483535569"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:29:22Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "Same here, can be combined.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483540237"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:30:43Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "Won't this always be true at this point?",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483543444"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:31:23Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "Is this still true, since only one feature is set?",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483544747"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:31:50Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2483546012"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-03T11:56:05Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "Fixed. Thanks, Bart!",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2486225083"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-03T11:58:58Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "Took a second look at what I did here and I think it was wrong even though it didn't produce an error. I initially removed `featureMultiSignReserve` from those tests because we were removing the feature. However, I think what those tests do is that it takes 2 random features, passes them to the `Env`, and checks if they're enabled. So what we should do here is replace `featureMultiSignReserve` with something else.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2486231848"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-03T13:33:38Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "There's 2 features on the list now just as before except that the first feature is replaced with `featureDynamicMPT` which doesn't make too much difference here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2486510898"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-03T19:11:57Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "You can consider removing `signersCount` and in the appropriate lines below by `BEAST_EXPECT(ownerCount(env, bob) == 2)`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2487574582"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-03T19:12:27Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2487576040"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-03T19:16:02Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "This test seems to be run with the feature enabled, and seems to be different from other tests. Why is this test removed?",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2487586246"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-03T19:20:25Z",
+     "path": "src/test/app/AMMExtended_test.cpp",
+     "body": "The `ExpandedSignerList` feature can also be retired. Do you want to combine that in this PR, or do it separately? \n\n@pratikmankawde was originally going to work on retiring `ExpandedSignerList `.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2487595561"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-04T16:43:37Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "Yeah, this test and the one above are just checking what will happen if we attach a big signer list and give the account insufficient money and see what's going to happen. It makes sense to do it before the fix but I don't think it makes any difference with the feature enabled. \nBut I can add it back if you like.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2491265962"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-05T11:52:39Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "I think this can now be changed to `testMultisig()` and the function body updated to use all features. I don't see any other uses of this test function with different features enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2494142709"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-05T15:12:01Z",
+     "path": "src/test/app/Oracle_test.cpp",
+     "body": "Thanks, Bart, fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2494993209"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-07T13:15:14Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "I'm just wondering if it's possible to add some test feature (inside of jtx). I don't want us to mess with tests each time we retire the feature which happens to be used for some unrelated tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2503481495"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-07T14:32:27Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "could be simply env.fund(XRP(250) - drops(1), ...), this variable is not required",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2503853319"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-07T14:42:44Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "I would suggest to re-enable it to check that reserve requirements don't change regardless of the size of this list. \n\nI understand that from the code perspective it does not make much sense. But from the perspective of the user, this allows to verify that signer list is only counted as 1 object (thus 1 reserve equivalent), regardless of the size",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2503919488"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-11-10T13:03:20Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "Shouldn't we pass `features` to the `env` initialiser list (here and in other similar functions)?\n\nNot passing it might lead to a potential bug. Because caller of this function will assume that the env. in these functions are initialised with the passed in features.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2510503779"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-11-10T13:22:22Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "`featureDynamicMPT` where did this come from? :-)",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2510559414"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-10T13:31:18Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "it's just a random feature. I'm thinking about adding the test only features/fixes so that tests like these can be done without addressing real amendments",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2510587719"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-10T14:15:28Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "Have re-enabled the test.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2510740347"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-10T14:18:13Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "> it's just a random feature. I'm thinking about adding the test only features/fixes so that tests like these can be done without addressing real amendments\n\nWe'll have to do this soon. We've got only one obsolete feature and it'll get retired soon.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2510748532"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-10T15:40:00Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "return `features` here as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2511056367"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-10T15:55:17Z",
+     "path": "src/test/app/Check_test.cpp",
+     "body": "Thanks Vlad. Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2511107814"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-11-10T16:11:28Z",
+     "path": "src/xrpld/app/tx/detail/SetSignerList.cpp",
+     "body": "Should this be capitalized? I don't have a strong opinion but I feel like its kind of unnecessary. I think `view().fees().accountReserve(oldOwnerCount + 1)};` is just fine and inline with the rest of the codebase.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2511162171"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-11T14:46:35Z",
+     "path": "src/xrpld/app/tx/detail/SetSignerList.cpp",
+     "body": "Thanks Denis! I've fixed it.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2514517716"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-11-11T16:49:39Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Is this intensional removal or a merge issue?",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2514952791"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-11T17:01:32Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "I think you're looking at an old commit",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2514988148"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-11T17:02:33Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "The latest changes show that MultiSignReserve and ExpandedSignerList are removed from the list.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2514990533"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-11T17:04:42Z",
+     "path": "src/xrpld/app/tx/detail/SetSignerList.cpp",
+     "body": "I think `addedOwnerCount` makes it clearer as `1` is just a magic number and we won't know why there is a `1` here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5981#discussion_r2514997462"
+    }
+   ]
+  },
+  {
+   "number": 4097,
+   "title": "Amendment: ExpandedSignerList",
+   "url": "https://github.com/XRPLF/rippled/pull/4097",
+   "state": "closed",
+   "author": "RichardAH",
+   "createdAt": "2022-02-10T14:20:39Z",
+   "updatedAt": "2022-05-11T23:53:46Z",
+   "closedAt": "2022-05-11T23:53:46Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "RichardAH",
+     "date": "2022-02-10T15:07:04Z",
+     "body": "updated: ran levelization and patched inconsistency between clang-format-10 (CI) and 13 (my version)",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1035029930"
+    },
+    {
+     "author": "trueIoV",
+     "date": "2022-02-11T23:29:36Z",
+     "body": "Hi RichardAH, why not increase the number of signers to 100 in this case?\nEspecially since KAVA once stated that it could not integrate XRPL precisely because they need 100 signatures and no less.\nThanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1036760167"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-02-12T08:24:54Z",
+     "body": "@trueIoV 128 is possible but there should be some debate about the \"right\" number. Too many is an attack vector as follows:\nSuppose we allow 65536 signatures and someone continually submits txns with 65535 correct signatures and 1 incorrect signature at the end. The nodes they send these txns to have to check all 65536 signatures and then discard the txn without billing any account on-ledger. This vector could be mitigated in several ways, one of which is to allow a fee claim failure to occur on any multisig transaction with more than X correct signatures, where X is an absolute number not relative to the total.",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1037062329"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2022-02-27T02:18:26Z",
+     "body": "> Hi RichardAH, why not increase the number of signers to 100 in this case? Especially since KAVA once stated that it could not integrate XRPL precisely because they need 100 signatures and no less. Thanks.\n\nI don't know what Kava's rationale for \"100 signatures and no less\" is, but it smells a little like snake-oil; absent an _actual_, _**demonstrable**_ need for such a high number of signatures and a _rational_ explanation for why alternative solutions (e.g. Ed25519 threshold signatures) aren't sufficient, I don't think we should expand the signer list by that much.\n\nEngineering is about trade-offs and especially in the case of a system like the XRPL I think we should be frugal in the 'cos",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1052962293"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-03-04T05:33:10Z",
+     "body": "I’ll make these changes today and push an update",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1058844051"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2022-03-08T03:19:12Z",
+     "body": "@RichardAH: I would suggest rethinking the 256-bit wallet locator value. Again, I'm not opposed to it, but can we get away with a 128-bit value? If you want to use it as a ledger locator, then the answer is no, but then `WalletLocator` isn't a good fit either. `UserData` or somesuch is probably a better fit.\n\nI also think that some exposition, informing the motivation or possible uses behind this field might be helpful. I know you have specific use cases in mind, but others may not know what they are and that may make it more difficult.",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1061364770"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-03-08T07:06:48Z",
+     "body": "> @RichardAH: I would suggest rethinking the 256-bit wallet locator value. Again, I'm not opposed to it, but can we get away with a 128-bit value? If you want to use it as a ledger locator, then the answer is no, but then `WalletLocator` isn't a good fit either. `UserData` or somesuch is probably a better fit.\n> \n> I also think that some exposition, informing the motivation or possible uses behind this field might be helpful. I know you have specific use cases in mind, but others may not know what they are and that may make it more difficult.\n\nI have been thinking about whether or not 32 bytes of key identifier is the “right amount” and let me make the case why it is now:\n\nIn a large organis",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1061473043"
+    },
+    {
+     "author": "wojake",
+     "date": "2022-03-17T14:34:38Z",
+     "body": "I have a question related to sidechains, since door accounts can now have ~32 federators participating after this amendment is passed, would it be appropriate to create a new type of account for door accounts, perhaps we could create a new setting for this? \n\nRationale: Users are able to confidently indicate if an account is a door account, this would avoid any confusion or doubts as it won't look like a 'normal' account.",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1070969384"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-03-17T15:56:45Z",
+     "body": "@wojake if anyone can create and mark an account in such a way how does it help users verify anything?",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1071011225"
+    },
+    {
+     "author": "wojake",
+     "date": "2022-03-18T04:03:55Z",
+     "body": "Yikes, I didn't think about that (my apologies). Currently, there's no way to verify if an account is a door account, so this is pointless if everyone can mark their account as a door account.\nUnless there's a way to verify if an account is a door account on-chain, I don't think my proposal makes sense.",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1072010332"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-03-29T12:59:29Z",
+     "body": "Thanks for the review. I went ahead and squashed your commits into mine and added you as a co-author (seemed like the right approach to avoid too many commits for such a small amendment)",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1081840357"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-03-30T07:18:09Z",
+     "body": "> I have an additional concern that is, however, not a blocker. My suspicion is that reusing the `WalletLocator` locator `SField` is a false economy. I think you are better off if you carefully pick a name that represents your intended use and then introduce that as a new `SField` with the _right_ name. If you can argue that `WalletLocator` is really a good name for the intended use then I can go with that.\n\nI somewhat agree with you on this. The main advantage to its reuse is that old codecs can serialize and unserialize it. Which means legacy multisign tools can be trivially updated to use tags. I also do think `WalletLocator` is not an entirely inaccurate description. `Tag` is much less d",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1082715684"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-04-11T11:29:16Z",
+     "body": "(Rebased on most recent develop)",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#issuecomment-1094937071"
+    }
+   ],
+   "body": "## High Level Overview of Change\nAn amendment __ExpandedSignerList__, which if accepted, would:\n1. Expand the maximum signer list to 32 entries\n2. Allow the optional specification of 32 byte tags with each signer list entry\n\n\n\n### Context of Change\nThe motivation for this amendment is two fold:\n1. Large organisations may have extensive signer lists which require more than 8 keys and may benefit from tags (for example to identify who is in possession of each key.)\n2. Layer two smart contract solutions such as Evernode-hotpocket, codius and others gain a security benefit for a common use-case: \n- Often it is useful for layer 2 contracts to control layer 1 accounts, from which they send and rec",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "RichardAH:ExpandedSignerList",
+   "additions": 506,
+   "deletions": 215,
+   "changedFiles": 24,
+   "commits": 1,
+   "reviewComments": 16,
+   "reviews": [
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2022-02-11T18:22:01Z",
+     "body": "The code looks fine (it fails GRPC unit tests; that should be fixed prior to merging) and I don't think that increasing the number of signers is likely to have a significant impact on the ledger.\n\nLeft a comment about the `sfWalletLocator` field, and would like to see others chime in on this too."
+    },
+    {
+     "author": "RichardAH",
+     "state": "COMMENTED",
+     "date": "2022-02-12T08:28:50Z",
+     "body": ""
+    },
+    {
+     "author": "RichardAH",
+     "state": "COMMENTED",
+     "date": "2022-02-12T08:29:36Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2022-03-03T20:42:56Z",
+     "body": "I took a quick look at these changes, and I don't have any feedback about the logic, but I did leave some comments with changes that will improve code safety, clarity, and readability."
+    },
+    {
+     "author": "RichardAH",
+     "state": "COMMENTED",
+     "date": "2022-03-04T05:30:45Z",
+     "body": ""
+    },
+    {
+     "author": "RichardAH",
+     "state": "COMMENTED",
+     "date": "2022-03-04T05:32:10Z",
+     "body": ""
+    },
+    {
+     "author": "RichardAH",
+     "state": "COMMENTED",
+     "date": "2022-03-04T05:32:45Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "CHANGES_REQUESTED",
+     "date": "2022-03-25T20:08:55Z",
+     "body": "There are some problems in this pull request that should be addressed before it is accepted.\n\n1. The `Rules` changes damage levelization.  That needs to be fixed.  Here is a commit that shows a possible solution: https://github.com/scottschurr/rippled/commit/edf3aa5dec316c477223cb67fd5dc4fdb51accdc. Feel free to cherry-pick that commit if you would like to use it.\n\n2. This commit causes the KnownFormatsToGRPC unit test to fail.  The right way to fix that is to update the GRPC serialization code.  Here is a commit that fixes the problem and makes the unit test pass: https://github.com/scottschurr/rippled/commit/6fd72f6f05160c80ff5bd1ff3a1981fd72e242c8  Feel free to cherry-pick that commit if "
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2022-03-30T17:58:07Z",
+     "body": "@RichardAH, thanks for your explanation for why you prefer `WalletLocator` for the added `SField`.  I can go with that motivation.  BTW,  it was nice of you to flag me as a coauthor, but really not necessary.  I consider my contribution to simply be part of the code review process.\n\nChanges look good.  The CI failures that I see are the result of ongoing CI problems, not a result of this pull request."
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2022-04-06T16:04:00Z",
+     "body": "Looks good!"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "nbougalis",
+     "date": "2022-02-11T18:13:20Z",
+     "path": "src/ripple/ledger/impl/Rules.cpp",
+     "body": "I know you just moved this here and it was already present, but we should think about migrating away from the PIMPL idiom. It adds nothing, in this case.",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r804895470"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2022-02-11T18:21:40Z",
+     "path": "src/ripple/protocol/impl/InnerObjectFormats.cpp",
+     "body": "I understand why you want this field and concede that it's useful, but it may be slightly controversial in terms of size.\n\nSo is a 256-bit value _really_ needed? Could we get away with something smaller? I think your original suggestion was to use a 64-bit tag. I suspect that would be fine, but maybe a little too constrained for what you want to do. 128 bits is probably sufficient, especially if you use it as an [RFC-4122 UUID](https://datatracker.ietf.org/doc/html/rfc4122) (likely V1, V4 or V5, depending on the usecase).\n\nI am not _overly_ concerned and I think it's fine as is, but I do think it's worth at least having a discussion about this to ensure the field is \"right-sized\".",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r804901265"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-02-12T08:28:50Z",
+     "path": "src/ripple/protocol/impl/InnerObjectFormats.cpp",
+     "body": "Reusing an existing (essentially unused) serialized field is great because it makes it backwards compatible with old codecs. So if someone proposes to change the size of the tag they should also propose an existing sfField that matches their proposed size.",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r805135602"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-02-12T08:29:36Z",
+     "path": "src/ripple/ledger/impl/Rules.cpp",
+     "body": "Agree, but changing that was out of scope for this amendment (and in fact doesn't require an amendment).",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r805135647"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-03-03T17:29:54Z",
+     "path": "src/ripple/app/tx/impl/SetSignerList.cpp",
+     "body": "Should be `const`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r818893630"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-03-03T17:33:01Z",
+     "path": "src/ripple/app/tx/impl/SetSignerList.cpp",
+     "body": "Should be `const`",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r818896382"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-03-03T19:09:24Z",
+     "path": "src/ripple/app/tx/impl/SignerEntries.cpp",
+     "body": "This would be simpler to write as \n```\nstd::optional<uint256> const tag = sEntry.at(~sfWalletLocator);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r818982730"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-03-03T19:11:59Z",
+     "path": "src/ripple/protocol/STTx.h",
+     "body": "This could be written as\n```\nreturn (rules && !rules->enabled(featureExpandedSignerList)) ? 8 : 32;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r818984595"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-03-03T19:14:19Z",
+     "path": "src/test/jtx/impl/multisign.cpp",
+     "body": "This should be written as\n```\n            je[sfWalletLocator.getJsonName()] = to_string(*e.tag);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r818986287"
+    },
+    {
+     "author": "ximinez",
+     "date": "2022-03-03T19:15:47Z",
+     "path": "src/test/jtx/multisign.h",
+     "body": "`tag_` and `tag` are the same type, and the copy/move constructor knows how to do the right thing:\n```\n        : weight(weight_), account(std::move(account_)), tag(std::move(tag_))\n    {\n    }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r818987302"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-03-04T05:30:45Z",
+     "path": "src/ripple/app/tx/impl/SignerEntries.cpp",
+     "body": "Noted thanks",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r819276103"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-03-04T05:32:10Z",
+     "path": "src/ripple/protocol/STTx.h",
+     "body": "It’s written in this way to make it more explicit that different sets of rules can produce different results. Ternary operator is less clear especially if someone adds a third possibility later. I will leave it how I have it for clarity",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r819276602"
+    },
+    {
+     "author": "RichardAH",
+     "date": "2022-03-04T05:32:45Z",
+     "path": "src/test/jtx/impl/multisign.cpp",
+     "body": "Will change this thanks!",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r819276821"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-03-25T17:35:22Z",
+     "path": "Builds/levelization/results/loops.txt",
+     "body": "As shown in this file, the changes made to `Rules` in this pull request hurt our already tenuous levelization.  There's no question we should be taking other steps to improve the levelization situation, but we should at least avoid introducing commits that make the situation worse.\n\nFortunately, by reworking the `Rules` portion of this commit, the levelization problems introduced here can be fixed.  One way it could be done is shown in this commit: https://github.com/ripple/rippled_ci/commit/edf3aa5dec316c477223cb67fd5dc4fdb51accdc\n\nFeel free to cherry pick that commit in order to fix the levelization problem.  I'm sure there are other viable ways to fix the problem if you prefer another app",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r835482064"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-03-25T17:49:08Z",
+     "path": "src/test/app/MultiSign_test.cpp",
+     "body": "I really appreciate you adding unit tests for the new functionality.  Thank you.  However, the way in which the unit tests were added results in the pre-ExpandedSignerList code no longer being tested.  That's easy to fix.  Here's a commit that shows one way to do so: https://github.com/scottschurr/rippled/commit/b176359e658b8840405b7cd3ca80c12d2fe75887  Feel free to cherry-pick that commit if you would like.\n\nIn my opinion continuing to test the pre-ExpandedSignerList code is a requirement before this pull request can be merged.",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r835492375"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-03-25T20:06:24Z",
+     "path": "src/ripple/protocol/impl/InnerObjectFormats.cpp",
+     "body": "In my opinion reusing a pre-existing field is, in this case, probably a false economy.  This commit will be bound together with many others in a release.  At least one of the other commits in the release will likely change the codec.  So having this particular commit avoid changing the codec does not prevent the codec from changing in a release.\n\nMost programmers agree that names are hard.  Giving a field the wrong name or a misleading name will only make the XRP Ledger even harder to use correctly.\n\nMy personal opinion is that you should pick the right sized `SField` type and select a truly meaningful name for the field.  Proceed with that.  If you are truly sold that `WalletLocator` is the",
+     "url": "https://github.com/XRPLF/rippled/pull/4097#discussion_r835577998"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

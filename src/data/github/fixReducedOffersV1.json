@@ -1,0 +1,457 @@
+{
+ "name": "fixReducedOffersV1",
+ "fetchedAt": "2026-09-16T11:00:03.728Z",
+ "summary": {
+  "status": "merged",
+  "prs": 3,
+  "open": 0,
+  "merged": 2,
+  "issues": 1,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:21:51Z",
+  "lastMerged": "2025-10-31T20:25:05Z",
+  "release": "1.12.0",
+  "totalComments": 51
+ },
+ "release": {
+  "version": "1.12.0",
+  "date": "2023-09-06T21:51:33Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.12.0",
+  "excerpt": "`fixReducedOffersV1`"
+ },
+ "prs": [
+  {
+   "number": 5972,
+   "title": "Retire fixReducedOffersV1",
+   "url": "https://github.com/XRPLF/rippled/pull/5972",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2025-10-30T17:09:24Z",
+   "updatedAt": "2026-05-20T17:21:51Z",
+   "closedAt": "2025-10-31T20:25:05Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-10-31T15:19:00Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5972?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.3%. Comparing base ([`4e32d2e`](https://app.codecov.io/gh/XRPLF/rippled/commit/4e32d2ed98784dbcc8873a019eafb6d3385d654c?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`50d947b`](https://app.codecov.io/gh/XRPLF/rippled/commit/50d947b613b6e73e61ac37e13f476a8468de15e1?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5972#issuecomment-3473560030"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-10-31T20:25:05Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/retire-fixReducedOffersV1",
+   "additions": 29,
+   "deletions": 123,
+   "changedFiles": 6,
+   "commits": 3,
+   "reviewComments": 7,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-10-30T17:57:00Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-10-31T11:15:14Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-10-31T11:17:43Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-10-31T12:41:28Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "APPROVED",
+     "date": "2025-10-31T16:30:50Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "bthomee",
+     "date": "2025-10-30T17:50:11Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Can you please keep this list sorted alphabetically?",
+     "url": "https://github.com/XRPLF/rippled/pull/5972#discussion_r2479003776"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-10-30T17:52:45Z",
+     "path": "src/test/app/ReducedOffer_test.cpp",
+     "body": "I suppose you can just remove these two lines altogether. Without the distinction between with and without using the amendment, the sentence is a bit meaningless as it doesn't add useful context.",
+     "url": "https://github.com/XRPLF/rippled/pull/5972#discussion_r2479011045"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-10-30T17:52:58Z",
+     "path": "src/test/app/ReducedOffer_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5972#discussion_r2479011627"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-10-30T17:56:13Z",
+     "path": "src/xrpld/app/paths/detail/AMMOffer.cpp",
+     "body": "You could consider keeping the first part of this comment, as it explains why `ceil_out_strict` is used.\n\n```\n// It turns out that the ceil_out implementation has some slop in\n// it, which ceil_out_strict removes.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5972#discussion_r2479019694"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-10-30T17:56:44Z",
+     "path": "src/xrpld/app/tx/detail/Offer.h",
+     "body": "Same as above.",
+     "url": "https://github.com/XRPLF/rippled/pull/5972#discussion_r2479020870"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-10-31T11:15:14Z",
+     "path": "src/test/app/ReducedOffer_test.cpp",
+     "body": "Ah I just re-read that comment again and yeah that's a bit funny.",
+     "url": "https://github.com/XRPLF/rippled/pull/5972#discussion_r2481078930"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-10-31T11:17:43Z",
+     "path": "src/xrpld/app/tx/detail/Offer.h",
+     "body": "Thanks, Bart! I've fixed those comments.",
+     "url": "https://github.com/XRPLF/rippled/pull/5972#discussion_r2481085622"
+    }
+   ]
+  },
+  {
+   "number": 4512,
+   "title": "`fixReducedOffersV1`: curtail the occurrence of order books that are blocked by reduced offers",
+   "url": "https://github.com/XRPLF/rippled/pull/4512",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2023-04-26T23:04:21Z",
+   "updatedAt": "2023-07-18T02:33:42Z",
+   "closedAt": "2023-06-23T05:20:25Z",
+   "labels": [
+    "Ready to merge",
+    "Amendment"
+   ],
+   "comments": [
+    {
+     "author": "gregtatcam",
+     "date": "2023-05-05T17:50:23Z",
+     "body": "There are compiler warnings on OSX M1 Ventura 13.3.1(a), clang 14.03: \n```\nsrc/ripple/beast/container/detail/aged_unordered_container.h:197:23: warning: 'binary_function<ripple::base_uint<256>, beast::detail::aged_unordered_container<false, true, ripple::base_uint<256>, ripple::HashRouter::Entry, std::chrono::steady_clock, ripple::hardened_hash<>, std::equal_to<ripple::base_uint<256>>, std::allocator<std::pair<const ripple::base_uint<256>, ripple::HashRouter::Entry>>>::element, bool>' is deprecated [-Wdeprecated-declarations]\n          public std::binary_function<Key, element, bool>\n```\nI don't see these warnings on `develop`. I assume it just needs to be merged with the latest `develop`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#issuecomment-1536584340"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-05-05T21:20:40Z",
+     "body": "I just looked at the latest develop.  I see this commit which I think fixes the compiler warning you are seeing: https://github.com/XRPLF/rippled/commit/8d482d3557fb206eab5c7bbfc57216238b516d14  \nThis pull request hasn't picked up that particular commit yet.\n\nI can rebase if you'd like, as long as it wouldn't mess up @HowardHinnant's review.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#issuecomment-1536793580"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-05-05T21:57:14Z",
+     "body": "> I just looked at the latest develop. I see this commit which I think fixes the compiler warning you are seeing: [8d482d3](https://github.com/XRPLF/rippled/commit/8d482d3557fb206eab5c7bbfc57216238b516d14) This pull request hasn't picked up that particular commit yet.\n> \n> I can rebase if you'd like, as long as it wouldn't mess up @HowardHinnant's review.\n\nI checked that the rebase fixes this warning. No need to rebase now.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#issuecomment-1536825762"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-05-05T22:04:57Z",
+     "body": "Should we consider including in this PR a fix for the related issue: https://ripplelabs.atlassian.net/browse/RXL-226? The fix is to pass the `limitQuality` to the `limitStepOut()` and if the quality of the adjusted offer is less than the `limitQuality` then re-calculate the offer with the `roundUp` set to false.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#issuecomment-1536832451"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-05-05T22:23:24Z",
+     "body": "We could consider including that fix.  My current inclination is to put that fix on a separate amendment.  These three fixes are useful and have thorough unit tests.  At the least we'd need to add unit tests for the new fix.  With those tests I'd hope to learn whether we can set `roundUp` to false in that location unconditionally.  There may be additional things we learn while wringing out that additional change.\n\nBeyond that, I heard a report recently that the the `tfFillOrKill` flag on `OfferCreate` transactions is not working as expected.  That may (or may not) be yet another problem with ledger rounding.  That problem report could be investigated (and possibly fixed) in the separate amen",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#issuecomment-1536849817"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-05-31T21:23:17Z",
+     "body": "The topmost commit addresses comments by @HowardHinnant.\n\nIn terms of adding a new `Number::away_from_zero` rounding mode, I'm requesting it in an effort to make the most recent change more correct.  It's probably not critical because it will only affect a `divRound` call that has a negative result.  I think those are very uncommon today.\n\nThis is the situation:\n```\n    STAmount result = [&]() {\n        // If appropriate, tell Number the rounding mode we are using.\n        MightSaveRound const savedRound(\n            roundUp ? Number::upward : Number::towards_zero);\n        return STAmount(issue, amount, offset, resultNegative);\n    }();\n```\nThe variable `roundUp` is a `bool`.  Even though i",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#issuecomment-1570976207"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-06-01T18:30:22Z",
+     "body": "The top-most commit fixes the rounding problem in divRound without requiring a new rounding mode in `Number`.  @HowardHinnant, it would be great if you would review that commit and make sure it makes sense to you.  Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#issuecomment-1572580351"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-06-02T20:26:44Z",
+     "body": "@gregtatcam, do you want a last opportunity to look over this pull request before I mark it `Passed`?  Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#issuecomment-1574277283"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-06-02T20:51:36Z",
+     "body": "> @gregtatcam, do you want a last opportunity to look over this pull request before I mark it `Passed`? Thanks.\n\nI'll review tonight.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#issuecomment-1574300802"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-06-02T21:23:06Z",
+     "body": "Thanks, looks good!",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#issuecomment-1574330783"
+    },
+    {
+     "author": "shortthefomo",
+     "date": "2023-07-18T02:32:18Z",
+     "body": "ignore me missed that this was merged!",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#issuecomment-1639186467"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThe goal of this amendment is to curtail the occurrence of order books that are blocked by reduced offers.\n\nThis commit identifies three ways in which offers can be reduced:\n\n1. A new offer can be partially crossed by existing offers, so the new offer is reduced when placed in the ledger.\n\n2. An in-ledger offer can be partially crossed by a new offer in a transaction.  So the in-ledger offer is reduced by the new offer.\n\n3. An in-ledger offer may be under-funded.  In this case the in-ledger offer is scaled down to match the available funds.\n\nReduced offers can block order books if the effective quality of the reduced offer is worse than the quality of the or",
+   "merged": true,
+   "mergedAt": "2023-06-23T05:20:25Z",
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:fix-reduced-offers",
+   "additions": 938,
+   "deletions": 28,
+   "changedFiles": 12,
+   "commits": 7,
+   "reviewComments": 9,
+   "reviews": [
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-05-04T19:08:12Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-05-05T16:24:52Z",
+     "body": "Thanks for the review, @gregtatcam.  I believe the top-most commit addresses your comments."
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-05-05T16:54:14Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-05-05T17:42:39Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-05-05T21:20:19Z",
+     "body": "@gregtatcam, sorry that I wasn't paying close enough attention last time.  The most recent commit adds the method that you suggested."
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2023-05-06T12:04:14Z",
+     "body": "👍 LGTM"
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2023-05-31T16:22:52Z",
+     "body": "Added one minor suggestion.\n\nI'm fine with moving `NumberRoundModeGuard` to Number.h.  And I think that is a good name for this functionality.\n\nOn adding `Number::away_from_zero`.  I'm fine with doing this if there is agreement it would be useful.  And it looks like a fairly minor addition in terms of effort.  It wasn't included initially because it wasn't asked for and it isn't part of the C API.  However C20 did add \"round away from zero on tie\", which is somewhat similar.\n\nWe should add it if it would simplify client code, and not if it would just add confusion."
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2023-06-02T18:11:10Z",
+     "body": "Looks good to me."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "gregtatcam",
+     "date": "2023-05-04T17:47:55Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "`rules` is not used.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#discussion_r1185326964"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-05-04T18:02:51Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "This is a comment for line 590 `else if (*ofrQ != offer.quality())` below (doesn't look like github allows commenting on collapsed lines). I'm not sure if this is a problem but judging from the PR comment \n```\nThis commit adjusts some rounding modes so that the quality of a reduced offer is always at least as good (from the taker's perspective) as the original offer.\n```\nI assume it's possible that the reduced offer written back to the ledger has a better quality than the original offer, in which case this offer might block the order book since the check on line 590 would fail for this offer.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#discussion_r1185342893"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-05-04T18:47:38Z",
+     "path": "src/test/app/ReducedOffer_test.cpp",
+     "body": "Consider making this a function. There are other functions with an identical block of code.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#discussion_r1185388625"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-05-04T19:03:51Z",
+     "path": "src/test/app/ReducedOffer_test.cpp",
+     "body": "Consider making lines 114-144 into a function. There is another similar block of code.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#discussion_r1185408498"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-05-05T00:04:31Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Good for you to point out.\n\nThe way I understand this code (and @seelabs may correct me on this), `forEachOffer()` is intended to run through all offers that have the same `Quality` in an order book.  So we get the `Quality` of the offer at the tip of the order book -- that's how the `optional` is filled in.  If any subsequent offers in the order book have a different `Quality`, then we return from `forEachOffer()`.\n\nBut that doesn't mean we're done.  It just means that we've done as much as we can with this `Strand` for now.  If the `Quality` from this go-round is good enough, then the payment engine will try this stand again and get some more offers out of this path.\n\nOne more source of co",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#discussion_r1185612164"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-05-05T16:54:14Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Thanks. I missed that this better quality offer or the next one after it are going to be picked on the next payment engine iteration if there is more output left.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#discussion_r1186310772"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-05-05T17:42:38Z",
+     "path": "src/test/app/ReducedOffer_test.cpp",
+     "body": "Were you planning to add a function for this? It's not in the latest commit. I'm fine if you decided not to. Just double checking since you marked the comment with :+1:.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#discussion_r1186353793"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-05-05T20:30:34Z",
+     "path": "src/test/app/ReducedOffer_test.cpp",
+     "body": "Thank you for keeping me honest.  I conflated that suggestion with the suggestion to make the `cleanupOldOffers()` method.  Sorry.  My mistake.\n\nI've added an `offerInLedger()` method in the latest commit.",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#discussion_r1186478221"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2023-05-31T16:11:03Z",
+     "path": "src/ripple/protocol/impl/STAmount.cpp",
+     "body": "_Pedantic:_  To more exactly mimic the `NumberRoundModeGuard` API, consider deleting the special copy members:\n```c++\n    DontAffectNumberRoundMode(DontAffectNumberRoundMode const&) = delete;\n    DontAffectNumberRoundMode& operator=(DontAffectNumberRoundMode const&) = delete;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4512#discussion_r1211972265"
+    }
+   ]
+  },
+  {
+   "number": 4264,
+   "title": "`fixReducedOffersV1`: curtail the occurrence of order books that are blocked by reduced offers",
+   "url": "https://github.com/XRPLF/rippled/pull/4264",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2022-08-03T23:16:56Z",
+   "updatedAt": "2023-05-09T17:54:22Z",
+   "closedAt": "2023-04-12T19:32:03Z",
+   "labels": [
+    "Tx Change",
+    "Amendment",
+    "Testable",
+    "Will Need Documentation"
+   ],
+   "comments": [
+    {
+     "author": "scottschurr",
+     "date": "2022-09-01T00:20:47Z",
+     "body": "Rebased to 1.10.0-b1.",
+     "url": "https://github.com/XRPLF/rippled/pull/4264#issuecomment-1233583090"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-11-28T22:06:03Z",
+     "body": "Thanks for the review @seelabs!  I've addressed your comment.  I also rebased to 1.10.0-b2 so I could test syncing without being amendment blocked.",
+     "url": "https://github.com/XRPLF/rippled/pull/4264#issuecomment-1329815897"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-04-12T00:14:08Z",
+     "body": "@scottschurr assuming this is still worth doing, could you resolve merge conflicts? \n\nAlso, unless @seelabs agrees otherwise, I think we'll want one more C++ reviewer's approval on this PR before merging.",
+     "url": "https://github.com/XRPLF/rippled/pull/4264#issuecomment-1504311265"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-04-12T16:30:33Z",
+     "body": "@intelliot, this is absolutely worth doing.  However after rebasing a number of the tests are failing.  I suspect there's fallout from the `Number` class merge and unification, but I haven't proven that yet.  Would you like me to close this until I have the unit tests passing again?",
+     "url": "https://github.com/XRPLF/rippled/pull/4264#issuecomment-1505578692"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-04-12T19:29:52Z",
+     "body": "Yes. Feel free to reach out to Howard if that may be helpful, of course.",
+     "url": "https://github.com/XRPLF/rippled/pull/4264#issuecomment-1505812647"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-04-12T19:32:03Z",
+     "body": "Closing until newly introduced test failures are resolved.",
+     "url": "https://github.com/XRPLF/rippled/pull/4264#issuecomment-1505815049"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-05-09T17:54:22Z",
+     "body": "Updated to be compatible with Number and opened as a new PR: https://github.com/XRPLF/rippled/pull/4512",
+     "url": "https://github.com/XRPLF/rippled/pull/4264#issuecomment-1540614426"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThe goal of this amendment is to curtail the occurrence of order books that are blocked by reduced offers.\n\nThis commit identifies three ways in which offers can be reduced:\n\n1. A new offer can be partially crossed by existing offers, so the new offer is reduced when placed in the ledger.\n\n2. An in-ledger offer can be partially crossed by a new offer in a transaction.  So the in-ledger offer is reduced by the new offer.\n\n3. An in-ledger offer may be under-funded.  In this case the in-ledger offer is scaled down to match the available funds.\n\nReduced offers can block order books if the effective quality of the reduced offer is worse than the quality of the or",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:fix-reduced-offers",
+   "additions": 838,
+   "deletions": 19,
+   "changedFiles": 11,
+   "commits": 2,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "mDuo13",
+     "state": "APPROVED",
+     "date": "2022-11-18T22:56:21Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2022-11-23T20:19:28Z",
+     "body": ":+1:, LGTM, but left a style nit."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "seelabs",
+     "date": "2022-11-23T20:19:05Z",
+     "path": "src/ripple/protocol/impl/STAmount.cpp",
+     "body": "`CANONICALIZE` is a template parameter, so with our naming convention it should probably be renamed `Canonicalize`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4264#discussion_r1030842725"
+    }
+   ]
+  }
+ ],
+ "issues": [
+  {
+   "number": 4937,
+   "title": "fixReducedOffersV1 still not covering all cases and book blocking (Version: 2.1.0)",
+   "url": "https://github.com/XRPLF/rippled/issues/4937",
+   "state": "closed",
+   "author": "shortthefomo",
+   "createdAt": "2024-02-29T19:20:33Z",
+   "updatedAt": "2024-07-01T21:11:44Z",
+   "closedAt": "2024-07-01T21:11:27Z",
+   "labels": [],
+   "comments": 8,
+   "body": "## Issue Description\nAmendment fixReducedOffersV1 https://xrpl.org/resources/known-amendments#fixreducedoffersv1 is still not fixing all case where the order book is blocked \n\ntwo cases have now been identified on mainnet.\n\n## Supporting Files\n![GHhUFv5XYAAVWtV](https://github.com/XRPLF/rippled/assets/508629/8c1daa43-1b20-4f8e-a498-9e5f0afb27d9)\n![GHYCDJ_X0AAEvjm](https://github.com/XRPLF/rippled/assets/508629/2f6df5fa-b0f1-4086-870d-60bfc2f3c8eb)"
+  }
+ ],
+ "proposals": [],
+ "branches": []
+}

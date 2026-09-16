@@ -1,0 +1,1097 @@
+{
+ "name": "fixAMMv1_1",
+ "fetchedAt": "2026-09-16T10:53:14.194Z",
+ "summary": {
+  "status": "in development",
+  "prs": 2,
+  "open": 1,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [
+   "gregtatcam/retire/fixAMMv1_1"
+  ],
+  "lastActivity": "2026-09-15T22:22:35Z",
+  "lastMerged": "2024-05-14T19:28:38Z",
+  "release": "2.2.0",
+  "totalComments": 155
+ },
+ "release": {
+  "version": "2.2.0",
+  "date": "2024-06-04T23:09:54Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.2.0",
+  "excerpt": "fixAMMv1_1 amendment: Fixes AMM offer rounding and low quality order book offers from blocking the AMM. [#4983](https://github.com/XRPLF/rippled/pull/4983)"
+ },
+ "prs": [
+  {
+   "number": 8226,
+   "title": "refactor: Retire fixAMMv1_1 amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/8226",
+   "state": "open",
+   "author": "gregtatcam",
+   "createdAt": "2026-09-14T18:44:55Z",
+   "updatedAt": "2026-09-15T22:22:35Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-14T18:47:27Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8226?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `92.85714%` with `3 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8226?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [include/xrpl/ledger/helpers/AMMHelpers.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8226?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_conte",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-5668976029"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nfixAMMv1_1 has been enabled on mainnet long enough to retire, so move\nits macro to the retired list and delete the conditional code it\nguarded, keeping the enabled behavior.\n\nRemoved gates: changeSpotPriceQuality, swapAssetIn and swapAssetOut in\nAMMHelpers.h; adjustAmountsByLPTokens in AMMHelpers.cpp; accountSendIOU\nin TokenHelpers.cpp; the LP token balance checks in AMMWithdraw.cpp;\nand adjustQualityWithFees plus the two qualityThreshold lambdas in\nBookStep.cpp.\n\nThree parameters became dead and are dropped with their call sites: the\nRules argument of changeSpotPriceQuality, and the Rules argument of\nboth adjustQualityWithFees overloads. BookStep.cpp no lon",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:gregtatcam/retire/fixAMMv1_1",
+   "additions": 672,
+   "deletions": 1594,
+   "changedFiles": 11,
+   "commits": 2,
+   "reviewComments": 10,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-14T18:49:39Z",
+     "body": "This is a mechanical amendment-retirement refactor: fixAMMv1_1's macro moves to the retired list and the pre-amendment (disabled) branches are deleted, keeping the previously-enabled behavior as the only code path. I checked each changed call site (changeSpotPriceQuality, swapAssetIn/Out, adjustAmountsByLPTokens, accountSendIOU, AMMWithdraw's LP token checks, and BookStep's adjustQualityWithFees/qualityThreshold) and the surviving code matches what was previously gated by `rules.enabled(fixAMMv1_1) == true`, consistent with the stated intent. The dropped Rules parameters (changeSpotPriceQuality, both adjustQualityWithFees overloads) are correctly removed from all call sites shown, and the fe"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-14T19:26:25Z",
+     "body": "This diff only touches test files (AMMExtended_test.cpp, AMMMPT_test.cpp) and mechanically removes the `!fixAMMv1_1` / dual-branch conditionals now that the amendment is being retired, consistently keeping the values from the previously-`else` (fixAMMv1_1-enabled) branch and simplifying amendment-set lists (`all - fixAMMv1_1 - fixAMMv1_3` -> `all - fixAMMv1_3`, etc.). I cross-checked each collapsed if/else pair against the removed branches and the kept numeric expectations consistently match the amendment-enabled path, and the multi-branch AMMMPT_test.cpp cases (three branches reduced to two) also retain the correct values. No production code (AMMHelpers.h/.cpp, TokenHelpers.cpp, AMMWithdraw"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-14T19:42:12Z",
+     "body": "### 🟡 Changes recommended\n\nAddress the breaking installed-header API change and remove the unused test environment declaration.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nRetires `fixAMMv1_1` and makes corrected AMM behavior unconditional across transactions and path finding.\n\n**Changes:**\n- Moves the amendment to the retired registry.\n- Removes obsolete AMM gates and parameters.\n- Updates AMM tests and expected behavior.\n- Review findings: preserve or document the breaking public API change and remove the unused `Env` declaration.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Summary |\n|---|---|\n|"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-09-14T19:45:35Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-14T20:10:20Z",
+     "body": "This is a well-scoped, mechanical retirement of fixAMMv1_1: the macro moves to the retired list and the pre-amendment conditional branches are deleted, uniformly keeping the post-amendment (enabled) code path across AMMHelpers.h/.cpp, TokenHelpers.cpp, BookStep.cpp, and AMMWithdraw.cpp. I checked each removed `rules.enabled(fixAMMv1_1)` / `getCurrentTransactionRules()` gate against what was kept, and in every instance the surviving code matches the previously-enabled branch, with call sites and signatures (changeSpotPriceQuality, adjustQualityWithFees) updated consistently to drop the now-unused Rules parameter. No correctness regressions, resource leaks, or security issues found in the chan"
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-15T20:26:40Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-09-15T21:45:19Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-09-15T21:49:24Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-09-15T22:11:14Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-15T22:16:39Z",
+     "body": "This is a mechanical test-only refactor removing dead if/else branches gated on the now-retired fixAMMv1_1 amendment, keeping the previously-\"enabled\" (post-fix) branch as the sole expected value. I traced each removed if/else pair against its replacement to confirm the retained numeric expectations match the branch that assumed fixAMMv1_1 was active (and, where three-way branches collapsed to two, verified the collapsed values were actually identical across the removed branch and the kept one, e.g. the AMMMPT_test.cpp withdraw cases). No logic errors, resource issues, or security concerns found in the diff. Note the AMM_test.cpp entry in the diff was empty in what was provided, so it wasn't"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-15T22:22:34Z",
+     "body": "### 🟡 Changes recommended\n\nAdd pathfinding regression coverage and remove unused overflow-test data.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**include/xrpl/ledger/helpers/AMMHelpers.h:397**\n* This makes the post-fix rounding unconditional for AMM offers generated by the unseated path-finding code, which is the PR's explicitly RPC-visible behavior. The updated tests cover direct AMM calculations and transaction execution, but do not assert the `ripple_path_find`/`path_find` result or its amounts; add a regression case through the Pathfinder path so a future change cannot reintroduce the two rou"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-14T19:42:12Z",
+     "path": "include/xrpl/ledger/helpers/AMMHelpers.h",
+     "body": "`AMMHelpers.h` is installed as part of the `libxrpl` development headers (`cmake/XrplInstall.cmake:35-39`), so removing `Rules const&` from this public template is a source-breaking C++ API change for downstream callers even though the PR's API-impact section marks breaking changes as false. Preserve a compatibility overload that ignores the now-dead rules argument, or document/version this API break explicitly.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4008887399"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-09-14T19:45:35Z",
+     "path": "include/xrpl/ledger/helpers/AMMHelpers.h",
+     "body": "The `rules` is no longer required by this function. All call instances are updated. And this is not RPC API.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4008913749"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-15T20:10:00Z",
+     "path": "src/libxrpl/ledger/helpers/TokenHelpers.cpp",
+     "body": "suggestion: perhaps a fatal-level log line will offer useful diagnostics during investigation of this unlikely bug.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4019765051"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-15T20:12:08Z",
+     "path": "src/libxrpl/tx/paths/BookStep.cpp",
+     "body": "To clarify: This is not related to the `fixAMMv1_1` amendment, isn't it? This looks like a general improvement of the API design which removes an unused function parameter.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4019781293"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-15T20:20:46Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "Is this test not dependent on fixAMMv1_1 ? The expected results of the test are identical in the current code (where fixAMMv1_1 is disabled) and the proposed-change-code (where fixAMMv1_1 is enabled)",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4019849842"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-15T20:26:19Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "If you would like to test this line, I saw this unit-test approach. However, this involves corrupting the open-ledger because it is quite unreachable through normal transaction construction.\n\n\n```\n        // Sole LP whose trustline balance and the AMM's LPTokenBalance disagree\n        // by more than the 0.1% tolerance: withdrawal must fail, not auto-adjust.\n        {\n            Env env(*this, features);\n            fund(env, gw_, {alice_}, XRP(1'000'000'000), {USD(1'000'000'000)});\n            AMM amm(env, gw_, XRP(2), USD(1));\n\n            // Bypasses every transaction check. Do not env.close() between here\n            // and the withdraw, or the edit is discarded with the open ledger.\n  ",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4019893496"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-09-15T21:45:19Z",
+     "path": "src/libxrpl/tx/paths/BookStep.cpp",
+     "body": "We no longer need to check for `fixAMMv1_1` amendment so `Rules` is not needed and is removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4020489873"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-09-15T21:49:24Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "The deleted test was\n\n    if (!env.enabled(fixAMMv1_1) && !env.enabled(fixAMMv1_3))\n\nThe two remaining original\n\n    else if (env.enabled(fixAMMv1_1) && !env.enabled(fixAMMv1_3))\n        ...\n    else if (env.enabled(fixAMMv1_3))\n       ...\n\nchanged to\n\n    if (!env.enabled(fixAMMv1_3))\n        ...\n    else\n        ...",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4020516420"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-09-15T22:11:14Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "Thanks for the suggestion - I looked at this and I don’t think that test belongs in this PR.\n\nThis change only removes the `fixAMMv1_1` gate. `verifyAndAdjustLPTokenBalance` and the `tecAMM_INVALID_TOKENS` path were already the live post-amendment behavior; nothing about the tolerance or the error was introduced here.\n\nThe reachable last-LP case (trustline vs `sfLPTokenBalance` off by rounding, within 0.1%) is already covered by `testLPTokenBalance`. The out-of-tolerance failure only happens if those balances already disagree by a large amount, which cannot be built with normal transactions - as you noted, it needs an open-ledger edit.\n\nI'll mark it LCOV_EXCL_LINE to match the same path in `",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4020660751"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-15T22:22:34Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Once the amendment-dependent failure selection is removed, `failUsdGH` and `failUsdBIT` are no longer read anywhere in this fixture, but their members and all of their initializers remain. Remove this dead test data (or keep an explicit assertion for the failure cases) so the overflow test does not carry misleading setup that is never verified.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4020728208"
+    }
+   ]
+  },
+  {
+   "number": 4983,
+   "title": "`fixAMMv1_1`: improve the quality of the generated AMM offer in certain cases",
+   "url": "https://github.com/XRPLF/rippled/pull/4983",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2024-04-05T22:17:06Z",
+   "updatedAt": "2024-05-31T20:56:22Z",
+   "closedAt": "2024-05-14T19:28:38Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov-commenter",
+     "date": "2024-04-05T22:44:14Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/4983?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `93.25153%` with `11 lines` in your changes are missing coverage. Please review.\n> Project coverage is 71.0%. Comparing base [(`244ac5e`)](https://app.codecov.io/gh/XRPLF/rippled/commit/244ac5e024f7151128db0288ab3c2bda5401f496?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`7b76a0a`)](https://app.codecov.io/gh/XRPLF/rippled/pull/4983?dropdown=coverage&src=pr&el=desc&utm_medium=ref",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#issuecomment-2040725027"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-08T19:14:35Z",
+     "body": "I pushed [commit]( https://github.com/XRPLF/rippled/pull/4983/commits/33ccc5e4ad3ff4fc79ac3ee1012d752f908e7882), which should address all feedback. The commit message details all the updates, but the main change is that the rounding is changed to `nearest` when the AMM offer matching target quality is generated.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#issuecomment-2101259004"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nIntroduces `fixAMMOfferRounding` (subsequently combined with #5016 and renamed to `fixAMMv1_1`) amendment to improve quality of the generated AMM offer for a single path payment when one side of the offer is XRP and there is a Limit Order Book (LOB) offer for the same asset pair on the DEX.\n\n### Context of Change\n\nA single-path AMM offer with account offer on DEX, is always generated\nstarting with the takerPays first, which is rounded up, and then\nthe takerGets, which is rounded down. This rounding ensures that the pool's\nproduct invariant is maintained. However, when one of the offer's side\nis XRP, this rounding can result in the AMM offer having a lower\nqu",
+   "merged": true,
+   "mergedAt": "2024-05-14T19:28:38Z",
+   "draft": false,
+   "base": "develop",
+   "head": "gregtatcam:amm-offer-rounding-fix",
+   "additions": 986,
+   "deletions": 222,
+   "changedFiles": 13,
+   "commits": 11,
+   "reviewComments": 69,
+   "reviews": [
+    {
+     "author": "Bronek",
+     "state": "CHANGES_REQUESTED",
+     "date": "2024-04-11T10:11:09Z",
+     "body": "Unit tests need more coverage for the error cases where you fail to calculate  AMM offer,  pointed out two extra cases."
+    },
+    {
+     "author": "donovanhide",
+     "state": "COMMENTED",
+     "date": "2024-04-24T06:32:55Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2024-05-02T20:08:28Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-02T20:31:28Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2024-05-02T20:57:07Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-02T21:04:35Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-02T21:55:24Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-02T22:12:09Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-02T22:17:09Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-03T00:02:56Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-03T13:36:43Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-03T15:25:33Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-03T16:00:15Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2024-05-03T16:09:26Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-03T16:14:25Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-03T16:27:51Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-03T16:30:38Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-03T16:36:21Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2024-05-03T16:48:09Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2024-05-03T16:51:41Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-03T16:54:53Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-03T17:02:07Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-03T17:16:12Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-03T17:19:00Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2024-05-03T17:27:41Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-03T17:46:35Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-03T20:12:59Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-03T20:15:50Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-03T20:17:28Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-03T21:11:13Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-03T21:28:54Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-03T21:31:26Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-03T21:38:29Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-03T23:02:39Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-03T23:17:47Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-06T13:43:37Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-06T15:50:55Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-06T16:23:59Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-06T17:08:27Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-06T22:00:58Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-06T23:18:20Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-06T23:38:57Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2024-05-07T00:26:00Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-07T00:39:22Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-07T00:39:26Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-07T11:06:02Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-07T13:41:25Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-07T14:22:59Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-07T17:35:32Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-07T17:41:30Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-07T20:36:04Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-05-09T02:29:45Z",
+     "body": "I'm going to be AFK tomorrow, so I thought I'd get the comments I have so far to you today.  I'll continue the review on Monday.  These are mostly nits.  But there's one I'm concerned about."
+    },
+    {
+     "author": "donovanhide",
+     "state": "COMMENTED",
+     "date": "2024-05-09T09:26:26Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-05-09T14:42:35Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-09T14:58:17Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-05-09T16:07:39Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2024-05-09T16:44:39Z",
+     "body": ":+1:. Thanks Greg, and nice job on this!"
+    },
+    {
+     "author": "Bronek",
+     "state": "APPROVED",
+     "date": "2024-05-09T20:46:39Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2024-05-13T20:35:03Z",
+     "body": "Still :+1: after latest patch"
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2024-05-14T00:55:05Z",
+     "body": ":+1: Looks good to me.  I found a few nits or suggestions for changes.  But I didn't find anything that compromises functionality.  All these comments are at your discretion."
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2024-05-14T14:12:08Z",
+     "body": "Still :+1:"
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2024-05-14T15:08:31Z",
+     "body": ":+1: Thanks for considering those nits.  Looks great."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Bronek",
+     "date": "2024-04-11T10:03:25Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "This `return std::nullopt` is not covered by the unit tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1560768649"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-04-11T10:05:05Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Needs two more test cases, one for `nTakerGets` being `nullopt` (i.e. when the solution is less than zero, as commented in `solveQuadraticEqSmallest`) and other when `nTakerGets` is exactly 0",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1560770508"
+    },
+    {
+     "author": "donovanhide",
+     "date": "2024-04-24T06:32:55Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Should this function be placed next to \n`solveQuadraticEq(Number const& a, Number const& b, Number const& c);`\nat the bottom of this file or vice versa? That second function is not inlined and also  not used by this function when it could be. Means that a simple piece of logic is split over three file locations. Hard to follow by code outsiders. Also corrected comment below shows the same for insiders :-)",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1577341032"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-04-25T14:55:46Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Anonymous namespaces in header files aren't that useful. Consider giving this a name like AMMHelpersDetail or somesuch (\"detail\" should be in the name though to signal it's private)",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1579636750"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2024-05-02T20:08:27Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "These are clever.  And I like the way they clean up the code.  But @scottschurr pointed out to me a potential to cause a run-time error:  Subexpressions in C++ are not guaranteed to be executed in any given order.  See: https://en.cppreference.com/w/cpp/language/eval_order#:~:text=Order%20of%20evaluation%20of%20any,same%20expression%20is%20evaluated%20again.\n\nFor example in:\n```c++\nz = downward()(a * b) / upward()(c - d);\n```\nI am concerned that the order could be:\n1. construct downward\n2. construct upward\n3. execute a * b\n4. execute c - d\n5. call the downward() with a*b\n6. call the upward with c-d\n7. do the division\n\nWhen I tried to simulate such an order with clang, I failed to do so.  But",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1588291655"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-02T20:31:28Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "Thanks for investigating. So have to break expressions into subexpressions. The functor would still work to make it less verbose, right? I.e.\n\n    num = downard()(a * b);\n    den = upward()(c - d);\n    res = downard() (num / den);",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1588316198"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2024-05-02T20:57:07Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "Yes, that will work.  We will have to watch out for maintenance in the future to make sure it doesn't combine such expressions.\n\nFor other's, here's what the above looks like without these helpers:\n```c++\nsaveNumberRoundMode _{Number::setround(Number::downward)};\nnum = a * b;\nNumber::setround(Number::upward);\nden = c - d;\nNumber::setround(Number::downward);\nres = num / den;\n```\n\nThe basic rule for both of these styles is that we need a `;` between calls to `Number::setround`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1588356982"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-02T21:04:35Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "I'm wondering if parenthesis are going to force the order, for instance. Also note additional `downward()` to set the division rounding.\n\n    z = downward()( (downward()(a * b) ) / ( upward()(c - d) ) )",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1588378343"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-02T21:55:24Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "Well, if you can find a place in the standard that says parenthesis will guarantee that order, please add that reference to the source code in a comment.  I don't know the standard well enough to have a sense for where you might find such a guarantee.  However there are several places in the standard that say, to a large extent, order of evaluation within an expression is unspecified.\n\nThe standard has specific rules about constructors and destructors.  That's why RAII works.  But here we have a constructor and the function call operator.  It's not the same thing.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1588463439"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-02T22:12:09Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "An approach that might allow combining expressions would be named arithmetic functions that take three parameters: two `Number's and a rounding mode.  So something vaguely like:\n```\nNumber z = div(mul(a, b, downward), sub(c, d, upward), downward);\n```\nThat's pretty ugly to read.  I haven't tried it, but it _might_ be a livable compromise?",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1588475192"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-02T22:17:09Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "It is really hard to read. I think I'd rather break into subexpression if there is no better way. \nThe standard does say this `Any expression in parentheses is also classified as a primary expression: this guarantees that the parentheses have higher precedence than any operator. Parentheses preserve value, type, and value category.` [standard](https://en.cppreference.com/w/cpp/language/expressions#:~:text=Any%20expression%20in%20parentheses%20is%20also%20classified%20as%20a%20primary%20expression) so everything in parenthesis should be evaluated first. So it should work as long as the constructor is called first.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1588478137"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-03T00:02:56Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "Regarding the constructor, here's the best I could find.  In the C++23 Standard it's section 6.7 Temporary objects [class.temporary] paragraph 2:\n\n> The materialization of a temporary object is generally delayed as long as possible in order to avoid creating unnecessary temporary objects.\n\nNote that it says \"generally\", which I take to mean it is not guaranteed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1588540755"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-03T13:36:42Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "So the functor can't be used the way it's currently used. This works (I abbreviated dwn-downward, up-upward) and they are functions, no functors.\n\n    Number z = dwn(dwn(a) + b)) / dwn(up(c) - d)\n\nCan also add unary prefix functions to Number, which work like identity functions and set the rounding, for instance: `~` is downward and `&` is upward. Then:\n\n    Number z = ~(~a + b) / ~(&c - d)\n\nOr could use a variation of Scott's suggestion:\nmuld(a, b) -> mul(a, b, downward) and so on. Then:\n\n    Number z = divd(muld(a, b), subu(c, d))",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589215491"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-03T15:21:22Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "It's a shame the functor syntax won't work, I liked that a lot.\n\nDoesn't everything except:\n```\nNumber z = div(mul(a, b, downward), sub(c, d, upward), downward);\n```\nRun into the order of operations problem? (Even if it doesn't I don't love the `dwn(dwn(a) + b)) / dwn(up(c) - d)` syntax). \n\nOne thought: if we used expression templates we could use: \n```\nz = downward(downward(a * b) / upward(c - d))\n```\nAnd get around the order of operations issue. However, expression templates aren't a lot of fun to write or debug. There are serious downsides to going that way. I'm probably opposed to doing that, but maybe it will spark an idea from someone else. (ref: expression templates: https://en.wikipe",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589353731"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-03T16:00:15Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "Interesting. I glanced it over and need to take another pass but it gave me an idea. How about `upward` and `downward` classes with constructors to take Number and overloaded operators +,-,*,/ returning Number. Then it could be something like this. \n\n     z = downward(downward(a) * downward(b)) / downward((upward(c) - upward(d)))\n\nIf too verbose then can add an overload that takes Number; for inst. operator + (Number const&), then:\n\n    z = downward(downward(a) * b)) / (upward(c) - d)",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589398581"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2024-05-03T16:09:26Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "I am seriously questioning if the cure is not worse than the disease.\n\nThere is also going to be some non-zero cost of setting the thread_local.  I'm not sure what that cost is.  It may be negligible.  But whatever it is, it is being doubled compared to doing this with calls to `Number::setround`.  If `Number::setround` is too verbose, perhaps we should just move `setround` outside of `Number`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589407807"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-03T16:14:25Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Another choice that's been used elsewhere in the code base would be to use `namespace detail`, rather than the anonymous `namespace`.  I don't feel strongly about it, just presenting an option.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589412989"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-03T16:27:51Z",
+     "path": "src/ripple/app/misc/impl/AMMHelpers.cpp",
+     "body": "There are more numerically stable forms of the quadratic formula. For example, look for the \"Citardauq Formula\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589425599"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-03T16:30:38Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "It's not the problem with `setround`, it's breaking a complex arithmetic expression into subexpressions to get the rounding right. `Number` class made those expressions super easy to implement and read and the rounding makes it difficult.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589428208"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-03T16:36:21Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "My suggestion is not to solve the \"find a nice syntax for equations with rounding\" in this PR. For now we can do something like we did in this patch: https://github.com/XRPLF/rippled/pull/5002/commits/b90f58d3a8ced5d7cbef12cd8f3215546f87ca25 and we can find a nice syntax later if we find the code in that style too difficult to read and maintain.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589433882"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-05-03T16:48:09Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "I feel pretty strongly against anonymous namespaces in header files, because of internal linkage. Fine if everything inside such a namespace is explicitly `static` but otherwise can lead to ODR.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589449224"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-05-03T16:51:41Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "FWIW when I had the need to be explicit about rounding, I used a NNTP template parameter, which in this case would look something like `div<down>(mul<down>(a, b), sub<up>(c, d))`\n\nAlso, I get we actually want \"downward\" rounding, not \"rounding towards zero\" , similarly not \"rounding away from zero\" rather than \"upward\" ? These have different semantics for negative numbers, also I found that rounding modes relative to zero are more useful.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589453646"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-03T16:54:53Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Since we're defining rounding to favor the AMM, won't this trigger almost all the time? I.e. I'd _expect_ the computed quality to be less than the requested quality (by tiny amounts, of course). I might be wrong on that, but if I am can you leave a comment in the code explaining why we don't expect to hit this very often?",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589458810"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-03T17:02:07Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "In addition to asserting, consider returning a nullopt as well, so release builds don't crash.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589470214"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-03T17:16:12Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "Thanks for that comment, @Bronek.  I also think that toward zero and away from zero feel a lot more natural.  However I know that the values being operated on are almost always positive, so maybe it's not a big deal.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589491098"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-03T17:18:59Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Except b is squared inside the root2. What you're saying may still be true, but it's not immediately clear to me that it is.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589499505"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2024-05-03T17:27:41Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "We have `Number::towards_zero`, but not `Number::away_zero`.  If we decide we need `Number::away_zero` I think I could add it fairly quickly.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589511515"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-03T17:46:35Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "This change doesn't relate to \"AMMRounding\". We might want to rename the feature.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589536964"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-03T20:12:59Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "There are two scenario. One is - AMM offer is generated so that the new Spot Price Quality is equal to the requested quality. In this case the offer's quality is better than updated SPQ. The second is - if there is a trading fee then matching the new SPQ to the target quality will push AMM offer quality bellow the target quality. In this case the AMM offer is generated to match the target quality and SPQ quality is going to be better than the target quality. In both cases we start the offer generation with the XRP side (if applicable) and we round it downward. This minimizes the offer size and maximizes the quality. If the offer is IOU/IOU, we still round downward the side of the offer that ",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589685964"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-03T20:15:50Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "These two functions use different solutions and the rounding strategy could be also different.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589688061"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-03T20:17:28Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "For NFTs there was a rollup of three different fixes named `fixNonFungibleTokensV1_2`.  Perhaps something like `fixAMMv1_1` would work?",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589689403"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-03T21:11:13Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "To put it differently, we maximize the left side of the expression in several ways: `b * b` is maximized, `4 * a * c` is minimized, `b * b - 4 * a * c` is maximized and then the root is maximized as well. So I think the overall minimization effect is going to be greater if `b` is rounded downward. If this the right way, then `b` has to be actually rounded upward because `b` is negative in this case; i.e. we need to make the absolute `b` to be smaller.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589728512"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-03T21:28:54Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "You may be right, but let me think this through carefully and let's leave this issue open for now.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589738990"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-03T21:31:26Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "We could think about rolling up the other AMM rounding amendment that we added to 2.2 into this one as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589740383"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-03T21:38:29Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "We only have `fixAMMRounding` in 2.2, no?",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589744396"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-03T23:02:39Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Just something to consider that might improve readability.  There's a `feeMult()` function called in this file (defined in AMMCore.h).  There are also just a few locals in this file named `feeMult`, like this one.  Also, it seems to me that, throughout most of this file, locals filling the role of `feeMult` are named `f`.\n\nConsider renaming those few locals in this file named `feeMult` to `f`.  This may increase naming consistency in the file.  It might also reduce cognitive dissonance caused by a local name and a function name being the same.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589793883"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-03T23:17:47Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Walking into this cold, it took me a while to understand that, for example, `(1)` designates equation 1 (not multiply by 1).  To avoid that confusion, consider documenting the equations like this:\n```\n *     Qsp = (O - o) / (I + i) -- Equation (1)\n *     i = (I * o) / (O - o) * f -- Equation (2)\n *     Qep = o / I -- Equation (3)\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1589801627"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-06T13:43:37Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "> Regarding the constructor, here's the best I could find. In the C++23 Standard it's section 6.7 Temporary objects [class.temporary] paragraph 2:\n> \n> > The materialization of a temporary object is generally delayed as long as possible in order to avoid creating unnecessary temporary objects.\n> \n> Note that it says \"generally\", which I take to mean it is not guaranteed.\n\n@scottschurr doesn't this [sequenced before](https://en.cppreference.com/w/cpp/language/eval_order#:~:text=In%20a%20function%2Dcall%20expression%2C%20the%20expression%20that%20names%20the%20function%20is%20sequenced) rule imply that in `downward()(a + b)`, `downward()` is going to be evaluated first?",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1591036386"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-06T15:50:55Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "You're right. My bad.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1591204714"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-06T16:23:59Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "Yes, I'm pretty sure that in your example `downward()` will be evaluated first.\n\nHowever I'm most concerned about @HowardHinnant's example at the top of this discussion.  If both `upward()` and `downward()` are constructed before either of the functors are called then one of the computations will round the wrong way.  The only way I personally know of to guarantee order of construction is with a sequence point.\n\nThe order of evaluation discussion says very little about when _constructors_ will be called.  My experience with undefined behavior has made me leery of surprises that optimizers can bring.  But I haven't found wording that _proves_ that the compiler will do the wrong thing.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1591256645"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-06T17:08:27Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "I give up (for now)!",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1591314582"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-06T22:00:58Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Here's what I did in sage:\n\n```\nsage: def q(a,b,c): return -b+sqrt(b*b-4*a*c)\nsage: small_delta = 10^-20\nsage: large_delta = 9*10^-20\nsage: R=RealField(400)\nsage: R(q(1,10+large_delta,1)) > R(q(1,10-small_delta,1))\nTrue\n```\n\nI _think_ that shows that if we round up we can end up with larger values than if we round down. In this case, it's simulating rounding 10.00...001 up to 10.00...01 or down to 10.00...000). When I round `b` down I get a smaller value. It's possible I messed up this calculation (please dummy check me), but I'm still not convinced we'll find a single rounding for b that minimizes this. We may need one rounding inside the root2 and one outside the root2.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1591600273"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-06T23:18:20Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "A few things:\n- The result is negative given `a,b,c` values.\n- There is a relation between `b` and `c`. I think a real test should take it into consideration.\n- How does this test factor in other rounding that I mentioned?\n- Doesn't having different `b` kind of breaks the basic algebra? `b` must be the same in quadratic equation solution . x = (-b1 +- sqrt(b2*b2 - 4 * a *c)) / (2 * a) is not a valid quadratic equation solution even if `b1` and `b2` differ by a small delta. Am I missing something?",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1591645659"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-06T23:38:57Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "I'm actually thinking how much of the rounding pays off in this function. The offer generation definitely must start with XRP and rounded downward. This makes a big difference, especially for small offers. But in case of IOU/IOU offer the rounding might not do much. To your earlier point, swap functions round in favor of the pool. IOU/IOU offer generation starts with takerPays and rounds it downward but takerGets is also rounded downward by swapAssetOut. As the result the AMM offer's quality might be less than the target quality. Which means we might have to allow for some error anyways and the rounding doesn't add much in this case except for more complexity.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1591656275"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2024-05-07T00:26:00Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Just a general comment, not necessarily related to this bit of code:  I'm beginning to question the wisdom of directed rounding on every single operation.  The one other place I've seen this done is when one is trying to put lower and upper limits on the exact answer.  One does the computation twice, with consistent rounding one way, and then the other.\n\nThat's not what we're trying to do here.  What we want is to compute as accurately as possible, but make sure that round off error doesn't violate an invariant, such as creating XRP.  Perhaps we should stick to round_to_nearest, but then clip the final result to meet our invariants.  Perhaps clipping the final result, as opposed to rounding ",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1591678506"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-07T00:39:22Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "This makes sense to me.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1591684452"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-07T00:39:26Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "I'm really poking at this statement:\n```\nb must be maximized and minimized. choose minimize since the effect of\nthe rounding outside of root2 is greater than the inside of root2\n```\n It's not obvious to me that that's true, and I _think_ the test I wrote shows that it's not always true. If we really do want to choose the rounding that minimizes the whole expression sometimes we'll have to round up, and sometimes we'll have to round down (I _think_). There may be other constraints that I'm not considering (although I don't _think_ a relationship between b and c would matter, but maybe it does.)\n\nSo my real concern is that we always honor the invariant. If we can show that the invariant is hon",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1591684484"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-07T11:06:02Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "The invariant is honored in all cases. The reason for the rounding in this function is to minimize the generated offer so that the quality matches the provided target quality. This is accomplished by rounding downward the side of the offer that we start generating first. It doesn't matter which side it is - the smaller the amount the better the quality. The other side of the offer is calculated with either `swapAssetIn` or `swapAssetOut`. Those functions ensure the invariant is honored and round the result downward (to minimize takerGets) or upward (to maximize takerPays) respectively.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1592291166"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-07T13:41:25Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "As long as the invariant is honored I'm good. And I agree we want the most accurate result while honoring the invariant.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1592507601"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-07T14:22:59Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "I'm going to change the rounding per @HowardHinnant suggestion and address all current comments.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1592573161"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-07T17:35:32Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "It seems like the direction we're going is that `upward()` and `downward()` will be a lot less important.  That's probably for the best.  However I cobbled up an approach that is not as pretty as the original `upward()` and `downward()` but includes the necessary sequence points.  It leans heavily on lambdas.  The code looks like this:\n```\ntemplate<Number::rounding_mode Rm, typename Functor>\nrequires std::is_invocable_v<Functor>\nauto\nnumberRounder(Functor&& f)\n{\n    saveNumberRoundMode guard(Number::getround());\n    Number::setround(Rm);\n    return std::forward<Functor>(f)();\n}\n\ntemplate<typename Functor>\nrequires std::is_invocable_v<Functor>\nauto\nroundUp(Functor&& f)\n{\n    return numberRoun",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1592845747"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-07T17:41:30Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "Thanks for both suggestions! I was considering lambdas but thought it would not be easy to read. But now that I look at it, I think it's a good alternative.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1592852389"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-07T20:36:03Z",
+     "path": "src/ripple/basics/Number.h",
+     "body": "@scottschurr Nice!",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1593057401"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-08T20:51:47Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "This (and the one other place that `reducedOfferPct` is used) is a place where I think we should be definitely rounding toward zero, not `to_nearest`.  I'm under the impression that the reduced offer _always_ wants to be reduced.  To do that, I suggest replacing `detail::reducedOfferPct` with a function kinda like this:\n```\nnamespace detail {\n\nauto\nreduceOffer(auto amount)\n{\n    static Number const reducedOfferPct(9999, -4);\n\n    // Make sure the result is always less than amount or zero.\n    NumberRoundModeGuard mg(Number::towards_zero);\n    return amount * reducedOfferPct;\n}\n}  // namespace detail\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1594630660"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-08T21:38:27Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Micronit: typo \"know\" -> \"known\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1594720595"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-08T22:12:05Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Micronit: since `rounding_mode` is not an `enum class`, this name can be shortened to `Number::to_nearest`.  Similarly for the rest of the file (I think there are 9 total instances).",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1594758912"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-08T22:44:47Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "I noticed that companion function `getAMMOfferStartWithTakerGets` starts with...\n```\n    assert(targetQuality.rate() != beast::zero);\n    if (targetQuality.rate() == beast::zero)\n        return std::nullopt;\n```\nSeems like a zero `targetQuality.rate` is almost as bad in this function, even though you won't be dividing by it.  So consider adding that check to this function.  I like the idea of keeping the two functions as similar as possible.  As it stands, other than this difference, they are currently quite similar.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1594778704"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-08T23:45:18Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "I recently discovered that order book offers with actual rates of zero exist in the wild!  One such offer was XRP(5) for WTF(1e-80).  There are other examples in the ledger.\n\nI'm not really in on how the `targetQuality` passed into this function is calculated.  But if it has any resemblance to order book offer quality calculations, then an `assert` would be wrong -- it's not a programming error, it's just an extreme exchange rate.  And people horsing around with the ledger can produce these.\n\nBut if it's really _impossible_ for the AMM to produce a `targetQuality` rate of zero, then the `assert` is okay.  Your call.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1594812680"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-09T01:05:33Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Is this the right implementation?  The AMM docs indicate that the AMM can play in a cross-currency Payment:\n\nhttps://xrpl.org/docs/concepts/tokens/decentralized-exchange/automated-market-makers/  \n\nAnd `BookStep::forEachOffer()` can be invoked for either a cross-currency payment or for offer crossing.  If this implementation is right, then it seems like the comment is not quite right?",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1594849919"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-09T01:34:37Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Just FYI, there's a typo on line 811.  I think \"... there **is** no ...\" should be \"... there **are** no ...\".",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1594863520"
+    },
+    {
+     "author": "donovanhide",
+     "date": "2024-05-09T09:26:26Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "Not related to the actual quality recorded in the directory (or this PR), but the values of TakerGets and TakerPays both being zero, here are a set of example Offer Ledger Entries where that condition is true:\n```\n408991C44992F2C09EF01D87F66B1690C9B420339D36ABB3DB95B6B11E12C60E\nECAF61B8D247751276754D7534368AB1FD67AB19CB085E5F7F3D65858556EBDC\n2E596CDA5D5CB57A8A32809EC151F9B6204ABB2ADD0E66E3EF98EB5F8D940EE2\n0415142A08035D2851C8FC082585AB39A281A7D9A3A5ED486DE75DBA8EF638C9\n870C021307BC50F2B81F610F88C6EEF7427C7A60F5FAEEA065CEFAE509EBB280\nF2AD2E9FA24C7F1337C6D25D422C648799400023DB0D13A6AD4431C7DCD902C8\nDE627244B71834D41B4CADC665FC4C9BABD750CD10F98D9EFD6CFAA82FD6FD09\n3473D44B0E170E012DE021A619342B6",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1595203962"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-05-09T14:42:35Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "You are right, AMM supports cross-currency Payment. The comment is not correct. I meant to say that the strand's limitQuality doesn't relate to the step's quality in case of Payment.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1595548581"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-09T14:57:43Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "This param shadows the local variable. Consider changing the name.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1595568028"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-09T14:58:14Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "This param shadows the local variable, consider changing the name.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1595568713"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-05-09T16:07:39Z",
+     "path": "src/ripple/app/misc/AMMHelpers.h",
+     "body": "I think we need a different fix here. Trailing underscores are for member variables.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1595664288"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-13T18:55:33Z",
+     "path": "src/test/app/AMMExtended_test.cpp",
+     "body": "There are a number of commented out lines that appear to invoke tests that no longer exist?  It would probably be good to remove those commented out lines.  In total I see:\n```\n        // testPartialCross\n        // testXRPDirectCross\n        // testDirectCross\n        // testSellOffer\n        // testSelfCrossLowQualityOffer\n        // testOfferInScaling\n        // testOfferInScalingWithXferRate\n        // testOfferThresholdWithReducedFunds\n        // testTinyOffer\n        // testSelfPayXferFeeOffer\n        // testSelfPayXferFeeOffer\n        // testRCSmoketest\n```\nI would guess that all of those commented out lines should be removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1598914669"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-13T20:01:52Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Since the amendment was renamed, is this still the right name for the test?  If you do change the name consider also changing the `testcase()` text.",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1599019152"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-13T20:04:17Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Nit: typo: \"...because of XRP is side is generated first\" -> \"...because XRP side is generated first\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1599021452"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-05-13T22:10:18Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "I find this table really hard to read.  Personally, I prefer to format wide data tables like this into columns and put headings at the top.  Unfortunately the `Quality` column gets really wide here because of the `TAmounts`.  But, even with that, I still think it improves readability.\n\nYou can also get rid of the repeated `Status::` entry in each line by putting...\n```\n        using enum Status;\n```\nimmediately below the enum declaration.\n\nWith these suggestions, then the first three lines of the table might look like this:\n```\n        std::vector<std::tuple<std::string, std::string, Quality, std::uint16_t, Status>> tests = {\n            //              Pool In,              Pool Out,       ",
+     "url": "https://github.com/XRPLF/rippled/pull/4983#discussion_r1599145312"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": [
+  "gregtatcam/retire/fixAMMv1_1"
+ ]
+}

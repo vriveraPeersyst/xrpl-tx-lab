@@ -1,0 +1,135 @@
+{
+ "name": "fixCheckThreading",
+ "fetchedAt": "2026-09-16T10:54:10.500Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:21:41Z",
+  "lastMerged": "2025-10-29T16:36:51Z",
+  "release": "1.4.0",
+  "totalComments": 12
+ },
+ "release": {
+  "version": "1.4.0",
+  "date": "2020-01-04T00:48:43Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.4.0",
+  "excerpt": "The **fixCheckThreading** Amendment which corrects a minor technical flaw that caused checks to not be properly threaded against the account of the check's recipient."
+ },
+ "prs": [
+  {
+   "number": 5957,
+   "title": "Retire fixCheckThreading",
+   "url": "https://github.com/XRPLF/rippled/pull/5957",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2025-10-29T13:45:35Z",
+   "updatedAt": "2026-05-20T17:21:41Z",
+   "closedAt": "2025-10-29T16:36:51Z",
+   "labels": [
+    "Trivial"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-10-29T14:09:58Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5957?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.3%. Comparing base ([`efa917d`](https://app.codecov.io/gh/XRPLF/rippled/commit/efa917d9f32958ab9ebb2f0c284657a96901e922?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`194f18c`](https://app.codecov.io/gh/XRPLF/rippled/commit/194f18ce53ae10ba7d3281c3546f3a7eb41438cf?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5957#issuecomment-3461749854"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-10-29T16:36:51Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/retire-fixCheckThreading",
+   "additions": 1,
+   "deletions": 7,
+   "changedFiles": 2,
+   "commits": 3,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-10-29T13:49:51Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-10-29T13:52:20Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-10-29T14:23:25Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-10-29T14:28:47Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-10-29T14:32:21Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-10-29T14:35:22Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "bthomee",
+     "date": "2025-10-29T13:52:20Z",
+     "path": "src/libxrpl/ledger/ApplyStateTable.cpp",
+     "body": "I'm surprised there are no tests without the feature enabled...",
+     "url": "https://github.com/XRPLF/rippled/pull/5957#discussion_r2473209456"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-10-29T14:23:25Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Major: Shouldn't we be using the `fix` prefix in `CheckThreading`, when passed to `XRPL_RETIRE` macro?",
+     "url": "https://github.com/XRPLF/rippled/pull/5957#discussion_r2473419488"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-10-29T14:28:46Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Good point, I was wondering about that too actually.\n\n@a1q123456 if this is indeed needed, shouldn't the `XRPL_RETIRE` macro have failed if the amendment name doesn't exist?",
+     "url": "https://github.com/XRPLF/rippled/pull/5957#discussion_r2473456413"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-10-29T14:32:16Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Ah sorry, yeah, we should.\n\nRegarding @bthomee's question, no, `XRPL_RETIRE` only defines a global variable marked with obsolete and it doesn't do anything more. So, as long as no code references to it, it won't complain.",
+     "url": "https://github.com/XRPLF/rippled/pull/5957#discussion_r2473475908"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-10-29T14:35:22Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/5957#discussion_r2473493628"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

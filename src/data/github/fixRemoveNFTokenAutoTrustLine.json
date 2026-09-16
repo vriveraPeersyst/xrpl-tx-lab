@@ -1,0 +1,125 @@
+{
+ "name": "fixRemoveNFTokenAutoTrustLine",
+ "fetchedAt": "2026-09-16T11:00:26.230Z",
+ "summary": {
+  "status": "closed without merge",
+  "prs": 1,
+  "open": 0,
+  "merged": 0,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2023-01-09T18:32:29Z",
+  "release": "1.9.4",
+  "totalComments": 11
+ },
+ "release": {
+  "version": "1.9.4",
+  "date": "2022-09-21T19:31:46Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.9.4",
+  "excerpt": "This release introduces a new amendment to the XRP Ledger protocol, **`fixRemoveNFTokenAutoTrustLine`** to mitigate a potential denial-of-service attack against NFT issuers that minted NFTs and allowed secondary trading of those NFTs to create trust lines for any asset."
+ },
+ "prs": [
+  {
+   "number": 4301,
+   "title": "Introduce fixRemoveNFTokenAutoTrustLine amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/4301",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2022-09-13T17:43:25Z",
+   "updatedAt": "2023-01-09T18:32:29Z",
+   "closedAt": "2022-09-22T17:41:35Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "scottschurr",
+     "date": "2022-09-13T22:51:23Z",
+     "body": "Typo fixed.  Thanks for catching that.",
+     "url": "https://github.com/XRPLF/rippled/pull/4301#issuecomment-1246025622"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2022-09-15T09:57:06Z",
+     "body": "Shouldn't this be rolled into an NFT v1.2 amendment instead, since NFT v1.1 is broken without this one? :-P\n\nNah, not going to open that can of worms again, just something to keep in mind for future decisions and discussions.",
+     "url": "https://github.com/XRPLF/rippled/pull/4301#issuecomment-1247871301"
+    },
+    {
+     "author": "intelliot",
+     "date": "2022-09-22T17:41:35Z",
+     "body": "[Introduced in version 1.9.4](https://xrpl.org/blog/2022/rippled-1.9.4.html)",
+     "url": "https://github.com/XRPLF/rippled/pull/4301#issuecomment-1255349443"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nIt turns out that the feature enabled by the `tfTrustLine` flag on an `NFTokenMint` transaction could be used as a means to attack the NFToken issuer.  Details are in https://github.com/XRPLF/rippled/issues/4300\n\nThe `fixRemoveNFTokenAutoTrustLine` amendment in this pull request removes the ability to set the `tfTrustLine` flag on an `NFTokenMint` transaction.\n\nCloses https://github.com/XRPLF/rippled/issues/4300\n\n### Context of Change\n\nThere are two commits in this pull request.  They are both needed, but they should be kept separate (not squashed).\n\n- The first commit, by @HowardHinnant, is required to allow the code to be compiled without warnings by the l",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "release",
+   "head": "scottschurr:fixRemoveNFTokenAutoTrustLine",
+   "additions": 261,
+   "deletions": 225,
+   "changedFiles": 10,
+   "commits": 3,
+   "reviewComments": 4,
+   "reviews": [
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2022-09-13T21:09:44Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2022-09-13T21:14:57Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2022-09-13T21:15:37Z",
+     "body": "Looks good, just a small typo."
+    },
+    {
+     "author": "gadget78",
+     "state": "COMMENTED",
+     "date": "2022-09-13T22:19:20Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ximinez",
+     "date": "2022-09-13T21:09:36Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "Nit: Should this variable be spelled `NFTokenMintMask`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4301#discussion_r970084747"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2022-09-13T21:13:16Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "Minor typo here `NFTokeMintMask` is missing an `n`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4301#discussion_r970087382"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2022-09-13T21:14:57Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "😀 🚬 Good catch.  Yes, that's quite the misspelling.",
+     "url": "https://github.com/XRPLF/rippled/pull/4301#discussion_r970088499"
+    },
+    {
+     "author": "gadget78",
+     "date": "2022-09-13T22:19:20Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "its also missing on line 59 too ...",
+     "url": "https://github.com/XRPLF/rippled/pull/4301#discussion_r970126841"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

@@ -1,0 +1,120 @@
+{
+ "name": "fixTakerDryOfferRemoval",
+ "fetchedAt": "2026-09-16T11:01:00.391Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:21:42Z",
+  "lastMerged": "2025-10-30T15:27:01Z",
+  "release": "3.2.0",
+  "totalComments": 10
+ },
+ "release": {
+  "version": "3.2.0",
+  "date": "2026-06-16T00:36:47Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/3.2.0",
+  "excerpt": "Retire fixTakerDryOfferRemoval amendment by @pratikmankawde in https://github.com/XRPLF/rippled/pull/5958"
+ },
+ "prs": [
+  {
+   "number": 5958,
+   "title": "Retire fixTakerDryOfferRemoval amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/5958",
+   "state": "closed",
+   "author": "pratikmankawde",
+   "createdAt": "2025-10-29T13:59:14Z",
+   "updatedAt": "2026-05-20T17:21:42Z",
+   "closedAt": "2025-10-30T15:27:01Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "bthomee",
+     "date": "2025-10-29T23:08:35Z",
+     "body": "@pratikmankawde I don't see why, but the OfferAllFeatures test is failing consistently. Can you please take a look?\n\nOn Linux I see `Suite: ripple.app.OfferAllFeatures failed to complete. The child process may have crashed.` everywhere, while on Windows it shows that the test fails with 20 errors; the macOS runner is currently broken, so no results are available there.",
+     "url": "https://github.com/XRPLF/rippled/pull/5958#issuecomment-3464825510"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-10-30T11:14:22Z",
+     "body": "> @pratikmankawde I don't see why, but the OfferAllFeatures test is failing consistently. Can you please take a look?\n> \n> On Linux I see `Suite: ripple.app.OfferAllFeatures failed to complete. The child process may have crashed.` everywhere, while on Windows it shows that the test fails with 20 errors; the macOS runner is currently broken, so no results are available there.\n\nI made the fixes and tested locally. Seems to be working. Waiting for the tests to pass on CI.",
+     "url": "https://github.com/XRPLF/rippled/pull/5958#issuecomment-3467445886"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2025-10-30T12:42:12Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5958?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.3%. Comparing base ([`a10f42a`](https://app.codecov.io/gh/XRPLF/rippled/commit/a10f42a3aa4e32943023adef7a13321823050cf3?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`d9c2074`](https://app.codecov.io/gh/XRPLF/rippled/commit/d9c2074c8ca76a99aa5ccad7d3d8d5d86b1dd1bd?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5958#issuecomment-3467801448"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-10-30T14:29:48Z",
+     "body": "The `Prepare` step is failing on these jobs for Mac OS.\nhttps://github.com/XRPLF/rippled/actions/runs/18938669393/job/54089077884",
+     "url": "https://github.com/XRPLF/rippled/pull/5958#issuecomment-3468318374"
+    }
+   ],
+   "body": "## High Level Overview of Change\nThis change retires the `fixTakerDryOfferRemoval` amendment.\n\n### Context of Change\nAmendments activated for more than 2 years can be retired.\nhttps://xrpl.org/resources/known-amendments#fixTakerDryOfferRemoval\n\n### Type of Change\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature",
+   "merged": true,
+   "mergedAt": "2025-10-30T15:27:01Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:pratik/Retire_fixTakerDryOfferRemoval_amendment",
+   "additions": 8,
+   "deletions": 23,
+   "changedFiles": 3,
+   "commits": 4,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-10-29T14:31:28Z",
+     "body": "It looks like this fix amendment had implicitly already been permanently enabled due to other changes in the past."
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "APPROVED",
+     "date": "2025-10-29T14:43:00Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-10-29T18:37:32Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-10-30T10:31:56Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "bthomee",
+     "date": "2025-10-29T18:37:32Z",
+     "path": "src/test/rpc/Feature_test.cpp",
+     "body": "@pratikmankawde as described in the comment above this block, if any of these amendments are retired or removed, another one should be substituted in. Since a previous PR already removed one of them, and this PR removes another, I added two different ones back.",
+     "url": "https://github.com/XRPLF/rippled/pull/5958#discussion_r2474675424"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-10-30T10:31:56Z",
+     "path": "src/test/rpc/Feature_test.cpp",
+     "body": "Thanks for adding them.",
+     "url": "https://github.com/XRPLF/rippled/pull/5958#discussion_r2477409750"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

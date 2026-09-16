@@ -1,0 +1,508 @@
+{
+ "name": "DepositPreauth",
+ "fetchedAt": "2026-09-16T10:41:19.059Z",
+ "summary": {
+  "status": "in development",
+  "prs": 3,
+  "open": 1,
+  "merged": 1,
+  "issues": 2,
+  "proposals": 0,
+  "branches": [
+   "pratik/depositpreauth-self-and-credential-hardening"
+  ],
+  "lastActivity": "2026-09-05T00:57:16Z",
+  "lastMerged": "2025-11-11T15:21:08Z",
+  "totalComments": 55
+ },
+ "release": {},
+ "prs": [
+  {
+   "number": 8175,
+   "title": "fix: Harden DepositPreauth self-target and credential handling",
+   "url": "https://github.com/XRPLF/rippled/pull/8175",
+   "state": "open",
+   "author": "pratikmankawde",
+   "createdAt": "2026-09-04T11:59:14Z",
+   "updatedAt": "2026-09-05T00:57:16Z",
+   "closedAt": null,
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-04T12:01:11Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8175?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `85.71429%` with `4 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8175?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [.../libxrpl/tx/transactors/payment/DepositPreauth.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8175?src=pr&el=tree&utm_medium=referral&utm_source=git",
+     "url": "https://github.com/XRPLF/rippled/pull/8175#issuecomment-5540131622"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-05T00:57:16Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8175#issuecomment-5548236932"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n| Term | Meaning |\n| - | - |\n| DepositPreauth entry | A ledger entry letting one account accept payments from a named sender, or any holder of a named credential set. |\n| `Authorize` / `Unauthorize` | The fields that create and remove a sender-based grant. Exactly one of the four grant fields may be present. |\n| `fixDepositPreauthSelf` | The amendment added here. Gates both behavioural changes. |\n| `credentials::makeSorted` | Canonicalises a credential array. It reports duplicates by returning an **empty** set, not an error. |\n| `tem` / `tec` / `tef` | `tem` rejects locally: never relayed, no fee. `tec` applies it and claims the fee. `tef` is a node-local fa",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:pratik/depositpreauth-self-and-credential-hardening",
+   "additions": 244,
+   "deletions": 12,
+   "changedFiles": 4,
+   "commits": 2,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-04T12:04:09Z",
+     "body": "This is a well-reasoned, amendment-gated hardening change to DepositPreauth. I traced the preflight self-target gating, the preclaim duplicate/empty-credential handling, and the new invariant hooks against the MR's own rationale and the accompanying tests, and did not find a confident correctness or security defect: the amendment gating correctly preserves pre-amendment behavior, the temMALFORMED changes are backed by tests that pin the exact codes, and the invariant counters reset naturally because a new transactor instance is constructed per transaction. The one thing worth a quick sanity check before merge is noted below — it's a maintainability observation, not a confirmed bug."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-04T12:21:46Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes consensus-critical transaction processing behavior and introduces invariant enforcement behind a new amendment, which warrants final human review despite the added tests.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR hardens the `DepositPreauth` transactor by adding an amendment-gated policy change for self-targeted unauthorize, improving defensive handling around credential canonicalization, and implementing transaction-specific invariant hooks to catch unexpected write-path regressions.\n\n**Changes:**\n- Amendment-gated: reject `Unauthorize == sfAccount` in **preflight** (avoid relay + fee burn for a transaction that cannot succeed).\n- De"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-04T12:21:46Z",
+     "path": "src/libxrpl/tx/transactors/payment/DepositPreauth.cpp",
+     "body": "`visitInvariantEntry` returns early when a DepositPreauth SLE is modified (before && !isDelete), which means the invariant counters/flags won’t reflect unexpected in-place edits to an existing ltDEPOSIT_PREAUTH object. Since the invariant is meant to guard against transactor write-path regressions, it should treat modifications as a touched grant too (at least for counting/owner checks).",
+     "url": "https://github.com/XRPLF/rippled/pull/8175#discussion_r3933906901"
+    }
+   ]
+  },
+  {
+   "number": 5978,
+   "title": "Retire DepositPreAuth and DepositAuth",
+   "url": "https://github.com/XRPLF/rippled/pull/5978",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2025-10-31T15:07:43Z",
+   "updatedAt": "2026-05-20T17:21:56Z",
+   "closedAt": "2025-11-11T15:21:08Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-10-31T16:21:52Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5978?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `97.22222%` with `1 line` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 78.6%. Comparing base ([`03704f7`](https://app.codecov.io/gh/XRPLF/rippled/commit/03704f712b12848d5711881d675b15cb61b6514e?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`def6790`](https://app.codecov.io/gh/XRPLF/rippled/commit/def6790acbc79ebbd0626f05e3c7a315d41619c4?dropdo",
+     "url": "https://github.com/XRPLF/rippled/pull/5978#issuecomment-3473846064"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-11-10T16:55:40Z",
+     "body": "LGTM",
+     "url": "https://github.com/XRPLF/rippled/pull/5978#issuecomment-3512823087"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-11-11T15:21:08Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/retire-DepositPreAuth",
+   "additions": 169,
+   "deletions": 390,
+   "changedFiles": 17,
+   "commits": 5,
+   "reviewComments": 4,
+   "reviews": [
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-10-31T16:04:31Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-01T09:07:09Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-11-01T10:17:49Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2025-11-03T10:59:33Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-11-03T11:24:32Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "APPROVED",
+     "date": "2025-11-10T16:55:54Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-11-11T14:41:34Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "bthomee",
+     "date": "2025-10-31T15:53:49Z",
+     "path": "src/test/app/DepositAuth_test.cpp",
+     "body": "These three are all the same now. Can you combine them?",
+     "url": "https://github.com/XRPLF/rippled/pull/5978#discussion_r2481912343"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-01T09:07:09Z",
+     "path": "src/test/app/DepositAuth_test.cpp",
+     "body": "Thanks, Bart, Fixed!",
+     "url": "https://github.com/XRPLF/rippled/pull/5978#discussion_r2483285353"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-11-01T10:14:30Z",
+     "path": "src/test/rpc/AccountSet_test.cpp",
+     "body": "This line is probably no longer necessary now the lines above have been removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5978#discussion_r2483501736"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2025-11-03T10:59:33Z",
+     "path": "src/test/rpc/AccountSet_test.cpp",
+     "body": "Thanks, Bart! Removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5978#discussion_r2486081386"
+    }
+   ]
+  },
+  {
+   "number": 2513,
+   "title": "Add DepositPreauth ledger type and transaction (RIPD-1624):",
+   "url": "https://github.com/XRPLF/rippled/pull/2513",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2018-05-08T21:28:25Z",
+   "updatedAt": "2018-05-16T16:23:07Z",
+   "closedAt": "2018-05-16T02:34:15Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "ripplelabs-jenkins",
+     "date": "2018-05-08T22:47:57Z",
+     "body": "## Jenkins Build Summary\n\nBuilt from [this commit](https://github.com/ripple/rippled/commit/d850a2d6d5a0f41e73fc874884ba960dfb5816b4)\n\nBuilt at __20180510 - 22:08:05__\n\n### Test Results\n\nBuild Type | Log | Result | Status\n---------- | --- | ------ | ------\ndocs | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2513/5//artifact/docs.txt) | 1 cases, 0 failed, t: 2s | PASS :white_check_mark: \nclang.debug.unity | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2513/5//artifact/clang.debug.unity.txt) | 1027 cases, 0 failed, t: 251s | PASS :white_check_mark: \ncoverage | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2513/5//artifact/coverage.txt) | 1027 cases, 0 fail",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#issuecomment-387566462"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-09T20:08:17Z",
+     "body": "@nbougalis's excellent points are (hopefully) addressed.  Thanks.  @seelabs, yours will be coming soon.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#issuecomment-387859874"
+    },
+    {
+     "author": "codecov-io",
+     "date": "2018-05-09T21:43:09Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2513?src=pr&el=h1) Report\n> Merging [#2513](https://codecov.io/gh/ripple/rippled/pull/2513?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/d702e736ca1b445d29c9b9c96b2bd69ada449c0f?src=pr&el=desc) will **increase** coverage by `0.07%`.\n> The diff coverage is `94.09%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2513/graphs/tree.svg?token=y0OgJuslsq&src=pr&width=650&height=150)](https://codecov.io/gh/ripple/rippled/pull/2513?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2513      +/-   ##\n===========================================\n+ Cover",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#issuecomment-387884692"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-10T22:16:46Z",
+     "body": "I believe all comments are addressed and CI is passing.  If y'all are good with the current state of this pull request I'll squash it and mark it as passed.  Thanks for the careful review!",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#issuecomment-388202702"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-10T22:28:08Z",
+     "body": "@scottschurr Still :+1: from me",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#issuecomment-388204985"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-16T02:34:15Z",
+     "body": "In 1.1.0-b1",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#issuecomment-389375826"
+    }
+   ],
+   "body": "The `lsfDepositAuth` flag (introduced by the `DepositAuth` amendment) limits the AccountIDs that can deposit into an account that has the flag set.  The original design only allowed deposits to complete if the account with the flag set also signed the transaction that caused the deposit.\n\nThe `DepositPreauth` (note the `Pre`) ledger type allows an account with the `lsfDepositAuth` flag set to preauthorize additional accounts.  A preauthorized account may also sign deposits that go into an account with the flag set.  An account can add `DepositPreauth` objects to the ledger (and remove them as well) using the `DepositPreauth` transaction.\n\nThe branch is separated into several logically indepe",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:deposit-preauth",
+   "additions": 1590,
+   "deletions": 177,
+   "changedFiles": 56,
+   "commits": 11,
+   "reviewComments": 22,
+   "reviews": [
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2018-05-09T00:11:49Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2018-05-09T01:15:18Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2018-05-09T01:49:38Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2018-05-09T02:03:50Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2018-05-09T16:18:43Z",
+     "body": "This looks good; Nice job!"
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2018-05-09T22:17:53Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2018-05-10T14:17:33Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-05-10T14:35:49Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2018-05-10T14:59:04Z",
+     "body": "Very neat code!\n\nI left just one little nit-picky comment."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "nbougalis",
+     "date": "2018-05-08T23:58:04Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "Micronit:\n\n`if(!ctx.view.read (keylet::account (auth)))`\n\nRationale: the extra variable adds no extra information and just clutters up the code.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r186900389"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-09T00:00:11Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "Micronit: extra parens around `auth.is_initialized()` aren't needed.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r186900705"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-09T00:00:48Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "I'd probably ditch the `uTxFlags` here and use `tx.getFlags()` directly.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r186900809"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-09T00:01:38Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "I think we can safely skip this comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r186900948"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-09T00:03:59Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "We can just do: `auto preauth = std::make_shared<SLE>(keylet::depositPreauth(acount_, auth))`",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r186901252"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-09T00:07:40Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "For new code, prefer `auto const page = view().dirInsert (keylet::ownerDir (account_), preauth->key(), describeOwnerDir (account_));`",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r186901710"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-09T00:08:45Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "For new code, prefer `view().dirRemove`",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r186901885"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-09T01:15:18Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "Interesting.  `ApplyView::dirRemove()` returns a `bool`.  `dirDelete()` returns a `TER` which is either a `tefBAD_LEDGER` or a `tesSUCCESS`.  I'm in the transactor's `doApply()`, so I'd _prefer_ to return a `tec` code over a `tef`.  On the other hand, this should really only happen if the ledger is corrupt.  So returning a `tef` may be okay.  And it would keep me aligned with all the other places that call `dirDelete()`.\n\nWould you prefer that I return a `tefBAD_LEDGER`, or a `tecINTERNAL` or a `tecFAILED_PROCESSING` if I'm unable to remove the directory entry?  Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r186909273"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-09T01:49:38Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "BTW, should I add a JIRA item to replace all occurrences of `dirAdd()` and `dirDelete()` with `ApplyView::dirInsert()` and `ApplyView::dirRemove()`?",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r186912818"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-05-09T02:03:50Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "I made a conscious decision to return a `bool` and not a `TER` since the result was very much binary and I didn't want to encourage multiple weird error codes. We're performing a conceptually simple operation: remove an entry from a page and that can either succeed or fail, so `bool` seemed like the right result. A failure in that code path would really be an exceptional circumstance anyways. What you return from a transactor in response to a failure is a good question. I'd be fine with continuing to return `tefBAD_LEDGER` but I can also get behind `tecFAILED_PROCESSING`.\n\nInstead of a JIRA ticket, please create a GitHub Issue. Please be sure to note that `dirAdd` has two modes of operation,",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r186914199"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-09T16:07:25Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "Note: std::optional doesn't have `is_initialized` and it's deprecated in boost. I wouldn't change this code though, we'll deal with it if we ever switch to `std::optional`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187092677"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-09T16:08:19Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "Could use `value_or` instead",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187092944"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-09T16:09:34Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "No need for `is_initialized` here. We test optionals in if statements all the time.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187093268"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-09T16:10:07Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.h",
+     "body": "I don't think we need most of these includes",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187093414"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-09T16:10:54Z",
+     "path": "src/ripple/app/tx/impl/Payment.cpp",
+     "body": "There's no need to comment when code was changed. I'd leave it out.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187093604"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-09T16:13:16Z",
+     "path": "src/test/app/DepositAuth_test.cpp",
+     "body": "No need to explicitly turn on the feature, it's included in `supported_amendments`;",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187094264"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-09T16:16:12Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "I know you love to be creative with names, but please stop adding new test account names. I have scripts that I use when debugging that translate account ids to human friendly names and every time you add a new name I need to change that script. In the past I've just changed my script, but I think there's enough names now that we don't need to add more. Instead of \"jack\" can you change it to one of the names you've used in the past. Here's a list of \"known\" names from my script:\n```\n+            // abe, alice, ann, becky, bev, bitstamp, bob, bruce, bud, cam, carol, charlie, che, cheri, dan, danny, daria, deb, edward, eli, elmo, erin, eve, fyn, flo, fred, gar, gateway, gateway2, gay, gw, gw1,",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187095142"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-09T16:17:25Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "No need to explicitly enable the feature.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187095514"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-09T16:17:40Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "No need to explicitly enable the feature.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187095629"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-05-09T22:17:53Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "Good thought, but the obvious approach isn't working for me.  I tried\n```\nAccountID const target {auth.value_or (*unauth)};\n```\nThe problem is that `*unauth` (which may be uninitialized) is evaluated before `value_or()` is called.  Did you have something more subtle in mind?",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187192338"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2018-05-10T14:17:33Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.h",
+     "body": "Looks like a good place to use `explicit`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187343383"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-05-10T14:35:48Z",
+     "path": "src/ripple/app/tx/impl/DepositPreauth.cpp",
+     "body": "`auth.value_or(unauth.value_or(someDummyStaticID))`. (Yes, I'm kidding :-)\n\nYou're right, I missed that `unauth` would be evaluated even when it's none. The code you have is clearest.",
+     "url": "https://github.com/XRPLF/rippled/pull/2513#discussion_r187348953"
+    }
+   ]
+  }
+ ],
+ "issues": [
+  {
+   "number": 6872,
+   "title": "[XLS-0096] DepositPreauth Checked in doApply Not preclaim",
+   "url": "https://github.com/XRPLF/rippled/issues/6872",
+   "state": "closed",
+   "author": "hgandhi-rx",
+   "createdAt": "2026-04-12T14:18:18Z",
+   "updatedAt": "2026-04-27T18:44:34Z",
+   "closedAt": "2026-04-27T18:44:34Z",
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 2,
+   "body": "## Summary\n\n[XLS-0096] DepositPreauth Checked in doApply Not preclaim.\n\n## Details\n\n**Title:** DepositPreauth Checked in doApply Instead of preclaim  \n\n**File:Line:** `src/libxrpl/tx/transactors/token/ConfidentialMPTSend.cpp:208, 213-216`\n\n**Description:**  \n`verifyDepositPreauth()` is called inside `doApply()`, not `preclaim()`. Every other XRPL transactor honoring DepositAuth checks it in preclaim. The ZKP is verified in preclaim (expensive), then the fee is charged and the deposit-auth check fires in doApply — meaning a sender unaware that the destination has `lsfDepositAuth` pays both the ZKP computation (in preclaim) and the transaction fee for a transaction that was always going to fai"
+  },
+  {
+   "number": 4365,
+   "title": "DepositPreauth prevents Trustline deletion",
+   "url": "https://github.com/XRPLF/rippled/issues/4365",
+   "state": "open",
+   "author": "RichardAH",
+   "createdAt": "2022-12-06T12:17:54Z",
+   "updatedAt": "2023-02-08T22:29:45Z",
+   "closedAt": null,
+   "labels": [
+    "Tx Change",
+    "Request for Comments",
+    "Bug",
+    "Testable"
+   ],
+   "comments": 2,
+   "body": "## Issue Description\n\nIn the following scenario a Trustline becomes undeletable:\n1. A user makes a trustline to an issuer\n2. The issuer sends some tokens to the user.\n3. The issuer has enabled DepositPreauth flag\n4. The user wants to return the tokens (and thus set their side of the ripple state object to default state).\n\nThis should always be allowed, users should not be obligated to hold tokens they no longer wish to hold.\nCurrently the DepositPreauth logic does not test for this.\n\nTXN: 0B947CE10E7D9C1C9FC76C07049C1FF8D3A24652D55F95DB843055420601FC79\n\n```json\n{\n    \"Account\": \"rhaPm48NtDWEjcQhV1y9cFkoVEpNsA5o6S\",\n    \"Amount\": {\n        \"currency\": \"52454C4D00000000000000000000000000000000"
+  }
+ ],
+ "proposals": [],
+ "branches": [
+  "pratik/depositpreauth-self-and-credential-hardening"
+ ]
+}

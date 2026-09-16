@@ -1,0 +1,115 @@
+{
+ "name": "fixPayChanRecipientOwnerDir",
+ "fetchedAt": "2026-09-16T10:58:59.872Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:21:32Z",
+  "lastMerged": "2025-11-11T14:07:45Z",
+  "release": "1.4.0",
+  "totalComments": 9
+ },
+ "release": {
+  "version": "1.4.0",
+  "date": "2020-01-04T00:48:43Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.4.0",
+  "excerpt": "The **fixPayChanRecipientOwnerDir** Amendment which corrects a minor technical flaw that would cause a payment channel to not appear in the recipient's owner directory, which made it unnecessarily difficult for users to enumerate all their payment channels."
+ },
+ "prs": [
+  {
+   "number": 5946,
+   "title": "Retire PayChanRecipientOwnerDir amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/5946",
+   "state": "closed",
+   "author": "pratikmankawde",
+   "createdAt": "2025-10-28T10:57:16Z",
+   "updatedAt": "2026-05-20T17:21:32Z",
+   "closedAt": "2025-11-11T14:07:46Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-10-28T14:34:45Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5946?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.6%. Comparing base ([`3330948`](https://app.codecov.io/gh/XRPLF/rippled/commit/33309480d48b85fd233ee686ab05dde93aa8b52b?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`749fe51`](https://app.codecov.io/gh/XRPLF/rippled/commit/749fe518f26d1cf64881e468ae76de216688798f?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5946#issuecomment-3456820883"
+    }
+   ],
+   "body": "## High Level Overview of Change\nThis change retires the `fix_paychan_recipient_owner_dir` amendment.\n\n### Context of Change\nAmendments activated for more than 2 years can be retired.\nhttps://xrpl.org/resources/known-amendments#fixpaychanrecipientownerdir\n\n### Type of Change\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your",
+   "merged": true,
+   "mergedAt": "2025-11-11T14:07:45Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:pratik/Retire-fixPaychanRecipientOwnerDir-amendment",
+   "additions": 28,
+   "deletions": 302,
+   "changedFiles": 4,
+   "commits": 10,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "dangell7",
+     "state": "APPROVED",
+     "date": "2025-10-31T16:39:47Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2025-11-11T13:59:07Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-11-11T14:06:05Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2025-11-11T14:06:59Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "COMMENTED",
+     "date": "2025-11-13T10:29:50Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "bthomee",
+     "date": "2025-11-11T13:58:09Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "This test case was removed but is applicable to both before-fix and after-fix. Is there value in restoring this test?",
+     "url": "https://github.com/XRPLF/rippled/pull/5946#discussion_r2514332833"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-11-11T14:06:05Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "I remember, I tried to update this test with correct balances/numbers to make it work. But it was still failing. Upon discussing with @vvysokikh1 , we decided to get rid of it.",
+     "url": "https://github.com/XRPLF/rippled/pull/5946#discussion_r2514364659"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-11-13T10:29:50Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "don't throw me under the bus man :D\n\nI was confused since I didn't remember discussing this particular piece. \n\nWhat actually happens here is probably some kind of github diff problem? The code that's currently in develop looks like this:\n<img width=\"656\" height=\"517\" alt=\"Screenshot 2025-11-13 at 10 29 28\" src=\"https://github.com/user-attachments/assets/84a98810-0b2a-445d-84b4-af67de58036e\" />\n\nThis test case still exists basically",
+     "url": "https://github.com/XRPLF/rippled/pull/5946#discussion_r2522838014"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

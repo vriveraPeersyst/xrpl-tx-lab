@@ -1,0 +1,437 @@
+{
+ "name": "fix1571",
+ "fetchedAt": "2026-09-16T10:51:48.868Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-05-20T17:21:19Z",
+  "lastMerged": "2025-10-29T15:00:55Z",
+  "release": "3.2.0",
+  "totalComments": 54
+ },
+ "release": {
+  "version": "3.2.0",
+  "date": "2026-06-16T00:36:47Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/3.2.0",
+  "excerpt": "Retire fix1571 Amendment by @pratikmankawde in https://github.com/XRPLF/rippled/pull/5925"
+ },
+ "prs": [
+  {
+   "number": 5925,
+   "title": "Retire fix1571 Amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/5925",
+   "state": "closed",
+   "author": "pratikmankawde",
+   "createdAt": "2025-10-23T12:02:07Z",
+   "updatedAt": "2026-05-20T17:21:19Z",
+   "closedAt": "2025-10-29T15:00:55Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-10-23T12:35:59Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5925?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.3%. Comparing base ([`a8e4da0`](https://app.codecov.io/gh/XRPLF/rippled/commit/a8e4da0b116389f4878ac757e0e9ea9141df7339?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`898bfa0`](https://app.codecov.io/gh/XRPLF/rippled/commit/898bfa04b8f34f2e4dcd7830b6aeb9398fe91ece?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5925#issuecomment-3436698502"
+    }
+   ],
+   "body": "## High Level Overview of Change\nThis change retires the `fix1571` amendment.\n\n### Context of Change\nOriginal amendment: https://xrpl.org/resources/known-amendments#fix1571\nAmendments activated for more than 2 years can be retired.\n\n### Type of Change\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [x] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in",
+   "merged": true,
+   "mergedAt": "2025-10-29T15:00:55Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:pratik/Retire_fix1571_amendment",
+   "additions": 65,
+   "deletions": 158,
+   "changedFiles": 3,
+   "commits": 1,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-10-23T12:26:16Z",
+     "body": ""
+    },
+    {
+     "author": "vvysokikh1",
+     "state": "APPROVED",
+     "date": "2025-10-28T14:27:56Z",
+     "body": "lgtm"
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2025-10-28T14:43:42Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2025-10-29T12:04:57Z",
+     "body": "LGTM"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "pratikmankawde",
+     "date": "2025-10-23T12:26:16Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "@ximinez Can you please confirm if this new unit test which checks presence of `cancel time and finish time` combination is correct?",
+     "url": "https://github.com/XRPLF/rippled/pull/5925#discussion_r2454953530"
+    },
+    {
+     "author": "vvysokikh1",
+     "date": "2025-10-28T14:27:00Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "considering there's a bunch of tests in this file that have almost same check (search for \"Metadata to self\" testcase for example), I'd say this seems correct",
+     "url": "https://github.com/XRPLF/rippled/pull/5925#discussion_r2469795172"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2025-10-28T14:43:42Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "Thanks for confirming.",
+     "url": "https://github.com/XRPLF/rippled/pull/5925#discussion_r2469856177"
+    }
+   ]
+  },
+  {
+   "number": 2419,
+   "title": "Clarify Escrow semantics (RIPD-1571):",
+   "url": "https://github.com/XRPLF/rippled/pull/2419",
+   "state": "closed",
+   "author": "nbougalis",
+   "createdAt": "2018-03-02T14:35:57Z",
+   "updatedAt": "2020-11-12T03:18:34Z",
+   "closedAt": "2018-03-22T03:29:38Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "seelabs",
+     "date": "2018-03-02T14:44:45Z",
+     "body": "There's an unused variable warning: `Escrow_test.cpp:966:18: warning: unused variable 'T' [-Wunused-variable]`",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#issuecomment-369939575"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2018-03-02T14:50:25Z",
+     "body": "If \"immediately finishable\" Escrows are discouraged, should Escrows with timestamps in the past for CancelAfter and/or FinishAfter also be rejected?",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#issuecomment-369941079"
+    },
+    {
+     "author": "ripplelabs-jenkins",
+     "date": "2018-03-02T15:13:38Z",
+     "body": "## Jenkins Build Summary\n\nBuilt from [this commit](https://github.com/ripple/rippled/commit/e7e70c66a788d20fadd6143e0fc10231aeed863c)\n\nBuilt at __20180308 - 05:59:11__\n\n### Test Results\n\nBuild Type | Result | Status\n---------- | ------ | ------\nclang.debug.unity | 1007 cases, 0 failed, t: 405s | PASS :white_check_mark: \ncoverage | 1007 cases, 0 failed, t: 633s | PASS :white_check_mark: \ngcc.debug.unity | 1007 cases, 0 failed, t: 450s | PASS :white_check_mark: \nclang.debug.nounity | 1005 cases, 0 failed, t: 802s | PASS :white_check_mark: \nclang.release.unity | 1006 cases, 0 failed, t: 490s | PASS :white_check_mark: \ngcc.debug.nounity | 1005 cases, 0 failed, t: 844s | PASS :white_check_mark: \n",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#issuecomment-369947790"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-03-02T16:25:41Z",
+     "body": "@MarkusTeufelberger: I'm not sure I understand. You mean attempting to set `CancelAfter` or `FinishAfter` to a time in the past? If so, that was already checked and not allowed and continues to be with this patch. See: https://github.com/nbougalis/rippled/blob/938eb4add057a76459f0efa6da22f55bcf5ea076/src/ripple/app/tx/impl/Escrow.cpp#L161-L190.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#issuecomment-369972267"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2018-03-03T14:07:05Z",
+     "body": ">If so, that was already checked and not allowed and continues to be with this patch.\n\nThanks, this is not documented on https://ripple.com/build/transactions/#escrowcreate and I didn't check that this is already in the code. Sorry for the noise and thanks for fixing the \"CancelOnly\" loophole.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#issuecomment-370149878"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-03-04T12:52:35Z",
+     "body": "@mDuo13: please see the above comment by @MarkusTeufelberger re: documentation. Would you prefer if I just did a PR against the docs to fix this?",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#issuecomment-370226973"
+    },
+    {
+     "author": "codecov-io",
+     "date": "2018-03-08T05:59:26Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2419?src=pr&el=h1) Report\n> Merging [#2419](https://codecov.io/gh/ripple/rippled/pull/2419?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/6230204e425f6aef6ec1c0def0bdd1257e1c4c7f?src=pr&el=desc) will **decrease** coverage by `0.02%`.\n> The diff coverage is `79.06%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2419/graphs/tree.svg?token=y0OgJuslsq&width=650&height=150&src=pr)](https://codecov.io/gh/ripple/rippled/pull/2419?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2419      +/-   ##\n===========================================\n- Cover",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#issuecomment-371388271"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-11T22:59:16Z",
+     "body": "Still :+1: from me.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#issuecomment-372157570"
+    },
+    {
+     "author": "intelliot",
+     "date": "2020-11-12T03:18:34Z",
+     "body": "Merged via https://github.com/ripple/rippled/pull/2454",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#issuecomment-725802997"
+    }
+   ],
+   "body": "When creating an escrow, if the `CancelAfter` time is specified but the `FinishAfter` is not, the resulting escrow can be immediately completed using `EscrowFinish`. While this behavior is documented, it is unintuitive and can be confusing for users.\n\nThis commit introduces a new fix amendment (fix1571) which prevents the creation of new Escrow entries that can be finished immediately and without any requirements.\n\nOnce the amendment is activated, creating a new Escrow will require specifying the `FinishAfter` time explicitly or requires that a cryptocondition be specified.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "nbougalis:ripd1571",
+   "additions": 671,
+   "deletions": 426,
+   "changedFiles": 4,
+   "commits": 2,
+   "reviewComments": 24,
+   "reviews": [
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2018-03-03T02:12:59Z",
+     "body": "Nice work with the unit tests.  I found a few things you could consider changing, but none of them are mandatory.  Looks good.  :+1:"
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2018-03-04T12:53:36Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2018-03-04T12:54:57Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2018-03-04T13:00:25Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-03-05T15:04:37Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2018-03-05T19:38:06Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2018-03-05T20:46:57Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2018-03-05T20:47:41Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2018-03-07T18:51:55Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2018-03-07T18:53:50Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-03-07T21:14:10Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2018-03-08T05:22:03Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2018-03-08T14:32:53Z",
+     "body": ":+1:"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "scottschurr",
+     "date": "2018-03-02T21:18:11Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "I'm under the impression that last sentence is no longer true for ILPv4.  But I could be wrong.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r171965141"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-02T21:19:22Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "transactors -> transactions?",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r171965378"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-02T21:24:48Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "I gotta say, I really appreciate all the comments throughout this entire commit.  Thanks.  :+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r171966703"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-02T21:30:39Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "I was going to gripe that `mark` should be a `NetClock::time_point`.  But I looked at the use model and it looks like you've done the right thing here.  I can't think of a way to make this interface more `chrono` without making the usage more complicated.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r171967952"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-02T21:58:28Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "FWIW, I had to study this `else` clause for several minutes before I determined the difference between it and the preceding `if`.  You could save that study time with a comment at the top of the `else` that said something like:\n```\n// Old rules: CancelAfter and FinishAfter must be after or equal to closeTime.\n```\nNot a requirement.  It just would have saved me some time.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r171973795"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-02T22:55:43Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "I like the way you split this condition into two `if`s.  It's easier for me to think about.  However I think the first condition on this second `if` (`if [~sfCancelAfter]`) is redundant given the presence of the preceding `if`.  But I don't mind leaving the redundant condition since it makes the idiom consistent.  Your call.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r171984281"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-02T22:55:51Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "You could hypothetically move the construction of `now` down a few lines to just before it's used.  But it's not that important.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r171984297"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-02T23:08:32Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "I'm sure this was a pain, but I think the change from `condpay` and `lockup` to just `escrow` was a good idea.  It's way easier to read the unit tests in the context of the current terminology.  Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r171986169"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-03T00:05:07Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "Just as an alternative approach, I _think_ you can specify to `close()` exactly the amount of elapsed time you want between the previous `close()` and this one.  As this is coded there's a 5 second blurriness on the boundary.  By directly manipulating the elapsed `close()` time you may be able to test the precise boundaries you expect the `finish()` to `tec` or `tes`.  If that works I think it would be slightly better than the approach you're using.\n\nIf you choose to take that approach you might consider adding some `BEAST_ASSERTS` that `env.close()` advances to the places you expect.\n\nThis comment also applies to the `for` loops in the next three following \"Timing:\" tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r171993301"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-03T01:11:11Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "It looks to me like this check and the one starting on line 447 are identical?  I'm okay running the same test with the amendment on and off.  But I'm not sure of the motivation for this particular repeated test vs any number of other tests.  No change required.  Just something to consider.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r171999133"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-03T01:35:22Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "Consider adding this test to help show that the `DepositAuth` flag does the right thing with `EscrowFinish`:\n```\n            env(finish(\"bob\", \"alice\", seq),  condition(cb3),\n               fulfillment(fb3), fee(1500),                ter(tecNO_PERMISSION));\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172000696"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2018-03-03T02:01:51Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "This may have been intentional, but the revised test doesn't have the same effect as the old test (it's not conditional).  Just checking because that doesn't match the pattern of most of the rest of the unit test changes.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172001970"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-03-04T12:53:35Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "You're right. The check is redundant; I'll fix.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172047807"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-03-04T12:54:57Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "I struggled with this myself, and this was the best I could come up with in the absence of huge pain and big changes to allow an `STTimestamp` type field.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172047844"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-03-04T13:00:25Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "The conditional wasn't really useful, so I ditched it, because by this point in the changes I was getting tired :stuck_out_tongue_closed_eyes:",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172047994"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-03-05T14:55:19Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "If this were brand new code, I would agree with this semantics. However, requiring that finish after is one second more than cancel after is essentially the old semantic of `<=`.\n\nWhat do you think about either:\n1) Keeping the old `<=` semantic and reducing the number of changes in this PR.\nor\n2) Have a more meaningful time that cancel after must be greater than  finish after. One minute? Thirty seconds?",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172212235"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-03-05T15:02:11Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "This is tricky because it changes the semantics of existing escrows. Ideally, we'd like the new rules to apply to escrows created with the new rules. I don't know a good way to do this, and it's probably fine in this case.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172214646"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-03-05T15:03:27Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "I agree with @scottschurr here. A one line comment saying with the difference between the two cases would be good.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172215035"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2018-03-05T19:38:06Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "Just got here, and ditto.  One _could_ turn `mark` into a `NetClock::time_point` just for the comparison, but it doesn't really buy you anything.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172303688"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2018-03-05T20:46:57Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "I had second thoughts about this and did this:  https://github.com/HowardHinnant/rippled/commit/0dfe044e9373289ad79a368d1c884d19d82911ce\n\nI found it slightly more readable, but I don't feel strongly about it.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172322845"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-03-07T18:51:55Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "The rationale is to ensure that the amendment doesn't \"break\" something that should be allowed.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172946817"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-03-07T18:53:50Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "We definitely want it to apply to all escrows. The old semantics were broken, hence the motivation for the amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172947387"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-03-07T21:14:10Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "This is my bad, I'm actually misread the code to think it was a bigger change than it is (my fault, not the code's).",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r172986542"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-03-08T05:22:03Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "We hashed this out and I believe that no changes are needed in response to this comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/2419#discussion_r173066397"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

@@ -1,0 +1,167 @@
+{
+ "name": "fixEnforceNFTokenTrustline",
+ "fetchedAt": "2026-09-16T10:55:55.304Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2024-06-18T06:47:56Z",
+  "lastMerged": "2024-06-18T06:47:55Z",
+  "release": "2.3.0",
+  "totalComments": 17
+ },
+ "release": {
+  "version": "2.3.0",
+  "date": "2024-11-26T00:17:49Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.3.0",
+  "excerpt": "fixEnforceNFTokenTrustline"
+ },
+ "prs": [
+  {
+   "number": 4946,
+   "title": "Add the fixEnforceNFTokenTrustline amendment:",
+   "url": "https://github.com/XRPLF/rippled/pull/4946",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2024-03-09T00:45:22Z",
+   "updatedAt": "2024-06-18T06:47:56Z",
+   "closedAt": "2024-06-18T06:47:55Z",
+   "labels": [
+    "Ready to merge",
+    "Amendment",
+    "QE impact not expected"
+   ],
+   "comments": [
+    {
+     "author": "codecov-commenter",
+     "date": "2024-03-09T01:52:56Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/4946?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `92.30769%` with `1 line` in your changes missing coverage. Please review.\n> Project coverage is 71.3%. Comparing base [(`8258640`)](https://app.codecov.io/gh/XRPLF/rippled/commit/825864032ae3d8a989ff070bf396bedfde48ccff?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`fa2b678`)](https://app.codecov.io/gh/XRPLF/rippled/commit/fa2b678b5914e7536dfef44b58d3f501bf77a50b?dropdown=covera",
+     "url": "https://github.com/XRPLF/rippled/pull/4946#issuecomment-1986687609"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-03-18T14:54:52Z",
+     "body": "I thought the recreation of the trustline was a feature and that was the reason for `disallowIncomingTrustline`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4946#issuecomment-2004137846"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-03-18T16:51:54Z",
+     "body": "Hi @dangell7, in this particular case the recreation of the trust line is a bug.  The NFToken in the bug report does not have the `nft::flagCreateTrustLines` flag set.  So the code should not be spontaneously adding trust lines to the issuer of the NFToken.\n\nThe test code that I added may be confusing.  Two NFTokens are created:\n\n- One with `tfTrustLine` and\n- One without.  \n\nThe NFToken created _with_ `tfTrustLine` is there to verify that my changes don't break the workflow when that trust line is _supposed_ to be created.  The one _without_ `tfTrustLine` tests the reported bug.\n\nNFTokens have a lot of (too many?) options.  So it's easy to get tangled up.\n\nDoes that make sense?  Feel free t",
+     "url": "https://github.com/XRPLF/rippled/pull/4946#issuecomment-2004441450"
+    },
+    {
+     "author": "dangell7",
+     "date": "2024-03-19T08:13:35Z",
+     "body": "> Hi @dangell7, in this particular case the recreation of the trust line is a bug. The NFToken in the bug report does not have the `nft::flagCreateTrustLines` flag set. So the code should not be spontaneously adding trust lines to the issuer of the NFToken.\n> \n> The test code that I added may be confusing. Two NFTokens are created:\n> \n> * One with `tfTrustLine` and\n> * One without.\n> \n> The NFToken created _with_ `tfTrustLine` is there to verify that my changes don't break the workflow when that trust line is _supposed_ to be created. The one _without_ `tfTrustLine` tests the reported bug.\n> \n> NFTokens have a lot of (too many?) options. So it's easy to get tangled up.\n> \n> Does that make se",
+     "url": "https://github.com/XRPLF/rippled/pull/4946#issuecomment-2006235792"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-17T19:20:42Z",
+     "body": "The XLS-25d: NFTokenMintOffer commit ( https://github.com/XRPLF/rippled/commit/9f7c619e4fbbb0e110dc3fa6e9d13dad74b5830f) interacted a great deal with this pull request.\n\n1. That commit absorbed the fix for issue #4941 that was previously in this pull request.\n2. Similarly, that commit absorbed the unit tests for issue #4941 that were previously in this commit.\n\nSo I rebased this commit to the tip of develop and resolved the differences.  I also squashed the commits and changed the commit message to ...\n\n1. Reflect the changed amendment name and\n2. That this commit only addresses issue #4925 now.\n\nI'm not marking this as passed yet, since I want to allow my reviewers an opportunity to check m",
+     "url": "https://github.com/XRPLF/rippled/pull/4946#issuecomment-2174248055"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nIntroduces the `fixEnforceNFTokenTrustline ` amendment which fixes bugs in interactions between NFTokenOffers and trust lines.\n\nResolves #4925.\nResolves #4941.\n\n### Context of Change\n\n#### #4925\n\nThis issue describes a wide timing window that causes a rare bug.  To understand the process you need some background in how NFTokens work.\n\nWhen an NFToken is minted, it may have a transfer fee associated with it.  If that transfer fee is non-zero, then a portion of the funds paid for the NFToken's transfer are syphoned off for the NFT's issuer.  That transfer fee is always paid in the same funds as were used for the transfer.\n\nThe `NFTokenCreateOffer` transaction ",
+   "merged": true,
+   "mergedAt": "2024-06-18T06:47:55Z",
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:nft-trustline",
+   "additions": 202,
+   "deletions": 7,
+   "changedFiles": 5,
+   "commits": 2,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-03-18T13:35:06Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-03-18T16:19:32Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2024-03-18T16:24:14Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2024-03-18T20:27:53Z",
+     "body": "Thanks for helping out with this! Looks good!"
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2024-03-20T19:19:02Z",
+     "body": ":+1: Two nits, fix them (or not) at your discretion."
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2024-06-17T22:03:49Z",
+     "body": "Still :+1: after latest changes"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2024-06-17T22:38:30Z",
+     "body": "looks good 👍"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "shawnxie999",
+     "date": "2024-03-18T13:35:06Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "Since the flagCreateTrustLines flag has been deprecated, would there be any consequences if we don't add this check? \n\nI think checking for the flag makes sense, I would just like to learn more about what kind of scenario this check would guard against. I'm thinking that some nodes may decide to enable `NonFungibleTokensV1_1` and `fixNFTokenTrustlineSurprise` amendments, but not enabling\n `fixRemoveNFTokenAutoTrustLine` for some reason? Just guessing here.",
+     "url": "https://github.com/XRPLF/rippled/pull/4946#discussion_r1528546456"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-03-18T16:19:32Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "Hi @shawnxie999, great question.  The `fixRemoveNFTokenAutoTrustLine` amendment did not deprecate `nft::flagCreateTrustLines`.  But it did deprecate the transaction flag `tfTrustLine`.  So after the amendment went live on October 27, 2022, new NFTokens could not be minted with `nft::flagCreateTrustLines` set.  That code lives here: https://github.com/XRPLF/rippled/blob/develop/src/ripple/app/tx/impl/NFTokenMint.cpp#L56-L58\n\nBut there may be any number of NFTokens minted before October 27, 2022 that _do_ have the `nft::flagCreateTrustLines` flag set.  The code needs to continue to respect the flags on those older NFTokens.  That's why we need to continue to honor `nft::flagCreateTrustLines`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4946#discussion_r1528867743"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2024-03-18T16:24:14Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "Thanks!",
+     "url": "https://github.com/XRPLF/rippled/pull/4946#discussion_r1528874974"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-03-20T19:12:16Z",
+     "path": "src/ripple/app/tx/impl/NFTokenAcceptOffer.cpp",
+     "body": "Nit: The above comment doesn't clarify the code, it just repeats it. I prefer the code with out comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/4946#discussion_r1532681157"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-03-20T19:18:33Z",
+     "path": "src/ripple/protocol/Feature.h",
+     "body": "That's a cute name, but it seems a little to jocular. Maybe `fixEnforceNFTokenTrustline`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4946#discussion_r1532703861"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

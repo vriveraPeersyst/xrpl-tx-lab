@@ -1,0 +1,261 @@
+{
+ "name": "fix1368",
+ "fetchedAt": "2026-09-16T10:50:11.526Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2017-07-13T21:08:04Z",
+  "lastMerged": "2017-03-08T20:24:30Z",
+  "release": "0.60.0",
+  "totalComments": 28
+ },
+ "release": {
+  "version": "0.60.0",
+  "date": "2017-03-17T23:54:37Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/0.60.0",
+  "excerpt": "fix1368 Amendment**"
+ },
+ "prs": [
+  {
+   "number": 1936,
+   "title": "Fix limiting step re-execute bug (RIPD-1368)",
+   "url": "https://github.com/XRPLF/rippled/pull/1936",
+   "state": "closed",
+   "author": "seelabs",
+   "createdAt": "2016-12-19T19:02:52Z",
+   "updatedAt": "2017-07-13T21:08:04Z",
+   "closedAt": "2017-03-01T19:53:56Z",
+   "labels": [
+    "Tx Change",
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov-io",
+     "date": "2016-12-19T19:32:03Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/1936?src=pr&el=h1) Report\n> Merging [#1936](https://codecov.io/gh/ripple/rippled/pull/1936?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/209fe8f7a92a74b173f2b23ae263c4885fc5b16d?src=pr&el=desc) will **decrease** coverage by `-0.02%`.\n\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #1936      +/-   ##\n===========================================\n- Coverage    67.27%   67.26%   -0.02%     \n===========================================\n  Files          683      683              \n  Lines        49231    49237       +6     \n===========================================\n- Hits         33121 ",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#issuecomment-268056153"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2016-12-20T00:09:38Z",
+     "body": "I left one question, but the change looks reasonable to me.  I cherry picked your commit onto my offer crossing branch and everything looks like it works well there as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#issuecomment-268115907"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2016-12-20T17:31:42Z",
+     "body": ":+1: Looks reasonable to me.",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#issuecomment-268305431"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-02-03T14:26:13Z",
+     "body": "I just (force) pushed three changes:\n1) I rebased onto PR 1981 (Add the config preset features to the view)\n2) I renamed one of the test functions (trivial)\n3) I replaced the time based switch with an amendment\n\nOnly the top two commits need to be reviewed",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#issuecomment-277258759"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-02-03T21:32:36Z",
+     "body": ":+1: Looks swell to me.",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#issuecomment-277367856"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-03-01T19:53:56Z",
+     "body": "In 0.60.0-b7",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#issuecomment-283450672"
+    }
+   ],
+   "body": "The deferred credits table can compute a balance that's different from the\nledger balance.\n\nSyntax:\nA number written with no decimal means that number exactly. I.e. \"12\". A number\nwritten with a decimal means that number has a non-zero digit at the lowest\norder digit. I.e. \"12.XX\" means a number like \"12.00000000000005\"\n\nConsider the following payment:\nalice (USD) -> USD/XRP -> (XRP) Bob\nAlice initially has 12.XX USD in her account.\nThe strand is used to debit alice the following amounts:\n1) Debit alice 5\n2) Debit alice 0.XX\n3) Debit alice 3.XX\n\nThe next time the strand is explored, alice has a USD/XRP offer on the books,\nand her account is credited:\n\n1) Credit alice 20\n\nWhen the beginning o",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "seelabs:reex",
+   "additions": 72,
+   "deletions": 2,
+   "changedFiles": 6,
+   "commits": 1,
+   "reviewComments": 7,
+   "reviews": [
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2016-12-20T00:00:58Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-12-20T14:56:02Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2016-12-20T17:29:46Z",
+     "body": ""
+    },
+    {
+     "author": "vinniefalco",
+     "state": "COMMENTED",
+     "date": "2017-01-04T20:18:09Z",
+     "body": ""
+    },
+    {
+     "author": "vinniefalco",
+     "state": "COMMENTED",
+     "date": "2017-02-03T13:36:12Z",
+     "body": ""
+    },
+    {
+     "author": "vinniefalco",
+     "state": "COMMENTED",
+     "date": "2017-02-03T13:36:55Z",
+     "body": ""
+    },
+    {
+     "author": "vinniefalco",
+     "state": "APPROVED",
+     "date": "2017-02-03T13:41:21Z",
+     "body": "Approved"
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-02-03T13:43:30Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2017-02-03T21:39:06Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "scottschurr",
+     "date": "2016-12-20T00:00:58Z",
+     "path": "src/ripple/ledger/impl/PaymentSandbox.cpp",
+     "body": "Not a correction, just a question for my own understanding.\n\nI'm assuming that several of the recursively referenced `Sandboxes` can each return a non-`boost::none` `adjustments (account, issuer, currency)`.  What kind of confidence do we have that all of them will return the same `adj->origBalance `?  If they can return different `adj->origBalance` values, how will that play in this code?",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#discussion_r93146931"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-12-20T14:56:02Z",
+     "path": "src/ripple/ledger/impl/PaymentSandbox.cpp",
+     "body": "The `origBalance` is the balance from the ledger before any debits/credits to that trust line _on that payment sandbox_. So `orgBalance` in fact will be different on each level on the stack of sandboxes.\n\nYou ask how it pays into the code. We take the minimum of these values as a lower bound for our return value. The reason this is needed is:\n\n1) Sometimes the original balance - all the debits is slightly larger than it should be due to loss of precision in the accumulated debits.\n2) We already use the current balance as a lower bound, but the account may have received a credit, so that lower bound is too large.\n\nWith this scheme, when a sandbox is thrown away, the available balance will nev",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#discussion_r93252875"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2016-12-20T17:29:46Z",
+     "path": "src/ripple/ledger/impl/PaymentSandbox.cpp",
+     "body": "Thanks for the explanation.  I see it now.  The `minBal` is the smallest starting balance seen for this `(account, issuer, currency)` in any of the recursive `PaymentSandboxes`.  So you're finding the smallest post-computation balance regardless of the depth of PaymentSandboxes.  That looks right.\n\nYou might consider adding your explanation as a comment in the code.  Personally, I didn't know enough about `PaymentSandbox` internals to get what you were up to just by reading the code.",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#discussion_r93285734"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2017-01-04T20:18:09Z",
+     "path": "src/test/app/Flow_test.cpp",
+     "body": "Consider `testReexecuteDirectStep`",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#discussion_r94657293"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2017-02-03T13:36:12Z",
+     "path": "src/ripple/ledger/impl/PaymentSandbox.cpp",
+     "body": "Pardon my ignorance but this is not an amendment then? Its a ledger switch?",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#discussion_r99337546"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2017-02-03T13:36:55Z",
+     "path": "src/test/app/Flow_test.cpp",
+     "body": "KInd of annoying that we have to always account for the close time resolution in code like this",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#discussion_r99337649"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-02-03T13:43:29Z",
+     "path": "src/ripple/ledger/impl/PaymentSandbox.cpp",
+     "body": "I rebased this on my \"Add the config preset features to the view\" PR and I'm putting it on a feature now.",
+     "url": "https://github.com/XRPLF/rippled/pull/1936#discussion_r99338585"
+    }
+   ]
+  },
+  {
+   "number": 2041,
+   "title": "Rename amendment featuerRIPD1368 -> fix1368",
+   "url": "https://github.com/XRPLF/rippled/pull/2041",
+   "state": "closed",
+   "author": "seelabs",
+   "createdAt": "2017-03-07T20:22:49Z",
+   "updatedAt": "2017-07-13T21:07:20Z",
+   "closedAt": "2017-03-08T20:24:30Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov-io",
+     "date": "2017-03-07T20:55:34Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2041?src=pr&el=h1) Report\n> Merging [#2041](https://codecov.io/gh/ripple/rippled/pull/2041?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/112a863e7346793234c973e97818ced4c6e36867?src=pr&el=desc) will **decrease** coverage by `-0.03%`.\n> The diff coverage is `100%`.\n\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2041      +/-   ##\n===========================================\n- Coverage    67.65%   67.63%   -0.03%     \n===========================================\n  Files          680      680              \n  Lines        49199    49199              \n==================================",
+     "url": "https://github.com/XRPLF/rippled/pull/2041#issuecomment-284855928"
+    },
+    {
+     "author": "wilsonianb",
+     "date": "2017-03-07T22:45:26Z",
+     "body": "typo in commit message `featuer`",
+     "url": "https://github.com/XRPLF/rippled/pull/2041#issuecomment-284885303"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-03-08T01:48:35Z",
+     "body": "Fixed typo in commit message",
+     "url": "https://github.com/XRPLF/rippled/pull/2041#issuecomment-284920701"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-03-09T13:20:26Z",
+     "body": "In 0.60.0-rc2",
+     "url": "https://github.com/XRPLF/rippled/pull/2041#issuecomment-285349258"
+    }
+   ],
+   "body": "",
+   "merged": true,
+   "mergedAt": "2017-03-08T20:24:30Z",
+   "draft": false,
+   "base": "develop",
+   "head": "seelabs:rename-amend",
+   "additions": 5,
+   "deletions": 5,
+   "changedFiles": 5,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "bachase",
+     "state": "APPROVED",
+     "date": "2017-03-07T20:49:34Z",
+     "body": ":+1:"
+    },
+    {
+     "author": "miguelportilla",
+     "state": "APPROVED",
+     "date": "2017-03-08T18:58:25Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

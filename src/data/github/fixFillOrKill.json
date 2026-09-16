@@ -1,0 +1,756 @@
+{
+ "name": "fixFillOrKill",
+ "fetchedAt": "2026-09-16T10:56:26.886Z",
+ "summary": {
+  "status": "in development",
+  "prs": 2,
+  "open": 1,
+  "merged": 1,
+  "issues": 2,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-09-03T22:42:27Z",
+  "lastMerged": "2023-10-30T21:05:47Z",
+  "release": "2.0.0-b4",
+  "totalComments": 100
+ },
+ "release": {
+  "version": "2.0.0-b4",
+  "date": "2023-10-24T20:34:18Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.0.0-b4",
+  "excerpt": "`fixFillOrKill`: fix offer crossing with tfFillOrKill #4694 (not in 2.0.0-b4)"
+ },
+ "prs": [
+  {
+   "number": 7366,
+   "title": "refactor: Retire FillOrKill fix",
+   "url": "https://github.com/XRPLF/rippled/pull/7366",
+   "state": "open",
+   "author": "TimothyBanks",
+   "createdAt": "2026-05-29T19:54:39Z",
+   "updatedAt": "2026-09-03T22:42:27Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-29T20:24:34Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7366?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#issuecomment-4579570049"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T19:35:52Z",
+     "body": "@a1q123456 Updated.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#issuecomment-4616059028"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-10T20:31:56Z",
+     "body": "@a1q123456 @pratikmankawde Please take another look",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#issuecomment-4674195973"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T12:11:44Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#issuecomment-4809454314"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-26T15:34:12Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#issuecomment-4811015999"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-01T16:41:41Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#issuecomment-4857823314"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-01T21:25:56Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#issuecomment-4860167779"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-02T14:52:38Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#issuecomment-4867093042"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-02T15:47:00Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#issuecomment-4867610194"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-07T22:29:47Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#issuecomment-5222833476"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-18T22:02:17Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#issuecomment-5334596700"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis change set retires the fill or kill fix and updates all related unit tests.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "TimothyBanks:retire_fill_or_kill",
+   "additions": 38,
+   "deletions": 109,
+   "changedFiles": 4,
+   "commits": 19,
+   "reviewComments": 22,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-01T17:33:01Z",
+     "body": "## Pull request overview\n\nRetires the `fixFillOrKill` amendment by moving it from active `XRPL_FIX` to `XRPL_RETIRE_FIX` in `features.macro`, removing the runtime `fillOrKillEnabled` branch in `StrandFlow.h`, and updating tests in `Offer_test.cpp` / `OfferMPT_test.cpp` to assume the fix is always active (also opportunistically converting some aggregate initializers to designated initializers).\n\n**Changes:**\n- Retire `fixFillOrKill` in `features.macro`.\n- Remove the `fillOrKillEnabled` conditional logic in `StrandFlow.h`.\n- Update offer tests to drop pre-amendment branches and remove the no-fix feature combinations.\n\n### Reviewed changes\n\nCopilot reviewed 4 out of 4 changed files in this pull"
+    },
+    {
+     "author": "a1q123456",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-06-02T13:55:28Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-03T19:36:24Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-03T19:36:27Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "DISMISSED",
+     "date": "2026-06-22T14:57:21Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-06-24T12:36:15Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 4 changed files in this pull request and generated 3 comments."
+    },
+    {
+     "author": "a1q123456",
+     "state": "DISMISSED",
+     "date": "2026-06-24T16:20:45Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-06-24T16:54:47Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-25T15:48:03Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-25T15:49:18Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-25T15:50:01Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-25T15:51:21Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-06-25T15:51:52Z",
+     "body": "Left a-few comments, otherwise looks good."
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-06-29T15:05:35Z",
+     "body": "lgtm"
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-08-10T17:27:21Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "COMMENTED",
+     "date": "2026-08-10T17:28:11Z",
+     "body": ""
+    },
+    {
+     "author": "pratikmankawde",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-08-10T17:30:54Z",
+     "body": "Minor redundancy cleanup requested. Maybe run AI review to check for comments referring retiring amendment flags or workflows."
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-08-18T22:02:44Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-08-18T22:02:48Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:02:00Z",
+     "body": "### 🟡 Changes recommended\n\nA few newly updated comments/assert messaging are misleading in the modified core flow logic and should be corrected to match the actual conditions being enforced.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**include/xrpl/tx/paths/detail/StrandFlow.h:823**\n* The comment says this branch is handling a FillOrKill offer, but this code path also triggers when `offerCrossing == OfferCrossing::No` (regular payment flow) and when `offerCrossing == Yes` (non-sell crossing). Reword to describe the actual condition: partial payments are disabled, s"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-09-03T18:48:01Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T19:00:08Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes core offer-crossing/payment flow behavior and retires an amendment symbol, which warrants careful human validation beyond this automated review.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 4/4 changed files\n- **Comments generated:** 1\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-03T19:20:33Z",
+     "body": "### 🔵 Needs a closer look\n\nIt permanently changes protocol behavior by retiring an amendment and modifies core payment/offer-crossing logic, which warrants careful human validation despite updated unit tests.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 4/4 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:33:00Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "After the removal of `fillOrKillEnabled`, this condition simplifies to `offerCrossing != OfferCrossing::Sell` (the `== OfferCrossing::No` disjunct is fully covered by `!= OfferCrossing::Sell`). Likewise on line 807, `offerCrossing != OfferCrossing::No && offerCrossing == OfferCrossing::Sell` simplifies to `offerCrossing == OfferCrossing::Sell`. Consider simplifying both to avoid tautological/redundant clauses and improve readability.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3336016316"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-01T17:33:01Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "This condition simplifies to `offerCrossing == OfferCrossing::Sell` (since `Sell != No`, the first conjunct is implied by the second). Consider simplifying.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3336016373"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T13:55:09Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "This can be removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3341714447"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-02T13:55:24Z",
+     "path": "src/test/app/OfferMPT_test.cpp",
+     "body": "Same here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3341716182"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T19:36:24Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "Simplification results in test failures.  Leaving as is.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3351361574"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-03T19:36:27Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "Simplification results in test failures.  Leaving as is.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3351361961"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-24T12:36:14Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "`FillOrKill` is being moved from `XRPL_FIX` to `XRPL_RETIRE_FIX`, which removes the public `fixFillOrKill` symbol from `include/xrpl/protocol/Feature.h` (retired fixes don't declare `extern uint256 const fix*`). This is a breaking change for downstream/libxrpl consumers that may still reference `fixFillOrKill`; if that's intended, it should be explicitly called out (and/or a deprecated compatibility alias provided).",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3467101568"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-24T12:36:15Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "The adjacent comments still describe conditional behavior based on the (now-retired) `fixFillOrKill` amendment (\"Pre-fixFillOrKill\" vs \"fixFillOrKill\" paths). Since the code no longer branches on that amendment, these comments are now misleading and should be updated to describe the current unconditional behavior (Sell vs non-Sell FillOrKill handling).",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3467101610"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-06-24T12:36:15Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "These comments still refer to \"Pre-fixFillOrKill\" vs \"fixFillOrKill\" amendment-specific behavior, but the code path is no longer feature-gated after retiring the fix. Update the comment to describe the current rule (FillOrKill+tfSell requires consuming all input; otherwise the offer is killed) without referencing the retired amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3467101631"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-06-24T16:54:47Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "That is the purpose of this PR",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3468825035"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-25T15:48:03Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "The cleanup makes sense, so resulting test failures are alarming.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3475732888"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-25T15:49:17Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "Same comment here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3475741510"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-25T15:50:01Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "Needs comment cleanup.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3475746331"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-25T15:51:21Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "Does this comment and test case name needs update?",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3475754956"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-08-10T17:27:21Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "Are `OfferBaseUtil_test` and `OfferWOSmallQOffers_test` now testing the same things, so redundant?",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3751822830"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-08-10T17:28:11Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "`testAll(all - permDEX);` also same as `OfferBaseUtil_test`?",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3751828702"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-08-18T22:02:44Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "Updated",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3808273270"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-08-18T22:02:48Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "Updated",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3808274048"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:01:59Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "`XRPL_ASSERT(remainingIn, \"... nonzero remainingIn\")` only checks that `remainingIn` is present (truthy optional), not that it is nonzero. The assertion message is misleading in debug builds; either assert on the dereferenced value or update the message to match what’s being checked.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3908822479"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:02:00Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "This comment describes the scenario as `tfSell` only, but the offers in this block set `tfFillOrKill | tfSell`. Updating the comment avoids confusion about which flag combination is under test.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3908822545"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-09-03T18:48:01Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "This is pre-existing and outside the scope of this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3927646816"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-03T19:00:07Z",
+     "path": "include/xrpl/tx/paths/detail/StrandFlow.h",
+     "body": "The new comment implies `!partialPayment` only happens during offer crossing (FillOrKill), but the same `flow()` path is also used for non-crossing payments where `partialPayment` can be false as well. This can mislead future readers about when this branch is expected to run.",
+     "url": "https://github.com/XRPLF/rippled/pull/7366#discussion_r3927743045"
+    }
+   ]
+  },
+  {
+   "number": 4694,
+   "title": "`fixFillOrKill`: fix OfferCreate with tfFillOrKill if offer is better than open offer rate (Amendment)",
+   "url": "https://github.com/XRPLF/rippled/pull/4694",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2023-09-08T13:07:12Z",
+   "updatedAt": "2023-11-06T23:00:57Z",
+   "closedAt": "2023-10-30T21:05:47Z",
+   "labels": [
+    "Ready to merge",
+    "Bug",
+    "Amendment",
+    "Testable"
+   ],
+   "comments": [
+    {
+     "author": "intelliot",
+     "date": "2023-10-04T04:33:38Z",
+     "body": "@seelabs : will you review this?",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1746118658"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-11T18:10:57Z",
+     "body": "note: seelabs plans to review (eventually :)",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1758218145"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-16T18:20:38Z",
+     "body": "Given there are requested changes awaiting review by @gregtatcam , this PR is currently targeting a 2024 release. If there is more urgency to it, please comment here to make the case. Thanks!",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1765047821"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-23T03:23:11Z",
+     "body": "@gregtatcam This branch has conflicts that must be resolved\n\nThe conflicts look simple but I'll let you take care of them, preferably by adding a merge commit. (As we've been doing, this branch will be squashed to a single commit when it lands in `develop`)",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1774370950"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-24T21:26:36Z",
+     "body": "@gregtatcam - I am not sure you merged with latest `develop` (if this repo is `upstream` then maybe do something like `git fetch upstream` and `git merge upstream/develop`) - there are still a couple small conflicts (i.e. for featureDID)\n\nat your convenience, please resolve",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1778066365"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-10-24T23:04:51Z",
+     "body": "> @gregtatcam - I am not sure you merged with latest `develop` (if this repo is `upstream` then maybe do something like `git fetch upstream` and `git merge upstream/develop`) - there are still a couple small conflicts (i.e. for featureDID)\n> \n> at your convenience, please resolve\n\nUpdated.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1778192119"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-24T23:17:04Z",
+     "body": "@seelabs or @scottschurr - could you have a quick re-review to confirm that the merge looks OK?",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1778203787"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-24T23:54:55Z",
+     "body": "When I attempt to build the latest version of this branch the build fails.  But that failure stems from the APIv2: remove tx_history and ledger header commit (https://github.com/XRPLF/rippled/commit/1eac4d2c07eaac04178ff53c7288bc46c6ce7da0)\n\nThe failure is in src/test/jtx/TestHelpers.h:38...\n```\nmake_vector(auto const& input) requires std::ranges::range<decltype(input)>\n```\nThe compiler says\n```\nerror: no member named 'range' in namespace 'std::ranges'\n```\nI suspect that the library for the version of clang I'm running does not yet have support for `std::ranges::range`.\n\nMy inability to compile just happened with the introduction of this commit.  There are newer versions of Xcode I could upg",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1778244743"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-10-24T23:59:17Z",
+     "body": "> My inability to compile just happened with the introduction of this commit. There are newer versions of Xcode I could upgrade to. I'm running 13.4.1, release June 22, 2022 -- about a year and a half old. There is a version 15.0.1 available, released Oct 18, 2023. Is it time to upgrade?\n\nBuilds for me. I have Apple clang version 15.0.0 (clang-1500.0.40.1).",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1778248832"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-24T23:59:30Z",
+     "body": "According to this website, ranges support requires Xcode 14.3 or later: https://developer.apple.com/xcode/cpp/",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1778249029"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-25T00:01:41Z",
+     "body": "Xcode 14.3 was released March 30, 2023 according to Wikipedia.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1778251153"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-25T00:18:00Z",
+     "body": "In the mean time, we'd better have @seelabs review the merge commit, since the code is not building for me at the moment.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1778267737"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-25T21:50:58Z",
+     "body": "note: https://github.com/XRPLF/rippled/pull/4788 is expected to fix the error scottschurr mentioned above",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1780106367"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-30T18:14:51Z",
+     "body": "Now that #4788 has been merged, this PR can be merged once CI passes. Meanwhile, @gregtatcam - can you confirm this looks good to merge?\n\n(If so, we can put the `Passed` label on it)",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1785791540"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-10-30T18:41:47Z",
+     "body": "> Now that #4788 has been merged, this PR can be merged once CI passes. Meanwhile, @gregtatcam - can you confirm this looks good to merge?\n> \n> (If so, we can put the `Passed` label on it)\n\nIt's good to merge.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#issuecomment-1785832438"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR addresses #4684 issue. This is the payment engine breaking change and requires an amendment.\n\n### Context of Change\n\nflowCross amendment introduces an issue where the offer crossing with tfFillOrKill flag set and tfSell not set fails to cross an offer with a better rate. For instance, given two offers:\n(takerPays/takerGets)\nXRP(100)/USD(100)\nUSD(100)/XRP(101) has tfFillOrKill set\nThe second offer fails to cross but it should succeed because the taker can buy USD(100) for XRP(100) instead of XRP(101). XRPL reference for the [offer create with tfFillOrKill](https://xrpl.org/offercreate.html) states: \n>    ...the owner must receive the full TakerPays am",
+   "merged": true,
+   "mergedAt": "2023-10-30T21:05:47Z",
+   "draft": false,
+   "base": "develop",
+   "head": "gregtatcam:fix-fillorkill",
+   "additions": 272,
+   "deletions": 36,
+   "changedFiles": 16,
+   "commits": 10,
+   "reviewComments": 16,
+   "reviews": [
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-09-12T22:16:47Z",
+     "body": "I really like both the fix and the unit test that demonstrates the problem.  I left a few comments on the unit test, but they are all at your discretion.  If you would like to pick up all of the unit test suggestions then you can, if you would like, cherry-pick them from the top-most commit here: https://github.com/scottschurr/rippled/commits/gregt-fix-fillorkill\n\nVery nicely done.  Thanks for fixing my bug!  :+1:"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-09-13T08:35:35Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-09-13T16:26:01Z",
+     "body": "Still :+1:!"
+    },
+    {
+     "author": "seelabs",
+     "state": "CHANGES_REQUESTED",
+     "date": "2023-10-13T15:13:55Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-10-13T15:32:02Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-10-13T17:35:17Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-10-16T17:57:28Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-10-18T13:38:07Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "CHANGES_REQUESTED",
+     "date": "2023-10-19T22:11:21Z",
+     "body": "First, your solution of changing the `bool` to an `enum` is terrific!  It clarifies a bunch of code by changing a nondescript `bool` into something that has useful descriptive names.  Great choice!\n\nI did leave two comments.  You need to fix the name of a local in `Offer_test::run()`.  You can also consider fixing the names of your new enumerators so they match our code base conventions.\n\nBut other than those two things I really like this approach.  Thanks!"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2023-10-19T22:16:22Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-10-20T02:04:12Z",
+     "body": ":+1:"
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-10-20T20:01:13Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2023-10-20T20:01:29Z",
+     "body": ":+1:"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "scottschurr",
+     "date": "2023-09-12T18:07:29Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "This fix is elegant!  Thanks for figuring out the problem and fixing it.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1323394117"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-09-12T19:03:25Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "My inclination would be to sprinkle quite a number of `env.close()` calls throughout this test.  If, later, someone adds a `close()` further down in the test that can cause the test to mysteriously fail.  If you put the calls to `close()` in now, then we can prevent confusion for someone else in the future.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1323446053"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-09-12T19:05:53Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "`err` is only used inside the braces that open on line 5119.  My inclination would be to move the declaration of `err` down inside those braces to reduce its scope.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1323448317"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-09-12T19:12:29Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "This\n```\nif (tesSUCCESS == err)\n```\nreads kinda backward to me.  This statement, and the two following similar ones, are [Yoda Conditions](https://en.wikipedia.org/wiki/Yoda_conditions).  My inclination would be to write them like this:\n```\nif (err == tesSUCCESS)\n```\nI think that's easier to read.  But your call.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1323454089"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-09-12T20:02:06Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "This `for` loop is exactly the way I would have run your tests for my own confidence if I'd made a change of this nature.  So I'm really happy to see that this works.\n\nOn the other hand, the Offer tests are already one of the longest running unit tests we have.  And this `for` loop significantly increases how much time they take.  With the `for` loop they take 167 seconds on my Mac.\n\nI'd like to offer an alternative to the `for` loop that I think still tests all of the conditions that matter -- the order in which the amendments have gone live on the main net.  Consider replacing the `for` loop with this:\n```\n        testAll(all - takerDryOffer - immediateOfferKilled);\n        testAll(all - f",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1323501803"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-09-12T22:07:30Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "Thanks very much for adding this test.  I especially like the way it demonstrates identical behavior before flowCross and after flowCross but with your fix.  Nicely done!",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1323647962"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-09-13T08:35:35Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "Thanks for reviewing and the suggestions. I added/pushed your commit.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1324173483"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-13T15:10:35Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "We can talk about this, but I don't love this solution. It's using a special value of output request to change behavior. Any payment that uses this value will get this special behavior, even payments that aren't offers and don't have the flag set. It also means if the implementation changes so we no long set these max amounts this code breaks.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1358393125"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-13T15:32:01Z",
+     "path": "src/ripple/protocol/Feature.h",
+     "body": "I probably wouldn't mention \"FlowCross\". Just `fixOfferFillOrKill`. There's only one offer crossing implementation, there's no need to mention it by name.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1358419383"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-13T17:35:17Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "I can't argue that this is a great solution, but that's a problem with the FlowCross implementation, not with this fix.  @gregtatcam is using the only indication that FlowCross sends down through the payment engine that the `tfSell` flag is set:\n\nhttps://github.com/XRPLF/rippled/blob/develop/src/ripple/app/tx/impl/CreateOffer.cpp#L739-L755\n\nBut, yes, there is also an `offerCrossing` flag that is passed as well.  We could add that to the `sell` detection.  Maybe like this...\n```\n    // FlowCross handles tfSell by setting the deliver amount to max\n    auto const sell = [&]() -> bool {\n        if (offerCrossing)\n        {\n            if constexpr (std::is_same_v<TOutAmt, XRPAmount>)\n           ",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1358593448"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-10-16T17:57:27Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "Thanks @scottschurr, it is better but as you said not great. I wanted to minimize the payment engine impact and not change the arguments to `flow()`. If it's ok to change the args then the `offerCrossing` can be changed from `bool` to `optional<uint32>`, which if seated contains the offer crossing flags and if not seated then it's not offer crossing. The semantics of the `offerCrossing` flag remains the same but it does provide more information. The only thing I don't like is that `partialPayment` flag carries a duplicate info (it's set to `!(txFlags & tfFillOrKill)`) but it's probably ok. @seelabs does this work?",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1361064046"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-10-18T13:38:07Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "I added `enum OfferCrossing {No = 0, Yes, Sell}` and pass it as the `offerCrossing` flag. This eliminates the check for the special value.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1363898437"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-19T20:17:22Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "There's a naming problem here.  You have two distinct values with the same name.  Just pick a different name for the local variable.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1366061034"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-10-19T21:28:14Z",
+     "path": "src/ripple/app/paths/impl/Steps.h",
+     "body": "In this code base the enumerators typically start with a lower case letter.  See the three preceding enums.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1366137162"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2023-10-19T22:16:22Z",
+     "path": "src/test/app/Offer_test.cpp",
+     "body": "Thanks, it's fixed in this commit [3859760](https://github.com/XRPLF/rippled/pull/4694/commits/385976048582b13a7df761dc4fcc4ec4b2edf5f5).",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1366192289"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-10-20T20:01:12Z",
+     "path": "src/ripple/app/paths/impl/StrandFlow.h",
+     "body": "Looks good. Thanks for making that change, I appreciate it.",
+     "url": "https://github.com/XRPLF/rippled/pull/4694#discussion_r1367441060"
+    }
+   ]
+  }
+ ],
+ "issues": [
+  {
+   "number": 4241,
+   "title": "Create trust line if not present on Create FillOrKill Offer (Version: 1.9.1)",
+   "url": "https://github.com/XRPLF/rippled/issues/4241",
+   "state": "closed",
+   "author": "elmurci",
+   "createdAt": "2022-07-18T10:12:19Z",
+   "updatedAt": "2022-07-21T16:08:21Z",
+   "closedAt": "2022-07-21T12:50:59Z",
+   "labels": [],
+   "comments": 2,
+   "body": "## Issue Description\n\nWhen creating an offer where the trust line to the issuer is not set yet, the trust line is created in the same step if the offer is successful and matches to another existing offer.\n\nWhen the `tfFillOrKill` flag is applied in the same scenario, the transaction fails with a `tecKILLED` code.\n\n## Steps to Reproduce\n\n1. Post a \"sell\" offer from a `non-issuing wallet 1` of `10 A.issuer` in exchange for `100 B.issuer`\n2. Post a FillOrKill \"buy\" offer from a `non-issuing wallet 2` with no trust lines set to the issuer of `100 B.issuer` in exchange for `10 B.issuer` \n3. Transaction fails with `tecKILLED`.\n\n## Expected Result\n\nI would expect the same behaviour as when it is no"
+  },
+  {
+   "number": 2314,
+   "title": "Return tecKILLED instead of tesSUCCESS when FillOrKill kills",
+   "url": "https://github.com/XRPLF/rippled/issues/2314",
+   "state": "closed",
+   "author": "mDuo13",
+   "createdAt": "2018-01-03T00:47:50Z",
+   "updatedAt": "2018-11-01T16:16:00Z",
+   "closedAt": "2018-11-01T14:27:54Z",
+   "labels": [
+    "Tx Change"
+   ],
+   "comments": 1,
+   "body": "Change the OfferCreate transactor so that, when an offer with tfFillOrKill enabled cannot be filled, it returns a new error code (tecKILLED) instead of returning tesSUCCESS without filling the offer. ([As requested on XRPChat.](https://www.xrpchat.com/topic/15174-fillorkill-flag-not-working/))\n\nSimilar to the tecEXPIRED change, this change would make it much easier to know when an OfferCreate with tfFillOrKill was killed because it couldn't be filled. As it stands, if the metadata doesn't indicate the offer is filled, you have to infer that it was because the offer was killed, and not because of something else (for example, the past-expiration thing)."
+  }
+ ],
+ "proposals": [],
+ "branches": []
+}

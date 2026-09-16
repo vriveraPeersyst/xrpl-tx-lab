@@ -1,0 +1,108 @@
+{
+ "name": "fixAMMv1_2",
+ "fetchedAt": "2026-09-16T10:53:25.728Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2024-11-05T20:08:56Z",
+  "lastMerged": "2024-11-05T20:06:16Z",
+  "release": "2.3.0",
+  "totalComments": 8
+ },
+ "release": {
+  "version": "2.3.0",
+  "date": "2024-11-26T00:17:49Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.3.0",
+  "excerpt": "fixAMMv1_2"
+ },
+ "prs": [
+  {
+   "number": 5176,
+   "title": "Add fixAMMv1_2 amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/5176",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2024-11-01T12:44:39Z",
+   "updatedAt": "2024-11-05T20:08:56Z",
+   "closedAt": "2024-11-05T20:06:16Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2024-11-01T13:57:30Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5176?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `96.66667%` with `1 line` in your changes missing coverage. Please review.\n> Project coverage is 77.6%. Comparing base [(`d57cced`)](https://app.codecov.io/gh/XRPLF/rippled/commit/d57cced17b40304c48f74259509d121e0a6afa76?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`fb32608`)](https://app.codecov.io/gh/XRPLF/rippled/commit/fb32608cd52b409beff5533b7d69c756cd9c801f?dropdown=covera",
+     "url": "https://github.com/XRPLF/rippled/pull/5176#issuecomment-2451916832"
+    },
+    {
+     "author": "thejohnfreeman",
+     "date": "2024-11-04T16:59:27Z",
+     "body": "Normally these checks are supposed to use the \"prior balance\", i.e. the balance of the account before the transaction started executing. I just want to note that we're making an exception here. In fact, it would be easier if we could ignore the \"prior balance\" everywhere. The context for most helper functions is just the `ApplyView`, which does not track the \"prior balance\" of any account. (The transaction function in this PR is not a helper, but one day it might be.) Helpers that require a prior balance demand that it be drilled through the caller as a parameter.",
+     "url": "https://github.com/XRPLF/rippled/pull/5176#issuecomment-2455233999"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdd fixAMMv1_2 amendment:\n\n- It adds reserve check on AMMWithdraw\n- It generates AMM max offer if changeSpotPriceQuality() fails\n\n### Type of Change\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [x] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [x] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binar",
+   "merged": true,
+   "mergedAt": "2024-11-05T20:06:16Z",
+   "draft": false,
+   "base": "develop",
+   "head": "gregtatcam:amendment/fix-amm-v1-2",
+   "additions": 104,
+   "deletions": 1,
+   "changedFiles": 7,
+   "commits": 8,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "thejohnfreeman",
+     "state": "APPROVED",
+     "date": "2024-11-01T19:31:34Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2024-11-01T23:09:19Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2024-11-04T18:16:31Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2024-11-04T22:29:01Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ximinez",
+     "date": "2024-11-04T18:01:02Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.cpp",
+     "body": "I hate to do this after approving, but [John's comment](https://github.com/XRPLF/rippled/pull/5176#issuecomment-2455233999) raises an important point.\n\nThe reason most reserve checks use `mPriorBalance` is because that is the account's balance _before_ fees are deducted. Unless the transaction causes the account to receive XRP, that value _will_ be higher (or equal in one edge case) than the current `sfBalance` value. This is important because an account is allowed to dip into its reserves to pay fees, so we need to examine the account's balance before those fees are paid. AFAIK, this is the only transaction that can cause the transaction-sending account to receive XRP _and_ create a trustli",
+     "url": "https://github.com/XRPLF/rippled/pull/5176#discussion_r1828164322"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-11-04T18:11:28Z",
+     "path": "src/xrpld/app/tx/detail/AMMWithdraw.cpp",
+     "body": "This should use the [same reserve logic as `SetTrust`](https://github.com/ximinez/rippled/blob/8d0b19cd6ed98e2e96d37e46254c111546761877/src/xrpld/app/tx/detail/SetTrust.cpp#L207-L229).\n```suggestion\n            std::uint32_t const ownerCount = sle->at(sfOwnerCount);\n\n            // See also SetTrust::doApply()\n            XRPAmount const reserve(\n                (ownerCount < 2) ? XRPAmount(beast::zero)\n                          : view().fees().accountReserve(ownerCount + 1));\n```\nIt might be worth refactoring this into a helper function because the same logic is used in MPT, too.",
+     "url": "https://github.com/XRPLF/rippled/pull/5176#discussion_r1828177894"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

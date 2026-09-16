@@ -1,0 +1,235 @@
+{
+ "name": "FeeEscalation",
+ "fetchedAt": "2026-09-16T10:43:10.731Z",
+ "summary": {
+  "status": "closed without merge",
+  "prs": 1,
+  "open": 0,
+  "merged": 0,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2018-11-07T15:08:49Z",
+  "release": "0.31.0",
+  "totalComments": 28
+ },
+ "release": {
+  "version": "0.31.0",
+  "date": "2016-05-02T18:58:42Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/0.31.0",
+  "excerpt": "(New) **Transaction queue and FeeEscalation** - (To be enabled as an amendment) Include or defer transactions based on the [transaction cost](https://ripple.com/build/transaction-cost/) offered, for better behavior in DDoS conditions. (RIPD-598)"
+ },
+ "prs": [
+  {
+   "number": 2730,
+   "title": "Retire the FeeEscalation amendment",
+   "url": "https://github.com/XRPLF/rippled/pull/2730",
+   "state": "closed",
+   "author": "ximinez",
+   "createdAt": "2018-10-18T20:57:00Z",
+   "updatedAt": "2018-11-07T15:08:49Z",
+   "closedAt": "2018-11-06T23:35:47Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "ripplelabs-jenkins",
+     "date": "2018-10-18T22:05:36Z",
+     "body": "## Jenkins Build Summary\n\nBuilt from [this commit](https://github.com/ripple/rippled/commit/78535c8658882cde30706f29c877aebef1c7a258)\n\nBuilt at __20181105 - 20:38:18__\n\n### Test Results\n\nBuild Type | Log | Result | Status\n---------- | --- | ------ | ------\nrpm | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2730/7//artifact/rpm.txt) | 1140 cases, 0 failed, t: n/a | PASS :white_check_mark: \nmsvc.Debug | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2730/7//artifact/msvc.Debug.txt) | 1137 cases, 0 failed, t: 625s | PASS :white_check_mark: \nmsvc.Debug, <br/>NINJA_BUILD=true | [logfile](http://ci.ops.ripple.com/job/rippled-dev/job/PR-2730/7//artifact/msvc.Debug_NINJA_BUIL",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#issuecomment-431180126"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2018-10-19T02:41:11Z",
+     "body": "Do we have an official policy on amendment support / ledger playback support yet? I think FeeEscalation doesn't affect \"transaction processing\" so much as \"which transactions get the chance to be processed\" but I'm hesitant to back any amendment retirement until we've published a policy on how it'll work.",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#issuecomment-431226987"
+    },
+    {
+     "author": "ximinez",
+     "date": "2018-10-19T14:41:24Z",
+     "body": "Note: It occurs to me that some of the changes here will likely conflict with the changes in #2704. If they're both `Passed` at the same time, I'll merge them into a single PR. If not, I'll resolve the conflicts in one when the other is merged.",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#issuecomment-431386567"
+    },
+    {
+     "author": "ximinez",
+     "date": "2018-10-22T15:18:27Z",
+     "body": "Rebased onto 1.2.0-b4 and resolved the conflicts mentioned above.",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#issuecomment-431865908"
+    },
+    {
+     "author": "codecov-io",
+     "date": "2018-10-22T18:14:47Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2730?src=pr&el=h1) Report\n> Merging [#2730](https://codecov.io/gh/ripple/rippled/pull/2730?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/4e7c03852086b633a3b7f85614333bc27a8e9d21?src=pr&el=desc) will **increase** coverage by `0.35%`.\n> The diff coverage is `91.42%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2730/graphs/tree.svg?width=650&token=y0OgJuslsq&height=150&src=pr)](https://codecov.io/gh/ripple/rippled/pull/2730?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2730      +/-   ##\n===========================================\n+ Cover",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#issuecomment-431921149"
+    }
+   ],
+   "body": "This PR actually contains 3 mostly-unrelated commits, but retiring the amendment is the big one, so that's the title. The other two remove some undocumented, unused (AFAIK) experimental options from RPC `sign`, and remove the redundant precomputed hashes in `supportedAmendments()`. The hashes were ignored everywhere, except some setup work during startup, and it makes more sense to use the runtime computed hashes there.\n\nFor removing the FeeEscalation amendment, note that the amendment name itself remains \"known\". If I took that out of the list, every upgraded node on the mainnet would get amendment blocked!",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "ximinez:txq_cleanup",
+   "additions": 269,
+   "deletions": 454,
+   "changedFiles": 16,
+   "commits": 5,
+   "reviewComments": 12,
+   "reviews": [
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2018-10-19T12:30:47Z",
+     "body": "Left a couple of small comments."
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-10-19T13:05:42Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2018-10-19T13:09:21Z",
+     "body": ":+1: (though you should resolve some of the nits). Nice cleanup!"
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-10-19T13:10:55Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2018-10-19T14:44:22Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2018-10-19T14:47:45Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2018-10-19T14:52:44Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2018-10-19T15:04:27Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2018-11-04T03:32:04Z",
+     "body": ":+1:"
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2018-11-05T18:39:19Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2018-11-05T18:42:43Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "nbougalis",
+     "date": "2018-10-19T12:26:53Z",
+     "path": "src/ripple/rpc/handlers/Fee1.cpp",
+     "body": "Comment no longer applicable",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r226628424"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-10-19T12:26:56Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "Are the curlies strictly required here? I _think_ that just doing the following should work:\n\n    static std::vector<std::string> const supported\n    {\n        \"MultiSign\",\n        \"TrustSetAuth\",\n        ...",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r226628434"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-10-19T12:29:13Z",
+     "path": "src/ripple/rpc/handlers/Fee1.cpp",
+     "body": "Why a `BOOST_ASSERT` if we have the `if` below? Also is `rpcNOT_ENABLED` the right error message now?",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r226629025"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-10-19T13:05:42Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "I'd add a comment warning not to remove this, even though it appears unused. If someone did, it would be difficult to catch in tests and the consequences are bad.",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r226639339"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-10-19T13:10:55Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "Yeah, that should work.",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r226640946"
+    },
+    {
+     "author": "ximinez",
+     "date": "2018-10-19T14:44:21Z",
+     "path": "src/ripple/rpc/handlers/Fee1.cpp",
+     "body": "Good catch. I'll check to make sure I didn't miss any others.",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r226673121"
+    },
+    {
+     "author": "seelabs",
+     "date": "2018-10-19T14:47:45Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "```suggestion\n        { \"FeeEscalation\" }, // Looks unused, but do not remove; Servers will be amendment blocked.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r226674281"
+    },
+    {
+     "author": "ximinez",
+     "date": "2018-10-19T14:52:44Z",
+     "path": "src/ripple/rpc/handlers/Fee1.cpp",
+     "body": "I tend to overprotect with \"belt and suspenders\". Long story short, when I dug in to that function, it looked like `view` should never be null, so I asserted, but because it would lead to a crash triggered by user action if it ever was, I added the check. If we keep both, the error should definitely be changed to `rpcINTERNAL` now, and the check should be moved to `doRPC` itself. Do you think the `BOOST_ASSERT` is sufficient?",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r226675983"
+    },
+    {
+     "author": "ximinez",
+     "date": "2018-10-19T15:04:27Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "I don't think the curlies were _ever_ required. Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r226679997"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2018-11-04T03:22:26Z",
+     "path": "src/ripple/app/misc/impl/TxQ.cpp",
+     "body": "I'm not sure how I feel about this because the check is redundant: the impementation of `OpenLedger` guarantees that `current` can _never_ be invalid. Having an `if` implies that it's possible and something to check for. An `assert` would be better suited because it communicates the \"this can't happen!\" nature of the check. I would be interested in knowing what others think?\n\nAlso, why `BOOST_ASSERT` over `assert`?\n\nNo change needed at this point.",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r230574466"
+    },
+    {
+     "author": "ximinez",
+     "date": "2018-11-05T18:39:19Z",
+     "path": "src/ripple/app/misc/impl/TxQ.cpp",
+     "body": "I kept the check because I wasn't 100% sure that it was impossible. If that's a known invariant, then I'll remove the check. There's no particular reason I used `BOOST_ASSERT` over `assert` - It's just habit.",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r230864122"
+    },
+    {
+     "author": "ximinez",
+     "date": "2018-11-05T18:42:43Z",
+     "path": "src/ripple/app/misc/impl/TxQ.cpp",
+     "body": "Oh, I just realized this is included in b6, so I won't make the change here.",
+     "url": "https://github.com/XRPLF/rippled/pull/2730#discussion_r230865263"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

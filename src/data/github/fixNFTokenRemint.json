@@ -1,0 +1,720 @@
+{
+ "name": "fixNFTokenRemint",
+ "fetchedAt": "2026-09-16T10:58:06.226Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2023-07-25T16:40:30Z",
+  "lastMerged": "2023-03-20T21:47:46Z",
+  "release": "1.11.0",
+  "totalComments": 100
+ },
+ "release": {
+  "version": "1.11.0",
+  "date": "2023-06-21T00:03:50Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/1.11.0",
+  "excerpt": "This release reduces memory usage, introduces the `fixNFTokenRemint` amendment, and adds new features and bug fixes. For example, the new NetworkID field in transactions helps to prevent replay attacks with side-chains."
+ },
+ "prs": [
+  {
+   "number": 4406,
+   "title": "`fixNFTokenRemint`: prevent NFT re-mint:",
+   "url": "https://github.com/XRPLF/rippled/pull/4406",
+   "state": "closed",
+   "author": "shawnxie999",
+   "createdAt": "2023-02-01T15:37:37Z",
+   "updatedAt": "2023-07-25T16:40:30Z",
+   "closedAt": "2023-03-20T21:47:47Z",
+   "labels": [
+    "Ready to merge",
+    "API Change",
+    "Bug",
+    "Amendment",
+    "Testable",
+    "Will Need Documentation",
+    "Added to API Changelog"
+   ],
+   "comments": [
+    {
+     "author": "shawnxie999",
+     "date": "2023-02-02T17:13:16Z",
+     "body": "> Personally I don't see a problem with this kind or re-minting (burn NFT, delete issuing account, re-create issuing account, re-mint NFT) unless the issue you're trying to solve is leftover offers from previous operations. If that's the concern, then the fix is easy: check for the presence of those during minting, and if present, remove them and if you can't fail the mint.\n> \n> Even if that's not the concern and there is some other issue, I don't think what this PR does is the right approach anyways.\n> \n> I am not vetoing this. Just offering my 2¢.\n\nThis doesn't directly have to do with the the previous change of leftover offers. It was a concern that duplicate NFT's could cause issues in t",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1414088145"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-02-02T18:56:29Z",
+     "body": "> Even if that's not the concern and there is some other issue, I don't think what this PR does is the right approach anyways.\n\nAlso could you please elaborate why this wouldn't be the right approach? This change has minimal effect on the ledger and does not change how the people use NFTs.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1414214963"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-07T19:38:02Z",
+     "body": "(awaiting review by @ledhed2222 )",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1421341259"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-02-08T03:52:16Z",
+     "body": "> This doesn't directly have to do with the the previous change of leftover offers. It was a concern that duplicate NFT's could cause issues in the long run\n> \n> Something brought up by @ledhed2222:\n> \n> > A malicious issuer can mint a token representing, for example, a carbon credit. In the expected workflow, this token is meant to be burned once the carbon has actually been sequestered. As a result, the issuer has set the tfBurnable flag to allow them to burn the token even if they no longer hold it. They then burn said token, indicating that the specific carbon credit is no longer tradable. At this point, the issuer deletes and recreates their account, mints a new token representing the s",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1421954814"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-02-08T14:50:04Z",
+     "body": "> [16 bit flags (as is)][16 bit transfer fee (as is)][160 bit issuer id (as is)][32 bit ledger sequence (replaces taxon)][32 bit sequence (as is)]\n> \n> All you need is to make the \"Taxon\" field optional in the mint transaction, along with a flag `tfAutomaticTaxon`. This avoids the need for another field in the account root.\n\nJust trying to wrap my head around this, how would this prevent the remint scenario? \n\nEven with introducing a new flag, I believe it introduces unnecessary complexity for something that user wouldn't care about. And i believe the level of effort is higher because it would require quite a bit of change in both rippled and clio (_i think_)",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1422716230"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-02-08T23:41:54Z",
+     "body": "As I said, I don't think this is a real issue so, if it were up to me, I wouldn't fix it at all. With that said...\n\n> Just trying to wrap my head around this, how would this prevent the remint scenario?\n\nThe code prevents accounts from being deleted if their sequence number exceeds the sequence number of the current ledger plus some buffer (I think 256?). Since an account that's \"recreated\" after being deleted has an initial sequence number equal to the ledger in which it was created, the remint becomes impossible, since the taxon of the new NFT would be greater than the taxon of any previously minted NFT.\n\nOf course, this doesn't _entirely_ prevent the remint scenario, unless you _require_ ",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1423382157"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-02-09T06:47:45Z",
+     "body": "> I'm curious, if this seems like a serious concern then why not simply introduce a basically one-line amendment that checks if `sfMintedNFTokens` is present in the `AccountRoot` and if it is, then simply don't allow the deletion?\n\nThis was considered and discussed;\n- It still requires an amendment, so it's not significantly less impactful.\n- It prevents users from getting their reserves back via account deletion.\n\nThat said, I believe we are still open to the option. However, the alternative approach offered by this PR is:\n1. Already implemented, with tests. It only needs review, and integration testing. (perf testing?)\n2. Superior to the \"simple\" solution because users can still delete the",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1423716111"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-02-14T14:38:48Z",
+     "body": "Putting this into draft due to conflicts and also some refactoring needed",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1429850765"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-02-15T15:35:02Z",
+     "body": "This is ready for review",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1431559279"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-02-22T21:10:54Z",
+     "body": "@nbougalis do you still think this approach would be feasible? I think the option you suggested with adding optional flag is would still be vulnerable to potential misuses. \n\nOne point discussed is that, currently, there has _not_ been a single occurrence where someone re-mints their NFT by recreating their account on the ledger(observed by Clio, @ledhed2222 correct me if I'm wrong). So it's safe to make the assumption that users expect the uniqueness of their NFTokenIDs to be the correct behavior.  \n\nWe want to avoid the situation where someone stumbles into the re-minting situation in the future, and learn that they can remint NFTokenID (because I'm sure most people don't know and _don't c",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1440801302"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-08T14:47:59Z",
+     "body": "this is ready for re-review. cc @scottschurr",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1460273856"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-16T18:37:07Z",
+     "body": "This is ready for quick re-review. Forgot to add fixNFTokenMint flag in tests to disable the amendment\n\n cc. @scottschurr",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1472546074"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-03-17T06:33:43Z",
+     "body": "At merging, this PR will be squashed into 1 commit. The commit needs a commit message. Here is what I suggest. @shawnxie999 or anyone else, please feel free to make suggestions or offer an alternative.\n\n```\n`fixNFTokenRemint`: prevent NFT re-mint: (#4406)\n\nWithout the protocol amendment introduced by this commit, an NFT ID can\nbe reminted in this manner:\n\n1. Alice creates an account and mints an NFT.\n2. Alice burns the NFT with an `NFTokenBurn` transaction.\n3. Alice deletes her account with an `AccountDelete` transaction.\n4. Alice re-creates her account.\n5. Alice mints an NFT with an `NFTokenMint` transaction with params:\n   `NFTokenTaxon` = 0, `Flags` = 9).\n\nThis will mint a NFT with the sa",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1473239515"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-20T15:32:22Z",
+     "body": "@intelliot looks good",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#issuecomment-1476453846"
+    }
+   ],
+   "body": "## High Level Overview of Change\nCurrently, a NFT ID can be reminted by the following steps:\n\n1. Alice creates an account and mints an NFT\n2. Alice burns the NFT (a NFTokenBurn transaction)\n3. Alice deletes her account (a AccountDelete transaction)\n4. Alice re-creates her account\n5. Alice mints a NFT ( a NFTokenMint transaction with params: NFTokenTaxon = 0, Flags = 9). This will re-mint a NFT with the same NFTokenID as Step 1. The params that construct the NFT ID will cause collision if their values are equal before and after the remint\n\nWe want to come up with a new sequence number construct to avoid this scenario\n\n\n\n### New NFT sequence construct\n\n- We create a new AccountRoot field `Firs",
+   "merged": true,
+   "mergedAt": "2023-03-20T21:47:46Z",
+   "draft": false,
+   "base": "develop",
+   "head": "shawnxie999:nft-remint",
+   "additions": 695,
+   "deletions": 43,
+   "changedFiles": 12,
+   "commits": 43,
+   "reviewComments": 56,
+   "reviews": [
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2023-02-02T17:05:25Z",
+     "body": "Personally I don't see a problem with this kind or re-minting (burn NFT, delete issuing account, re-create issuing account, re-mint NFT) unless the issue you're trying to solve is leftover offers from previous operations. If that's the concern, then the fix is easy: check for the presence of those during minting, and if present, remove them and if you can't fail the mint.\n\nEven if that's not the concern and there is some other issue, I don't think what this PR does is the right approach anyways.\n\nI am not vetoing this. Just offering my 2¢."
+    },
+    {
+     "author": "ledhed2222",
+     "state": "COMMENTED",
+     "date": "2023-02-09T20:56:14Z",
+     "body": ""
+    },
+    {
+     "author": "ledhed2222",
+     "state": "COMMENTED",
+     "date": "2023-02-09T20:59:36Z",
+     "body": ""
+    },
+    {
+     "author": "ledhed2222",
+     "state": "COMMENTED",
+     "date": "2023-02-09T21:00:15Z",
+     "body": ""
+    },
+    {
+     "author": "ledhed2222",
+     "state": "COMMENTED",
+     "date": "2023-02-09T21:01:16Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2023-02-10T01:14:24Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-02-14T17:33:04Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-02-14T22:40:56Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2023-03-01T03:30:49Z",
+     "body": "To be clear, I don't really think this \"attack\" is a problem. It's something only the issuer can do, and only by engaging in what is obvious and detectable behavior: deleting/burning all his existing issued assets, then deleting the account, before recreating the account. And then, he still couldn't remint a particular NFT without first reminting all previous NFTs.\n\nAnd if he does remint, so what? It's trivially verifiable that it's a _new_ and _distinct_ NFT from any previous ones.\n\nWith that said, there is an implicit promise that a given NFT ID is unique and can never be regenerated. Your solution enforces that promise.\n\nI don't like the fact that your solution bloats the `ACCOUNT_ROOT` b"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-03-01T04:03:31Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2023-03-01T18:29:10Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-03-01T18:41:34Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-03-03T14:34:18Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-03-06T23:06:22Z",
+     "body": "First, nice tests!  You exercised the cases that you were interested in and showed the behavior changes.  Good work!\n\nThe general flow of this pull request looks right.  I left a number of comments.  Some of my notes are just comment nits or naming issues.  A few are structural.  A few are me being cautious around potential undefined behavior.  I'm happy to discuss any of them further if you have concerns.\n\nLooks pretty good!"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-03-07T15:41:33Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-03-07T17:13:22Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-03-07T19:23:15Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-03-08T14:18:48Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-03-08T16:48:53Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-03-08T17:50:17Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-03-08T20:56:11Z",
+     "body": "Looks great.  Thanks for accommodating my requests.  I noticed one minor comment problem in a test.  Sorry I missed that last time.  But it doesn't need to hold up this pull request."
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-03-08T21:00:42Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-03-08T21:25:44Z",
+     "body": ":+1: Looks great!"
+    },
+    {
+     "author": "ledhed2222",
+     "state": "COMMENTED",
+     "date": "2023-03-16T15:23:24Z",
+     "body": ""
+    },
+    {
+     "author": "ledhed2222",
+     "state": "COMMENTED",
+     "date": "2023-03-16T15:28:09Z",
+     "body": ""
+    },
+    {
+     "author": "ledhed2222",
+     "state": "COMMENTED",
+     "date": "2023-03-16T15:34:20Z",
+     "body": ""
+    },
+    {
+     "author": "ledhed2222",
+     "state": "APPROVED",
+     "date": "2023-03-16T15:38:00Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2023-03-16T18:12:23Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-03-16T19:06:44Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-03-16T19:07:25Z",
+     "body": "Still LGTM.  :+1:"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ledhed2222",
+     "date": "2023-02-09T20:56:13Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "should be const",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1102016210"
+    },
+    {
+     "author": "ledhed2222",
+     "date": "2023-02-09T20:59:36Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "so you're just checking for int overflow based on ledger seq? that seems unnecessary",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1102019018"
+    },
+    {
+     "author": "ledhed2222",
+     "date": "2023-02-09T21:00:15Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "i don't see why you need a new context with `{}` for this block. can you remove?",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1102019461"
+    },
+    {
+     "author": "ledhed2222",
+     "date": "2023-02-09T21:01:15Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": "note - this will require change to the SDKs I believe",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1102020315"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-02-10T00:13:33Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "This reminds me of APL code and is just hard to read and understand. \n\nI would recommend doing this in two steps:\n\n1. Check if the `sfFirstNFTokenSequence` is present and if it is not then **set** it.\n2. Read the `sfFirstNFTokenSequence` using `(*root)[sfFirstNFTokenSequence]` at the point of use, confident that it will be there because you just made sure it would be.\n\n\nConsider this lambda:\n\n```\n// ***WARNING*** UNTESTED CODE; I JUST TYPED IT UP AS AN EXAMPLE\nauto const tokenSeq = [this, &issuer]() -> Expected<std::uint32_t, TER> {\n    auto const root = view().peek(keylet::account(issuer));\n    \n    // Should not happen.  Checked in preclaim.\n    if (root == nullptr)\n        return Unexpect",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1102152168"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-02-10T00:20:52Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "I'd leave the check as is, as it's basically free (from a computational point of view).",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1102155582"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-02-10T00:21:34Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "I think this was already here, to limit the scope of `nextTokenSeq`. I think this whole code block can be rewritten more cleanly, see above.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1102155836"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-02-10T00:24:02Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "Triple-check with @RichardAH and @gregtatcam to make sure that they aren't using field code 47 for hooks and/or AMM.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1102156973"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-02-14T17:33:04Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "re:\n```\n        // NOTICE: I don't subtract by one here; the logic is that the\n        // precise value of this field doesn't _really_ matter as long\n        // as it's guaranteed to be different from values that deleted\n        // accounts had in the past.\n```\n\nThe precise value of the NFTokenID (specifically NFT sequence) does not matter in real world. But it needs to be precise and deterministic because of how test cases generate and test NFTokenIDs (in [token::getNextID(...)](https://github.com/XRPLF/rippled/blob/4a26e808b1e3e311e391530f09c7d5adc242a31d/src/test/jtx/impl/token.cpp#L61))\n\nWithout subtracting one in cases of authorized minting and tickets, the NFTokenIDs generated in tests",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1106140553"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-02-14T22:40:56Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "It seems three new 32 bit integer SFields are introduced for AMM and Hooks. I will reserve three field values and set mine to 50",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1106454451"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-03-01T03:24:43Z",
+     "path": "src/ripple/app/tx/impl/DeleteAccount.cpp",
+     "body": "Imagine someone issuing a million \"Silly Billy\" NFTs, with the first minted in ledger 77,777,777.\n\nThis check will prevent the issuer from deleting the account until, at the earliest, ledger 78,778,032; that's not gonna happen for around 4 million seconds, or around a month and a half.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1121090346"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-03-01T03:29:27Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "Ensure that there's no conflict with hooks or other amendments here. Tag @RichardAH. \n\nHaving a registry for this kind of thing could be nice.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1121092948"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-01T04:03:30Z",
+     "path": "src/ripple/app/tx/impl/DeleteAccount.cpp",
+     "body": "Yes, unfortunately this check needs to be in. Without it, the scenario below produces duplicate NFTID:\n1. Alice's account sequence is at 1 \n2. Bob is Alice's authorized minter\n3. Bob mints 500 NFTs for Alice (NFTs will have sequences 1 - 501, since NFT sequence is computed by `FirstNFTokenSequence` + `MintedNFTokens`)\n4. Alice deletes her account at ledger 257 (enforced by AccountDelete amendment)\n5. Alice re-creates her account at ledger 258\n6. Alice mints a NFT. `FirstNFTokenSequence` initialized to her account sequence (`258`), and `MintedNFTokens` to `0`. This newly minted NFT would have a sequence number of `258`, which is a duplicate of what she issued through authorized minting before",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1121112694"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-03-01T18:29:10Z",
+     "path": "src/ripple/app/tx/impl/DeleteAccount.cpp",
+     "body": "I understand. My point was that this kind of test means it's hard for someone to know _when_ their account can be deleted and, depending on the number of NFTs they issue. For some accounts (those which don't have `FirstNFTokenSequence` set) the answer is \"immediately\" and for others it's \"well, sometime in the future.\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1122152429"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-01T18:41:34Z",
+     "path": "src/ripple/app/tx/impl/DeleteAccount.cpp",
+     "body": "But I don't think this will be a common issue, since this restriction is only applicable for authorized minting situations. \n\nIf the issuer has never issued an NFT through authorized minting, then, `FirstNFTokenSequence + MintedNFTokens <= AccountRoot Sequence` will always be true, which means the AccountDelete amendment (ledger > Account Sequence + 256) already contains the new restriction.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1122164960"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-03T14:34:17Z",
+     "path": "src/ripple/protocol/impl/SField.cpp",
+     "body": "@RichardAH @gregtatcam \n\n I reserved three values of the 32-bit field for what it looks like three new `SFields` in both AMM and Hook combined. Just want to make sure the number of reserved field value is correct and would be no further changes",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1124539627"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-03T19:14:38Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "You have the right behavior, but I don't think the reasoning is correct.  I suggest rewriting the comments and code like this:\n```\n        // With fixNFTokenRemint amendment enabled:\n        //\n        // If the issuer hasn't minted an NFToken before we must add a\n        // FirstNFTokenSequence field to the issuer's AccountRoot.  The\n        // value of the FirstNFTokenSequence must equal the issuer's\n        // current account sequence.\n        //\n        // There are three situations:\n        //  o If the first token is being minted by the issuer and\n        //     * If the transaction consumes a Sequence number, then the\n        //       Sequence has been pre-incremented by the time we g",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1124911321"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-03T20:39:21Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "Integer literals are implicitly signed.  A cautious approach to this line would be to add `1u`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1124984311"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-03T20:39:37Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "`0u`",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1124984541"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-03T20:40:45Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "Please replace the `auto`s with `std::uint32_t`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1124985491"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-03T20:49:13Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "I'd prefer to use unsigned literals here.\n\nAlso, the whole point of this exercise is to prevent the `tokenSeq` from reproducing any old NFToken Sequences.  So it seems like `tokenSeq` should be checked against `offset`.  If `tokenSeq` becomes less than `offset` then there is the possibility that duplicate TFToken IDs could be created.  So I think the line would be better like this:\n```\nif (tokenSeq + 1u == 0u || tokenSeq < offset)\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1124994473"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-03T22:08:50Z",
+     "path": "src/test/app/NFTokenBurn_test.cpp",
+     "body": "This works, but it leaves `tokenSeq` uninitialized which is not the safest choice.  The code can be simplified a bit like this:\n```\n                std::uint32_t tokenSeq =\n                    env.le(acct)->at(~sfMintedNFTokens).value_or(0);\n\n                // If fixNFTokenRemint amendment is on, we must\n                // add FirstNFTokenSequence.\n                if (env.current()->rules().enabled(fixNFTokenRemint))\n                    tokenSeq += env.le(acct)\n                                    ->at(~sfFirstNFTokenSequence)\n                                    .value_or(env.seq(acct));\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1125064392"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-03T22:25:33Z",
+     "path": "src/test/app/NFTokenDir_test.cpp",
+     "body": "This is a great comment!  Thanks for explaining the motivation.\n\nSince the test works correctly with the `close()` moved outside the loop in one case, then we don't need the `close()` inside of the loop at all. But I don't want to lose the comment.  So my suggestion would be to remove the `if ... close()` altogether.  The comment might look like this now:\n```\n                    // Do not close the ledger inside the loop.  If\n                    // fixNFTokenRemint is enabled and accounts are initialized\n                    // at different ledgers, they will have different account\n                    // sequences.  That would cause the accounts to have\n                    // different NFToke",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1125078087"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-03T22:27:12Z",
+     "path": "src/test/app/NFTokenDir_test.cpp",
+     "body": "See the suggestion left around line 200 and apply that here.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1125079541"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-03T22:38:55Z",
+     "path": "src/test/app/NFTokenDir_test.cpp",
+     "body": "I suggest you apply the suggestion near line 200 here as well.  Take the comment from that suggestion and put it at the bottom of this `for` loop.  Then you can remove the comment preceding the `for` loop.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1125090917"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-03T22:39:29Z",
+     "path": "src/test/app/NFTokenDir_test.cpp",
+     "body": "Apply the suggestion near line 200 here as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1125091285"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-03T22:56:19Z",
+     "path": "src/test/jtx/impl/token.cpp",
+     "body": "This works, but it leaves `tokenSeq` uninitialized which is not the safest choice.  The code can be simplified a bit like this:\n```\n    std::uint32_t nftSeq = env.le(issuer)->at(~sfMintedNFTokens).value_or(0);\n\n    // If fixNFTokenRemint amendment is on, we must add FirstNFTokenSequence.\n    if (env.current()->rules().enabled(fixNFTokenRemint))\n        nftSeq += env.le(issuer)\n                      ->at(~sfFirstNFTokenSequence)\n                      .value_or(env.seq(issuer));\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1125108059"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-04T02:04:07Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "There are a number of changes like this throughout this file.  I think it would make the tests easier to read if the entire `if (features[fixNFTokenRemint))` thing were tucked into `token::getID()`.\n\nHow could you do that?  An easy and consistent way to do that would be pass `env` to `token::getID()`.  If you did that then the implementation of `token::getID()` might look like this:\n```\nuint256\ngetID(\n    jtx::Env const& env,\n    jtx::Account const& issuer,\n    std::uint32_t nfTokenTaxon,\n    std::uint32_t nftSeq,\n    std::uint16_t flags,\n    std::uint16_t xferFee)\n{\n    if (env.current()->rules().enabled(fixNFTokenRemint))\n    {\n        // If fixNFTokenRemint is enabled, we must add issuer'",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1125214045"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-04T02:08:33Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Maybe replace \"close\" with \"delete\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1125216658"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-04T02:11:34Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "You're about to do operations on integers that may overflow.  Be aware that integer overflow of _signed_ integers is **undefined behavior**.  Also, integer promotion characteristics of C++ make it hard to tell if the `auto` you have in your hand is signed or unsigned.\n\nSo it's important that you _know_ that every integer you are operating on is **unsigned**.  `auto` won't do that for you.\n\nConsider changing this line to...\n```\nstd::uint32_t const mintedNftCnt =\n            (*root)[~sfMintedNFTokens].value_or(0u);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1125218422"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T18:04:47Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Personally, I prefer to abbreviate \"account\" as `Acct` rather than `Acc`.  `Acc` can mean a lot of things other than account, like acceleration or accumulator.  So my inclination would be to name this lambda `incLgrSeqForAcctDel`. I'd also rename the argument to `acct`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1126833999"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T18:24:49Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Consider renaming `acc` argument to `acct`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1126855677"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T18:34:30Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Nice test!",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1126866886"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T18:37:34Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "nit: can **be** deleted",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1126870305"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T18:40:23Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Nit: alice's account ~account~ root",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1126873585"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T20:29:58Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "The account delete fee does not change during the test.  You can call this local `acctDelFee`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1127001377"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T20:31:12Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "acctDelFee~1~",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1127002365"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T20:31:59Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "acctDelFee~1~",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1127003088"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T20:32:37Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Remove this local and use `acctDelFee` instead.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1127003628"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T22:09:02Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "I really like the way the code in this particular test shows that the setup is the same and has different results depending on the amendment.\n\nI wish that the four remaining tests in this section were structured like this one.  They could be collapsed to just two additional tests (from four) with different outcomes depending on the amendment.  That can be done as shown starting here: https://github.com/scottschurr/rippled/commit/65a3ef9b09ffa4f9d8bae18305d66c5f63f438a8#diff-a6951aa57c7ac4fcd2b2d445c3c40664fc3b80e66acb3b69dbf00b0b7ae3d66dR6213\n\nYou can use that as an example for how you could restructure this part of the test.  You're also welcome to cherry-pick the commit if you prefer.  The",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1127087996"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T22:13:33Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Nit: naming would be more consistent if this local were named `prevNFTokenID`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1127091656"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T22:15:04Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Nit: naming would be more consistent if this local were named `remintNFTokenID`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1127092798"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-06T22:20:19Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "I get where you're aiming, but there is no local `prevNFTokenID`.  Maybe rework this comment?  Possibly something like:\n```\n                // alice mints a NFT with same params as the first one before\n                // the account delete.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1127096885"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-07T15:41:32Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "just curious what benefit would i get from explicitly write it as an unsigned int?",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1128075625"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-07T17:13:22Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "C++ does implicit type conversions between integers.  That's something left over from C.  If we know that `mintedNftCnt` is unsigned, then adding another unsigned number will not cause the result of the addition to become signed.\n\nI don't have the integer conversion rules committed to memory; they are too complicated.  Instead I just try to be very conservative when I'm dealing with integers that might overflow.  If integer overflow might happen then everything possible needs to be done to make sure everything is unsigned.  At least that's the way I approach it.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1128244552"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-07T19:23:15Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "Thanks! good to learn this!",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1128444580"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-08T14:18:48Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "what would be the benefit using using `root->at(sfSequence)` instead of `(*root)[sfSequence]`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1129505276"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-08T16:48:53Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "Excellent question.  There's no execution benefit.  It's a subjective call.\n\nMany folks find the `(*root)[sfSequence]` style of construct awkward to read.  So, after we'd been putting up with that technique for a while, @ximinez added the `STObject::at()` method.  I've looked at both ways of expressing what's going on and I find `root->at(sfSequence)` a bit easier to read.  But there's no objective difference.\n\nIt's entirely your call for which would make the code easier for you to read when you maintain it in the future.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1129751693"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-08T17:50:16Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "Thank you!",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1129834010"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-08T20:54:20Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Nit: there is no `prevNFTokenID` in this scope.  Consider something like:\n```\n                // The new NFT minted will not have the same ID\n                // as any of the NFTs authorized minter minted using tickets\n```\nSorry I missed that last time.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1130012908"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-08T21:00:41Z",
+     "path": "src/test/app/NFToken_test.cpp",
+     "body": "Sorry, this is a mistake on my part",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1130018323"
+    },
+    {
+     "author": "ledhed2222",
+     "date": "2023-03-16T15:23:23Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "great comments",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1138875508"
+    },
+    {
+     "author": "ledhed2222",
+     "date": "2023-03-16T15:28:08Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "doesn't need to change - but i don't think you need the `u` specifier since you've already specified that the type is unsigned and arithmetic with a mix of signed/unsigned values should leave the value unsigned in this case.",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1138883664"
+    },
+    {
+     "author": "ledhed2222",
+     "date": "2023-03-16T15:34:19Z",
+     "path": "src/ripple/protocol/impl/LedgerFormats.cpp",
+     "body": "would you confirm this? doesn't block this PR but when a TX modifies this value and one of the libraries is trying to parse the metadata from that TX I think it will raise an exception",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1138893903"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2023-03-16T18:12:22Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "it is a conservative approach to make sure things are correctly typed proposed by @scottschurr",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1139182859"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-03-16T19:06:44Z",
+     "path": "src/ripple/app/tx/impl/NFTokenMint.cpp",
+     "body": "@ledhed2222, what you describe is not always the case.  There are situations where operations on a combination of unsigned and signed integers produce a signed value.  See \"Usual Arithmetic Conversions\": https://en.cppreference.com/w/cpp/language/usual_arithmetic_conversions#Integer_conversion_rank\n\nYou'll notice that the rules changed with C++11 and again with C++23.\n\nWhat the rules seem to be _pretty_ good at holding onto is that if both arguments are unsigned then the result will be unsigned.  Since the literals `0` and `1` are implicitly signed, they can influence the type yielded by the operation.  That's why, since overflow is possible in this calculation, using `0u` and `1u` is safer;",
+     "url": "https://github.com/XRPLF/rippled/pull/4406#discussion_r1139246665"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

@@ -1,0 +1,587 @@
+{
+ "name": "fixPreviousTxnID",
+ "fetchedAt": "2026-09-16T10:59:26.105Z",
+ "summary": {
+  "status": "merged",
+  "prs": 2,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 1,
+  "branches": [],
+  "lastActivity": "2025-12-09T15:19:10Z",
+  "lastMerged": "2024-04-18T14:41:25Z",
+  "release": "2.2.0",
+  "totalComments": 75
+ },
+ "release": {
+  "version": "2.2.0",
+  "date": "2024-06-04T23:09:54Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.2.0",
+  "excerpt": "fixPreviousTxnID amendment: Adds `PreviousTxnID` and `PreviousTxnLgrSequence` as fields to all ledger entries that did not already have them included (`DirectoryNode`, `Amendments`, `FeeSettings`, `NegativeUNL`, and `AMM`). Existing ledger entries will gain the fields whenever transactions modify th"
+ },
+ "prs": [
+  {
+   "number": 4751,
+   "title": "`fixPreviousTxnID`: add `sfPreviousTxnID`/`sfPreviousTxnLgrSequence` to all ledger objects",
+   "url": "https://github.com/XRPLF/rippled/pull/4751",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2023-10-05T18:57:07Z",
+   "updatedAt": "2025-12-09T15:19:10Z",
+   "closedAt": "2024-04-18T14:41:25Z",
+   "labels": [
+    "Ready to merge",
+    "API Change",
+    "Amendment"
+   ],
+   "comments": [
+    {
+     "author": "mvadari",
+     "date": "2023-11-02T19:30:30Z",
+     "body": "@Silkjaer @RichardAH @nixer89 @dangell7 this is ready for review now.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#issuecomment-1791426068"
+    },
+    {
+     "author": "codecov-commenter",
+     "date": "2024-02-01T19:25:08Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/4751?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `90.19608%` with `5 lines` in your changes are missing coverage. Please review.\n> Project coverage is 76.97%. Comparing base [(`c88166e`)](https://app.codecov.io/gh/XRPLF/rippled/commit/c88166e055e4378f78fb0236e0bf347d6544e517?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`c8af202`)](https://app.codecov.io/gh/XRPLF/rippled/pull/4751?dropdown=coverage&src=pr&el=desc&utm_medium=ref",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#issuecomment-1922069093"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-03-19T17:19:13Z",
+     "body": "Proposed commit message:\n```\nfix amendment to add `PreviousTxnID`/`PreviousTxnLgrSequence`\n\nThis amendment, `fixPreviousTxnID`, adds `PreviousTxnID` and\n`PreviousTxnLgrSequence` as fields to all ledger objects that did\nnot already have them included (`DirectoryNode`, `Amendments`,\n`FeeSettings`, `NegativeUNL`, and `AMM`). This makes it much easier\nto go through the history of these ledger objects.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#issuecomment-2007734702"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-04-17T19:50:47Z",
+     "body": "I'm not sure who to tag to indicate that this is ready to go (maybe @seelabs) - the Mac test failure looks like the known flakiness, not an actual failure.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#issuecomment-2062099683"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-04-18T00:47:59Z",
+     "body": "I see you proposed a commit message (https://github.com/XRPLF/rippled/pull/4751#issuecomment-2007734702), and I just added the \"Passed\" label. One of us will merge it soon.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#issuecomment-2062789998"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-06-27T19:20:27Z",
+     "body": "`API Change`: this adds fields to objects. I don't think it's a breaking change. But it would still make sense to update the models in the client libraries (@mvadari has noted this).",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#issuecomment-2195504644"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR adds `sfPreviousTxnID`/`sfPreviousTxnLgrSequence` as fields to all ledger objects that don't already have them (except `LedgerHashes`, because that seems a bit redundant and also those objects aren't modified via transaction).\n\nThe affected objects are:\n* `DirectoryNode`\n* `Amendments`\n* `FeeSettings`\n* `NegativeUNL`\n* `AMM`\n\n### Context of Change\n\nIt makes it a lot easier to go through the history of a ledger object. Related to #4602.\n\n### Type of Change\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [x] New feature (non-breaking change which adds functionality)\n- [x] Breaking change (fix or feature that would cause existing functionali",
+   "merged": true,
+   "mergedAt": "2024-04-18T14:41:25Z",
+   "draft": false,
+   "base": "develop",
+   "head": "mvadari:fix-prev-txn-id",
+   "additions": 164,
+   "deletions": 34,
+   "changedFiles": 12,
+   "commits": 28,
+   "reviewComments": 36,
+   "reviews": [
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-31T19:09:08Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-11-02T16:51:40Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-11-02T17:48:23Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2024-02-06T00:39:59Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-02-06T20:21:33Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-02-06T20:21:39Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-02-06T20:21:44Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2024-02-08T23:43:57Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2024-02-08T23:44:19Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2024-03-13T17:53:57Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-03-13T18:06:28Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "APPROVED",
+     "date": "2024-04-10T16:52:21Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-04-10T16:54:56Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2024-04-11T22:07:45Z",
+     "body": "Because I can't help myself, I made all the changes from my feedback, except the feature name, in a branch: https://github.com/mvadari/rippled/compare/fix-prev-txn-id...ximinez:rippled:mv/4751-prev-txn-id\n\nPick and choose as you see fit."
+    },
+    {
+     "author": "Bronek",
+     "state": "COMMENTED",
+     "date": "2024-04-12T10:09:07Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-04-12T13:37:35Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-04-12T13:51:59Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-04-12T13:52:03Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-04-12T13:52:10Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-04-12T13:52:21Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-04-12T13:52:25Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-04-12T13:52:29Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-04-12T13:52:36Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2024-04-12T13:52:40Z",
+     "body": ""
+    },
+    {
+     "author": "Bronek",
+     "state": "APPROVED",
+     "date": "2024-04-12T14:17:20Z",
+     "body": "Looking good !"
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2024-04-12T15:23:38Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2024-04-12T20:40:50Z",
+     "body": "🎉 :shipit:"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mvadari",
+     "date": "2023-10-31T19:09:08Z",
+     "path": "src/test/app/TxQ_test.cpp",
+     "body": "Not sure why this test was failing or why this fixes it.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1378057682"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-11-02T16:51:40Z",
+     "path": "src/test/app/TxQ_test.cpp",
+     "body": "This test is fragile and dependent on ordering of transactions, which is affected by the closed/validated ledger hash. It wouldn't hurt to add a comment to that effect. Since this PR changes the ledger structure, this fix is fine. It may need a rewrite to make it future-proof, but I haven't figured out how to do that.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1380467690"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-11-02T17:48:22Z",
+     "path": "src/test/app/TxQ_test.cpp",
+     "body": "Good to know, I thought I broke something 🙂 I'll comment it better.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1380580554"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-03T00:05:41Z",
+     "path": "src/ripple/ledger/detail/ApplyStateTable.h",
+     "body": "Since the only use of the `view` parameter is to get `Rules`, why not pass in a `Rules const&` instead?",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1476884764"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-05T23:28:24Z",
+     "path": "src/ripple/ledger/impl/ApplyStateTable.cpp",
+     "body": "Since `view` is only used to get `Rules`, I think it makes more sense to pass a `Rules const&` into this function instead of `ReadView const& view`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1479048915"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-06T00:38:56Z",
+     "path": "src/ripple/ledger/impl/ApplyStateTable.cpp",
+     "body": "I was going to suggest rewriting this so that it would be clearer that everything that had the fields was fine to thread except these new types\n```\nbool const excludePrevTxnID = !view.rules().enabled(fixPreviousTxnID) &&\n    newPreviousTxnIDTypes.count(sle->getType());\n```\nThen I realized that this was exactly the boolean NOT of what you have.\n\nNothing I'm asking you to change, I just wanted to make the observation.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1479091579"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-02-06T20:21:33Z",
+     "path": "src/ripple/ledger/impl/ApplyStateTable.cpp",
+     "body": "Fixed (and clarified with a comment) in f5a7cc4b5983019ff8763ba68679a20f96b36212",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1480490478"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-02-06T20:21:39Z",
+     "path": "src/ripple/ledger/impl/ApplyStateTable.cpp",
+     "body": "Fixed in f5a7cc4b5983019ff8763ba68679a20f96b36212",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1480490575"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-02-06T20:21:44Z",
+     "path": "src/ripple/ledger/detail/ApplyStateTable.h",
+     "body": "Fixed in f5a7cc4b5983019ff8763ba68679a20f96b36212",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1480490659"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-02-08T23:43:57Z",
+     "path": "src/ripple/ledger/impl/ApplyStateTable.cpp",
+     "body": "Yeah, that ended up improving readability way more than I expected.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1483711666"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-03-13T17:47:50Z",
+     "path": "src/ripple/ledger/impl/ApplyStateTable.cpp",
+     "body": "Please `static const` here. Mutable `static` (that's not actually mutated) in function scope would be an annoying distraction, should we ever need to investigate this part.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1523685960"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-03-13T18:06:28Z",
+     "path": "src/ripple/ledger/impl/ApplyStateTable.cpp",
+     "body": "Good catch, fixed in 93e8884",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1523707927"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-04-10T16:49:52Z",
+     "path": "src/ripple/protocol/impl/STLedgerEntry.cpp",
+     "body": "pls also `#include <array>`",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1559787916"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-04-10T16:51:52Z",
+     "path": "src/ripple/protocol/impl/STLedgerEntry.cpp",
+     "body": "this could be `constexpr` instead of `static const` which is an additional benefit of `std::array` . It means the values are ready to use by the compiler front-end during compilation, rather than at the optimization stage. It might not change anything in the end result, but it might also unroll the loop.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1559790211"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-04-10T16:52:16Z",
+     "path": "src/test/rpc/TransactionEntry_test.cpp",
+     "body": "why change here ?",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1559790669"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-04-10T16:54:56Z",
+     "path": "src/test/rpc/TransactionEntry_test.cpp",
+     "body": "There are some changes to metadata hashes etc. due to the new fields.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1559794068"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-04-11T20:37:57Z",
+     "path": "src/ripple/ledger/impl/ApplyStateTable.cpp",
+     "body": "Since you have a `ReadView` available, an `assert(sle->isThreadedType(base.rules());` here wouldn't hurt.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1561653115"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-04-11T20:39:08Z",
+     "path": "src/ripple/protocol/STLedgerEntry.h",
+     "body": "Strictly speaking, I don't think you need to include `Rules.h` here. Instead, you can predeclare `class Rules`. Then include `Rules.h` in `STLedgerEntry.cpp`. It might avoid building extra files if `Rules.h` changes.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1561654649"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-04-11T20:40:40Z",
+     "path": "src/ripple/protocol/impl/STLedgerEntry.cpp",
+     "body": "You didn't change this, but to ensure there aren't any hidden dependencies, could you move the `STLedgerEntry.h` include above the others, then add a blank line so `clang-format` doesn't move it?",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1561656795"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-04-11T20:42:46Z",
+     "path": "src/ripple/protocol/impl/STLedgerEntry.cpp",
+     "body": "Micro-optimization: Check `excludePrevTxnID` first. The short circuit will avoid the call to `getFieldIndex` if it's true (excluded).",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1561659519"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-04-11T20:52:33Z",
+     "path": "src/ripple/ledger/impl/ApplyStateTable.cpp",
+     "body": "Probably don't need to include `LedgerFormats.h` or `set` anymore.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1561679218"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-04-11T20:55:00Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "Bike shedding: The more I think about it, I don't think this really qualifies as a fix amendment. It's more of an enhancement. It doesn't make any functional difference, but what do you think?",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1561685668"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-04-11T21:02:58Z",
+     "path": "src/test/ledger/Directory_test.cpp",
+     "body": "It's very unlikely to ever be an issue, but to ensure that you've got all the entries, I think it would be good to check that there's no `marker` in the result.\n```\n            auto const result = env.rpc(\n                \"json\", \"ledger_data\", to_string(params))[jss::result];\n            BEAST_EXPECT(!result.isMember(jss::marker));\n            return result;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1561713344"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-04-11T21:08:14Z",
+     "path": "src/test/ledger/Directory_test.cpp",
+     "body": "This extra level of scope nesting is unnecessary, since it ends at the end of the function.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1561731279"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-04-11T21:11:29Z",
+     "path": "src/test/ledger/Directory_test.cpp",
+     "body": "I'm thinking about coverage and unexpected side effects. I think these tests could be a lot more thorough.\n\nFirst, check all the directory nodes, and not just the first one.\n\nSecond check that the directory object does _not_ get updated if it's not touched. Check that none of the directories have the fields before the feature is enabled. Then after the feature is enabled, do a `noop` or something for `gw` (which shouldn't touch the directory), then check that all of the directories except `gw`'s have the fields populated.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1561743726"
+    },
+    {
+     "author": "Bronek",
+     "date": "2024-04-12T10:09:07Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "if changes the binary protocol and the hashes; so if validators are out of sync with regard to this feature, they will lose consensus",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1562345893"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-04-12T13:37:35Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "I think of it as a fix because IMO these fields should have been included on the objects, but they were \"forgotten\" (or maybe not deemed important enough, idk). This isn't a strong opinion though, fine with changing if you want me to.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1562566062"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-04-12T13:51:59Z",
+     "path": "src/test/ledger/Directory_test.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4751/commits/c8af20242584a865a8cc94d1e771c543590ab9d0",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1562586455"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-04-12T13:52:03Z",
+     "path": "src/test/ledger/Directory_test.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4751/commits/c8af20242584a865a8cc94d1e771c543590ab9d0",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1562586552"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-04-12T13:52:10Z",
+     "path": "src/test/ledger/Directory_test.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4751/commits/c8af20242584a865a8cc94d1e771c543590ab9d0",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1562586703"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-04-12T13:52:21Z",
+     "path": "src/ripple/ledger/impl/ApplyStateTable.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4751/commits/c8af20242584a865a8cc94d1e771c543590ab9d0",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1562586938"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-04-12T13:52:25Z",
+     "path": "src/ripple/protocol/impl/STLedgerEntry.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4751/commits/c8af20242584a865a8cc94d1e771c543590ab9d0",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1562587030"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-04-12T13:52:29Z",
+     "path": "src/ripple/protocol/impl/STLedgerEntry.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4751/commits/c8af20242584a865a8cc94d1e771c543590ab9d0",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1562587116"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-04-12T13:52:36Z",
+     "path": "src/ripple/protocol/STLedgerEntry.h",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4751/commits/c8af20242584a865a8cc94d1e771c543590ab9d0",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1562587267"
+    },
+    {
+     "author": "mvadari",
+     "date": "2024-04-12T13:52:39Z",
+     "path": "src/ripple/ledger/impl/ApplyStateTable.cpp",
+     "body": "Fixed in https://github.com/XRPLF/rippled/pull/4751/commits/c8af20242584a865a8cc94d1e771c543590ab9d0",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1562587343"
+    },
+    {
+     "author": "ximinez",
+     "date": "2024-04-12T15:23:38Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "@bronek I should have been more clear - I was thinking that it would be a feature amendment instead of a fix amendment. Still an amendment, though.\n\n@mvadari Yes, that reasoning makes sense. You've convinced me. Keep it as a fix.",
+     "url": "https://github.com/XRPLF/rippled/pull/4751#discussion_r1562707424"
+    }
+   ]
+  },
+  {
+   "number": 741,
+   "title": "Remove support for deprecated PreviousTxnID field (RIPD-710):",
+   "url": "https://github.com/XRPLF/rippled/pull/741",
+   "state": "closed",
+   "author": "nbougalis",
+   "createdAt": "2014-11-26T05:32:23Z",
+   "updatedAt": "2015-01-28T02:36:49Z",
+   "closedAt": "2015-01-28T02:36:48Z",
+   "labels": [
+    "Tx Change"
+   ],
+   "comments": [
+    {
+     "author": "nbougalis",
+     "date": "2014-11-26T05:44:55Z",
+     "body": "For discussion:\n\nTransactions submitted with this will fail by giving an error of type `tefINTERNAL` and an message of `Exception occurred during transaction`:\n\n```\n{\n   \"result\" : {\n      \"error\" : \"internal\",\n      \"error_code\" : 59,\n      \"error_message\" : \"Exception occurred during transaction\",\n      \"request\" : {\n         \"command\" : \"submit\",\n         \"secret\" : \"masterpassphrase\",\n         \"tx_json\" : {\n            \"Account\" : \"rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh\",\n            \"Amount\" : \"200000000\",\n            \"Destination\" : \"r3kmLJN5D28dHuH8vZNUZpMC43pEHpaocV\",\n            \"PreviousTxnID\" : \"C84F85D005B5EE428BD059906470BF7EF52ADE60EF862385C7BB273EF816A76A\",\n            \"Transactio",
+     "url": "https://github.com/XRPLF/rippled/pull/741#issuecomment-64517882"
+    },
+    {
+     "author": "JoelKatz",
+     "date": "2014-11-26T07:24:12Z",
+     "body": "The failure comes from the transaction not matching the template. The fix\nwould be to catch that failure when we do the check and report it\nappropriately. I believe the failure comes from setType. A bit of a fix\nwould be to at least report that setType failed. A better fix would be for\nsetType to throw an exception describing the mismatch and catch it in the\nRPC call so we can provide a customized error response.\n\nTampering with the transaction processing code and transaction templates\njust to support some RPC feature is basically a non-starter. That code\nshould be treated as sacred and not modified for client convenience.\n\nDS\n\nOn Tue, Nov 25, 2014 at 9:44 PM, Nik Bougalis notifications@gith",
+     "url": "https://github.com/XRPLF/rippled/pull/741#issuecomment-64524203"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2014-11-26T07:48:11Z",
+     "body": "I'm fine with that - we already throw from the `STTx` constructor when `setType` throws, so it should be fairly simple to just throw outright from `setType` itself. I'll investigate and drop a commit on top of this. Thanks @JoelKatz.",
+     "url": "https://github.com/XRPLF/rippled/pull/741#issuecomment-64525988"
+    },
+    {
+     "author": "rec",
+     "date": "2015-01-15T15:27:56Z",
+     "body": "Where are we with this?  I expected to see another commit...?",
+     "url": "https://github.com/XRPLF/rippled/pull/741#issuecomment-70102246"
+    },
+    {
+     "author": "JoelKatz",
+     "date": "2015-01-17T00:48:52Z",
+     "body": ":+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/741#issuecomment-70345940"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2015-01-28T02:36:48Z",
+     "body": "Merged as a8578c73f8cd8cb5c43b974ac67042699e08339c",
+     "url": "https://github.com/XRPLF/rippled/pull/741#issuecomment-71771202"
+    }
+   ],
+   "body": "The PreviousTxnID field has been deprecated and should not be used for\ntransactions that use the field will now be rejected.\n\nThe AccountTxnID feature should be used instead by enabling transaction\ntracking and specifying a transaction ID at submission. More details\nare available at: https://ripple.com/build/transactions/#accounttxnid\n\nReviews: @JoelKatz, @rec",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "nbougalis:ripd710",
+   "additions": 1,
+   "deletions": 7,
+   "changedFiles": 2,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [],
+ "proposals": [
+  {
+   "number": 154,
+   "title": "CFT: Add PreviousTxnID and PreviousTxnLgrSeq",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/154",
+   "state": "closed",
+   "isPr": true,
+   "author": "sappenin",
+   "createdAt": "2023-11-29T23:05:01Z",
+   "updatedAt": "2023-12-04T22:32:51Z",
+   "comments": 1,
+   "labels": []
+  }
+ ],
+ "branches": []
+}

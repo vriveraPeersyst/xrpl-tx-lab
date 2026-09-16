@@ -1,0 +1,261 @@
+{
+ "name": "fix1523",
+ "fetchedAt": "2026-09-16T10:51:12.460Z",
+ "summary": {
+  "status": "closed without merge",
+  "prs": 1,
+  "open": 0,
+  "merged": 0,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2018-03-22T03:29:46Z",
+  "totalComments": 33
+ },
+ "release": {},
+ "prs": [
+  {
+   "number": 2212,
+   "title": "Track escrow in recipient's owner directory (RIPD-1523):",
+   "url": "https://github.com/XRPLF/rippled/pull/2212",
+   "state": "closed",
+   "author": "nbougalis",
+   "createdAt": "2017-08-25T09:30:14Z",
+   "updatedAt": "2018-03-22T03:29:46Z",
+   "closedAt": "2017-09-25T19:15:30Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "scottschurr",
+     "date": "2017-08-26T00:27:58Z",
+     "body": "Looks like one of the unit tests is failing.  But the unit test output is a bit too quiet, so I can't tell which of the tests is failing...",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#issuecomment-325063267"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-08-26T00:52:30Z",
+     "body": "pretty sure that the failure is `#65 failed: AmendmentTable_test.cpp(744)`....which I think is failing because the `sha512_half` hash is wrong in the `supportedAmendments` (as @bachase pointed out)",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#issuecomment-325066238"
+    },
+    {
+     "author": "codecov-io",
+     "date": "2017-08-28T22:42:21Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2212?src=pr&el=h1) Report\n> Merging [#2212](https://codecov.io/gh/ripple/rippled/pull/2212?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/589570daa330f80ad8c2b562be7a490d93c65e80?src=pr&el=desc) will **increase** coverage by `0.01%`.\n> The diff coverage is `90.62%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2212/graphs/tree.svg?width=650&src=pr&token=y0OgJuslsq&height=150)](https://codecov.io/gh/ripple/rippled/pull/2212?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2212      +/-   ##\n===========================================\n+ Cover",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#issuecomment-325503726"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2017-09-19T21:19:10Z",
+     "body": "Rebased and squashed. For inclusion into 0.80.0.",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#issuecomment-330676687"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2017-09-25T19:15:30Z",
+     "body": "Merged as c7c1b3cc3b7547504ae4d91ff6c41af18c3f264b",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#issuecomment-331983644"
+    }
+   ],
+   "body": "Introduce \"fix1523\" which corrects a minor technical flaw with\nthe original implementation of the escrow feature.\n\nWhen creating an escrow, the entry would only be tracked in the\nowner directory of the sender; as a result, an escrow recipient\nwould not be able to detect incoming escrows without monitoring\nthe ledger in real-time for transactions of interest or without\nthe sender communicating this information out of band.\n\nWith the fix in place, escrows where the recipient differs from\nthe sender will be listed in the recipient's owner directory as\nwell.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "nbougalis:fix1523",
+   "additions": 251,
+   "deletions": 78,
+   "changedFiles": 10,
+   "commits": 1,
+   "reviewComments": 14,
+   "reviews": [
+    {
+     "author": "bachase",
+     "state": "CHANGES_REQUESTED",
+     "date": "2017-08-25T14:39:12Z",
+     "body": "Looks good with some minor caveats."
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2017-08-25T15:50:33Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2017-08-25T15:51:08Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2017-08-25T15:51:19Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2017-08-25T15:52:23Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2017-08-25T16:30:09Z",
+     "body": "I only have one suggestion beyond the comments that Brad already made..."
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2017-08-25T16:45:04Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-08-25T17:30:12Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2017-08-25T17:44:33Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2017-08-26T17:58:57Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-08-27T14:22:36Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2017-08-29T16:53:44Z",
+     "body": "Looks good to me with all the suggested changes.  Tests out fine on macOS."
+    },
+    {
+     "author": "bachase",
+     "state": "APPROVED",
+     "date": "2017-08-29T20:33:54Z",
+     "body": "Added tests look great."
+    },
+    {
+     "author": "mellery451",
+     "state": "APPROVED",
+     "date": "2017-09-19T20:57:03Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "bachase",
+     "date": "2017-08-25T14:23:51Z",
+     "path": "src/ripple/app/main/Amendments.cpp",
+     "body": "`B9E739B8296B4A1BB29BE990B17D66E21B62A300A909F25AC55C22D6C72E1F9D` for `fix1523`?",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135270842"
+    },
+    {
+     "author": "bachase",
+     "date": "2017-08-25T14:30:23Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "Should this be `with_features(featureEscrow, fix1523)` to match the message on L710?",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135272444"
+    },
+    {
+     "author": "bachase",
+     "date": "2017-08-25T14:31:39Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "Is it worth adding a test to confirm `EscrowFinish` and `EscrowCancel` properly delete the entries in both directories?",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135272751"
+    },
+    {
+     "author": "bachase",
+     "date": "2017-08-25T14:38:51Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "The owner deletion [checks `page==0`](https://github.com/ripple/rippled/pull/2212/files#diff-42cae634a40574e7b3ba49cf6b25972bR448) for the `bSoft` argument (second to last) of `dirDelete`.  Is that important to mirror here?",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135274519"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2017-08-25T15:50:33Z",
+     "path": "src/ripple/app/tx/impl/Escrow.cpp",
+     "body": "No: that's legacy code (that should have never been there for things like escrow).",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135292348"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2017-08-25T15:51:08Z",
+     "path": "src/ripple/app/main/Amendments.cpp",
+     "body": "Oops. Last minute rename!",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135292496"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2017-08-25T15:51:19Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "Yes.",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135292527"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2017-08-25T15:52:23Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": ":+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135292751"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-08-25T16:21:05Z",
+     "path": "src/ripple/protocol/SField.h",
+     "body": "Consider `sfDestinationNode`, as suggested in the Checks proposal: https://ripplelabs.atlassian.net/wiki/spaces/RIPD/pages/111566093/Checks.  I think `sfDestinationNode` is descriptive of the intent for both Checks and Escrow.  It would probably work well for Payment Channels as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135298541"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2017-08-25T16:45:04Z",
+     "path": "src/ripple/protocol/SField.h",
+     "body": ":+1: done!",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135303273"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-08-25T17:30:12Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "I'd lean toward `all_features_except()` in this case and then just the default `Env` (with all features) for the remaining tests, but I realize there is some refactoring by @scottschurr that might impact some of this too.",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135311854"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2017-08-25T17:44:33Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "I squinted at the features handling in these unit tests.  I figured I'd make a tidying pass on this test after my other changes are merged.  Which is not to say I disagree with @mellery451's  suggestions.  They are good ones...",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135314795"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2017-08-26T17:58:57Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "Just to be clear, are you suggesting that this be: `Env env(*this, all_features_except(fix1523))`?",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135393847"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-08-27T14:22:35Z",
+     "path": "src/test/app/Escrow_test.cpp",
+     "body": "@nbougalis yes, that's what I was thinking",
+     "url": "https://github.com/XRPLF/rippled/pull/2212#discussion_r135412973"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

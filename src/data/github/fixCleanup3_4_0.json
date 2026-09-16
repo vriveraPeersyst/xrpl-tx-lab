@@ -1,0 +1,510 @@
+{
+ "name": "fixCleanup3_4_0",
+ "fetchedAt": "2026-09-16T10:55:01.149Z",
+ "summary": {
+  "status": "in development",
+  "prs": 4,
+  "open": 1,
+  "merged": 2,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-09-07T15:01:17Z",
+  "lastMerged": "2026-08-17T13:22:35Z",
+  "totalComments": 59
+ },
+ "release": {},
+ "prs": [
+  {
+   "number": 8134,
+   "title": "fix: Skip the AccountTxnID update for Batch wrappers (fixCleanup3_4_0)",
+   "url": "https://github.com/XRPLF/rippled/pull/8134",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-08-27T15:03:32Z",
+   "updatedAt": "2026-09-07T15:01:17Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-27T15:05:41Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8134?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#issuecomment-5441085372"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-27T18:30:38Z",
+     "body": "@xrplf-ai-reviewer your last review says you're flagging one edge case worth confirming with the author, but there's no comment with it. What's the edge case?",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#issuecomment-5443535224"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-01T15:01:20Z",
+     "body": "As @dangell7 and I discussed separately, this will break the chain if a Batch tx is submitted by an account that doesn't have any inner txs, and then wants to use `AccountTxnID` after the Batch tx.",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#issuecomment-5495958365"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-09-07T15:01:17Z",
+     "body": "Agreed. One option: leave the outer Batch updating sfAccountTxnID on the AccountRoot as it does today, so the next transaction always chains off the Batch ID, and instead have Batch preflight return temINVALID_INNER_BATCH under fixCleanup3_4_0 for an inner whose sfAccount matches the outer and carries sfAccountTxnID. An inner can never hold the ID of the Batch containing it, same contradiction as sfTicketSequence + sfAccountTxnID. Conditioning on the pre-batch state still works by putting sfAccountTxnID on the outer Batch. Thoughts?",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#issuecomment-5572497306"
+    }
+   ],
+   "body": "AccountTxnID chaining is unusable inside a Batch. The wrapper stamps the account root's sfAccountTxnID with its own transaction ID, and that ID hashes over sfRawTransactions, so a same-account inner can never carry a matching prior-txn ID. Any value fails preclaim with tefWRONG_PRIOR. Reported as Attackathon finding F121 (issue 993); it fails closed, so this is a functionality gap rather than an exploit.\n\nGated on fixCleanup3_4_0: a ttBATCH transaction no longer updates sfAccountTxnID. The first inner chains off the last pre-batch transaction, the inners update the field as they apply, and a post-batch transaction chains off the last inner. The wrapper's only effects are its inners plus fee ",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:dangell7/fix-batch-account-txn-id",
+   "additions": 431,
+   "deletions": 1,
+   "changedFiles": 2,
+   "commits": 5,
+   "reviewComments": 10,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-27T15:04:39Z",
+     "body": "The core fix in Transactor.cpp correctly gates the sfAccountTxnID stamp to skip only when the currently-applying transaction is the ttBATCH wrapper itself and fixBatchAccountTxnID is enabled — inner transactions still go through their own Transactor::apply() call with their own txn type, so they continue to update the field normally. The accompanying test exercises both the fix-enabled path (inner chains off the last pre-batch AccountTxnID, chain ends at the last applied inner, and a post-batch txn can chain off it) and the fix-disabled path (wrapper stamps its own ID, causing tefWRONG_PRIOR and an all-or-nothing revert), with sequence/balance assertions that check out arithmetically. No cor"
+    },
+    {
+     "author": "kennyzlei",
+     "state": "COMMENTED",
+     "date": "2026-08-27T17:12:07Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-27T17:16:19Z",
+     "body": "## Pull request overview\n\nThis PR introduces a new fix amendment (`fixBatchAccountTxnID`) to make `sfAccountTxnID` chaining usable when submitting `ttBATCH` transactions. When the fix is enabled, the Batch wrapper no longer stamps the account root’s `sfAccountTxnID`, allowing same-account inner transactions to reference the last pre-batch transaction ID without failing preclaim.\n\n**Changes:**\n- Register the new `BatchAccountTxnID` fix amendment (default vote: No).\n- Update `Transactor::apply()` to skip `sfAccountTxnID` stamping for `ttBATCH` when `fixBatchAccountTxnID` is enabled.\n- Add a new `Batch_test` unit test case covering both amendment-enabled and amendment-disabled behavior.\n\n### Re"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-27T17:19:52Z",
+     "body": "The core logic change (skip stamping sfAccountTxnID on the ttBATCH outer transaction when the guarding amendment is enabled) is correctly implemented — the boolean condition is right in all branches, and the new test exercises both the with-fix and without-fix paths with reasonable assertions. The one thing worth a second look before merge is that the code and test gate on `fixCleanup3_4_0`, not `fixBatchAccountTxnID` as named in the MR title/description — worth confirming that's intentional (e.g. a shared release-bundle amendment) rather than a leftover flag from another change."
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-27T17:54:26Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-27T17:54:34Z",
+     "body": "The core fix in Transactor.cpp correctly gates the sfAccountTxnID update: it skips stamping the account root's sfAccountTxnID only when the transaction is a ttBATCH wrapper and fixCleanup3_4_0 is enabled, letting inner transactions (which are not ttBATCH) continue to chain normally. This matches the described intent (wrapper's ID hashes over sfRawTransactions so no inner can match it) and is properly amendment-gated. Test coverage in Batch_test.cpp exercises both the fixed and pre-fix paths. No correctness, security, or infrastructure issues found in the changed lines."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-27T18:02:36Z",
+     "body": "Focused, well-tested fix: gates the account-root sfAccountTxnID stamp on the ttBATCH wrapper behind fixCleanup3_4_0, restoring usable AccountTxnID chaining for inner transactions. The core logic change is a single condition and looks correct (skip update only when txn type is ttBATCH and the amendment is enabled); new Batch_test coverage exercises both the fixed and pre-fix paths plus a subscriptions regression test. No clear bugs found in the changed lines; flagging one edge case worth confirming with the author."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-27T18:37:16Z",
+     "body": "Chain invariant gap when all Batch inners fail — see inline."
+    },
+    {
+     "author": "kennyzlei",
+     "state": "COMMENTED",
+     "date": "2026-08-27T19:41:40Z",
+     "body": "The fix and its gating condition look correct — the skip applies only to the ttBATCH wrapper with `fixCleanup3_4_0` enabled, inners still stamp, and preclaim still validates. Two test-coverage suggestions inline, covering the two corner behaviors the fix creates: a batch whose inners all belong to another account, and an outer Batch that itself carries `sfAccountTxnID`. Both were verified against the transactor/preclaim code paths but not compiled or run.\n\n~Separately, worth an explicit decision: this gates new consensus-affecting behavior on `fixCleanup3_4_0`, which already shipped as `Supported::Yes` in the 3.4.0-b1/b2 betas — nodes on those builds would stamp the wrapper after activation "
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-31T16:02:11Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-31T16:02:15Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-31T16:02:18Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-31T16:02:21Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-31T16:03:16Z",
+     "body": "The core fix correctly gates the sfAccountTxnID stamp using De Morgan's equivalent of \"skip only when the transaction is the ttBATCH wrapper AND fixCleanup3_4_0 is enabled\"; since inner transactions are applied through their own Transactor::apply() calls with their real (non-ttBATCH) type, they continue to update the field as before, and non-batch transactions are unaffected. The accompanying Batch_test.cpp coverage exercises same-account inners, other-account-only inners, all-inners-failing, and wrapper-preclaim-validation cases under both amendment states, which lines up with the behavior described in the MR. I did not find correctness, security, or resource-management issues in the added "
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-01T14:58:54Z",
+     "body": "LGTM"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "kennyzlei",
+     "date": "2026-08-27T17:11:32Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "let's consider bundling this fix into the Cleanup3_4_0 fix amendment if possible",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3874031709"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-27T17:16:19Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "The new comment reads as unconditional, but the behavior is conditional on the fixBatchAccountTxnID amendment. As written, it’s misleading when the amendment is disabled (ttBATCH will still stamp sfAccountTxnID).",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3874066650"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-27T17:54:26Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/aa5987efd0",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3874406265"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-27T18:37:16Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "All-inners-failed Batch leaves sfAccountTxnID unstamped despite fee/sequence changes. Verify wrapper ID stamping:\n\n```suggestion\n// TODO: When all inners fail, consider stamping wrapper ID to preserve chain invariant.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3874788137"
+    },
+    {
+     "author": "kennyzlei",
+     "date": "2026-08-27T19:41:02Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "The new test covers same-account inners, but not a batch whose inners all belong to **another** account — which is exactly where the wrapper's stamp/skip becomes observable on its own. With the fix, nothing writes the outer account's `sfAccountTxnID` (the wrapper skips and no inner is the outer account's), so it must keep its pre-batch value; without the fix the wrapper stamps its own ID even though the outer account authored no inner. In the current test the same-account inners re-stamp the field as they apply, so a future change that stamps the wrapper \"when no same-account inner applied\" (e.g. on an all-foreign batch) would pass the suite unnoticed.\n\n```suggestion\n        }\n\n        // A ",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3875250235"
+    },
+    {
+     "author": "kennyzlei",
+     "date": "2026-08-27T19:41:24Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "The other corner this fix creates: an outer Batch that itself **carries** `sfAccountTxnID`. It's a legal common field on ttBATCH, and `checkPriorTxAndLastLedger` still validates it in preclaim for the wrapper (untouched by the fix) — so a stale value must fail with `tefWRONG_PRIOR` under both amendment states, and a matching value must admit the batch without the wrapper then stamping over the field. Nothing in the suite exercises this today; the existing `tefWRONG_PRIOR` expectation fires on an inner *Payment* during batch application, so it would not catch a refactor that accidentally extends the ttBATCH skip into the preclaim check.\n\n```suggestion\n        // The wrapper's own sfAccountTxn",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3875252656"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-31T16:02:11Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/9f89fce012",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3896166870"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-31T16:02:15Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "Working as designed. The wrapper only claims fee and sequence, and the next transaction chains off the last pre-batch ID. Pinned in a test: https://github.com/XRPLF/rippled/commit/7092269f72",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3896167250"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-31T16:02:18Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/7092269f72",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3896167651"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-31T16:02:21Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/7092269f72",
+     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3896168138"
+    }
+   ]
+  },
+  {
+   "number": 8004,
+   "title": "fix: Extend locked-MPToken unauthorize check to fixCleanup3_4_0",
+   "url": "https://github.com/XRPLF/rippled/pull/8004",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2026-08-11T16:37:05Z",
+   "updatedAt": "2026-08-17T13:22:38Z",
+   "closedAt": "2026-08-17T13:22:36Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-11T16:59:37Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8004?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8004#issuecomment-5256258236"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nUnder `featureSingleAssetVault`, `MPTokenAuthorize::preclaim` already\nrejects `tfMPTUnauthorize` on an individually-locked MPToken with\n`tecNO_PERMISSION`. This PR extends the same guard so it also fires\nwhen `fixCleanup3_4_0` is enabled\n\n### API Impact\n\nNo public API, libxrpl, or peer protocol impact. The behavior change is gated\nbehind the fixCleanup3_4_0 amendment.\n\n## Test Plan\n\nTests: extend testSetEnabled to cover the four corners of the\n(featureSingleAssetVault × fixCleanup3_4_0) matrix.",
+   "merged": true,
+   "mergedAt": "2026-08-17T13:22:35Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:gregtatcam/mpt/extend-mptlock-check",
+   "additions": 69,
+   "deletions": 16,
+   "changedFiles": 2,
+   "commits": 6,
+   "reviewComments": 7,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-11T16:37:28Z",
+     "body": "Small, well-scoped change that extends the existing lsfMPTLocked unauthorize guard to also fire under fixCleanup3_4_0, mirroring the existing featureSingleAssetVault check. The test updates correctly gate the previous behavior on both flags being disabled and add the two missing corners (all-both, all-fixCleanup3_4_0) to complete the 2x2 amendment matrix. No correctness, security, or consistency issues found in the added lines."
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-08-11T17:14:13Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-11T22:48:02Z",
+     "body": "This is a small, well-scoped fix that extends an existing lsfMPTLocked/tfMPTUnauthorize guard in MPTokenAuthorize::preclaim to also fire when fixCleanup3_4_0 is enabled (previously only guarded by featureSingleAssetVault). The corresponding test file update correctly mirrors the new condition (skipping the 'delete despite locked' path when either amendment is on) and adds test invocations covering all four corners of the amendment matrix, matching the stated test plan. The logic change is simple, correct, and consistent with the described intent — no bugs, security issues, or missed instances of the pattern were found in the diff."
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-13T01:41:27Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-13T13:25:49Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-13T14:52:44Z",
+     "body": "The fix correctly decouples the locked-MPToken unauthorize guard from featureSingleAssetVault by adding a fixCleanup3_4_0 branch, and additionally teaches the new branch to tolerate a destroyed issuance (sleMptIssuance null) so a locked-but-orphaned MPToken doesn't become permanently stuck. The hoisting of the sleMptIssuance read to the top of preclaim is a safe, read-only refactor. The testSetEnabled additions correctly cover all four corners of the (SAV × fixCleanup3_4_0) matrix, but the new testLockedMPTokenDestroyedIssuance helper — which exercises the exact scenario this PR is about — is only invoked for 3 of the 4 corners, missing the 'SAV off, fixCleanup3_4_0 on' case that specificall"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-13T15:01:42Z",
+     "body": "The change extends the locked-MPToken unauthorize guard to fire under fixCleanup3_4_0, and additionally makes that guard require the issuance to still exist (so a locked MPToken whose issuance was destroyed can be cleaned up once fixCleanup3_4_0 is enabled). This is a slightly larger behavior change than the title implies ('extend the check' vs 'extend the check + add issuance-existence gating'), but it is deliberately covered by the new testLockedMPTokenDestroyedIssuance test across all four feature-flag corners, and the refactor to hoist the single sleMptIssuance read to the top of preclaim() is a correct, behavior-preserving cleanup of the duplicated reads. No correctness, security, or re"
+    },
+    {
+     "author": "ckeshava",
+     "state": "APPROVED",
+     "date": "2026-08-13T19:42:14Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2026-08-14T19:09:06Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-08-14T19:13:16Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-14T19:14:05Z",
+     "body": "This change extends the existing locked-MPToken unauthorize guard (previously gated only on featureSingleAssetVault) to also apply when fixCleanup3_4_0 is enabled, and refactors MPTokenAuthorize::preclaim to hoist the repeated `sleMptIssuance` ledger read into a single lookup at the top of the function reused by all branches. The new fixCleanup3_4_0 branch additionally requires the issuance to still exist (`sleMptIssuance && locked`) before blocking, which intentionally allows cleanup of a locked MPToken whose issuance was destroyed — this is the exact scenario covered by the new testLockedMPTokenDestroyedIssuance test, and the four-corner (SAV × fixCleanup3_4_0) matrix is exercised in both "
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-14T20:22:12Z",
+     "body": "## Pull request overview\n\nThis PR updates `MPTokenAuthorize::preclaim` so that unauthorize attempts against individually locked MPTokens are rejected not only under `featureSingleAssetVault`, but also when `fixCleanup3_4_0` is enabled—while still permitting cleanup of “dangling” locked MPTokens after an issuance has been destroyed under the fix.\n\n**Changes:**\n- Extend the locked-MPToken unauthorize guard to also apply when `fixCleanup3_4_0` is enabled (with an issuance-existence exception).\n- Expand `MPToken_test` coverage to exercise the `featureSingleAssetVault × fixCleanup3_4_0` behavior matrix.\n- Add a regression test covering behavior when a locked holder MPToken remains after its issua"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-08-15T13:48:29Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-15T14:04:42Z",
+     "body": "This is a well-scoped fix that extends the existing locked-MPToken unauthorize guard to also apply under fixCleanup3_4_0, while additionally allowing cleanup of a dangling locked MPToken when its issuance has already been destroyed (a case the old SAV-only check could never resolve, leaving a permanently stuck MPToken). The refactor to read sleMptIssuance once at the top of preclaim is a safe deduplication (same keylet, same view, no behavioral change from moving the read earlier). The if/else-if structure correctly gives fixCleanup3_4_0 precedence over the legacy featureSingleAssetVault-only behavior, and the new sleMptIssuance-guard in the fixCleanup3_4_0 branch is deliberate — verified ag"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-15T14:04:43Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2026-08-15T14:29:49Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ckeshava",
+     "date": "2026-08-13T01:18:49Z",
+     "path": "src/libxrpl/tx/transactors/token/MPTokenAuthorize.cpp",
+     "body": "Hello, Am I to understand that `fixCleanup3_4_0` amendment is expected to be adopted before `featureSingleAssetVault` gate ? Is that the reason for adding in a new gate?",
+     "url": "https://github.com/XRPLF/rippled/pull/8004#discussion_r3771621496"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-13T01:37:07Z",
+     "path": "src/test/app/MPToken_test.cpp",
+     "body": "I would like to clarify the behavior once either of these amendments are adopted:\n\n1. Suppose an Issuer (I) locks the MPToken ledger-entry of a Holder (H).\n2. Issuer (I) deletes their MPTokenIssuance ledger-entry.\n3. Holder (H) cannot delete their dangling MPToken entry\n4. Holder (H) also cannot delete their account because MPToken is an AccountDeletion-Blocker.\n\nI could not find this caveat mentioned in the documentation of `MPToken` ledger-object (or) the `MPTokenAuthorize`. I believe this is useful knowledge for MPToken users.\n\n\nHere is the patch file that demonstrates this behavior: \n```\ndiff --git a/src/test/app/MPToken_test.cpp b/src/test/app/MPToken_test.cpp\nindex 97b9b392a0..09a43c17",
+     "url": "https://github.com/XRPLF/rippled/pull/8004#discussion_r3771705836"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-13T13:25:49Z",
+     "path": "src/libxrpl/tx/transactors/token/MPTokenAuthorize.cpp",
+     "body": "Correct.",
+     "url": "https://github.com/XRPLF/rippled/pull/8004#discussion_r3775731219"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2026-08-14T19:07:22Z",
+     "path": "src/test/app/MPToken_test.cpp",
+     "body": "nit: the comment style needs to be updated. There are several places using `...`",
+     "url": "https://github.com/XRPLF/rippled/pull/8004#discussion_r3786486991"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-14T20:22:11Z",
+     "path": "src/libxrpl/tx/transactors/token/MPTokenAuthorize.cpp",
+     "body": "The comment about checking `tfMPTUnauthorize` “before fetching the MPTIssuance object” is now inaccurate because `sleMptIssuance` is read at function entry. Please update the comment (or defer the read) so future readers aren’t misled about why issuance lookup is avoided for zero-balance deletions.",
+     "url": "https://github.com/XRPLF/rippled/pull/8004#discussion_r3786927961"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-08-15T13:48:29Z",
+     "path": "src/test/app/MPToken_test.cpp",
+     "body": "The described scenario is a bug. Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8004#discussion_r3789481388"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-08-15T14:04:43Z",
+     "path": "src/libxrpl/tx/transactors/token/MPTokenAuthorize.cpp",
+     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8004#discussion_r3789506811"
+    }
+   ]
+  },
+  {
+   "number": 7883,
+   "title": "fix: Change Cleanup3_4_0 to Supported::No",
+   "url": "https://github.com/XRPLF/rippled/pull/7883",
+   "state": "closed",
+   "author": "Tapanito",
+   "createdAt": "2026-07-28T11:57:48Z",
+   "updatedAt": "2026-07-28T12:27:44Z",
+   "closedAt": "2026-07-28T12:10:08Z",
+   "labels": [
+    "Trivial"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-28T12:27:44Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7883?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7883#issuecomment-5104134732"
+    }
+   ],
+   "body": "This change is needed as to not confuse which amendments are still in development, or released. The workflow with prior cleanup amendments was to keep the unsupported until release.\n\n\n\n\n## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:tapanito/fix-amendment",
+   "additions": 1,
+   "deletions": 1,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-28T12:05:26Z",
+     "body": "No issues."
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 7854,
+   "title": "feat: Add fixCleanup3_4_0 amendment (no functionality yet)",
+   "url": "https://github.com/XRPLF/rippled/pull/7854",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2026-07-23T17:02:12Z",
+   "updatedAt": "2026-07-23T19:21:22Z",
+   "closedAt": "2026-07-23T19:21:20Z",
+   "labels": [
+    "Ready to merge",
+    "Trivial"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-23T17:28:25Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7854?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7854#issuecomment-5061404708"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR adds the `fixCleanup3_4_0` amendment, intended to be a catchall amendment for most small bugs that need an amendment gate that are included in 3.4. If there are none, this can be removed at that time.\n\n### Context of Change\n\nAdding a separate PR just to add the amendment makes it easier to manage separate/independent PRs that may require the amendment.\n\n### API Impact\n\nN/A",
+   "merged": true,
+   "mergedAt": "2026-07-23T19:21:20Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:mvadari/fix-cleanup-340",
+   "additions": 1,
+   "deletions": 0,
+   "changedFiles": 1,
+   "commits": 3,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-23T17:04:45Z",
+     "body": "Looks good."
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2026-07-23T17:37:08Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-23T17:40:10Z",
+     "body": "Looks good."
+    }
+   ],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

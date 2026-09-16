@@ -1,0 +1,327 @@
+{
+ "name": "fixPayChanCancelAfter",
+ "fetchedAt": "2026-09-16T10:58:48.930Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2025-06-24T12:05:26Z",
+  "lastMerged": "2025-04-09T22:08:44Z",
+  "release": "2.5.0",
+  "totalComments": 42
+ },
+ "release": {
+  "version": "2.5.0",
+  "date": "2025-06-24T18:19:49Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.5.0",
+  "excerpt": "[`fixPayChanCancelAfter`](https://xrpl.org/resources/known-amendments#fixpaychancancelafter) (#4717)"
+ },
+ "prs": [
+  {
+   "number": 4717,
+   "title": "fixPayChanCancelAfter",
+   "url": "https://github.com/XRPLF/rippled/pull/4717",
+   "state": "closed",
+   "author": "dangell7",
+   "createdAt": "2023-09-20T08:22:18Z",
+   "updatedAt": "2025-06-24T12:05:26Z",
+   "closedAt": "2025-04-09T22:08:44Z",
+   "labels": [
+    "Tx Change",
+    "API Change",
+    "Amendment",
+    "Testable",
+    "Will Need Documentation",
+    "QE impact not expected"
+   ],
+   "comments": [
+    {
+     "author": "intelliot",
+     "date": "2023-09-21T06:36:46Z",
+     "body": "Although the issue can be resolved with an amendment, it's not necessarily a flaw at the protocol level. Instead, it's a potential user error. While many such errors can be detected, catching every single one might not be feasible. A strong case can be made for identifying these mistakes through checks in client libraries or at the API level. With this approach, it wouldn't be necessary to make changes that impact transaction processing. For instance, xrplcluster prevents transactions with extremely high fees, or payments to known scammers. Instead of trying to address every possible user error within the protocol, it's more practical to handle these in a layer in front of rippled. One of th",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-1728940311"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-09-21T17:33:16Z",
+     "body": "Important notes:\n- I don't see anything wrong with this amendment. It fixes a problem (even if it's a small problem with satisfactory alternative workarounds). I'm very happy to see developers open small fix PRs like this one.\n- My comment offered a holistic view, considering both the benefits of the amendment and the practicality and immediacy of other solutions.\n\nIf @dangell7 (or anyone else in the community) would like this amendment, please proceed. Reopen this PR or open a new one. This protocol change can happen in parallel, and in addition to, any fixes at the client or API service layers.",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-1730016317"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-03T17:09:18Z",
+     "body": "@dangell7 it looks like tests are failing on this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-1745391759"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-16T06:25:30Z",
+     "body": "@dangell7 - confirming - is this ready for review? (or are there any additional changes you're planning to make?)",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-1763808409"
+    },
+    {
+     "author": "dangell7",
+     "date": "2023-10-16T07:15:24Z",
+     "body": "@intelliot Ready for review",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-1763868821"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-10-16T18:23:34Z",
+     "body": "@dangell7 - do you have an opinion on whether this should be considered for the next release (2.0.0) or if it's ok for it to wait for 2024?\n\n(The first release in 2024 is expected for Jan or Feb.)",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-1765052061"
+    },
+    {
+     "author": "dangell7",
+     "date": "2023-10-27T10:07:30Z",
+     "body": "@intelliot I have no opinion. 2024 is fine. I don't think many use paychan but its nice that this is fixed at some point.",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-1782650234"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-08T22:46:21Z",
+     "body": "- bug fix. Should not require perf signoff. cc @sophiax851",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-1881941120"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-02-01T06:19:41Z",
+     "body": "@dangell7 \n1. This PR has conflicts that must be resolved.\n2. After resolving, please confirm that you still think this PR is ready to merge.",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-1920591015"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-03-06T18:55:57Z",
+     "body": "@dangell7 bump",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-2704691141"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-03-20T11:39:48Z",
+     "body": "@intelliot Should be up to date now. I will leave the decision up to you.",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-2740134946"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2025-03-20T12:06:31Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/4717?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAll modified and coverable lines are covered by tests :white_check_mark:\n> Project coverage is 78.1%. Comparing base [(`e429455`)](https://app.codecov.io/gh/XRPLF/rippled/commit/e429455f4d5ce8bdb5f024c447c9b3c656fe302f?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`4bf18dd`)](https://app.codecov.io/gh/XRPLF/rippled/commit/4bf18dd195853967e5b51c796f0ec47a30d24aae?dropdown=coverage&el=desc&utm_medium=referral&",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-2740229953"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-04-09T17:58:41Z",
+     "body": "cc @bthomee - this looks ready to go",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-2790524492"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-04-09T18:16:07Z",
+     "body": "@dangell7 can you please update your branch? Once done I can merge this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#issuecomment-2790563449"
+    }
+   ],
+   "body": "This commit introduces a new fix amendment (fixPayChanV1) which prevents the creation of new `PaymentChannelCreate` transaction with a `CancelAfter` time less than the current ledger time. It piggy backs off of [fix1571](https://github.com/XRPLF/rippled/pull/2419).\n\nOnce the amendment is activated, creating a new PaymentChannel will require that if you specify the `CancelAfter` time/value, that value must be greater than or equal to the current ledger time.\n\nCurrently users can create a payment channel where the `CancelAfter` time is before the current ledger time. This results in the payment channel being immediately closed on the next PaymentChannel transaction.",
+   "merged": true,
+   "mergedAt": "2025-04-09T22:08:44Z",
+   "draft": false,
+   "base": "develop",
+   "head": "Transia-RnD:fixPayChanV1",
+   "additions": 69,
+   "deletions": 12,
+   "changedFiles": 6,
+   "commits": 2,
+   "reviewComments": 12,
+   "reviews": [
+    {
+     "author": "tadejgolobic",
+     "state": "COMMENTED",
+     "date": "2023-09-20T09:32:16Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2023-09-20T09:49:34Z",
+     "body": ""
+    },
+    {
+     "author": "jscottbranson",
+     "state": "COMMENTED",
+     "date": "2023-09-20T13:38:00Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-09-20T14:44:39Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2023-09-20T18:08:05Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2023-09-22T19:18:39Z",
+     "body": ""
+    },
+    {
+     "author": "mDuo13",
+     "state": "COMMENTED",
+     "date": "2023-09-22T20:57:00Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2023-09-25T11:24:17Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-04T14:28:19Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T20:20:07Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-06T20:31:13Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2023-10-16T17:43:33Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2023-10-16T17:45:14Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2023-10-17T14:53:15Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2023-10-30T16:14:56Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-12-13T01:27:48Z",
+     "body": "Changes look good to me.  Thanks for adding the test!"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "tadejgolobic",
+     "date": "2023-09-20T09:32:12Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "Shouldn't this be Yes by default? Per my understanding, every fix amendment shout have vote by default set to yes.\n\n```\nREGISTER_FEATURE(fixPayChanV1, Supported::yes, VoteBehavior::DefaultYes);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1331350902"
+    },
+    {
+     "author": "dangell7",
+     "date": "2023-09-20T09:49:34Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "Look above at all the fixes that don't have the `VoteBehavior::DefaultYes`.\n\n`Yes` is reserved for things that need immediate approval. This doesn't need immediate approval imo.\n\nI'm happy to change it though",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1331372525"
+    },
+    {
+     "author": "jscottbranson",
+     "date": "2023-09-20T13:38:00Z",
+     "path": "src/ripple/protocol/impl/Feature.cpp",
+     "body": "I would advocate for keeping it as is, to avoid risk of amendment blocking, since this is not critical.",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1331649239"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-09-20T14:44:39Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "Shouldn't `tem` codes should only be used in `preflight`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1331748397"
+    },
+    {
+     "author": "dangell7",
+     "date": "2023-09-20T18:08:05Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "I used `temBAD_EXPIRATION` because that is what was used in `PaymentChannelFund`. Its also a finite error code. This transaction cannot be reapplied and get a different error. It will always fail. However, because its so far into the tx in doApply, you could argue it should be a tec code and take the fee. \n\nYou guys tell me what to do :)",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1332009338"
+    },
+    {
+     "author": "seelabs",
+     "date": "2023-09-22T19:18:39Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "I don't believe we have good documentation for when to return different ter codes, and we should write some. In the meantime, here are my thoughts:\n\nA transactions has three major phases: \n\n1) Preflight. This is cheap. It happens before signature checks (which are expensive) and cannot read the ledger. In order to prevent broadcasting transactions to the network that fail signature checks, and therefore can't claim a fee, preflight is not allowed to return `tec` codes. (Note: there are several places where we check signatures: preflight2, invoke_preclaim, and in network ops; But not allowing `preflight` to return `tec` codes was modivated by the signature checks happening after preflight).\n\n",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1334741937"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2023-09-22T20:57:00Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "Just to add on to this, I am supportive of creating this fix amendment, but I believe the appropriate error code for this situation is probably `tecEXPIRED`:\n\n> The transaction tried to create an object (such as an Offer or a Check) whose provided Expiration time has already passed.\n\nIt would not surprise me if EscrowCreate is inconsistent with this. Ideally we should fix that too.\n\nBut here's why I think a `tec`-class code is appropriate:\n\n1. The transaction isn't internally inconsistent or self-contradictory; it's only no good because there exists a previous ledger whose close time is higher than the specified expiration.\n2. Since transactions can be delayed an indefinite amount of time be",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1334809507"
+    },
+    {
+     "author": "dangell7",
+     "date": "2023-09-25T11:24:17Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "Thank you both for the very very detailed explanation. This will help me a lot. I'm going to change the code to `tecEXPIRED`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1335750457"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-04T14:28:19Z",
+     "path": "src/test/app/PayChan_test.cpp",
+     "body": "Is this boolean necessary?",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1345893642"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T20:20:07Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "This should probably now be a util function since it's used in two files - perhaps in `View.h`, since that file contains a lot of other helper functions.",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1349287802"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-06T20:31:13Z",
+     "path": "src/ripple/protocol/Feature.h",
+     "body": "nit: IMO this should have a more descriptive name, like `fixPayChanCancelAfter` or something - especially since it's one specific fix and not an assortment of paychan fixes.",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1349297301"
+    },
+    {
+     "author": "mvadari",
+     "date": "2023-10-16T17:45:14Z",
+     "path": "src/ripple/app/tx/impl/PayChan.cpp",
+     "body": "This check should happen before the SLE is created - perhaps around line 250.",
+     "url": "https://github.com/XRPLF/rippled/pull/4717#discussion_r1361047964"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

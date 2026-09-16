@@ -1,0 +1,256 @@
+{
+ "name": "fixReducedOffersV2",
+ "fetchedAt": "2026-09-16T11:00:15.210Z",
+ "summary": {
+  "status": "merged",
+  "prs": 1,
+  "open": 0,
+  "merged": 1,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2024-06-13T21:57:12Z",
+  "lastMerged": "2024-06-13T21:57:12Z",
+  "release": "2.3.0",
+  "totalComments": 30
+ },
+ "release": {
+  "version": "2.3.0",
+  "date": "2024-11-26T00:17:49Z",
+  "url": "https://github.com/XRPLF/rippled/releases/tag/2.3.0",
+  "excerpt": "fixReducedOffersV2"
+ },
+ "prs": [
+  {
+   "number": 5032,
+   "title": "Amendment fixReducedOffersV2 fixes issue #4937",
+   "url": "https://github.com/XRPLF/rippled/pull/5032",
+   "state": "closed",
+   "author": "scottschurr",
+   "createdAt": "2024-05-31T19:06:48Z",
+   "updatedAt": "2024-06-13T21:57:12Z",
+   "closedAt": "2024-06-13T21:57:12Z",
+   "labels": [
+    "Ready to merge",
+    "Bug",
+    "Amendment"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2024-05-31T19:30:17Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5032?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `97.14286%` with `1 line` in your changes missing coverage. Please review.\n> Project coverage is 71.3%. Comparing base [(`263e984`)](https://app.codecov.io/gh/XRPLF/rippled/commit/263e984bf4c72896b03715b9592a6834657882d2?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`e5dbc1d`)](https://app.codecov.io/gh/XRPLF/rippled/commit/e5dbc1d12cefa429dd2901cde02947c8c3c675a4?dropdown=covera",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#issuecomment-2142865941"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-13T16:07:28Z",
+     "body": "Proposed commit message:\n```\nfixReducedOffersV2: prevent offers from blocking order books:\n\nFixes issue #4937.\n\nThe fixReducedOffersV1 amendment fixed certain forms of offer\nmodification that could lead to blocked order books.  Reduced\noffers can block order books if the effective quality of the\nreduced offer is worse than the quality of the original offer\n(from the perspective of the taker). It turns out that, for\nsmall values, the quality of the reduced offer can be\nsignificantly affected by the rounding mode used during\nscaling computations.\n\nIssue #4937 identified an additional code path that modified\noffers in a way that could lead to blocked order books.  This\ncommit changes the roundi",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#issuecomment-2166114566"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nIn issue https://github.com/XRPLF/rippled/issues/4937 @shortthefomo reported additional instances of order book blocking since the `fixReducedOffersV1` amendment went live.  Thanks to that report I was able to identify an additional case where blocking offers could be generated.  This pull request fixes the newly identified case.\n\n### Context of Change\n\nHaving order books occasionally blocked by offers that were modified so that their quality was worse than the originally placed quality has been a problem for a while.  Three different ways that this could occur were identified and addressed by amendment `fixReducedOffersV1`.  All three of those case were add",
+   "merged": true,
+   "mergedAt": "2024-06-13T21:57:12Z",
+   "draft": false,
+   "base": "develop",
+   "head": "scottschurr:blocked-book",
+   "additions": 534,
+   "deletions": 159,
+   "changedFiles": 12,
+   "commits": 6,
+   "reviewComments": 16,
+   "reviews": [
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-06-03T19:56:48Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-06-03T23:01:36Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-06-03T23:07:04Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-06-04T11:49:05Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2024-06-04T13:27:08Z",
+     "body": "👍 Looks good. I left a few minor comments for you to consider."
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-06-04T23:10:23Z",
+     "body": "Thanks for the review @gregtatcam.  I've addressed a couple of your comments.  There were also two that I didn't do anything with, but I left notes about why I they are the way they are.  I'm open to continuing the conversation on those if you'd like."
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-06-04T23:25:28Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2024-06-04T23:26:06Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2024-06-05T14:02:26Z",
+     "body": "👍"
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2024-06-11T21:17:34Z",
+     "body": "I think this is ready to go, but I left a couple of nits for you to consider. I'll approve it after you take a look. I'm fine with however you decide to resolve the nits (including keeping them as they are)."
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2024-06-13T03:46:07Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2024-06-13T15:15:41Z",
+     "body": ":+1:"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "gregtatcam",
+     "date": "2024-06-03T19:34:48Z",
+     "path": "src/test/app/Flow_test.cpp",
+     "body": "Why need to run this test with `reducedOffersV2` enabled? There is no change to `testDirectStep` with/without the amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1624950364"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-06-03T23:01:35Z",
+     "path": "src/test/app/Flow_test.cpp",
+     "body": "Does it make sense to extend this test to show that the order book is actually blocked without the amendment?",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1625144109"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-06-03T23:07:04Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Would it be beneficial to add a comment here and in `limitStepOut` explaining why the choice of the rounding in each case prevents order book blocking?",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1625147076"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-04T00:56:00Z",
+     "path": "src/ripple/app/paths/impl/BookStep.cpp",
+     "body": "Sure.  Maybe something like...\n```\n// It turns out we can prevent order book blocking by (strictly)\n// rounding down the ceil_in() result.  By rounding down we\n// guarantee that the quality of an offer left in the ledger is\n// as good or better than the quality of the containing order\n// book page.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1625202220"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-06-04T11:49:05Z",
+     "path": "src/test/app/ReducedOffer_test.cpp",
+     "body": "Shouldn't we check for the exact count of the blocking rates since the same tests are executed on every run? If this count changes in the next release then doesn't it indicate some change that needs to be investigated?",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1625857509"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-04T18:36:48Z",
+     "path": "src/test/app/Flow_test.cpp",
+     "body": "I agree, it's not needed.  I was just following a pre-existing pattern where `testDirectStep` and `testBookStep` were having their amendments adjusted as a pair.  I'd be fine with removing this test iteration if you'd like.",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1626456291"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-04T21:17:54Z",
+     "path": "src/test/app/ReducedOffer_test.cpp",
+     "body": "I could.  But the other, similar, tests in this file also just check for a threshold in the failing case.  When I was initially developing the similar tests I found that small changes to the test would result in these numbers bouncing a bit.  So just checking a threshold made development easier.  The goal here is to verify that there was indeed a problem and that this test exercises the problem.  Even one blocking offer would still be a problem, but we're verifying that there's at least a certain number.\n\nThe check where the number really matters in the one on line 782.  We really want that value to be zero.  That's how we have confidence that the problem is fully addressed, at least for thi",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1626613924"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-06-04T23:25:28Z",
+     "path": "src/test/app/Flow_test.cpp",
+     "body": "I think it should be removed if it doesn't accomplish anything. It just increases the tests running time without any benefit.",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1626740744"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2024-06-04T23:26:06Z",
+     "path": "src/test/app/ReducedOffer_test.cpp",
+     "body": "Yeah, it's fine.",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1626741052"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-06-11T21:07:04Z",
+     "path": "src/ripple/app/paths/AMMOffer.h",
+     "body": "Consider using the globally available rules rather than passing this as a parameter. (also fine as-is, but I think I'd like to get away from passing rules around as much as we do and just using the new global).",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1635482202"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-06-11T21:07:28Z",
+     "path": "src/ripple/app/paths/AMMOffer.h",
+     "body": "See comment above about passing rules as a param.",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1635482493"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-06-11T21:08:17Z",
+     "path": "src/ripple/protocol/Quality.h",
+     "body": "Could use a comment for how \"strict\" differs from the non-strict function.",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1635483164"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-06-11T21:09:57Z",
+     "path": "src/ripple/protocol/Quality.h",
+     "body": "We usually don't define functions inline in the class. I know this is a member template and that gets a little tedious outside of the class. I'd prefer it was defined out of the class, but it's a minor nit.",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1635484650"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-06-11T21:14:30Z",
+     "path": "src/ripple/protocol/Quality.h",
+     "body": "This looks like a copy of `ceil_in` with one function called changed. \n\nIf `ceil_in` is being deprecated and will be replaced with `ceil_in_strict` then I actually prefer the code duplication. And I think this is the case. If this is not the case, then let's look at merging the two.\n\nOn the same topic, if the `ceil_in` is being deprecated, consider renaming `ceil_in` to `ceil_in_deprecated` or somesuch and renaming `ceil_in_strict` to `ceil_in`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1635488540"
+    },
+    {
+     "author": "seelabs",
+     "date": "2024-06-11T21:16:38Z",
+     "path": "src/ripple/protocol/impl/Quality.cpp",
+     "body": "I usually like passing the callback as a parameter rather than as a template. But I'm also fine with this as-is.",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1635490286"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2024-06-13T03:46:07Z",
+     "path": "src/ripple/protocol/Quality.h",
+     "body": "I'm not sure about `ceil_in` being deprecated.  But it certainly has an odd behavior regarding rounding.  So we _might_ eventually want to replace all uses of it with `ceil_in_strict`.  But I'd like to hold off on renaming either of them until we know that we're actually going to make that change (which would have to go under an amendment).  There are a few things in this code base that have been \"deprecated\" for quite a few years without ever being removed.  I'd like to not add to that confusion.",
+     "url": "https://github.com/XRPLF/rippled/pull/5032#discussion_r1637468718"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

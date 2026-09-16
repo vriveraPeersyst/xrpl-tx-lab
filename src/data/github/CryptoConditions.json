@@ -1,0 +1,2784 @@
+{
+ "name": "CryptoConditions",
+ "fetchedAt": "2026-09-16T10:40:09.906Z",
+ "summary": {
+  "status": "closed without merge",
+  "prs": 3,
+  "open": 0,
+  "merged": 0,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2020-04-25T22:51:01Z",
+  "totalComments": 410
+ },
+ "release": {},
+ "prs": [
+  {
+   "number": 2170,
+   "title": "Cryptoconditions (RIPD-1139)",
+   "url": "https://github.com/XRPLF/rippled/pull/2170",
+   "state": "closed",
+   "author": "seelabs",
+   "createdAt": "2017-07-13T12:30:00Z",
+   "updatedAt": "2020-04-25T22:51:01Z",
+   "closedAt": "2019-09-09T23:37:44Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2017-07-13T15:35:15Z",
+     "body": "Would it be possible to generate this code at build time instead of committing it, similar to protobuf code?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-315115271"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-13T15:48:36Z",
+     "body": "@MarkusTeufelberger Yes, it would be possible. My biggest concern is the script requires several python libraries and python 3 (python 2 support may be easy). It's also useful (tho not required) to run clang-format over the generated code or it will be very difficult to see what's going on. Making sure these deps are installed on all systems that want to build rippled is a headache. \n\nIt also complicates the build scripts. Tho that's less of a concern.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-315119371"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2017-07-13T15:59:43Z",
+     "body": "If it is not intended for humans, why format it?\n\nYou'll anyways likely need a build step that verifies that your version of the generated code is still identical to what would be generated in case the generation script changes, so you'll anyways somehow need to encode the code generation in a build script.\n\nWhich commit contains the actual script? Skipping through all of them seem to be relatively large, so I suspect these are the ones containing generated code...",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-315122757"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-13T16:05:18Z",
+     "body": "@MarkusTeufelberger The `[fold] Generated tests for cryptoconditions` contains the script (look for the python file). The main file is: https://github.com/ripple/rippled/blob/ec972c4bc2e5450b3162819b1be42eb5a64e93ee/bin/crypto_conditions_test_gen/conditions.py (Edit to give better link to main python file).",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-315124388"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2017-07-13T16:08:54Z",
+     "body": "Thanks, I'll take a look. It would be great if you could also check which exact library versions you installed using conda.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-315125388"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-13T16:15:00Z",
+     "body": "@MarkusTeufelberger I'm using the following versions:\npyasn1: 0.2.3\ncryptography: 1.8.1\npynacl: 1.1.2",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-315127064"
+    },
+    {
+     "author": "codecov-io",
+     "date": "2017-07-13T18:05:55Z",
+     "body": "# [Codecov](https://codecov.io/gh/ripple/rippled/pull/2170?src=pr&el=h1) Report\n> Merging [#2170](https://codecov.io/gh/ripple/rippled/pull/2170?src=pr&el=desc) into [develop](https://codecov.io/gh/ripple/rippled/commit/589570daa330f80ad8c2b562be7a490d93c65e80?src=pr&el=desc) will **increase** coverage by `0.46%`.\n> The diff coverage is `84.92%`.\n\n[![Impacted file tree graph](https://codecov.io/gh/ripple/rippled/pull/2170/graphs/tree.svg?height=150&width=650&token=y0OgJuslsq&src=pr)](https://codecov.io/gh/ripple/rippled/pull/2170?src=pr&el=tree)\n\n```diff\n@@             Coverage Diff             @@\n##           develop    #2170      +/-   ##\n===========================================\n+ Cover",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-315157070"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-17T21:29:43Z",
+     "body": "Pushed a commit to support clang's fuzzing sanitizer (requires clang 5)",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-315890640"
+    },
+    {
+     "author": "MarkusTeufelberger",
+     "date": "2017-07-17T21:44:43Z",
+     "body": "Great idea using libFuzzer for this. :+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-315894258"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-21T13:54:10Z",
+     "body": "rebased onto 0.80.0-b3",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-317007238"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-01T13:36:20Z",
+     "body": "Rebased onto 0.80.0-b4",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-319371864"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:22:21Z",
+     "body": "@ximinez I pushed a commit to address most of your feedback and marked the ones I addressed. However I still have a few more I intend on addressing.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-320305538"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-09-08T14:42:41Z",
+     "body": "I pushed another set of changes. I still have two issues left to address: the failing doc generation and dealing with the automatically generated cpp test files.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-328122001"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-10-11T21:52:46Z",
+     "body": "There is some good news about the doc generation. Since you split Der.h into three files, and doxygen doesn't follow includes, the docs build now. The bad news is that they don't pick up any of the DER code. :)\n\nBut there's more good news! Because I could add those three files to `source.dox` one at a time, I was able to narrow the problem down to `DerPrimitiveTraits.h`. I still have no idea what the actual failure is, but at least it's narrowed down slightly.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-335959988"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-11-30T15:33:47Z",
+     "body": "I tracked down the documentation errors. There are three places that confuse document generation. The problem cases are:\n1)\n```\ntemplate <std::size_t S>\nstruct DerCoderTraits<boost::container::small_vector<std::uint8_t, S>> : OctetStringTraits\n```\n2)\n```\ntemplate <std::size_t S>\nstruct DerCoderTraits<boost::container::small_vector<std::uint8_t, S>> : OctetStringTraits\n```\n3)\n```\ntemplate <class... Ts>\nstruct DerCoderTraits<std::tuple<Ts&...>>\n```\n\nI tried some workarounds with `#if !GENERATING_DOCS` and I can get them to generate docs by changing the declaration. However, it makes the code much harder to read. The benefit from the docs is not worth the new difficulty in reading the code.\n\nMy",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-348223893"
+    },
+    {
+     "author": "ripplelabs-jenkins",
+     "date": "2019-04-01T04:43:24Z",
+     "body": "## Jenkins Build Summary\n\nBuilt from [this commit](https://github.com/ripple/rippled/commit/)\n\nBuilt at __20190615 - 08:57:51__\n\n### Test Results\n\nBuild Type | Log | Result | Status\n---------- | --- | ------ | ------",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-478433637"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2019-09-09T23:37:44Z",
+     "body": "This code needs to be rebased and resubmitted for consideration in the future.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#issuecomment-529707465"
+    }
+   ],
+   "body": "This PR is not as large as it first looks. There is a large amount of\nautomatically generated code that is used for tests. Reviewing that code is not\nnecessary (reviewing the script that generates the tests, and the code output for\na single test should be enough).\n\nHelpful references:\nCryptoconditions spec: https://tools.ietf.org/html/draft-thomas-crypto-conditions-02\nASN.1 spec: https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf\nInformal doc on ASN.1: http://luca.ntop.org/Teaching/Appunti/asn1.html\nWeb site to encode/decode ASN.1: http://asn1-playground.oss.com/\n\nNote:\n\nThe max cryptoconditions size is larger than I'd like. This is because Rsa CCs\nare relatively large, and",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "seelabs:der",
+   "additions": 40739,
+   "deletions": 822,
+   "changedFiles": 53,
+   "commits": 15,
+   "reviewComments": 119,
+   "reviews": [
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-07-13T17:35:18Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-13T17:40:35Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-07-13T22:26:16Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-07-14T15:45:57Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-07-14T15:50:05Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-14T16:26:09Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-07-14T23:41:18Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-17T21:57:26Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-07-17T22:45:41Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-07-17T22:47:11Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-07-17T22:50:17Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-07-17T22:59:33Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "COMMENTED",
+     "date": "2017-07-17T23:45:07Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-18T13:30:23Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-18T13:30:30Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-18T13:30:36Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-18T13:30:43Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-18T13:31:03Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-18T13:31:59Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-18T13:33:14Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-18T13:34:36Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-18T13:34:45Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-18T13:40:25Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-07-18T13:45:43Z",
+     "body": ""
+    },
+    {
+     "author": "mellery451",
+     "state": "APPROVED",
+     "date": "2017-07-18T22:40:10Z",
+     "body": "Impressive stuff with the serialization design and testing. I wish there were a standard set of test data for DER encoders that we could also run through the ser/deser classes, but I could not find anything. I think the fuzzing is great as well. \n\nAs for the code generation thing, here's a commit that does this:  https://github.com/mellery451/rippled/commit/b19911d51ef8c230267d20aa6de32c0b139dd212 . I've tested on mac/linux and it does the basic job. I would not be surprised if there are fixes required for windows (esp. the python commands). It's cmake only, so we should only consider it once we finally drop scons."
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2017-08-01T22:35:55Z",
+     "body": "I FINALLY FINISHED!"
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T16:58:54Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T16:59:04Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T16:59:09Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T16:59:15Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T16:59:20Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:01:11Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:02:35Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:05:13Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:06:48Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:07:58Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:08:50Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:09:20Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:09:44Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:11:39Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:11:47Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:11:56Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:12:35Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:14:59Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:15:05Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:15:11Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:15:19Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:17:28Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:19:19Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:19:45Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:19:51Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:19:56Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:20:01Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:20:16Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:20:24Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:20:48Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-08-04T17:21:02Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2017-08-04T18:12:06Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2017-08-04T18:17:09Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2017-08-04T18:18:43Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2017-08-18T22:36:59Z",
+     "body": "Other than the docs build problem, these changes look great. I look forward to the next round of changes."
+    },
+    {
+     "author": "nbougalis",
+     "state": "APPROVED",
+     "date": "2017-08-25T09:46:12Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:23:17Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:24:17Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:24:48Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:26:00Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:27:30Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:28:01Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:28:45Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:29:31Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:29:56Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:30:46Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:33:02Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2017-09-08T14:41:09Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mellery451",
+     "date": "2017-07-13T17:35:18Z",
+     "path": "src/ripple/conditions/impl/Der.cpp",
+     "body": "I get an error here from clang (mac):\n\n```\nsrc/ripple/conditions/impl/Der.cpp|175 col 1 error| functions that differ only in their return type cannot be overloaded\n|| contentLengthLength(std::uint64_t v)\n|| ^\nsrc/ripple/conditions/impl/Der.h|521 col 1| note: previous declaration is here\n|| contentLengthLength(std::uint64_t);\n|| ^\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127281530"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-13T17:40:35Z",
+     "path": "src/ripple/conditions/impl/Der.cpp",
+     "body": "@mellery451 Thanks. I just pushed a patch that should fix this (changed decl return type from `size_t` to `uint64_t`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127282878"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-13T22:26:16Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "hmm - I feel like one of these return statements should be removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127347462"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-13T23:07:44Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "minor: `suceeds` --> `succeeds`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127353314"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-13T23:08:23Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "minor: `suceeds` --> `succeed`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127353388"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-14T15:20:34Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "could we have a one-line description of what this script is for and if/when it should be executed?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127481525"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-14T15:45:26Z",
+     "path": "src/test/conditions/PreimageSha256_test.cpp",
+     "body": "I'm confused about `c` here - do we care about the value? Should we verify correctness for it , or just ignore it?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127486990"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-14T15:50:05Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "Should we add a comment at the top indicating that the file was generated and \"DO NO EDIT\"? Or are we okay with people editing the generated sources?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127488002"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-14T16:26:09Z",
+     "path": "src/test/conditions/PreimageSha256_test.cpp",
+     "body": "The condition here does not match the fulfillment. They were just dummy values used to test the parser (if you look at the fingerprint in the condition, it's  `4849505152535455484950515253545548`, which is clearly not a valid fingerprint.\n\nThe history is this test predated the generated tests (which _do_ check that the conditions match the fulfillments), and I decided to keep the old tests. Having said all that, I do agree this should be improved. Now that I have python scripts, I'll fix the conditions so they match the fulfillments as expected and change the test. A second option would be to just remove this file (as the generated tests are better).",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127495339"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-14T18:49:04Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "this doc is very clear and helpful 👍",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127524707"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-14T23:39:23Z",
+     "path": "src/test/conditions/Der_test.cpp",
+     "body": "any particular reason for `this->BEAST_EXPECT(...` vs. just `BEAST_EXPECT(...`? It doesn't bother me either way, just wondering.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127567879"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-17T21:50:49Z",
+     "path": "src/test/basics/Slice_test.cpp",
+     "body": "How about a call to the new `push_back`?\n```\nms.push_back(37);\nBEAST_EXPECT(mutValues[0] == 37);\nBEAST_EXPECT(*ms.data() == 1);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127835618"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-17T21:57:26Z",
+     "path": "src/test/conditions/Der_test.cpp",
+     "body": "The `this` is needed in a lambda. I've forgotten the history of this code, but it's likely it used to live in a lambda and when I moved it outside the lambda I forgot to remove the `this`.\n\nWill fix.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127836938"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-17T22:45:41Z",
+     "path": "CMakeLists.txt",
+     "body": "it looks to me like `SANITIZER_LIBRARIES` is no longer being set, so should we just get rid of it ?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127845263"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-17T22:47:11Z",
+     "path": "CMakeLists.txt",
+     "body": "could `Conditions_fuzz_test.cpp` just be added to `FuzzerSrc` ?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127845491"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-17T22:50:17Z",
+     "path": "CMakeLists.txt",
+     "body": "I don't have a strong opinion, but why not just allow `rippled` to be a target? You can still just build the fuzzed exes by name if you don't want to build `rippled`  e.g. `make fulfillment_fuzzer`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127846066"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-17T22:59:33Z",
+     "path": "CMakeLists.txt",
+     "body": "I have not used libFuzzer myself, but docs indicate that you still need to link with `libFuzzer.a` - so we might need to add that here ?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127847546"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-17T23:26:20Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Nit: Extra article `a the`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127851378"
+    },
+    {
+     "author": "mellery451",
+     "date": "2017-07-17T23:45:07Z",
+     "path": "CMakeLists.txt",
+     "body": "I don't think there is much need for a user-defined variable for this since you can just set it based on the `san` values, something like:  https://github.com/mellery451/rippled/commit/a303c0f78029016ae2069d46ad1570083b9d3ba7",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127853912"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-18T13:30:23Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127974617"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-18T13:30:30Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127974657"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-18T13:30:36Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127974689"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-18T13:30:43Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127974721"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-18T13:31:03Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127974823"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-18T13:31:59Z",
+     "path": "src/test/conditions/Der_test.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127975058"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-18T13:33:13Z",
+     "path": "CMakeLists.txt",
+     "body": "Fixed (removed SANITIZER_LIBRARIES). Although I might bring that back for gcc builds if there are complaints (clang doesn't need it).",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127975391"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-18T13:34:36Z",
+     "path": "CMakeLists.txt",
+     "body": "Fixed (and an explanation - I originally had two separate \"main\" functions, one for testing fulfullments and one for conditions. When I merged them into a single file I should have also fixed the build script).",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127975749"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-18T13:34:45Z",
+     "path": "CMakeLists.txt",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127975789"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-18T13:40:25Z",
+     "path": "CMakeLists.txt",
+     "body": "It's building fine for me without it. Clang links in the correct lib if you link with `-fsanitize=fuzzer,address`. (The docs for AddressSanitizer say this explicitly: https://clang.llvm.org/docs/AddressSanitizer.html). You're right, I can't find the same snippet with the FuzzerSanitizer, but it is acting the same way as AddressSanitizer.\n\nMy motivation for removing the explicit link is I was getting errors about linking in incompatible sanitizer libraries. The easiest way for me to resolve this was to let clang choose the right library for me.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127977455"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-07-18T13:45:43Z",
+     "path": "CMakeLists.txt",
+     "body": "I'd like to keep this variable. If we add other fuzzers I think we want to control which fuzzers we are building. I don't mind the slightly clunkier build step for this because it's an uncommon build target.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r127978895"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-18T19:36:59Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Nit: `stream's`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128074259"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-18T20:07:46Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Nit again: `stream's`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128081263"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-18T20:28:49Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "`must be zero`???",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128086311"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-18T21:02:26Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "`small_vector` has an `operator[]` that looks like it does the right thing, so it's not strictly necessary to get `data()` here, unless it's faster or something.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128094568"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-18T21:49:17Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Per earlier discussion, these will look at lot less like magical numbers if you `return GroupType::bitstring`, for example, in all the `tagNum` function definitions.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128105258"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-18T22:37:21Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Should this be `if (bits == 0)`? And would it be worthwhile to move before the declaration of `result` and `curByteIndex`?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128114118"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-18T22:40:54Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Micro-optimization:\n```\nif (b & 0x01)\n  return 7;\n```\nis unnecessary.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128114671"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-18T22:47:09Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Why `slice += 1` instead of `++slice` here?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128115637"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-18T22:52:49Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "We know that `leadingZeroBytes[0] == leadingZeroBytes[1]` at this point, so no need for `std::min`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128116574"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-19T19:14:51Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "You put so much effort into this Javadoc, you should add `der.h` to `docs/source.dox`....",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128340894"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-19T19:18:51Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "This comment is hard for me to understand. What is `subChoices_`? What does `so if the elements will be sorted if accessed` mean?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128341818"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-19T19:19:56Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Would it be worth caching `sortOrder_` even if `col` is already sorted? Or is `std::iota` cheap enough not to worry about?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128342055"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-19T19:44:57Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Is this specialization really necessary?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128347335"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-19T20:04:00Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "So to clarify: A shorter set sorts as smaller than a longer set, even if the elements of the shorter set are all individually larger?  I'm thinking of an example of a set of 2 strings of length 30 (total 60) compared to a set of 10 strings of length 1 (total 10). The set of 2 will sort earlier.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128351907"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-19T20:04:52Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "This will always be `0`, because `lhsSize == rhsSize`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128352132"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-19T21:33:58Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "The calls to `withTuple` are all taking 2 params: the callback and a traits cache.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128373555"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-19T21:42:46Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Could this file somehow be split into multiple .h files, if only for readability?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128375401"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-20T19:34:03Z",
+     "path": "src/ripple/conditions/impl/Der.cpp",
+     "body": "There is a _lot_ of repetition in these number length functions across both the cpp and parts of the header file. It seems like it would be reasonable to refactor some or all of them into a common function with a couple of parameters.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128610980"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-20T19:55:00Z",
+     "path": "src/ripple/conditions/impl/Der.cpp",
+     "body": "This may already be done in a later commit, but I'd rather see this as `decodeTagNum`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128615378"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-20T19:56:38Z",
+     "path": "src/ripple/conditions/impl/Der.cpp",
+     "body": "Similarly, this may be done in a later commit, but I'd rather see this as `decodeContentLength`.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r128615699"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-24T23:09:13Z",
+     "path": "src/test/conditions/DerChoice.cpp",
+     "body": "Even with the `nullptr`, this is O(n^2), isn't it? Since it's only used in tests, I'm not too concerned.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r129177601"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-25T20:00:13Z",
+     "path": "src/test/conditions/DerChoice.h",
+     "body": "Eeeeek! Casting away `const`?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r129409486"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-25T20:25:57Z",
+     "path": "src/test/conditions/Der_test.cpp",
+     "body": "Why mess with the `cout` flags when you're streaming to `cerr`?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r129415544"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-25T20:26:27Z",
+     "path": "src/test/conditions/Der_test.cpp",
+     "body": "Just for tidiness, `cerr << \" }\";`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r129415691"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-25T20:43:22Z",
+     "path": "src/test/conditions/Der_test.cpp",
+     "body": "Possible buffer overrun. `shortX { X.begin(), X.begin() + std::min(maxOutput, X.size()) }`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r129420038"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-27T22:55:31Z",
+     "path": "src/ripple/conditions/impl/Ed25519.h",
+     "body": "Magic number?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r129978726"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-28T19:01:24Z",
+     "path": "src/ripple/conditions/impl/Fulfillment.cpp",
+     "body": "Are there any `Fulfullments` where an empty slice will ever pass `f.validate({})`?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130163054"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-28T19:01:36Z",
+     "path": "src/ripple/conditions/impl/PrefixSha256.cpp",
+     "body": "Nit: 2017",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130163103"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-28T20:53:50Z",
+     "path": "src/ripple/conditions/impl/ThresholdSha256.cpp",
+     "body": "Because flags don't get cleared or checked for multiple matches, you could save the overhead of unnecessary `checkEqualForTesting` by moving `if(foundEqual[j]) continue;` to outside the `if`.\n```\n        for (size_t i = 0; i < subfulfillments_.size(); ++i)\n        {\n            for (size_t j = 0; j < subfulfillments_.size(); ++j)\n            {\n                if (foundEqual[j])\n                    continue;\n\n                if (c->subfulfillments_[i]->checkEqualForTesting(*subfulfillments_[j]))\n                {\n                    foundEqual.set(j);\n                    break;\n                }\n            }\n        }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130184043"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-28T20:55:52Z",
+     "path": "src/ripple/conditions/impl/ThresholdSha256.cpp",
+     "body": "Same here\n```\n        for (size_t i = 0; i < subconditions_.size(); ++i)\n        {\n            for (size_t j = 0; j < subconditions_.size(); ++j)\n            {\n                if (foundEqual[j])\n                    continue;\n\n                if (c->subconditions_[i] == subconditions_[j])\n                {\n                    foundEqual.set(j);\n                    break;\n                }\n            }\n        }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130184387"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-28T21:21:55Z",
+     "path": "src/ripple/conditions/impl/error.cpp",
+     "body": "Nit: This is the only message that is not all lower case.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130188939"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-28T21:24:58Z",
+     "path": "src/ripple/conditions/impl/error.h",
+     "body": "Nit: `if there is more content in a slice.`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130189439"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-28T21:49:22Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "I suggest adding a shell or python script to install dependencies and generate the test files that have been committed so that we can get reproducibility and verifiability.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130193499"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-07-28T21:50:09Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "Nit: 2017",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130193611"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-08-01T20:56:08Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "Magic number again?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130725853"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-08-01T21:45:34Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Since you updated the type of `index` without updating any other code are these last 2 comments still true?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130737341"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-08-01T21:54:11Z",
+     "path": "Builds/CMake/CMakeFuncs.cmake",
+     "body": "The commit message is marked fold, but please don't lose the instructions for the fuzzer when this is squashed.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130739225"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-08-01T22:00:09Z",
+     "path": "Builds/CMake/CMakeFuncs.cmake",
+     "body": "Is there a reason we can't spec to pass a comma on the command line instead of the semicolon?",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130740414"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-08-01T22:24:03Z",
+     "path": "src/fuzzers/Conditions_fuzz_test.cpp",
+     "body": "If the intention here is to prevent overwriting an existing file, I would suggest a loop to check that the file exists, and incrementing again if it does.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130744639"
+    },
+    {
+     "author": "ximinez",
+     "date": "2017-08-01T22:33:15Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "This comment is not in the generated test files. I assume that means you need to regenerate them. (See also my earlier comment about scripting the generation.)",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130746147"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2017-08-01T23:16:38Z",
+     "path": "src/ripple/conditions/Fulfillment.h",
+     "body": "\"ASN.1\" and \"DER\"",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r130752512"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T16:58:54Z",
+     "path": "src/test/basics/Slice_test.cpp",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131436753"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T16:59:04Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131436782"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T16:59:09Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131436798"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T16:59:15Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131436834"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T16:59:20Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131436850"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:01:11Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "No, it may be zero, but it is not necessarily zero. For example, the unsigned value one is encoded as 0x1. If the leading 8th bit of a positive value is 1, we need to add a leading 0 to distinguish it from a negative value.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131437238"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:02:35Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131437517"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:05:13Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`\n\nAlso, an explanation: This is a traits class, so a function like `tagNum` that returns a \"magic number\" 3 is about the same as defining an enum that equals \"3\". I.e. it's not _that_ much of a magic number. However, putting them as enums does make it easier to audit all the constants at once, so I agree it's a good change.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131438035"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:06:48Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`\n\nI removed the shortcut entirely, it's not needed (but you were correct, it should have been `bits == 0`).",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131438386"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:07:58Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Agreed it's not necessary, but I'd like to keep it anyway. The code reads better to me as \"if this bit is set, return this value\". Even though the last bit is somewhat special, I'd like to keep the same pattern as the other bit checks.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131438616"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:08:50Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "`slice` does not define `operator++` (and I don't think it's worth adding just for this).",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131438792"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:09:20Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131438900"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:09:44Z",
+     "path": "src/ripple/conditions/impl/Der.h",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131438983"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:11:39Z",
+     "path": "src/ripple/conditions/impl/Der.cpp",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`\n\nOr at least I factored out some common code. I may be able to do some more.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131439359"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:11:47Z",
+     "path": "src/ripple/conditions/impl/Der.cpp",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131439388"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:11:56Z",
+     "path": "src/ripple/conditions/impl/Der.cpp",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131439427"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:12:34Z",
+     "path": "src/test/conditions/DerChoice.cpp",
+     "body": "Yes, however N is very small (and as you say, it's only used in tests).",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131439563"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:14:59Z",
+     "path": "src/test/conditions/DerChoice.h",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`\n\nAnd an explanation: without the `const_cast` we have to duplicate all the `withTuple` functions, and I decided `const_cast` was better than duplication. However, given your \"eeek!\" I'm OK just duplicating the code.",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131440052"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:15:05Z",
+     "path": "src/test/conditions/Der_test.cpp",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131440074"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:15:10Z",
+     "path": "src/test/conditions/Der_test.cpp",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131440096"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:15:19Z",
+     "path": "src/test/conditions/Der_test.cpp",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131440124"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:17:27Z",
+     "path": "src/ripple/conditions/impl/Ed25519.h",
+     "body": "It's a number from the cryptoconditions spec. I'm not sure defining some constant `Ed25519Cost` to this value and return that makes it any less magic :-)",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131440593"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:19:19Z",
+     "path": "src/ripple/conditions/impl/Fulfillment.cpp",
+     "body": "Yes. Preimage validate does not depend on the message at all. Also, it's valid for a cryptocondition that depends on a message to be valid for an empty message (sign an empty message, for example).",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131441010"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:19:45Z",
+     "path": "src/ripple/conditions/impl/PrefixSha256.cpp",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131441100"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:19:51Z",
+     "path": "src/ripple/conditions/impl/ThresholdSha256.cpp",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131441123"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:19:56Z",
+     "path": "src/ripple/conditions/impl/ThresholdSha256.cpp",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131441148"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:20:01Z",
+     "path": "src/ripple/conditions/impl/error.cpp",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131441168"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:20:15Z",
+     "path": "src/ripple/conditions/impl/error.h",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131441207"
+    },
+    {
+     "author": "seelabs",
+     "date": "2017-08-04T17:20:24Z",
+     "path": "bin/crypto_conditions_test_gen/conditions.py",
+     "body": "Fixed in `a028ad7 [fold] Responding to Ed PR feedback 1`",
+     "url": "https://github.com/XRPLF/rippled/pull/2170#discussion_r131441237"
+    }
+   ]
+  },
+  {
+   "number": 1872,
+   "title": "Cryptoconditions Framework (RIPD-1139)",
+   "url": "https://github.com/XRPLF/rippled/pull/1872",
+   "state": "closed",
+   "author": "nbougalis",
+   "createdAt": "2016-10-14T04:23:01Z",
+   "updatedAt": "2016-11-18T21:35:47Z",
+   "closedAt": "2016-11-18T21:35:47Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov-io",
+     "date": "2016-10-16T22:48:54Z",
+     "body": "## [Current coverage](https://codecov.io/gh/ripple/rippled/pull/1872?src=pr) is 65.43% (diff: 87.81%)\n\n> Merging [#1872](https://codecov.io/gh/ripple/rippled/pull/1872?src=pr) into [develop](https://codecov.io/gh/ripple/rippled/branch/develop?src=pr) will increase coverage by **0.31%**\n\n``` diff\n@@            develop      #1872   diff @@\n==========================================\n  Files           686        698    +12   \n  Lines         49033      49745   +712   \n  Methods           0          0          \n  Messages          0          0          \n  Branches          0          0          \n==========================================\n+ Hits          31931      32549   +618   \n- Misses        ",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-254080891"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-24T18:39:42Z",
+     "body": ":+1:",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-255827861"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-25T01:29:14Z",
+     "body": "Still :+1: after removing begin/end from Buffer/Slice.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-255911567"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-25T04:38:35Z",
+     "body": "I've addressed all feedback (except removing _all_ exceptions; most have been removed). I've rebased to the latest develop and squashed.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-255934288"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-28T04:32:05Z",
+     "body": "I think I've addressed all outstanding issues/comments (modulo exceptions). You may ignore the commit marked `[TEMP]` - it will go away during the squash, post-approval.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-256834015"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2016-10-28T19:20:51Z",
+     "body": "Documentation preview?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-257006041"
+    },
+    {
+     "author": "JoelKatz",
+     "date": "2016-11-01T18:17:58Z",
+     "body": "`SusPayFinish::doApply` can return tem\\* codes. All tem\\* codes must be returned from preflight. Other than amendments, a change in a ledger should not make a transaction malformed or not malformed. Malformed transactions will not be retried if the ledger changes.\n\n_Update_: Haha. You had it right and then I said something ambiguous that made you think you should change it. Sorry. Change it back. :)",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-257648275"
+    },
+    {
+     "author": "JoelKatz",
+     "date": "2016-11-01T18:28:34Z",
+     "body": "Also, unless I'm missing something, the implementation of `SusPayFinish::calculateBaseFee` is missing. I don't think we can use the default.\n\nOther than those two issues, it looks great.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-257651930"
+    },
+    {
+     "author": "JoelKatz",
+     "date": "2016-11-11T20:59:00Z",
+     "body": "Last issue: Change the fee to be based on the actual size of the fulfillment rather than the maximum size. There's no reason a person who needs a large maximum fulfillment size (perhaps just in case some special recovery condition occurs) should pay a higher price for all their routine payments.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-260054130"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-11-14T13:48:49Z",
+     "body": "Needs to be rebased. Thumbs up after that.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-260338560"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-11-15T20:30:55Z",
+     "body": "Reviewed `Add CryptoConditions amendment` commit. Still thumbs up after it's rebased.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-260758480"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-11-17T14:38:10Z",
+     "body": ":+1: (the one CI failure is due to sourceforge being down)",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-261262779"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-11-18T21:35:47Z",
+     "body": "Merged as d8d0cb17ba23b486a91c2c3782849395a69db47b, 8d0c93691d17f90d8f85d3cf682dc90e871d300e, 5711e7caa979b77961fe644babbdc7152099d328, 83aa5517c0b7ace64d072db878d6b6e74dfd9baa, d198b439fd9c3c4ff5d22969d4f445f79d5919ba and d69b16895c620b9eab9b8d0da654d3b734249612.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#issuecomment-261648008"
+    }
+   ],
+   "body": "Cryptoconditions provide a mechanism to describe a signed message such that multiple actors in a distributed system can all verify the same signed message and agree on whether it matches the description. This provides a useful primitive for event-based systems that are distributed on the Internet since we can describe events in a standard deterministic manner (represented by signed messages) and therefore define generic authenticated event handlers.\n\nThe cryptoconditions specification is available at:\n    https://interledger.org/five-bells-condition/spec.html\n\nThis PR includes PREIMAGE-SHA-256 (RIPD-1210), PREFIX-SHA-256 (RIPD-1211), RSA-SHA-256 (RIPD-1213) and ED25519 (RIPD-1214).",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "nbougalis:cc",
+   "additions": 4724,
+   "deletions": 215,
+   "changedFiles": 38,
+   "commits": 6,
+   "reviewComments": 161,
+   "reviews": [
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-14T16:32:18Z",
+     "body": "I finished the feedback from the first commit. Here are two commits you can cherry pick from if you want some of the changes:\n\n1) Misc feedback & change `Slice` param type is in this commit: https://github.com/seelabs/rippled/commit/dc36d92eb69a9f2fb5cd1989df013eb0ba6fc9d3\n\n2) Replacing exceptions with`boost::optional` is in this commit:https://github.com/seelabs/rippled/commit/8cd00cc0431109e16f5acba8e1a2e116d429f68a\n\n(I understand if we want to delay dealing with exceptions until later, but I wanted to take a stab at resolving it)"
+    },
+    {
+     "author": "vinniefalco",
+     "state": "COMMENTED",
+     "date": "2016-10-14T16:59:01Z",
+     "body": ""
+    },
+    {
+     "author": "vinniefalco",
+     "state": "COMMENTED",
+     "date": "2016-10-14T16:59:52Z",
+     "body": ""
+    },
+    {
+     "author": "vinniefalco",
+     "state": "COMMENTED",
+     "date": "2016-10-14T17:00:21Z",
+     "body": ""
+    },
+    {
+     "author": "vinniefalco",
+     "state": "COMMENTED",
+     "date": "2016-10-14T17:00:53Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-14T18:42:17Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-14T18:42:53Z",
+     "body": ""
+    },
+    {
+     "author": "wilsonianb",
+     "state": "COMMENTED",
+     "date": "2016-10-14T20:00:16Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-14T20:24:39Z",
+     "body": "Feedback on hashlock. Attempt to remove the exception in the constructor (and other minor suggestions): https://github.com/seelabs/rippled/commit/02a649cbb0cf8e13b2f4c370b9dd4b26602f9695\n\nAttempt to clarify the fields in the test (and other suggestions): https://github.com/seelabs/rippled/commit/1b72faa17b7f04def88dc436649318d4a867f464"
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-14T22:44:13Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:23:31Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:23:59Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:24:45Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:24:52Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:25:01Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:26:44Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:27:10Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:28:14Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:31:33Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:56:07Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:56:26Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:58:00Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:58:47Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:58:59Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T10:59:26Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T11:01:37Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-16T11:39:33Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-16T23:22:48Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-17T15:09:39Z",
+     "body": "I went through my issues that are now in \"outdated diffs\" and re-added some of them here so they aren't lost. I also added a few new comments."
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-17T15:15:32Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-17T23:55:53Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T00:18:47Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T00:19:55Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T00:35:26Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T00:35:55Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T00:37:29Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T03:41:23Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T03:42:16Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T03:42:39Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T03:43:56Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-18T14:20:26Z",
+     "body": "I don't care about the nits, but we should resolve the buffer overflow issues."
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T14:59:29Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T14:59:34Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T15:04:34Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-18T15:18:30Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T15:32:39Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-18T15:43:21Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T15:47:23Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-18T17:17:42Z",
+     "body": "I found three (or maybe just two) more places that need a short buffer check. This is the last of my feedback (thanks for addressing everything!). I'll keep an eye on comments from other reviewers."
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-18T17:23:16Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T17:41:41Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T17:46:20Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T17:46:30Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-18T18:28:50Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-18T18:29:36Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-18T19:02:38Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-20T13:55:29Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-26T08:55:41Z",
+     "body": ""
+    },
+    {
+     "author": "bachase",
+     "state": "COMMENTED",
+     "date": "2016-10-26T14:17:51Z",
+     "body": "Nice work!  Some minor questions/nits.\n\nIt would be cool if you could have a type-list of the supported types\n\n```\nusing Types = mpl::list<PrefixSha256, RsaSha256,...>;\n```\n\n then move some of the dynamic dispatching to compile time.  Having the single spot of \"these types are supported\" would ensure the `type` fields/etc. are filled out properly, or throw a fit if a concrete condition type was not implemented properly.  \n\nDefinitely not asking for it, just throwing it out there."
+    },
+    {
+     "author": "bachase",
+     "state": "COMMENTED",
+     "date": "2016-10-26T14:36:14Z",
+     "body": "Nit about unused local warning in MSVC."
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-26T15:18:10Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-26T15:27:22Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-26T15:31:59Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-26T15:34:56Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-26T15:36:16Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-26T15:38:03Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-26T15:39:28Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-26T15:42:09Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-26T15:42:43Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-26T15:46:28Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-26T16:07:04Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-26T16:22:48Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-26T16:31:46Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-10-26T17:43:15Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-28T01:51:36Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-10-28T01:53:52Z",
+     "body": ""
+    },
+    {
+     "author": "bachase",
+     "state": "COMMENTED",
+     "date": "2016-10-28T13:00:39Z",
+     "body": ""
+    },
+    {
+     "author": "bachase",
+     "state": "COMMENTED",
+     "date": "2016-11-01T12:19:54Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-11-01T13:20:22Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-11-08T15:27:32Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "COMMENTED",
+     "date": "2016-11-08T16:46:45Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-11-08T17:17:54Z",
+     "body": ""
+    },
+    {
+     "author": "bachase",
+     "state": "APPROVED",
+     "date": "2016-11-08T17:18:14Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2016-11-16T05:46:42Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:10:57Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "This is the maximum length of a fulfillment, not the exact length. We should document this or rename the field.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83453448"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:12:25Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "`fingerprint` is variable length. All of the current conditions are 32 bytes, but we should keep an eye out in the code where changing this to variable length will be problematic. It might be easier to have a variable length interface not (with something like boost `static_vector`)",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83453723"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:13:26Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "We might be able to make this private if we make the `load_condition` functions friends and refactor creating conditions in fulfillments so it uses on helper function we made a friend. That would make three friends.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83453865"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:14:32Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "A new high bit can redefine them meaning of existing lower bits when set. We may want to check `if (c.requires >=64)` and reject if true.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83454043"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:15:24Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "Nit: I prefer a switch to the series of `ifs`; no change needed",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83454178"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:16:18Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "I'm a little confused. So `condition_hashlock` needs to set these two features, but can also set, say `feature_ed25519` and it's still valid?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83454345"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:16:46Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "Param should be by `const&`",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83454434"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:17:51Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "We pass `Slice` params by both value and `const&`. It's a nit, but I changed them all to pass by value as a minor cleanup. I'll include a commit with the changes in a later comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83454595"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:21:13Z",
+     "path": "src/ripple/conditions/impl/condition.cpp",
+     "body": "If the fingerprint sent is shorter than `c.fingerprint.size()` then we don't detect the error and some of `fingerprint` will have garbage.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83455200"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:22:49Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "Nit: We could simplify this to `return f.type() == c.type && f.condition() == c`",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83455452"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:23:56Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "Could simplify to `fulfills(f,c) && f.validate(m)`",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83455656"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:24:39Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "It's obvious what the `f` and `c` parameters are. `m` is less obvious. Rename to `message`?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83455767"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:25:19Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "We know the condition fulfills, so maybe just: `f.validate(m)`?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83455858"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:25:36Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "Rename `m` -> `message`?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83455903"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:26:50Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "Not for this changeset, but we should see what a custom parser looks like for this. The fields are delimited by ':' so a strategy of finding the delimiters and parsing the fields should work well (and would copy fewer strings). We could probably reuse the parser for conditions as well.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83456080"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:27:33Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "I think `type` needs to be hex encoded, so `to_hex(f.type())`?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83456194"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:28:07Z",
+     "path": "src/ripple/conditions/impl/utils.h",
+     "body": "Rename `tmp` -> `result`?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83456263"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T16:29:10Z",
+     "path": "src/ripple/conditions/impl/utils.h",
+     "body": "I took a stab at removing the exceptions from this file. See the commit referenced in the summary comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83456428"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2016-10-14T16:59:01Z",
+     "path": "src/ripple/conditions/impl/condition.cpp",
+     "body": "Why doesn't that function take a `Slice`? Not saying to change it, just asking.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83461309"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2016-10-14T16:59:52Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "I like short names. Don't feel super strong about it since its not my code.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83461450"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2016-10-14T17:00:21Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "I'm not suggesting a change, but `std::string` is a poor choice of parameter, `boost::string_ref` would be better.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83461533"
+    },
+    {
+     "author": "vinniefalco",
+     "date": "2016-10-14T17:00:53Z",
+     "path": "src/ripple/conditions/impl/utils.h",
+     "body": "Inputs from untrusted sources should not allow exceptions to be thrown",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83461636"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-14T18:42:16Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "Technically no. This should be a stricter check. Will fix.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83479268"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-14T18:42:53Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "Good idea.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83479361"
+    },
+    {
+     "author": "wilsonianb",
+     "date": "2016-10-14T20:00:15Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "`is` -> `if`?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83491150"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T20:12:26Z",
+     "path": "src/ripple/conditions/hashlock.h",
+     "body": "This constructor is only used in testing. As such, let's remove the exception and add a `bool&` parameter that says if there's an error or not and document this constructor is for testing only (there will be a commit to cherry pick if you want this change in the summary comment).",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83492902"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T20:13:54Z",
+     "path": "src/ripple/conditions/hashlock.h",
+     "body": "Remove `public` here and in the member section below. These are only needed if this were a class (or make this a class).",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83493115"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T20:15:47Z",
+     "path": "src/ripple/conditions/fulfillment.h",
+     "body": "`payload` always allocates memory; we usually assume `operator==` is a cheap operation. This is only used in tests, so no harm now. We should at least leave a comment to take care of this.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83493402"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T20:20:37Z",
+     "path": "src/test/conditions/hashlock_test.cpp",
+     "body": "The payload and the message are already confusing, especially with hashlocks. I'd rather not use the payload as the message, even in a test. We should make a different message because people use test cases to help understand code.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83494107"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T20:22:48Z",
+     "path": "src/test/conditions/hashlock_test.cpp",
+     "body": "We should make it clearer what the different fields in these strings are. In particular, make it clear what the preimage is and show it hashes to the payload. I made an attempt in the referenced commit.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83494455"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T21:23:10Z",
+     "path": "src/test/conditions/ed25519_test.cpp",
+     "body": "We need to be careful with terminology. This is the message, not the payload. The spec refers to the payload as internal to the fulfillment. Messages are external to the fulfillment.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83504078"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T21:27:00Z",
+     "path": "src/test/conditions/ed25519_test.cpp",
+     "body": "We should comment what each of these conditions are. \"hashlock with preimage XYZ\" ect.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83504665"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T21:30:27Z",
+     "path": "src/test/conditions/ed25519_test.cpp",
+     "body": "I'd love an assert that showed how these strings were created. Similar to what I proposed in hashmap. Something like `BEAST_EXPECT( signed(\"XYZ\", pk, sk, msg) == \"O2onv...)`. That makes it trivial to look at the code and understand what each string is.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83505203"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:08:40Z",
+     "path": "src/ripple/conditions/prefix_sha256.h",
+     "body": "This prepends to the payload, not the message. I know I'm being a stickler for terminology, but with payload/message I think it's important.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83509956"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:09:15Z",
+     "path": "src/ripple/conditions/prefix_sha256.h",
+     "body": "Write to `cerr`?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83510061"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:10:06Z",
+     "path": "src/ripple/conditions/prefix_sha256.h",
+     "body": "I know you caught this bug, but I'm leaving a note to make sure it doesn't get overlooked.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83510159"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:12:49Z",
+     "path": "src/ripple/conditions/prefix_sha256.h",
+     "body": "If loading the subfulfillment fails we should \"clean up our mess\" by clearing `prefix_`. We didn't document the object invariants, but a empty prefix/empty subfullments seems valid (empty state), but valid prefix empty subfulfillment seems invalid.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83510494"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:14:00Z",
+     "path": "src/test/conditions/prefix_sha256_test.cpp",
+     "body": "These are messages, add `Msg` as a suffix?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83510636"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:14:53Z",
+     "path": "src/test/conditions/prefix_sha256_test.cpp",
+     "body": "I'd almost want to disallow preimage as a subfulfillment to prefix; it doesn't really make sense. But good to test anyway.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83510738"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:17:34Z",
+     "path": "src/test/conditions/prefix_sha256_test.cpp",
+     "body": "In addition to the test for a non-empty message fed to a prefix that you already suggested, how about one where subconditions go more than one deep. So a prefix -> prefix -> ed25519?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83511041"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:32:02Z",
+     "path": "src/ripple/conditions/rsa_sha256.h",
+     "body": "What's the ref that shows this is the correct way to pad?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83512448"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:36:29Z",
+     "path": "src/ripple/conditions/rsa_sha256.h",
+     "body": "Clear `signature_` or we leave the object in an \"invalid\" state. (in quotes, but we should clean up our mess).\n\n`signature_` is a `Buffer`. What do you think about making changes to local variables and let them \"RIAA\" away on error and only move the local vars into the member vars at the bottom of the function on success? We can use the same technique in the other functions where I complained about leaving the object in \"messy\" states.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83512954"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:37:26Z",
+     "path": "src/ripple/conditions/rsa_sha256.h",
+     "body": "I don't think the `const_cast` is needed. We can safely remove it.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83513040"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:39:08Z",
+     "path": "src/ripple/conditions/rsa_sha256.h",
+     "body": "Cleanup state.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83513174"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:42:19Z",
+     "path": "src/test/conditions/rsa_sha256_test.cpp",
+     "body": "Add `Msg` suffix? I know I'm going to get pushback, so I'll add a rational: `Slice` doesn't tell us what this data is (unlike the variable `f`, the type tells me it's a `fulfillment`, I don't need further clarification). We have two types of data we pass around: payloads and messages. I'd like a suffix that let's me easily see what this is meant to be.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83513457"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-14T22:43:18Z",
+     "path": "src/test/conditions/rsa_sha256_test.cpp",
+     "body": "Very nice use of permutation. You even have repeated values in `test` so you get more correct conditions. I like it.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83513552"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:23:31Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83548832"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:23:59Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "I'll leave it as is for right now, since we're planning on migrating to strictly fixed-sized conditions.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83548837"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:24:45Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "The check can be stricter - `prefix` and `threshold` need to use `&`, but the rest can be `==`. Will fix.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83548852"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:24:51Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83548853"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:25:01Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "Adopted",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83548856"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:26:44Z",
+     "path": "src/ripple/conditions/impl/condition.cpp",
+     "body": "I thought using iterators would make it cleaner. These all will have to migrate to more boost.asio like types (DynamicBuffer, ConstBuffer, etc)",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83548876"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:27:10Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83548879"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:28:14Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "This function was removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83548891"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:31:33Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "Nice catch. Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83548935"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:56:07Z",
+     "path": "src/ripple/conditions/impl/utils.h",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83549328"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:56:26Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83549335"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:58:00Z",
+     "path": "src/test/conditions/hashlock_test.cpp",
+     "body": "I'm confused. Are you talking about terminology?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83549373"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:58:47Z",
+     "path": "src/ripple/conditions/prefix_sha256.h",
+     "body": "Left-over from debugging. Removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83549386"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:58:59Z",
+     "path": "src/ripple/conditions/prefix_sha256.h",
+     "body": "It won't. Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83549389"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T10:59:26Z",
+     "path": "src/ripple/conditions/prefix_sha256.h",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83549398"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T11:01:37Z",
+     "path": "src/test/conditions/prefix_sha256_test.cpp",
+     "body": "Good idea. Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83549429"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-16T11:39:33Z",
+     "path": "src/ripple/conditions/rsa_sha256.h",
+     "body": "Unfortunately, it is. The documentation for `BIO_new_mem_buf` suggests that the function accepts a `void const*`, but it requires a `void*` on two of my machines.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83549883"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-16T23:22:48Z",
+     "path": "src/test/conditions/hashlock_test.cpp",
+     "body": "On line 77, we're using the `payload` parameter as a message. On line 79, we're using the `payload` parameter as the actual payload. Payloads and messages are distinct things, and especially for hashlocks it's easy to get confused. We know the hashlock will validate with any message (including the payload), but it's easy mistake to expect the message to be the preimage, and using the preimage as the message on line 77 reinforces that confusion.\n\nI'd suggest line 77 should use a different non-empty message to check that it validates",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83563151"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-17T14:33:49Z",
+     "path": "src/ripple/conditions/Condition.h",
+     "body": "For `prefix_sha256` we need to check that we support every bit that's set in `featureBitmask`. Just checking `c.featureBitmask < 64` should work.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83656404"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-17T14:34:56Z",
+     "path": "src/ripple/conditions/PrefixSha256.h",
+     "body": "Comment is misleading; This is the payload, not the message.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83656673"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-17T14:36:41Z",
+     "path": "src/ripple/conditions/PreimageSha256.h",
+     "body": "Nit: remove `public:` (or make the struct a class).",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83657068"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-17T14:38:13Z",
+     "path": "src/ripple/conditions/RsaSha256.h",
+     "body": "Cleanup state (`signature_` member variable was changed).",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83657441"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-17T14:39:05Z",
+     "path": "src/ripple/conditions/RsaSha256.h",
+     "body": "Cleanup state (`modulus_` member var was changed)",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83657672"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-17T14:42:03Z",
+     "path": "src/ripple/conditions/impl/Condition.cpp",
+     "body": "There's a potential bug here. Consider what happens when the decoded fingerprint is only 16 bytes. The first 16 bytes will be filled, and the last 16 bytes will be left as-is, and no error will be detected. We need to check that exactly `c.fingerprint.size()` was loaded into the fingerprint.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83658385"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-17T14:45:18Z",
+     "path": "src/test/conditions/Ed25519_test.cpp",
+     "body": "This is the message, not the payload.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83659086"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-17T14:47:09Z",
+     "path": "src/test/conditions/PrefixSha256_test.cpp",
+     "body": "Should test a fulfillment with a different prefix is rejected.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83659502"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-17T14:59:00Z",
+     "path": "src/test/conditions/PrefixSha256_test.cpp",
+     "body": "All of the tests that have a non-empty \"good\" message use preimage as a subcondition, and the message doesn't matter for preimage. The signing subcondition tests all use empty messages. We should add a signing subcondition test where the initial message is not empty.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83662232"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-17T15:01:18Z",
+     "path": "src/test/conditions/RsaSha256_test.cpp",
+     "body": "Need `{{` to initialize `std::array` or clang will issue a warning.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83662753"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-17T15:15:32Z",
+     "path": "src/test/conditions/PreimageSha256_test.cpp",
+     "body": "This `payload` parameter is used as both a payload and a message. There should be separate parameters for payload and message (or define a local variable for a non-empty message if you don't want to pass it in)",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83665931"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-17T23:55:52Z",
+     "path": "src/ripple/conditions/Condition.h",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83759233"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T00:18:47Z",
+     "path": "src/ripple/conditions/PrefixSha256.h",
+     "body": "The misleading comment has been removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83761510"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T00:19:55Z",
+     "path": "src/ripple/conditions/impl/Condition.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83761613"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T00:35:26Z",
+     "path": "src/ripple/conditions/PreimageSha256.h",
+     "body": "I've made them all into classes",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83763175"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T00:35:55Z",
+     "path": "src/ripple/conditions/RsaSha256.h",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83763222"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T00:37:29Z",
+     "path": "src/test/conditions/Ed25519_test.cpp",
+     "body": "Agreed.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83763349"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T03:41:23Z",
+     "path": "src/test/conditions/PrefixSha256_test.cpp",
+     "body": "Done - with tests for Preimage and Ed25519, exhibiting the difference in behavior.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83777194"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T03:42:16Z",
+     "path": "src/test/conditions/PrefixSha256_test.cpp",
+     "body": "Done",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83777258"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T03:42:39Z",
+     "path": "src/test/conditions/RsaSha256_test.cpp",
+     "body": "Done",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83777285"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T03:43:56Z",
+     "path": "src/test/conditions/PreimageSha256_test.cpp",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83777349"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-18T13:47:01Z",
+     "path": "src/ripple/conditions/PrefixSha256.h",
+     "body": "Bikeshed: This class is call `PrefixSha256`, but it doesn't use a hash function itself, and even the subcondition is unlikely to use a hash (while  preimage is allowed, it's pretty useless as a subcondtion to prefix).\n\nMaybe just call it `Prefix` or `PrefixMsg`?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83856931"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-18T13:56:09Z",
+     "path": "src/ripple/conditions/PrefixSha256.h",
+     "body": "Does anything stop someone from creating a payload where the length decodes to, say 2GB and the payload itself is only 100 bytes? If not such a message would likely crash us.\n\nWe should check that we're never reading beyond the end of the slice.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83859040"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-18T13:58:28Z",
+     "path": "src/ripple/conditions/RsaSha256.h",
+     "body": "This check isn't needed.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83859499"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-18T14:00:57Z",
+     "path": "src/ripple/conditions/RsaSha256.h",
+     "body": "`len` is untrused. We need to verify that we aren't reading beyond the end of the slice or someone can create a payload that will crash us.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83860039"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-18T14:01:47Z",
+     "path": "src/ripple/conditions/RsaSha256.h",
+     "body": "Same as above: Check that we are not reading beyond the end of the slice.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83860242"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-18T14:02:28Z",
+     "path": "src/ripple/conditions/RsaSha256.h",
+     "body": "Cleanup changed member vars",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83860377"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-18T14:02:48Z",
+     "path": "src/ripple/conditions/RsaSha256.h",
+     "body": "Cleanup changed member vars",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83860442"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-18T14:02:59Z",
+     "path": "src/ripple/conditions/RsaSha256.h",
+     "body": "Cleanup changed member vars",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83860482"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-18T14:04:52Z",
+     "path": "src/ripple/conditions/impl/Condition.cpp",
+     "body": "Need to check that len will stay within the slice",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83860864"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-18T14:06:29Z",
+     "path": "src/ripple/conditions/impl/Fulfillment.cpp",
+     "body": "Need to check that `len` won't go beyond the end of the slice",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83861244"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-10-18T14:09:39Z",
+     "path": "src/test/conditions/PrefixSha256_test.cpp",
+     "body": "We need a test that validates with a signing subcondition and a non-empty initial message (you said you added one, did I miss it?)",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83861933"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T14:59:29Z",
+     "path": "src/ripple/conditions/RsaSha256.h",
+     "body": "Hmm?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83874107"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T14:59:32Z",
+     "path": "src/ripple/conditions/RsaSha256.h",
+     "body": "Hmm?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83874125"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T15:04:33Z",
+     "path": "src/ripple/conditions/PrefixSha256.h",
+     "body": "Good catch - I'll add code to detect with, and unit tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83875569"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-10-18T15:07:20Z",
+     "path": "src/test/conditions/PrefixSha256_test.cpp",
+     "body": "What about the tests on 150-188?",
+     "url": "https://github.com/XRPLF/rippled/pull/1872#discussion_r83876269"
+    }
+   ]
+  },
+  {
+   "number": 1779,
+   "title": "Cryptoconditions (PREIMAGE-SHA-256 & ED25519)",
+   "url": "https://github.com/XRPLF/rippled/pull/1779",
+   "state": "closed",
+   "author": "nbougalis",
+   "createdAt": "2016-07-18T09:44:47Z",
+   "updatedAt": "2016-07-21T16:33:42Z",
+   "closedAt": "2016-07-21T16:33:42Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "seelabs",
+     "date": "2016-07-20T18:24:30Z",
+     "body": "@nbougalis You can cherry pick this to fix the non-unity build. It also fixes a warning from clang (it's a bogus warning, but I want to silence it anyway): https://github.com/seelabs/rippled/commit/c86122eaaca0e41155f5709b487a844199b4a927",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#issuecomment-234037135"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-07-21T16:33:42Z",
+     "body": "I'm going to close this to address the issues @seelabs identifies and finish the binary OER encoding, then reopen. Thanks.",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#issuecomment-234309809"
+    }
+   ],
+   "body": "Cryptoconditions provide a mechanism to describe a signed message such that multiple actors in a distributed system can all verify the same signed message and agree on whether it matches the description. This provides a useful primitive for event-based systems that are distributed on the Internet since we can describe events in a standard deterministic manner (represented by signed messages) and therefore define generic authenticated event handlers.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "nbougalis:cc",
+   "additions": 1814,
+   "deletions": 0,
+   "changedFiles": 16,
+   "commits": 4,
+   "reviewComments": 20,
+   "reviews": [],
+   "reviewCommentsList": [
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:31:50Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "Type names and variable names don't follow ripple coding standards. I understand this was going to be a stand-alone lib, hence the style conflict.",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71728684"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:32:43Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "This is `max_fulfillment_length`. Rename?",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71728841"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:33:47Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "What do you think about:\n\n```\n    switch (c.type)\n    {\n        case condition_hashlock:\n        case condition_prefix_sha256:\n        case condition_threshold_sha256:\n        case condition_rsa_sha256:\n        case condition_ed25519:\n            break;\n        default:\n            Throw<std::logic_error>(\"Unknown fulfillment type\");\n    }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71729048"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:35:04Z",
+     "path": "src/ripple/conditions/ed25519.h",
+     "body": "`explicit`",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71729288"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:36:31Z",
+     "path": "src/ripple/conditions/fulfillment.h",
+     "body": "`std::string const&`",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71729575"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:38:55Z",
+     "path": "src/ripple/conditions/hashlock.h",
+     "body": "We tend to use `final` very sparingly. Unless this _needs_ to be `final` it probably fits in better with rippled if we remove the keyword.",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71730047"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:40:35Z",
+     "path": "src/ripple/conditions/hashlock.h",
+     "body": "`std::vector<std::uint8_t> const&`",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71730362"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:43:58Z",
+     "path": "src/ripple/conditions/impl/condition.cpp",
+     "body": "We specify 16 hex digits for the feature bitmask, but we're putting it into a 32 bit number with no overflow check (line 62)",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71731101"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:45:39Z",
+     "path": "src/ripple/conditions/impl/condition.cpp",
+     "body": "Fulfillment length can be lg(10^18) ~= 60 bits long, and we're putting it into a 16 bit number with no overflow check.",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71731456"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:47:16Z",
+     "path": "src/ripple/conditions/impl/condition.cpp",
+     "body": "I _think_ all our platforms support `std::regex`. I'd prefer to use things from `std` before `boost`.",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71731763"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:48:49Z",
+     "path": "src/ripple/conditions/impl/condition.cpp",
+     "body": "Hexadecimal digits can't be capitalized? i.e. `FF` is invalid?",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71732053"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:51:10Z",
+     "path": "src/ripple/conditions/impl/condition.cpp",
+     "body": "You might be able to use the `[:xdigit:]` character class here (would have to check about case sensitivity and which `std::regex` grammars supports it.",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71732518"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:54:52Z",
+     "path": "src/ripple/conditions/impl/condition.cpp",
+     "body": "Is it worth optimizing this to reduce memory allocations? We could reserve in a result string up front and then `operator+=` or `append` into it.",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71733220"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:55:36Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "`std::string const&`",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71733370"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:58:12Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "Payload can be empty?",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71733924"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T15:58:59Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "Same comment as the other regex: Use `std::regex`, maybe use `[:xdigit:]`.",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71734082"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-07-21T16:23:17Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "I don't follow?",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71738296"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-07-21T16:30:51Z",
+     "path": "src/ripple/conditions/impl/condition.cpp",
+     "body": "Yes: this will be optimized.",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71739579"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2016-07-21T16:32:43Z",
+     "path": "src/ripple/conditions/impl/fulfillment.cpp",
+     "body": "Yes, see _inter alia_, https://github.com/nbougalis/rippled/blob/64d3d08ec2886aed4aeb2a0bc8f2f85dfdb32759/src/ripple/conditions/tests/hashlock_test.cpp#L71-L73",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71739873"
+    },
+    {
+     "author": "seelabs",
+     "date": "2016-07-21T16:44:48Z",
+     "path": "src/ripple/conditions/condition.h",
+     "body": "I thought the field was the maximum length of a fullfillment. I.e. \"reject any fullfillment greater than this\", not \"reject any fulfillment not equal to this\". Did I misunderstand the point of this member?",
+     "url": "https://github.com/XRPLF/rippled/pull/1779#discussion_r71742007"
+    }
+   ]
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}

@@ -1,0 +1,2508 @@
+{
+ "name": "PermissionDelegationV1_1",
+ "fetchedAt": "2026-09-16T10:46:58.271Z",
+ "summary": {
+  "status": "merged",
+  "prs": 4,
+  "open": 0,
+  "merged": 4,
+  "issues": 0,
+  "proposals": 0,
+  "branches": [],
+  "lastActivity": "2026-06-09T03:37:16Z",
+  "lastMerged": "2025-09-18T18:59:11Z",
+  "totalComments": 364
+ },
+ "release": {},
+ "prs": [
+  {
+   "number": 5354,
+   "title": "Support PermissionDelegation Amendment XLS-74d XLS-75d",
+   "url": "https://github.com/XRPLF/rippled/pull/5354",
+   "state": "closed",
+   "author": "yinyiqian1",
+   "createdAt": "2025-03-19T06:19:33Z",
+   "updatedAt": "2026-06-09T03:37:16Z",
+   "closedAt": "2025-05-08T10:14:02Z",
+   "labels": [
+    "Ready to merge",
+    "API Change",
+    "Amendment",
+    "Clio Reviewed"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-03-19T16:18:14Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5354?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAttention: Patch coverage is `99.55157%` with `2 lines` in your changes missing coverage. Please review.\n> Project coverage is 78.3%. Comparing base [(`9ec2d7f`)](https://app.codecov.io/gh/XRPLF/rippled/commit/9ec2d7f8ffe0a50bdfa1d8d9b97688a9347eb83f?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`3839f1f`)](https://app.codecov.io/gh/XRPLF/rippled/commit/3839f1fe3f34c7fb70e3a324cf4c6ed201249b48?dropdown=cover",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#issuecomment-2737263147"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T17:08:22Z",
+     "body": "Also, I propose that we shouldn't need to squash commits. Commits makes it easier for the reviewers to keep track of the changes, and they will all be squashed in the end anyways. Also, the audit relies on a particular commit hash, so it's best to keep the commit history as authentic as possible.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#issuecomment-2741140604"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-21T15:01:00Z",
+     "body": "@yinyiqian1 Deserialization of STUint32 to JSON is missing in STInteger.cpp. `STUInt32::getJson(JsonOptions) `should be updated. you would basically need to reverse what you did in STParsedJSON, - decrement by one if it's a transaction permission. We should add some unit tests later to test the JSON response to ensure it's correct",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#issuecomment-2743641267"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T17:00:04Z",
+     "body": "> @yinyiqian1 Deserialization of STUint32 to JSON is missing in STInteger.cpp. `STUInt32::getJson(JsonOptions) `should be updated. you would basically need to reverse what you did in STParsedJSON, - decrement by one if it's a transaction permission. We should add some unit tests later to test the JSON response to ensure it's correct\n\nupdated",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#issuecomment-2743946332"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-03-21T19:03:55Z",
+     "body": "> Also, I propose that we shouldn't need to squash commits. Commits makes it easier for the reviewers to keep track of the changes, and they will all be squashed in the end anyways. Also, the audit relies on a particular commit hash, so it's best to keep the commit history as authentic as possible.\n\nThis is documented in our [contributing guidelines](https://github.com/XRPLF/rippled/blob/develop/CONTRIBUTING.md#pull-requests).",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#issuecomment-2744225888"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-04-10T13:52:04Z",
+     "body": "I got compile error when building with unity on. Non unity build compiles fine.\n\nCould you also please fix a couple of unused variable warning as well?\n\nOne is in protocol/Permissions.cpp:76. Just add `[[maybe_unused]]`. Second is app/tx/detail/InvariantCheck.cpp. Can add `(void)enforce;` for this one.\n\n/Users/user/Work/Projects/rippled-acct-prms/src/test/app/SetRegularKey_test.cpp:64:27: error: reference to 'disabled' is ambiguous\n   64 |         env(regkey(alice, disabled));\n      |                           ^\n/Users/user/Work/Projects/rippled-acct-prms/build/modules/xrpl.libxrpl.protocol/xrpl/protocol/Permissions.h:50:29: note: candidate found by name lookup is 'ripple::disabled'\n   50 | ",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#issuecomment-2793272028"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-04-10T15:42:35Z",
+     "body": "@gregtatcam \n> I got compile error when building with unity on. Non unity build compiles fine.\n> \n> Could you also please fix a couple of unused variable warning as well?\n> \n> One is in protocol/Permissions.cpp:76. Just add `[[maybe_unused]]`. Second is app/tx/detail/InvariantCheck.cpp. Can add `(void)enforce;` for this one.\n> \nupdated",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#issuecomment-2794295347"
+    }
+   ],
+   "body": "spec:\nhttps://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0074d-account-permissions\nhttps://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0075d-permission-delegation\n\nThis amendment is called `PermissionDelegation`\n\n1. `DelegateSet` transaction is added so that a delegating account can give permission to delegated account to send transaction on his behalf.\n```\n{\n    TransactionType: \"DelegateSet\",\n    Account: \"rDelegating......\",\n    Authorize: \"rDelegated......\",\n    Permissions: [{Permission: {PermissionValue: \"Payment\"}}],\n}\n```\n2. Ledger object `Delegate` is created, its keylet is hashed from delegating and delegated account.\n\n3. optional common field `Delegate` is added, to indic",
+   "merged": true,
+   "mergedAt": "2025-05-08T10:14:02Z",
+   "draft": false,
+   "base": "develop",
+   "head": "yinyiqian1:account_permission_new",
+   "additions": 2976,
+   "deletions": 91,
+   "changedFiles": 49,
+   "commits": 26,
+   "reviewComments": 113,
+   "reviews": [
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2025-03-19T16:00:33Z",
+     "body": "Preliminary partial review. I know you're still working on this, but a few things jumped out at me, and I wanted to bring them to your attention before you go down a problematic path."
+    },
+    {
+     "author": "ximinez",
+     "state": "DISMISSED",
+     "date": "2025-03-19T16:06:18Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-03-19T16:14:11Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-20T14:51:40Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-20T14:51:46Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-20T14:56:52Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-20T15:37:51Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-20T17:03:28Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-20T17:21:04Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-20T17:22:37Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-03-20T17:24:55Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-03-20T17:29:13Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-20T18:33:50Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-20T18:47:54Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-03-20T19:02:25Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-20T19:17:57Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-20T19:28:52Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-03-20T19:36:28Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-20T21:31:41Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-20T21:31:53Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-20T21:32:00Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-20T21:32:12Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-20T22:09:47Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-03-20T22:21:22Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T04:53:33Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T04:53:59Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T04:54:08Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T04:54:53Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T04:55:40Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T05:22:43Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T05:34:28Z",
+     "body": ""
+    },
+    {
+     "author": "kuznetsss",
+     "state": "COMMENTED",
+     "date": "2025-03-21T12:02:11Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-21T13:10:41Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-21T13:15:15Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-21T13:16:06Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-21T13:16:35Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T14:28:38Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-03-21T14:29:07Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T14:38:19Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-03-21T15:30:02Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T16:45:19Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-21T17:10:57Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T17:25:44Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T17:58:15Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-03-21T18:02:51Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-03-21T18:32:48Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T18:50:23Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-21T20:26:18Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T21:33:22Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-21T21:42:57Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-24T15:30:30Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-24T15:35:03Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-24T15:38:26Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-24T15:41:53Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-24T15:43:54Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-24T15:50:08Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-24T17:54:39Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-24T17:58:09Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-24T18:06:51Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-24T18:07:45Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-24T18:25:15Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-03-24T19:03:21Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-03-24T19:04:47Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-24T19:33:07Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-03-24T20:35:13Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-03-25T15:35:02Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-03-25T16:08:36Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2025-03-26T18:22:48Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-03-26T20:22:51Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-03-26T21:02:02Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-03-26T21:32:21Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-04-02T17:27:36Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-04-02T17:28:26Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-04-02T18:07:15Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-04-02T18:40:31Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-04-03T17:24:13Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2025-04-10T19:30:19Z",
+     "body": "👍 LGTM\n\nI have a few minor comments for your consideration,"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-04-11T17:00:09Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-04-11T17:53:34Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-04-11T18:13:57Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-04-11T18:30:10Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-05-07T18:50:05Z",
+     "body": "It looks like all my concerns have been addressed. I have not reviewed the whole PR, so I can not \"approve\", but I will dismiss my stale change request review."
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2025-05-20T09:58:54Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-05-20T15:32:09Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-05-20T15:42:07Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-05-20T16:23:26Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-05-20T16:32:02Z",
+     "body": ""
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2025-05-21T01:33:13Z",
+     "body": ""
+    },
+    {
+     "author": "tequdev",
+     "state": "COMMENTED",
+     "date": "2025-05-21T01:39:55Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ximinez",
+     "date": "2025-03-19T15:10:17Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "Suggestion: Return `tesSUCCESS` here and in all the overrides, and remove the check for the presence of the field in the caller. That makes the caller simpler, but also gives more flexibility and only requires changing in one place if this check needs to be expanded in the future. I can't imagine any scenarios at the moment, but that doesn't mean it won't happen.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2003586428"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-03-19T15:23:06Z",
+     "path": "src/libxrpl/protocol/STParsedJSON.cpp",
+     "body": "I am not a fan of modifying the transaction type with a hard coded magic number.\n\nWhat is the problem with '0'? I haven't seen anything yet that makes '0' special or illegal. If not, then just use the unmodified value.\n\nIf there is a problem with '0', then use a new (static) modifier function in `Permissions`. e.g. `TypeToPermission(TxType type)`. All it needs to do is add 1, but this has the advantage of making it clear what's going on and why.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2003620932"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-03-19T15:28:07Z",
+     "path": "src/libxrpl/protocol/STParsedJSON.cpp",
+     "body": "I don't like the `true` case being separated from the check by more than one or two lines of logic like it is here. Instead do:\n```\nif (granularPermission)\n{\n    ret = detail::make_stvar<STUInt32>(\n        field, *granularPermission);\n}\nelse\n{\n    [...The transaction type lookup...]\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2003631029"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-03-19T15:56:54Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "I predict this list is going to get overlooked / forgotten _a lot_. I suggest reorganizing this to remove `isProhibited` and handle the check in the `Transactors`. Calling such a function directly from `STParsedJSON` would break all kinds of levelization / dependency rules, so here's what I suggest:\n1. In `STParsedJSON`, don't check `isProhibited` at all. Just parse to the (modified) `TxType`.\n2. Rename `Transactor::checkPermission` to `Transactor::checkPermissionBase`.\n3. *Do not define `Transactor::checkPermission`.*\n4. Now any `Transactor`-derived class that does not define `checkPermission` will fail to compile, including new ones added in the future.\n\nFor supported transaction types, de",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2003698141"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-03-19T15:58:33Z",
+     "path": "src/libxrpl/protocol/STParsedJSON.cpp",
+     "body": "This is the wrong place to check if a transaction is supported. Transactions that come in from peers are never `Json`, and thus are never parsed as such. Neither, I think, is a transaction submitted as a `tx_blob`. Just parse the `TxType` here and do the check in the `Transactor`s. (See my comment on `isProhibited`.)",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2003701110"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-03-19T16:03:28Z",
+     "path": "include/xrpl/protocol/Permissions.h",
+     "body": "Please note in this comment that they should all be greater than 2^16",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2003715643"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-03-19T16:04:10Z",
+     "path": "include/xrpl/protocol/Permissions.h",
+     "body": "Pretty sure this should work\n```suggestion\n    TrustlineFreeze,\n    TrustlineUnfreeze,\n    AccountDomainSet,\n    AccountEmailHashSet,\n    AccountMessageKeySet,\n    AccountTransferRateSet,\n    AccountTickSizeSet,\n    PaymentMint,\n    PaymentBurn,\n    MPTokenIssuanceLock,\n    MPTokenIssuanceUnlock,\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2003717130"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-03-19T16:06:12Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Very clever storing `GranularPermissionType` as `uint32` when the `TxType` is `uint16`, thus guaranteeing that we never have to worry about running out of `TxType` values. However, to guarantee that we don't have to worry about collisions, an extra check would be good, and this is probably the best place. Loop over both of these maps, and `XRPL_ASSERT` that the `GranularPermissionType` is larger than `uint16` max.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2003720868"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-03-19T16:09:56Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "This would be a bit easier to maintain if there was a macro for all of these instead of needing to add any granular permission in 3 places.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2003729328"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-03-19T16:13:52Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "Why is this excluded? You can write a test for this fairly easily.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2003739837"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T14:25:58Z",
+     "path": "src/xrpld/app/tx/detail/MPTokenIssuanceSet.cpp",
+     "body": "can create a helper function for this code block since the same logic is used in every transactor",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2005770966"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T14:47:27Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "is this necessary? `sfLimitAmount` is an optional field on TrustSet transaction, we should fail immediately if `sfLimitAmount` is  present. We don't need to explicitly check if the limits are equal.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2005819396"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-20T14:51:40Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "updated. Since I'm using macro now, so I just loop through `granularPermissionMap`",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2005828338"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-20T14:51:46Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2005828571"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T14:54:23Z",
+     "path": "include/xrpl/protocol/detail/permissions.macro",
+     "body": "```suggestion\n    Copyright (c) 2025 Ripple Labs Inc.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2005834248"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-20T14:56:52Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "@ximinez \nI moved this check to the `DelegateSet` transaction instead, if an account delegates any of these permissions to another account,  it will return `tecNO_PERMISSION`.\n\nBut I'm still hesitant to force `checkPermission` to be overridden in each class because all transactions need to be authorized by the delegating account through `DelegateSet` transaction before a delegated account can send delegating transactions.\n\nDo you have any opinions on this? @shawnxie999 @mvadari",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2005839332"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T15:37:08Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "```suggestion\n        jvResult[jss::error] = \"malformedAddress\";\n```\n\ncan use existing error message",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2005923653"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T15:37:14Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "```suggestion\n        jvResult[jss::error] = \"malformedAddress\";\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2005923841"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T17:03:28Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "nit: should be after credential since list is alphabetical",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006092218"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T17:20:55Z",
+     "path": "include/xrpl/protocol/Protocol.h",
+     "body": "```suggestion\nstd::size_t constexpr maxPermissionSize = 10;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006119823"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T17:22:12Z",
+     "path": "include/xrpl/protocol/detail/sfields.macro",
+     "body": "should align spacing",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006121826"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-03-20T17:24:55Z",
+     "path": "include/xrpl/protocol/detail/permissions.macro",
+     "body": "Given that the first and second ones should always match, you can simplify the macro a bit. If you want to use a macro variable as a string, just do `#VAR`",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006126261"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-03-20T17:29:13Z",
+     "path": "src/xrpld/app/tx/detail/DelegateSet.cpp",
+     "body": "I would prefer a basic test being written for this line rather than excluding it from codecov (it's easy to e.g. have a negative fee)",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006133870"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T18:28:59Z",
+     "path": "src/xrpld/app/tx/detail/SetAccount.cpp",
+     "body": "```suggestion\n    if (tx.isFieldPresent(sfWalletLocator) || tx.isFieldPresent(sfNFTokenMinter))\n```\n\nalthough not necessary since the user would need to set the minter flag, it would be good practice to still check  the NFTokenMinter",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006223633"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T18:47:54Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "I think this list should be updated with batch txn as well when the times comes, since I don't know whether it makes sense to delegate someone else to do a batch. what do you think @mvadari @dangell7",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006253806"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-03-20T19:02:25Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Agreed (though difficult to make it happen without waiting for one of the two PRs to merge first)",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006279360"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T19:17:57Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "i think we should use `tfTrustSetMask` instead. There will be new flags in the future and it's very easy to forget to add a check here. Something like:\n\n```\nauto const permissionMask = ~(~tfTrustSetMask & ~tfSetfAuth & ~tfSetFreeze & ~ tfClearFreeze);\nif (uTxFlags & permissionMask)\n   return tecNO_PERMISSION;\n```\n\nsame for other transactions if applicable",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006300963"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-20T19:28:52Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "(need to double check if these bitwise operations work as intended)",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006318080"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-03-20T19:36:27Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "I do agree that it should be prohibited but we should wait till batch is merged. Also if ed's comment was implemented it would need to be added in the transactor instead. I like that approach tbh.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006328601"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-20T21:31:40Z",
+     "path": "src/libxrpl/protocol/STParsedJSON.cpp",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006483597"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-20T21:31:53Z",
+     "path": "src/libxrpl/protocol/STParsedJSON.cpp",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006483798"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-20T21:32:00Z",
+     "path": "include/xrpl/protocol/Permissions.h",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006483951"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-20T21:32:12Z",
+     "path": "include/xrpl/protocol/Permissions.h",
+     "body": "changed to use macro",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006484179"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-20T22:09:47Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "`sleRippleState`is retrieved through `account` and  `LimitAmount`. When freezing a trustline, this field is present. But we don't want to fail in this case, unless the limit is also updated.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006528596"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-03-20T22:21:21Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "So use the flag. To freeze you have to include both the LimitAmount and the flag.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006541994"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T04:53:33Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "added in two steps to make it easier to understand. ( added in TxFlags)\n```\ntfSupportedGranularMask = tfSetfAuth | tfSetFreeze | tfClearFreeze;\ntfPermissionMask = (~tfTrustSetMask) & (~tfSupportedGranularMask);\n```\n\nalso added for MPTokenIssuanceSet although unreachable.\n(the other granular related transactions don't need)",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006847688"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T04:53:59Z",
+     "path": "src/xrpld/app/tx/detail/SetAccount.cpp",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006848997"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T04:54:08Z",
+     "path": "include/xrpl/protocol/detail/permissions.macro",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006849160"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T04:54:52Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006850862"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T04:55:40Z",
+     "path": "src/xrpld/app/tx/detail/MPTokenIssuanceSet.cpp",
+     "body": "updated, added `DelegateUtils`",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006852021"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T05:22:43Z",
+     "path": "src/xrpld/app/tx/detail/DelegateSet.cpp",
+     "body": "added",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006869567"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T05:34:28Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2006877924"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2025-03-21T11:57:18Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "I think there should be a check that `params[jss::account]` is a string before extracting it.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007442576"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2025-03-21T12:01:48Z",
+     "path": "src/xrpld/rpc/detail/TransactionSign.cpp",
+     "body": "Here also it should be checked that the field is a string. If the field is an object or array, an exception will be thrown.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007448219"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-21T13:10:41Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "I think allowing the account to change the limit is fine. Freeze is mostly used by the issuer in the real world, so the limit amount defined by the issuer won't really matter at all (since the balance can rarely ever go into the negatives)",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007552677"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-21T13:15:15Z",
+     "path": "src/xrpld/app/tx/detail/MPTokenIssuanceSet.cpp",
+     "body": "tfTrustSetPermissionMask is the wrong mask",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007559993"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-21T13:16:06Z",
+     "path": "include/xrpl/protocol/TxFlags.h",
+     "body": "```suggestion\nconstexpr std::uint32_t const tfMPTokenIssuanceSetPermissionMask = (~tfMPTokenIssuanceSetMask) & (~tfMPTokenIssuanceSetGranular);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007561236"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-21T13:16:35Z",
+     "path": "include/xrpl/protocol/TxFlags.h",
+     "body": "```suggestion\nconstexpr std::uint32_t const tfMPTokenIssuanceSetGranularMask = tfMPTLock | tfMPTUnlock;\n```\n\nthe flags are wrongly defined (incorrectly copy pasted :) )",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007561989"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T13:46:35Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "This and next line should be `auto const&`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007614412"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T13:47:40Z",
+     "path": "src/xrpld/app/tx/detail/SetAccount.cpp",
+     "body": "Typo: `on behalf`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007616227"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T14:00:40Z",
+     "path": "src/xrpld/app/tx/detail/SetAccount.cpp",
+     "body": "Shouldn't there be a call to `checkTxPermission()`?",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007644260"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T14:02:42Z",
+     "path": "src/xrpld/app/tx/detail/MPTokenIssuanceSet.cpp",
+     "body": "Lines 57-68 can be replaced with a call to `Transactor::checkPermission`. Same goes for `Payment`, `SetTrust`, and probably `SetAccount`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007651320"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T14:15:52Z",
+     "path": "src/test/jtx/delegate.h",
+     "body": "Isn't `std::vector` more efficient in this case?",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007682127"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T14:28:38Z",
+     "path": "include/xrpl/protocol/TxFlags.h",
+     "body": "ah, yes",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007707622"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T14:38:18Z",
+     "path": "src/xrpld/app/tx/detail/MPTokenIssuanceSet.cpp",
+     "body": "but still need to get the `sle` for the `loadGranularPermission` later in this function",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007725252"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T15:30:02Z",
+     "path": "src/xrpld/app/tx/detail/MPTokenIssuanceSet.cpp",
+     "body": "It's going to be cached by an earlier call so it's pretty fast access, right?",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007830798"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T16:45:19Z",
+     "path": "src/libxrpl/protocol/STParsedJSON.cpp",
+     "body": "@mvadari  can we avoid adding 1? Since 0 is not used anyway",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007957028"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-21T17:10:56Z",
+     "path": "src/libxrpl/protocol/STInteger.cpp",
+     "body": "should add a few tests for these. but feel free to do it later",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2007995688"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T17:25:44Z",
+     "path": "src/libxrpl/protocol/STInteger.cpp",
+     "body": "It's covered in the unit test. The change in the unit test is covering this part.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008016284"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T17:58:15Z",
+     "path": "src/xrpld/app/tx/detail/MPTokenIssuanceSet.cpp",
+     "body": "but lines 57-65 is still needed to get `sle`. the only change will be 67-68.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008067748"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-03-21T18:02:51Z",
+     "path": "src/xrpld/app/tx/detail/MPTokenIssuanceSet.cpp",
+     "body": "You can return a pair of TER and sle from `Transactor::checkPermission`. But maybe it's not worth it trying to dedup.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008076179"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-03-21T18:32:48Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "> @ximinez I moved this check to the `DelegateSet` transaction instead, if an account delegates any of these permissions to another account, it will return `tecNO_PERMISSION`.\n\nBrilliant!\n\n> But I'm still hesitant to force `checkPermission` to be overridden in each class because all transactions need to be authorized by the delegating account through `DelegateSet` transaction before a delegated account can send delegating transactions.\n\nYour solution removes the need to change `Transactor::checkPermission` at all.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008125465"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T18:50:23Z",
+     "path": "src/xrpld/app/tx/detail/MPTokenIssuanceSet.cpp",
+     "body": "maybe returning just TER is cleaner.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008152459"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-21T19:41:28Z",
+     "path": "src/test/app/Delegate_test.cpp",
+     "body": "maybe change the test name to something like \"testInvalidDelegateSet\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008224224"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-21T19:46:56Z",
+     "path": "src/test/app/Delegate_test.cpp",
+     "body": "should add another test where a delegate is specified on a txn but the amendment is disabled",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008235087"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-21T20:04:34Z",
+     "path": "src/test/app/Delegate_test.cpp",
+     "body": "```suggestion\n            auto const sendAmt = XRP(100);\n            auto const feeAmt = XRP(10);\n            env(pay(alice, carol, sendAmt), fee(feeAmt), delegate(bob));\n            env.close();\n            BEAST_EXPECT(env.balance(alice) == aliceBalance - sendAmt);\n            BEAST_EXPECT(env.balance(bob) == bobBalance - feeAmt);\n            BEAST_EXPECT(env.balance(carol) == carolBalance + sendAmt);\n```\n\nshould define variables",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008263651"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-21T20:08:33Z",
+     "path": "src/test/app/Delegate_test.cpp",
+     "body": "```suggestion\n        // use different initial amount to distinguish the source balance\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008268305"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-21T20:18:32Z",
+     "path": "src/test/app/Delegate_test.cpp",
+     "body": "should check setdeepfreeze and cleardeepfreeze as well",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008281312"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T21:33:22Z",
+     "path": "src/xrpld/app/tx/detail/SetAccount.cpp",
+     "body": "resolving this because it's discussed in another comment",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008358146"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-21T21:42:57Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "> So use the flag. To freeze you have to include both the LimitAmount and the flag.\nUser can specify flag and update limit at the same time, so we have to check explicitly if the `LimitAmount ` is changed or not. \n\n> I think allowing the account to change the limit is fine\nmaybe it's more careful and complete not to allow this. I can move the limit check after the flags check. And I can change to `if (!sleRippleState)`. So most likely this function returns already before checking the limit\n```\n auto const sleRippleState = view.read(keylet::line(\n        tx[sfAccount], saLimitAmount.getIssuer(), saLimitAmount.getCurrency()));\n if (!sleRippleState)\n        return tecNO_PERMISSION;\n// load gran",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2008370389"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-24T15:30:30Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "updated",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010416694"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-24T15:33:00Z",
+     "path": "src/test/app/Delegate_test.cpp",
+     "body": "```suggestion\n        // can not send delegating transaction when feature disabled\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010421449"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-24T15:35:03Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "added",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010425220"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-24T15:37:51Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "might as well add a check\n```\n        if (account_ == delegate)\n            Throw<std::logic_error>(\"Account is same as delegated account\");\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010430261"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-24T15:38:26Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "@dangell7 ed agrees not to force overridding the `checkPermission` function. Since it's checked on the `DelegateSet` level and  all transactions need to be authorized by the delegating account through DelegateSet transaction before a delegated account can send delegating transactions",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010431376"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-24T15:43:54Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "i'm fine with leaving as it is",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010441445"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-24T15:50:08Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "this will be unreachable. Because in `Transactor::checkPermission`, `sle` can never be found when account=delegate.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010454826"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-24T17:54:38Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "it's expected to be unreachable. altho not necessary, it'd be good to add defensive checks",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010676474"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-24T17:58:08Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "can also add a defensive check in `Transactor::Transactor(ApplyContext& ctx)` to throw a logic error if delegate exists but sfDelegate and  sfAccount are the same",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010682240"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-24T18:06:51Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "can we add this check before `result = T::checkPermission(ctx.view, ctx.tx);`?\nIf it is added before `checkPermission`, then I don't need to add it everywhere in `checkPermission` function",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010694395"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-24T18:07:45Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "if added at or before `checkPermission`, can we leave it out here",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010695486"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-24T18:25:15Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "sure",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010719647"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-03-24T19:03:21Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "Never throw on user input, particularly transaction data, unless it's unavoidable. There are mechanisms already in place to check and handle invalid user data. In this case, the standard behavior is to return `tefINTERNAL` or `tecINTERNAL` if a condition that should be impossible is encountered. Since this is in the function that pays the fee, `tefINTERNAL` is more appropriate.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010770705"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-03-24T19:04:47Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "> ```\n>         if (account_ == delegate)\n> ```\n\nAlso, if you haven't already, be sure to write a unit test covering this specific case.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010773790"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-24T19:33:07Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "there's another comment discussing moving this check before `check before result = T::checkPermission(ctx.view, ctx.tx);`\nSo the code in `applySteps.cpp` `invoke_preclaim` would be:\n\n```\nresult = T::checkFee(ctx, calculateBaseFee(ctx.view, ctx.tx));\n\nif (result != tesSUCCESS)\n        return result;\n\nif (ctx.tx.isFieldPresent(sfDelegate) && *ctx.tx[~sfDelegate] == ctx.tx[sfAccount])\n       return tefINTERNAL;\n\nresult = T::checkPermission(ctx.view, ctx.tx);\n\nif (result != tesSUCCESS)\n        return result;\n...\n```\n\nor maybe add it one level up in `applySteps.cpp`'s `preclaim` or even earlier in `preflight`?",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010811135"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-03-24T20:35:12Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "Yeah, `preclaim` is supposed to be limited to checks that need the ledger. Since you're only looking at the transaction fields, the check should be in `preflight`. Specifically, `preflight1`, which would return a `tem` result indicating the transaction is malformed. Probably `temBAD_SIGNER`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2010888968"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-03-25T15:35:02Z",
+     "path": "src/libxrpl/protocol/STParsedJSON.cpp",
+     "body": "added `txToPermissionType` and `permissionToTxType` in Permission class",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2012387531"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-03-25T16:08:35Z",
+     "path": "src/xrpld/app/tx/detail/Transactor.cpp",
+     "body": "```suggestion\n        if (ctx.tx[sfDelegate] == ctx.tx[sfAccount])\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2012453455"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-03-26T19:12:34Z",
+     "path": "src/test/jtx/impl/delegate.cpp",
+     "body": "nit: I would rather see the name of the file as the namespace and then the transaction type \"action\" as the function name.\n\nEx: `delegate::set()` && `delegate::entry()`\n\nAlso I would move the function from the TestHelpers.h file into here as I am passively attempting to remove that file. It's very intuitive to look for transaction testing utils in their respective namspace/file location rather than an agnostic \"TestHelper\" file. Up until recently that file didn't include anything transaction specific.   \n\nSo for adding the delegate to a transaction type you could do:\n\nEx: `delegate::as()` although `delegate(bob)` is very nice too.\n\nJust suggestions",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2014845630"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-03-26T20:20:11Z",
+     "path": "src/xrpld/app/tx/detail/DelegateSet.cpp",
+     "body": "You can just directly attempt to insert and handle the failure.. You're actually traversing the permissionSet 2 times here; once to check and again to insert.\n\n```suggestion\n        if (!permissionSet.insert(permissionValue).second)\n            return temMALFORMED;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2014943271"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-03-26T20:46:10Z",
+     "path": "src/xrpld/app/misc/detail/DelegateUtils.cpp",
+     "body": "You check the sle everywhere else before this call. I do like the defensive programming but everywhere else you return `tecNO_PERMISSION` if the ledger entry does not exist. Should this also be tecNO_PERMISSION? An untested `tesSUCCESS` path seems like an unnecessary risky imo",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2014974540"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-03-26T21:32:17Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "You fall through to `tecNO_PERMISSION` on some transactors and `tesSUCCESS` on others. \n\nIf possible it would be helpful if you chose one or the other so that we can have consistency.\n\nFurthermore, I believe if you flip this to fall through to tecNO_PERMISSION, which I would recommend, you don't actually need to get the trustline ledger entry or do any of those other checks.\n\nBasically I would write it so that everything else fails, except what you give granular permission to. Rather than everything succeeds except what you check for not having permissions for. The latter is much more prone to error imo.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2015026984"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-04-02T17:27:36Z",
+     "path": "src/xrpld/app/tx/detail/DelegateSet.cpp",
+     "body": "Since the `permissionSet` is of type `std::unordered_set<std::uint32_t>`, it uses hash to find element instead of traversing. The time complexity will be O(1) unless the set is too large and there's hash collisions. But I'm ok with letting `insert` to determine if it exists, which is more efficient.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2025282240"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-04-02T17:28:26Z",
+     "path": "src/test/jtx/impl/delegate.cpp",
+     "body": "to change the namespace to delegate, I also have to apply `delegate::as()` to avoid a redefinition of `delegate`. So I'll apply both naming change",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2025283371"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-04-02T18:07:15Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "Checking granular permissions depends on the implementation details of the transaction. This transaction allows multiple properties of a trustline to be set within a single transaction.\n\nFor instance, if a delegated account has the granular permission to freeze a trustline (`TrustlineFreeze`) but not to unfreeze it (`TrustlineUnfreeze`), we can determine that if the unfreeze flag is set, the transaction should return tecNO_PERMISSION.\nHowever, we cannot determine that setting the freeze flag returns tecSUCCESS, as it may also set other unauthorized flags or modify the trustline's limit, which is not permitted.\n\nOn the other hand, if a transaction only allows one action at a time, meaning the",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2025345272"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-04-02T18:40:31Z",
+     "path": "src/xrpld/app/tx/detail/SetTrust.cpp",
+     "body": "Ok thanks for the explanation",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2025393496"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-04-03T17:24:13Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "I got some suggestion from the security audit that I should use whitelist for the supported transactions, which is safer. I added enum `delegatable {enabled, disabled}` and put it in the `transactions.macro`. These safety sensitive transactions are `delegatable::disabled`. And the system-generated transaction types are disabled as well. For newly added transactions in the future, developers can choose to disable delegation through `transactions.macro`",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2027450833"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-04-10T15:02:42Z",
+     "path": "include/xrpl/protocol/jss.h",
+     "body": "This is no longer required. `SField` has an implicit cast operator to `Json::StaticString`. Therefore you can use `sf*` field anywhere `Json::StaticString` is expected.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2037638542"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-04-10T16:24:45Z",
+     "path": "include/xrpl/protocol/Permissions.h",
+     "body": "A common naming convention that we use for a class data member is to have `_` postfix, for instance `delegetableTx_`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2037803960"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-04-10T17:16:33Z",
+     "path": "src/xrpld/app/tx/detail/MPTokenIssuanceSet.cpp",
+     "body": "Shouldn't this be checked in `preflight`?",
+     "url": "https://github.com/XRPLF/rippled/pull/5354#discussion_r2037907669"
+    }
+   ]
+  },
+  {
+   "number": 5805,
+   "title": "Mark `PermissionDelegation` as unsupported, for 2.6.1-rc2",
+   "url": "https://github.com/XRPLF/rippled/pull/5805",
+   "state": "closed",
+   "author": "Bronek",
+   "createdAt": "2025-09-18T17:24:24Z",
+   "updatedAt": "2026-02-06T16:41:37Z",
+   "closedAt": "2025-09-18T18:59:11Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-09-18T17:54:11Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5805?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.8%. Comparing base ([`8d01f35`](https://app.codecov.io/gh/XRPLF/rippled/commit/8d01f35eb9c516aab4c93a0288f8d599370501af?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`c46888f`](https://app.codecov.io/gh/XRPLF/rippled/commit/c46888f8f7d8ed06a30407863e07ede8a6a94425?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5805#issuecomment-3308814102"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n`PermissionDelegation` amendment requires more work, so we mark it as \"unsupported\" for now.\n\nThis release candidate is merging to the *`release`* branch.\n\n**This PR must be merged manually using a push. Do not use the Github UI.**\n\n\n### Type of Change\n\n\n\n- [x] Bug fix (non-breaking change which fixes an issue)",
+   "merged": true,
+   "mergedAt": "2025-09-18T18:59:11Z",
+   "draft": false,
+   "base": "release",
+   "head": "XRPLF:Bronek/disable_PermissionDelegation",
+   "additions": 2,
+   "deletions": 2,
+   "changedFiles": 2,
+   "commits": 2,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "yinyiqian1",
+     "state": "APPROVED",
+     "date": "2025-09-18T17:27:23Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2025-09-18T17:30:00Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2025-09-18T17:38:19Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 5650,
+   "title": "fix PermissionDelegation: fixDelegateV1_1",
+   "url": "https://github.com/XRPLF/rippled/pull/5650",
+   "state": "closed",
+   "author": "yinyiqian1",
+   "createdAt": "2025-08-05T17:24:07Z",
+   "updatedAt": "2026-02-06T16:41:31Z",
+   "closedAt": "2025-09-10T17:47:33Z",
+   "labels": [
+    "Ready to merge",
+    "Amendment"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-08-05T19:30:12Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5650?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 78.8%. Comparing base ([`3d92375`](https://app.codecov.io/gh/XRPLF/rippled/commit/3d92375d127acb61ca7b931d561e5cca7762cabf?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`cf9d38e`](https://app.codecov.io/gh/XRPLF/rippled/commit/cf9d38e5727c42c83740d5c1c42610f55b6ca0ce?dropdown=coverage&el=desc&utm",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#issuecomment-3156335164"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-11T13:14:54Z",
+     "body": "Some unit-tests fail with UNIT_TEST_REFERENCE_FEE=200.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#issuecomment-3174789554"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-09-10T17:14:53Z",
+     "body": "Commit message:\n> fix: Add restrictions to Permission Delegation: fixDelegateV1_1 (#5650)\n>\n> - Amendment: fixDelegateV1_1\n> - In DelegateSet, disallow invalid PermissionValues like 0, and transaction values when the transaction's amendment is not enabled. Acts as if the transaction doesn't exist, which is the same thing older versions without the amendment will do.\n> - Payment burn/mint should disallow DEX currency exchange.\n> - Support MPT for Payment burn/mint.\n\n@yinyiqian1 Let me know if anything needs to be updated, before this PR merges.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#issuecomment-3275810453"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-09-10T17:19:30Z",
+     "body": "> Commit message:\n> \n> > fix: Add restrictions to Permission Delegation: fixDelegateV1_1 (#5650)\n> > \n> > * Amendment: fixDelegateV1_1\n> > * In DelegateSet, disallow invalid PermissionValues like 0, and transaction values when the transaction's amendment is not enabled. Acts as if the transaction doesn't exist, which is the same thing older versions without the amendment will do.\n> > * Payment burn/mint should disallow DEX currency exchange.\n> > * Support MPT for Payment burn/mint.\n> \n> @yinyiqian1 Let me know if anything needs to be updated, before this PR merges.\n\nThe commit message looks good.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#issuecomment-3275825629"
+    }
+   ],
+   "body": "1.  disallow invalid PermissionValue like 0. \n\n2. disallow delegateSet permissions not enabled. (when transaction's amendment is not enabled, that transaction can not be delegated)\n\n3.  Payment burn/mint should disallow DEX currency exchange.\n\n4.  Support MPT for Payment burn/mint.\n\n\n\n## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in ",
+   "merged": true,
+   "mergedAt": "2025-09-10T17:47:33Z",
+   "draft": false,
+   "base": "develop",
+   "head": "yinyiqian1:fix_delegate",
+   "additions": 732,
+   "deletions": 102,
+   "changedFiles": 12,
+   "commits": 23,
+   "reviewComments": 82,
+   "reviews": [
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-11T15:47:14Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-11T17:39:25Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-11T17:58:01Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-11T18:06:00Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-11T18:06:42Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-11T18:15:13Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-11T18:24:55Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-11T18:41:49Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-11T18:43:09Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-11T18:49:11Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-12T15:47:56Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-08-12T15:54:17Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-12T15:59:35Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-08-12T16:02:39Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-12T16:29:19Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-08-12T16:50:42Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-12T16:51:03Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-12T17:01:09Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2025-08-12T17:07:05Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-12T17:39:36Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-12T18:52:28Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-12T20:26:30Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-12T20:53:53Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-12T22:12:31Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-13T16:31:36Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-13T16:36:54Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-13T17:45:38Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-13T17:46:38Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-13T17:53:54Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-13T18:00:21Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-13T18:09:57Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-13T18:26:37Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-13T18:30:35Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-13T19:37:01Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-13T19:43:02Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-13T20:20:56Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-14T15:09:28Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-14T15:55:21Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-14T19:17:22Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-14T19:17:31Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-14T19:18:44Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-14T19:32:11Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-14T19:37:32Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-15T19:27:50Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-15T20:07:01Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-15T20:17:41Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-08-15T20:21:52Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-18T20:51:03Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2025-08-22T21:08:51Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-08-22T21:18:36Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-08-22T21:22:48Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2025-08-22T21:25:35Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-22T22:40:05Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-25T17:28:47Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-25T17:29:01Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-25T17:29:18Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-08-25T18:19:50Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2025-08-25T18:31:27Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-25T21:23:37Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-26T14:10:25Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2025-08-26T17:39:19Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2025-08-26T18:42:05Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-26T18:59:26Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-28T21:53:54Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-28T21:54:47Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-08-28T21:55:31Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-09-02T14:02:22Z",
+     "body": ""
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-09-04T21:10:20Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2025-09-05T20:20:57Z",
+     "body": "Other than rephrasing one message, this looks good. I won't need to re-review after you fix it."
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2025-09-08T09:00:38Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2025-09-08T15:24:22Z",
+     "body": "👍"
+    },
+    {
+     "author": "yinyiqian1",
+     "state": "COMMENTED",
+     "date": "2025-09-08T15:24:41Z",
+     "body": ""
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2025-09-08T15:32:13Z",
+     "body": "👍 LGTM"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-08T15:15:58Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "```suggestion\nTRANSACTION(ttNFTOKEN_MINT, 25, NFTokenMint, Delegation::delegatable, {featureNonFungibleTokensV1}, ({\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2263255835"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-11T13:32:39Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Why is it needed to add the required amendments list? Which of the four listed issues in this PR does this address? Wouldn't the transactions fail anyway if the required amendments are not enabled? By the way, `featureChecks` has been enabled for a while now and there are other amendments listed that have been already enabled. There is no need to check for these amendments.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2266791022"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-11T14:25:56Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Isn't it an error if can't find a tx in `delegatableTx_`?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2266947232"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-11T14:29:49Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Isn't it an error if can't find a tx in `delegatableTx_`?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2266961707"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-11T14:35:42Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "It should be `tx[sfSendMax].asset()`, not `tx[sfSendMax].issue()`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2266983653"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-11T17:39:25Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Yes. It is returning false here if tx does not exist in the `delegatableTx_`.\n\nA tx won't be found in the `delegatableTx_` for one of two reasons: either it's an invalid transaction number or it's a valid transaction that was explicitly marked as `Delegation::notDelegatable`. Because of this, the `DelegateSet` will return `tecNO_PERMISSION`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2267530241"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-11T17:58:01Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "This should not happen because we already checked if it exits in `delegatableTx_`. When the code reaches here, `txFeaturesMap_` should always find the tx because `delegatableTx_` and `txFeaturesMap_` are both generated from `transactions.macro`. This check is just defensive programming.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2267577541"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-11T18:06:00Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Ok. This is the case of invalid permission value, right? Shouldn't we return `temMALFORMED` in this case?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2267596304"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-11T18:06:42Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Sure, but this condition can't happen. So it's an error really.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2267597584"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-11T18:15:13Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Among the four listed issues in this PR, this is for addressing `disallow delegateSet permissions not enabled`.\n\nAlthough the transaction will fail anyway if not enabled, we will have consensus risk: when a delegated transaction is not enabled on some node but enabled on some other node.\n\nI think it's more precise and safer to add the amendment list no matter it's enabled or not. Similarly, we are still checking the amendments in the existing code for the enabled amendments. For example, in the refactor PR https://github.com/XRPLF/rippled/pull/5592, it is refactoring the amendments check for each transaction. It's consistent to keep the amendment list as well here.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2267614413"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-11T18:24:55Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "I'm not convinced there is a strong argument for adding this list.\n\n1. If this is added then we are basically going to have a redundant list of the amendments required by a transaction. \n\n2. How could we have a consensus risk? If an amendment is not enabled yet then none of the nodes is going to run a code which requires this amendment enabled. Once the amendment is enabled then any node, which is not updated, will be amendment blocked.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2267633880"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-11T18:41:49Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Sure. I can return TER instead",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2267670570"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-11T18:43:08Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "how about just adding an assert here? or return temMALFORMED as a defensive check(but unreachable)?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2267673791"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-11T18:49:11Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "I think `assert` is fine.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2267689454"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-12T15:47:56Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "@mvadari Do you have any suggestions?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2270358624"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-08-12T15:54:16Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Would #5592 help?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2270390289"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-12T15:59:34Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "I don't think this change is needed at all. An argument is that it addresses a consensus risk. But there is no risk, unless I'm missing something. If there is no risk then it just adds a redundant list of amendments that a transaction requires. So now we have to add the amendments in the transactors and in transactions.macro.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2270416509"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-08-12T16:02:39Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "> How could we have a consensus risk? If an amendment is not enabled yet then none of the nodes is going to run a code which requires this amendment enabled. Once the amendment is enabled then any node, which is not updated, will be amendment blocked.\n\nIf a `PermissionValue` is only allowed when it's added to rippled, there would be consensus issues between nodes that have the field and don't have the field.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2270431248"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-12T16:29:19Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "The nodes are running different version of `rippled` in this case, right?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2270505651"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-08-12T16:50:42Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Yes, but before the amendment is activated, that's still allowed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2270551359"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-12T16:51:03Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "I understand the issue now. I think it makes sense to look at #5592 as @mvadari suggested.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2270552054"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-12T17:01:08Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Also, I think it makes sense to keep the feature in the list even if it's already enabled, which is consistent with https://github.com/XRPLF/rippled/pull/5592. We can also have https://github.com/XRPLF/rippled/pull/5592 to retrieve the features from transactions.macro.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2270571817"
+    },
+    {
+     "author": "dangell7",
+     "date": "2025-08-12T17:07:05Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "If we added a new permission today for Escrow does that mean that all current Escrow permissions are now blocked until this new feature passes?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2270583917"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-12T17:39:36Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Assuming \"added a new permission\" is \"added a new transaction\".(we support transaction permission and granular permission, transaction permission value is `txType + 1`), only the new transaction will be blocked until the features required for that new transaction are enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2270660044"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-12T18:52:28Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "If #5592 refactoring is added then instead of having `txFeaturesMap_` as {transaction name:list of features}, it can be {transaction name:function}. Where the function is a specific transactor's `isEnabled()`. `isEnabled()` probably would have to be overloaded to take `Rules`.\n\n    std::unordered_map<std::uint16_t, std::function<bool(Rules const&)>> txFeaturesMap_;\n\nand then in Permission.cpp you can build a map of transaction name to a function and there is no need to change `transactions.macro`. `isDelegatable()` instead of checking if a feature is enabled, calls `isEnabled()` of a specific transactor. I think this should work.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2270844580"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-12T20:26:30Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "How is it going to work for MPT/DEX where there might be a check like this (AMMVote.cpp):\n\n    if (!ammEnabled(ctx.rules))\n        return temDISABLED;\n\n    if (!ctx.rules.enabled(featureMPTokensV2) &&\n        (ctx.tx[sfAsset].holds<MPTIssue>() ||\n         ctx.tx[sfAsset2].holds<MPTIssue>()))\n        return temDISABLED;\n\nThe first check is going to be handled by `isEnabled()`. But the second check is going to be in `preflight()`. Is this going to be an issue for `DelegateSet`?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2271135879"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-12T20:53:53Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "> The first check is going to be handled by isEnabled(). But the second check is going to be in preflight(). Is this going to be an issue for DelegateSet?\n\n`featureMPTokensV2` is not bind to a specific transaction type, which means it's not bind to a permission value(transaction level permission). So it should be fine for `DelegateSet`.\nOnly amendments that are introduced when adding a new transaction type matters.\n\n> isDelegatable() instead of checking if a feature is enabled, calls isEnabled() of a specific transactor\n\nRegarding the MPT/DEX example, `isEnabled()`'s scope can be more specific than the `txFeaturesMap_ ` \ncheck  under `isDelegatable()`. So we'd better not to call `isEnabled()",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2271205158"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-12T22:12:31Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Can you give an example of \"more specific\"? What do you mean by \"call in a reverse direction\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2271407885"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-13T16:31:35Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "> Can you give an example of \"more specific\"\n\nfor example, the following check return false when the transaction holds `MPTIssue` and `featureMPTokensV2` not enabled. But if `featureAMM` is enabled, the permission value related to `AMMVote` is valid, which can be delegated.\n```\nif (!ctx.rules.enabled(featureMPTokensV2) &&\n    (ctx.tx[sfAsset].holds<MPTIssue>() ||\n     ctx.tx[sfAsset2].holds<MPTIssue>()))\n    return temDISABLED;\n```\n\n> What do you mean by \"call in a reverse direction\"?\n\nIn `isEnabled()`, we first verify whether the amendment required for the transaction is enabled—this step is identical to the `txFeaturesMap_` check. Next, we check the transaction’s content, such as checking ",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2273986460"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-13T16:36:54Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "So maybe it makes sense to split `isEnabled()` into two - general and specific? \n\nEach transactor has all the required information regarding the amendments. And it feels like we are going to be duplicating this info to some extent in `transactions.macro`. Similarly, a developer is going to be required to implement the amendment requirements twice - in a transactor and in `transactions.macro`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2273998217"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-13T17:46:38Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "this is not related to the change, but should  probably use `permissionToTxType` function iinstead of permissionValue - 1",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2274203426"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-13T17:53:54Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "same here",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2274218324"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-13T18:00:21Z",
+     "path": "src/xrpld/app/tx/detail/DelegateSet.cpp",
+     "body": "since this is refactored to return a TER instead of bool, for the sake of explicitness, we could check the condition `!isTesSuccess(res)`",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2274230537"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-13T18:09:57Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "I don't think we should change from `amountIssue` to `amountAsset` without amendment gate, would this mean that someone would be able to send `PaymentBurn` and `PaymentMint` without the need to enable `fixDelegateV1_1`? If so, this could cause consensus problem. \n\nWe should add a test to validate that  sending MPT using PaymentMint/Burn without enabling `fixDelegateV1_1` will fail, if not already added",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2274248927"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-13T18:26:34Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "isDelegatable is called in the preclaim, so it doesn't make sense to return a tem code here. We might want to move this check to preflight if we want to return a tem code.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2274284214"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-13T18:30:35Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "I think there are cases when tem is returned in preclaim.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2274292289"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-13T19:37:01Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "how about calling isDelegatable from preflight? but some return code will change from `tecNO_PERMISSION` to `temMALFORMED`",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2274432357"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-13T19:43:02Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "IMO it's fine to leave it as is. As I mentioned, there are other cases returning tem in preclaim. Here are some of them: CreateOffer:temBAD_SEQUENCE, CancelOffer:temBAD_SEQUENCE, CashCheck:temMALFORMED,SetOracle:temMALFORMED.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2274453755"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-13T20:20:56Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "added the check in https://github.com/XRPLF/rippled/pull/5650/commits/2e8e5b1b2f8ade4ba9dd65f213a131c313365e5e\nBut it is still in `checkPermission` function, because if the payment-level permission is granted, sending MPT was allowed even without `fixDelegateV1_1`. Unless we intend to disallow MPT even with Payment permission granted, so that we don't need to query the delegate keylet, we can move to preflight.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2274539307"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-14T15:09:27Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "does this return statement change the order of execution in any way? what would be returned if this code is omitted?\n\nIf the results differ, adding this return statement would be a breaking change.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2276913012"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-14T15:55:21Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "if we change to something like this instead (as well as deleting lline 269 - 270)\n```\n    auto const& amountAsset = dstAmount.asset();\n\n    if (view.rules().enabled(fixDelegateV1_1))\n    {\n        if (tx.isFieldPresent(sfSendMax) &&\n            tx[sfSendMax].asset() != amountAsset)\n            return tecNO_DELEGATE_PERMISSION;\n\n        if (amountAsset.holds<MPTIssue>())\n        {\n            if (granularPermissions.contains(PaymentMint) &&\n                amountAsset.getIssuer() == tx[sfAccount])\n                return tesSUCCESS;\n\n            if (granularPermissions.contains(PaymentBurn) &&\n                amountAsset.getIssuer() == tx[sfDestination])\n                return tesSUCCESS;\n    ",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2277036525"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-14T19:17:22Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "updated in: https://github.com/XRPLF/rippled/pull/5650/commits/eef084739653b2c5477f0b99cd2581e0ea29c3c4",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2277519752"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-14T19:17:31Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "updated in: https://github.com/XRPLF/rippled/pull/5650/commits/eef084739653b2c5477f0b99cd2581e0ea29c3c4",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2277519960"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-14T19:18:44Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "deleted the check,\nupdated in https://github.com/XRPLF/rippled/pull/5650/commits/eef084739653b2c5477f0b99cd2581e0ea29c3c4",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2277522059"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-14T19:32:11Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "maybe we can change the `isEnabled()` in each transactor to check the specific details and check the general in the transactor's base class.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2277548249"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-14T19:37:32Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Each transactor still has to handle both general and specific, doesn't it? For instance, in AMMVote. This is specific:\n\n    if (!ctx.rules.enabled(featureMPTokensV2) &&\n      (ctx.tx[sfAsset].holds<MPTIssue>() ||\n       ctx.tx[sfAsset2].holds<MPTIssue>()))\n        return temDISABLED;\n\nAnd this is general:\n\n    if (!ammEnabled(ctx.rules))\n        return temDISABLED;",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2277558082"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-15T19:27:50Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "In this PR https://github.com/XRPLF/rippled/pull/5592\nhttps://github.com/XRPLF/rippled/blob/c01ef3f15548bd41c181e7a0bedc15ec09fc1668/src/xrpld/app/tx/detail/Transactor.h#L384\nwe can do the general check directly by reading the `transactions.macro`, and then call specific check `T::specificCheck()` (or other function names)",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2279738328"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-15T20:07:01Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "It sounds kind of ok. But I still think it makes sense to explore a design where the amendment checks whether specific or general are located in the transactors (if this is the way) rather than split between two modules. It doesn't seem like we could have the specifics done in `transactions.macro`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2279798552"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-15T20:17:41Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Nvm, I just found some extra layer of check for `featureNonFungibleTokensV1_1`,  it covers three amendments including `featureNonFungibleTokensV1`, `fixNFTokenNegOffer` and `fixNFTokenDirV1`.\nhttps://github.com/XRPLF/rippled/blob/develop/src/libxrpl/protocol/Rules.cpp#L138\nIt makes sense for me to call isEnabled (general check) instead of reading from the newly defined list under transactions.macro, which would be inconsistent for nft features.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2279812779"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-08-15T20:21:52Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Maybe you can cherry pick #5592 and then add specific checks?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2279820371"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-18T20:51:03Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "What do you think of adding a check before this that returns `tefEXCEPTION` if the amount type is MPT? (and perhaps add a comment why for the error code). Currently, we are letting it throw inside `issue()`, which may not be the best practice.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2283439731"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-22T19:54:47Z",
+     "path": "include/xrpl/protocol/TxFormats.h",
+     "body": "Pro tip: you can elide any macro parameters after the last used parameter using `...`, so that you don't have to change it when new parameters are added, making it more future-proof. So, this one can become:\n```suggestion\n#define TRANSACTION(tag, value, ...) tag = value,\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2294593700"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-22T20:04:04Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Please reformat the calls in this file so that they look like:\n```\nTRANSACTION(tag, value, name,\n    <every other parameter on a single line>,\n    <fields>\n)\n```\nThis should help minimize merge conflicts with other PRs. You can see an example of what I'm talking about at https://github.com/XRPLF/rippled/blob/ximinez/lending-refactoring-1/include/xrpl/protocol/detail/transactions.macro",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2294613505"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-22T20:05:11Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "> By the way, `featureChecks` has been enabled for a while now and there are other amendments listed that have been already enabled. There is no need to check for these amendments.\n\nUntil the feature is formally retired, you *must always* check it as if it isn't.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2294615413"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-22T20:21:51Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "I vote for calling this from `preflight`. There are a couple of reasons.\n1. Most of these checks are based on what information the check needs. `preflight` has `Rules` available, and that's all this needs, so call it from there.\n2. While it is legal for `preclaim` and `doApply` to return any type of result, I have sort of a long-term plan to move away from that and at least bias them toward only returning results that will claim a fee.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2294652160"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-22T21:08:38Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "When I first looked at this I thought it was going to be incompatible or redundant with the `isEnabled` functions in #5592, and I really didn't want to have to rewrite that. 😱 \n\nNow that I've read it over, I think not only can they work together, but this lookup table could really reduce the footprint of #5592.\n\nI can add a function to `Permissions` to get the controlling amendment for the transaction (if any). Then the base `Transactor` `preflight` can check if that amendment is enabled before calling the derived class. It's going to be a little more complicated than that because the functions are still static (sign - another thing I want to address), but it's not bad. Then I can flat-out ",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2294750670"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-08-22T21:18:36Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Is there an example of a transaction that is gated by multiple amendments? Pretty sure every transaction's _existence_ is only gated by one amendment, therefore a list wouldn't be needed.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2294766232"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-22T21:22:48Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "> Is there an example of a transaction that is gated by multiple amendments? Pretty sure every transaction's _existence_ is only gated by one amendment, therefore a list wouldn't be needed.\n\nRight now, no.\n\nHowever, in the future `LedgerStateFix` could have multiple, and now that I think about it, they checks wouldn't be `AND`ed, they'd be `OR`ed.  Maybe the best solution is to go with the `std::optional<uint256>`, and we'll solve that problem when we get there. It's not going to be any time soon...",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2294771702"
+    },
+    {
+     "author": "mvadari",
+     "date": "2025-08-22T21:25:35Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "> However, in the future LedgerStateFix could have multiple\n\nYes, but this feature only cares about the existence of the _transaction_, not its sub-features or sub-fields. And `fixNFTokenPageLinks`, the amendment that gates the existence of `LedgerStateFix`, was activated back in January.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2294775168"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-22T22:40:05Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "`PermissionDomainSet` requires `featurePermissionDomains` and `featureCredentials`\nIn its preflight function:\n```\nif (!ctx.rules.enabled(featurePermissionedDomains) ||\n        !ctx.rules.enabled(featureCredentials))\n        return temDISABLED;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2294881695"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-25T17:28:47Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "updated: https://github.com/XRPLF/rippled/pull/5650/commits/6c6a8832a74478a0a6a0c22890f3a868bf82b275",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2298692295"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-25T17:29:01Z",
+     "path": "include/xrpl/protocol/TxFormats.h",
+     "body": "updated: https://github.com/XRPLF/rippled/pull/5650/commits/6c6a8832a74478a0a6a0c22890f3a868bf82b275",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2298692726"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-25T17:29:17Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "moved to preflight: https://github.com/XRPLF/rippled/pull/5650/commits/6c6a8832a74478a0a6a0c22890f3a868bf82b275",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2298693207"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-25T18:19:50Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "> `PermissionDomainSet` requires `featurePermissionDomains` and `featureCredentials` In its preflight function:\n\nGood catch. `PermissionDomainSet` was created in #5161, which added the `featurePermissionedDomains` amendment, so that is the one to gate it on. `featureCredentials` pre-dates it, so is more of a prerequisite.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2298795792"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-25T18:31:27Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "> Yes, but this feature only cares about the existence of the _transaction_, not its sub-features or sub-fields. And `fixNFTokenPageLinks`, the amendment that gates the existence of `LedgerStateFix`, was activated back in January.\n\nThat simplifies things. However, I always try to think of these things from the perspective of \"I don't know if the amendment was activated\", because, for example, there could be side-chains or private networks using the same code that don't have it. (It's not always easy with the _really_ old ones that should be retired anyway. 😀)",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2298818102"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-25T21:23:37Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "updated: https://github.com/XRPLF/rippled/pull/5650/commits/d3b5925993b7d11843c75d522024b7cc965a0ca5",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2299172152"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-26T14:10:25Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "@ximinez There's also an exception for NFT, so I added some check in `Permissions.cpp`, https://github.com/XRPLF/rippled/pull/5650/commits/cede78dfb11dfc682d7e6f88f3da1b83ae98a556\nThis was adjusted regarding the existing code in `Rules.cpp`:\n```\nbool\nRules::enabled(uint256 const& feature) const\n{\n    XRPL_ASSERT(impl_, \"ripple::Rules::enabled : initialized\");\n\n    // The functionality of the \"NonFungibleTokensV1_1\" amendment is\n    // precisely the functionality of the following three amendments\n    // so if their status is ever queried individually, we inject an\n    // extra check here to simplify the checking elsewhere.\n    if (feature == featureNonFungibleTokensV1 ||\n        feature == fi",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2301133198"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2025-08-26T17:39:19Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Isn't this redundant? `Rules::enabled` already checks if featureNonFungibleTokensV1_1 is enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2301684847"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-26T17:47:20Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "`featureCredentials` is not strictly needed here. `featurePermissionedDomains` is the amendment that _added_ the transaction. If that's enabled, even without credentials, then all nodes know about the transaction, so it can be delegated, even if it's not fully supported yet.\n```suggestion\nTRANSACTION(ttPERMISSIONED_DOMAIN_SET, 62, PermissionedDomainSet,\n    Delegation::delegatable,\n    ({featurePermissionedDomains}),\n    ({\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2301701490"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-26T17:50:03Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "As above, `featureSingleAssetVault` is the amendment that added `VaultCreate`, so it's the only one we really need check.\n```suggestion\nTRANSACTION(ttVAULT_CREATE, 65, VaultCreate,\n    Delegation::delegatable,\n    ({featureSingleAssetVault}),\n    ({\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2301707019"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-26T18:00:56Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "Please add a comment explaining why this is not a transaction-breaking change requiring an amendment.\n* The next line calls `dstAmount.issue()`\n* That throws if it holds MPT\n* The thrown exception is caught in `preclaim` in `applySteps.cpp`.\n* Catching an exception returns `tefEXCEPTION`.\n* Therefore, this is just a cleaner, more explicit way to get the same result.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2301732767"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-26T18:02:05Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "> There's also an exception for NFT, so I added some check in `Permissions.cpp`, [cede78d](https://github.com/XRPLF/rippled/commit/cede78dfb11dfc682d7e6f88f3da1b83ae98a556) This was adjusted regarding the existing code in `Rules.cpp`:\n\nI don't think you need that change. You're duplicating the logic in `Rules::enabled`, which you then call.\n\n> Btw, do you think we can merge in this PR before your refactor PR? Or do you have other plans?\n\nI have no problem with that. I think there's a lot more in front of my PR than yours.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2301735101"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-08-26T18:33:11Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "I think checking for the negative here is making this unnecessarily complicated, and causing confusion.\n\n```suggestion\n        // fixDelegateV1_1: Delegation is only allowed if all required amendment(s)\n        // for the transaction are enabled.\n        if (!std::all_of(\n                txFeaturesIt->second.begin(),\n                txFeaturesIt->second.end(),\n                [&rules](auto const& feature) {\n                    return rules.enabled(feature);\n                }))\n            return false;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2301807756"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-26T18:59:26Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "This is used by `DelegateSet`, `Rules::enabled` for these listed NFT transactions won't be called during delegation. I can put the check for required amendments in a separate function, and then https://github.com/XRPLF/rippled/pull/5592 can call this function from transactor's base class.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2301872903"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-28T21:53:54Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Correct. updated in https://github.com/XRPLF/rippled/pull/5650/commits/92ad11d868d4d503b4c44b9690881bd851cdb51a",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2308631979"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-28T21:54:47Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Correct, deleted the nft check: https://github.com/XRPLF/rippled/pull/5650/commits/92ad11d868d4d503b4c44b9690881bd851cdb51a",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2308633238"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-08-28T21:55:31Z",
+     "path": "src/xrpld/app/tx/detail/Payment.cpp",
+     "body": "added: https://github.com/XRPLF/rippled/pull/5650/commits/92ad11d868d4d503b4c44b9690881bd851cdb51a",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2308634369"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-09-02T14:02:22Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "So MPTModify also only needs dynamicMPT, is that correct?",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2316196286"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-09-04T21:10:20Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "@ximinez Updated: https://github.com/XRPLF/rippled/pull/5650/commits/f3302b04feff86c98ef3d1434376efedaafa210b\nI also changed to one required amendment per tx.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2323555727"
+    },
+    {
+     "author": "ximinez",
+     "date": "2025-09-05T19:58:24Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "`XRPL_ASSERT`s are supposed to be phrased as what you want to happen. So in this case, it would be `\"tx exists in txFeatureMap_\"`.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2325933857"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2025-09-08T09:00:38Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Can simplify. If `it` is `delegatableTx_.end()` then can return `false` without checking for the rules.\n\n    if (it == delegetableTx_.end())\n        return false;\n\n    if (rules.enabled(fixDelegateV1_1))\n    {\n         ...\n    }\n\n    // it is not end()\n    return it->second == Delegation::delegatable;",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2329606079"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-09-08T15:24:41Z",
+     "path": "src/libxrpl/protocol/Permissions.cpp",
+     "body": "Before this amendment, I only checked `if (it != delegatableTx_.end() && it->second == Delegation::notDelegatable)`. So even values not in the `delegatableTx_` can go through. \nIn this amendment, I need to leave that part untouched and add the logic separately, which introduced the verbosity.",
+     "url": "https://github.com/XRPLF/rippled/pull/5650#discussion_r2330591038"
+    }
+   ]
+  },
+  {
+   "number": 5427,
+   "title": "Enable LedgerStateFix for PermissionDelegation",
+   "url": "https://github.com/XRPLF/rippled/pull/5427",
+   "state": "closed",
+   "author": "yinyiqian1",
+   "createdAt": "2025-05-08T18:01:56Z",
+   "updatedAt": "2025-07-25T14:47:07Z",
+   "closedAt": "2025-05-10T14:36:11Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2025-05-08T18:31:41Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5427?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\nAll modified and coverable lines are covered by tests :white_check_mark:\n> Project coverage is 78.3%. Comparing base [(`3e152fe`)](https://app.codecov.io/gh/XRPLF/rippled/commit/3e152fec745a3d09565a5e366c1a7f6f2c163d18?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) to head [(`999579c`)](https://app.codecov.io/gh/XRPLF/rippled/commit/999579c14accf44b687f1e45daa48a0583999e97?dropdown=coverage&el=desc&utm_medium=referral&",
+     "url": "https://github.com/XRPLF/rippled/pull/5427#issuecomment-2863927560"
+    },
+    {
+     "author": "bthomee",
+     "date": "2025-05-08T19:10:51Z",
+     "body": "@yinyiqian1 ready to merge?",
+     "url": "https://github.com/XRPLF/rippled/pull/5427#issuecomment-2864028329"
+    },
+    {
+     "author": "yinyiqian1",
+     "date": "2025-05-09T19:30:21Z",
+     "body": "> @yinyiqian1 ready to merge?\n\n@bthomee  Yes. Please merge. Thank you so much.",
+     "url": "https://github.com/XRPLF/rippled/pull/5427#issuecomment-2867690293"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n",
+   "merged": true,
+   "mergedAt": "2025-05-10T14:36:11Z",
+   "draft": false,
+   "base": "develop",
+   "head": "yinyiqian1:enable_ledger_state_fix",
+   "additions": 6,
+   "deletions": 4,
+   "changedFiles": 2,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2025-05-08T18:46:29Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2025-05-08T19:04:31Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [],
+ "proposals": [],
+ "branches": []
+}
