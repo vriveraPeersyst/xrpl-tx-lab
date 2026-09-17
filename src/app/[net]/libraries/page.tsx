@@ -29,7 +29,7 @@ export default async function LibrariesPage({ params }: { params: Promise<{ net:
               <tr key={l.id}>
                 <td><b>{l.name}</b>{l.official ? <span className="badge ml-1 bg-accent-soft text-accent-ink">official</span> : <span className="badge ml-1 bg-surface-2 text-muted">community</span>}{l.repoInfo?.archived && <span className="badge ml-1 bg-[#fdece7] text-[#a22514]">archived</span>}</td>
                 <td>{l.language}</td>
-                <td className="font-mono">{l.version.version ?? "—"} <span className="text-xs text-muted">{l.version.date ?? ""}</span></td>
+                <td className="font-mono">{l.released?.version ?? l.version.version ?? "—"} <span className="text-xs text-muted">{l.released?.date ?? l.version.date ?? ""}</span>{l.released && l.version.version && l.version.version !== l.released.version && <span className="block text-xs text-muted">registry: {l.version.version}</span>}</td>
                 <td className="text-xs text-muted">{l.lastCommit ? `${l.lastCommit.date.slice(0, 10)} · ${l.lastCommit.message.slice(0, 50)}` : "—"}</td>
                 <td>{l.repoInfo?.stars ?? "—"}</td>
                 <td>{l.repoInfo?.openIssues ?? "—"}</td>
@@ -43,14 +43,20 @@ export default async function LibrariesPage({ params }: { params: Promise<{ net:
 
       <section>
         <h2 className="mb-3 display-md">Coverage per network</h2>
-        <p className="mb-2 text-sm text-muted">Transaction types each library can encode out of the types that exist on each network (bold = the network you are browsing).</p>
+        <p className="mb-2 text-sm text-muted">Transaction types each library can encode out of the types that exist on each network, for the <b>latest release</b> (what you get by installing the package) and for the <b>main branch</b> (what is merged but not yet released). Bold = the network you are browsing.</p>
         <table className="tbl">
           <thead><tr><th>Library</th>{NETWORKS.filter((n) => available.includes(n.id)).map((n) => <th key={n.id} className={n.id === net ? "text-fg" : ""}>{n.label}<span className="block font-normal">xrpld {getNet(n.id).snapshot.buildVersion}</span></th>)}</tr></thead>
           <tbody>
             {libs.map((l) => (
               <tr key={l.id}>
-                <td><b>{l.name}</b> <span className="text-xs text-muted">{l.version.version}</span></td>
-                {NETWORKS.filter((n) => available.includes(n.id)).map((n) => { const p = l.perNetwork[n.id]; if (!p) return <td key={n.id}>—</td>; const full = p.missingTx.length === 0; return <td key={n.id} className={n.id === net ? "font-medium" : ""}><span className={`badge ${full ? "bg-accent-soft text-accent-ink" : "bg-[#dbf15e] text-black"}`}>{p.txSupported}/{p.txTotal} tx</span><span className="block text-xs text-muted">{p.leSupported}/{p.leTotal} objects · {p.fieldsSupported}/{p.fieldsTotal} fields · {p.resultsSupported}/{p.resultsTotal} TER</span>{p.missingTx.length > 0 && <span className="block text-xs text-[#a22514]">missing: {p.missingTx.join(", ")}</span>}</td>; })}
+                <td><b>{l.name}</b> <span className="text-xs text-muted">{l.released?.version ?? l.version.version}</span></td>
+                {NETWORKS.filter((n) => available.includes(n.id)).map((n) => {
+                  const p = l.perNetwork[n.id];
+                  const r = l.released?.perNetwork[n.id];
+                  if (!p) return <td key={n.id}>—</td>;
+                  const cell = (label: string, x: typeof p) => { const full = x.missingTx.length === 0; return <div className="mb-1"><span className="mr-1 text-xs text-muted">{label}</span><span className={`badge ${full ? "bg-accent-soft text-accent-ink" : "bg-[#dbf15e] text-black"}`}>{x.txSupported}/{x.txTotal} tx</span><span className="block text-xs text-muted">{x.leSupported}/{x.leTotal} objects · {x.fieldsSupported}/{x.fieldsTotal} fields · {x.resultsSupported}/{x.resultsTotal} TER</span>{x.missingTx.length > 0 && <span className="block text-xs text-[#a22514]">missing: {x.missingTx.join(", ")}</span>}</div>; };
+                  return <td key={n.id} className={n.id === net ? "font-medium" : ""}>{r && cell(`release ${l.released?.version ?? ""}`, r)}{cell("main", p)}</td>;
+                })}
               </tr>
             ))}
           </tbody>
@@ -59,7 +65,7 @@ export default async function LibrariesPage({ params }: { params: Promise<{ net:
 
       <section>
         <h2 className="mb-3 display-md">Amendment support on {d.network.label}</h2>
-        <p className="mb-2 text-sm text-muted">Amendments that introduce transaction types, and whether each library can build them. Amendments that only change behaviour (fixes, rules) do not need library changes and are omitted.</p>
+        <p className="mb-2 text-sm text-muted">Amendments that introduce transaction types, and whether each library&apos;s <b>latest release</b> can build them (&quot;main only&quot; = merged on the main branch, not released yet). Amendments that only change behaviour (fixes, rules) do not need library changes and are omitted.</p>
         <div className="overflow-x-auto">
           <table className="tbl">
             <thead><tr><th>Amendment</th><th>On {d.network.label}</th>{libs.map((l) => <th key={l.id}>{l.name}</th>)}</tr></thead>
@@ -68,7 +74,7 @@ export default async function LibrariesPage({ params }: { params: Promise<{ net:
                 <tr key={a}>
                   <td><Link href={`/amendments/${a}`} className="font-mono hover:underline">{a}</Link></td>
                   <td><AmendmentBadge d={d} name={a} showName={false} /></td>
-                  {libs.map((l) => { const p = l.perNetwork[net]; const ok = p?.supportedAmendments.includes(a); const un = p?.unsupportedAmendments.find((u) => u.name === a); return <td key={l.id}>{ok ? <span className="badge bg-accent-soft text-accent-ink">yes</span> : un ? <span className="badge bg-[#fdece7] text-[#a22514]" title={`missing: ${un.missing.join(", ")}`}>no</span> : <span className="text-xs text-muted">—</span>}</td>; })}
+                  {libs.map((l) => { const p = (l.released?.perNetwork ?? l.perNetwork)[net]; const m = l.perNetwork[net]; const ok = p?.supportedAmendments.includes(a); const un = p?.unsupportedAmendments.find((u) => u.name === a); const okMain = m?.supportedAmendments.includes(a); return <td key={l.id}>{ok ? <span className="badge bg-accent-soft text-accent-ink">yes</span> : un ? <span className="badge bg-[#fdece7] text-[#a22514]" title={`release missing: ${un.missing.join(", ")}`}>{okMain ? "main only" : "no"}</span> : <span className="text-xs text-muted">—</span>}</td>; })}
                 </tr>
               ))}
             </tbody>
@@ -80,14 +86,16 @@ export default async function LibrariesPage({ params }: { params: Promise<{ net:
         <h2 className="mb-3 display-md">Main differences</h2>
         <div className="grid gap-4 md:grid-cols-2">
           {libs.map((l) => {
-            const p = l.perNetwork[net];
-            const behind = libs.filter((o) => o.id !== l.id && (o.perNetwork[net]?.txSupported ?? 0) > (p?.txSupported ?? 0)).map((o) => o.name);
+            const p = (l.released?.perNetwork ?? l.perNetwork)[net];
+            const m = l.perNetwork[net];
+            const behind = libs.filter((o) => o.id !== l.id && ((o.released?.perNetwork ?? o.perNetwork)[net]?.txSupported ?? 0) > (p?.txSupported ?? 0)).map((o) => o.name);
+            const pendingRelease = m && p && m.txSupported > p.txSupported ? m.missingTx.length === 0 ? `main already covers all ${m.txTotal} types (${p.missingTx.join(", ")} merged, pending a release)` : `main adds ${m.txSupported - p.txSupported} types pending a release` : undefined;
             return (
               <div key={l.id} className="card">
-                <div className="flex items-baseline justify-between"><h3 className="display-md">{l.name}</h3><span className="font-mono text-xs text-muted">{l.version.version}</span></div>
+                <div className="flex items-baseline justify-between"><h3 className="display-md">{l.name}</h3><span className="font-mono text-xs text-muted">{l.released?.version ?? l.version.version}</span></div>
                 <p className="mt-1 text-sm text-muted">{l.repoInfo?.description ?? ""}</p>
                 <ul className="mt-3 space-y-1 text-sm">
-                  <li>Encodes <b>{p?.txSupported}/{p?.txTotal}</b> transaction types on {d.network.label}{p && p.missingTx.length > 0 ? <>: cannot build <span className="font-mono text-xs">{p.missingTx.join(", ")}</span>.</> : "."}</li>
+                  <li>Latest release {l.released?.version ?? l.version.version} encodes <b>{p?.txSupported}/{p?.txTotal}</b> transaction types on {d.network.label}{p && p.missingTx.length > 0 ? <>: cannot build <span className="font-mono text-xs">{p.missingTx.join(", ")}</span>.</> : "."}{pendingRelease && <span className="block text-accent-ink">{pendingRelease}.</span>}</li>
                   <li>{p && p.missingFields.length > 0 ? <>Unknown fields: <span className="font-mono text-xs">{p.missingFields.slice(0, 12).join(", ")}{p.missingFields.length > 12 ? ` +${p.missingFields.length - 12}` : ""}</span> (transactions using them cannot be serialized).</> : "Knows every field of the network."}</li>
                   <li>{p && p.missingResults.length > 0 ? <>Does not recognise result codes <span className="font-mono text-xs">{p.missingResults.join(", ")}</span> (they still arrive as strings from the node).</> : "Knows every result code of the network."}</li>
                   {l.extraTx.length > 0 && <li>Defines types no network has yet: <span className="font-mono text-xs">{l.extraTx.join(", ")}</span>.</li>}
