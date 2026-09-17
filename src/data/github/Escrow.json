@@ -1,6 +1,6 @@
 {
  "name": "Escrow",
- "fetchedAt": "2026-09-16T11:18:55.766Z",
+ "fetchedAt": "2026-09-17T10:04:09.743Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -19,10 +19,10 @@
    "smart-escrow/perf-test",
    "smart-escrow/versioning"
   ],
-  "lastActivity": "2026-09-15T18:19:59Z",
+  "lastActivity": "2026-09-16T15:22:29Z",
   "lastMerged": "2026-09-11T13:30:10Z",
   "release": "0.60.0",
-  "totalComments": 345
+  "totalComments": 348
  },
  "release": {
   "version": "0.60.0",
@@ -32,142 +32,20 @@
  },
  "prs": [
   {
-   "number": 7882,
-   "title": "refactor: Extract escrow lock helpers and paychan test helpers",
-   "url": "https://github.com/XRPLF/rippled/pull/7882",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-07-28T00:05:30Z",
-   "updatedAt": "2026-09-15T18:19:59Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-07-28T00:50:06Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7882?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5098573546"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-07T16:00:58Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5219273225"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-31T16:06:07Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5481021980"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-15T18:19:59Z",
-     "body": "@dangell7 ready to merge?",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5685679631"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nPulls the refactoring out of #5448 (XLS-93d Token-Enabled Payment Channels) into its own PR so it can merge ahead of the feature. Code motion only, no functional change.\n\n- Moves the escrow lock/unlock helpers from the Escrow transactors into `EscrowHelpers.h`.\n- Moves the jtx `paychan` helpers from `TestHelpers.h` into their own `test/jtx/paychan.h`, and hoists the file-local helpers from `PayChan_test.cpp` into them.\n- Moves the escrowed balance test helpers from `EscrowToken_test.cpp` into the shared jtx `TestHelpers.h`.\n\n### Context of Change\n\nSplit out of #5448 per review feedback. The token paychan transactors reuse the escrow lock/unlock helpers, so the extraction lands here first and the feature PR becomes mostly additive.\n\n### API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nNo new tests, the moved code is covered by the existing suites. Ran Escrow, EscrowToken, Sponsor, PayChan, MPToken, AMM.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "Transia-RnD:dangell7/escrow-paychan-refactor",
-   "additions": 592,
-   "deletions": 572,
-   "changedFiles": 13,
-   "commits": 5,
-   "reviewComments": 4,
-   "reviews": [
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-07-29T14:08:58Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-07-29T14:12:44Z",
-     "body": ""
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-08-02T19:56:46Z",
-     "body": ""
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-08-02T19:56:48Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "APPROVED",
-     "date": "2026-08-04T13:50:39Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-01T22:19:05Z",
-     "body": "### 🟢 Approval recommended\n\nThe changes are mechanical extractions with updated call sites/includes and no detected behavioral deltas in the moved logic.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR performs a pure refactor (code motion) to centralize token-escrow lock/unlock logic and payment-channel JTx test helpers, enabling reuse by upcoming token-enabled payment channel work while keeping transactor behavior unchanged.\n\n**Changes:**\n- Extracts escrow token lock/unlock preclaim/apply helper templates into `EscrowHelpers.h` and updates Escrow transactors to use them.\n- Splits payment channel JTx helpers out of `TestHelpers.h` into `test/jtx/paychan.h` (+ implementation) and updates relevant tests/includes.\n- Moves EscrowToken-specific issuer/escrowed-balance test helpers into shared `TestHelpers.{h,cpp}`.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/jtx/TestHelpers.h | Adds shared token escrow/balance helper declarations; removes embedded paychan helper API. |\n| src/test/jtx/paychan.h | New header providing payment-channel JTx helper API. |\n| src/test/jtx/impl/TestHelpers.cpp | Implements the newly-shared token escrow/balance helpers. |\n| src/test/jtx/impl/paychan.cpp | New implementation unit for the extracted paychan JTx helpers. |\n| src/test/app/Sponsor_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/test/app/PayChan_test.cpp | Includes new paychan helper header; removes now-hoisted file-local helpers. |\n| src/test/app/EscrowToken_test.cpp | Switches to shared TestHelpers for escrowed/issuer balance helpers. |\n| src/test/app/AMMMPT_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/test/app/AMM_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp | Replaces local preclaim helper with shared `escrowUnlockPreclaimHelper`. |\n| src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp | Replaces local lock preclaim/apply helpers with shared `escrowLock*Helper` templates. |\n| src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp | Replaces local preclaim helper with shared `escrowUnlockPreclaimHelper` (freeze check disabled to preserve behavior). |\n| include/xrpl/ledger/helpers/EscrowHelpers.h | Adds shared escrow lock/unlock helper templates used by escrow-related transactors. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 13/13 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "pwang200",
-     "state": "APPROVED",
-     "date": "2026-09-15T17:51:39Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "TimothyBanks",
-     "date": "2026-07-29T14:08:58Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "just a nit, but it might be worthwhile to considering moving these explicit template instantiations into a source file.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675042241"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-07-29T14:12:44Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "super nit and a problem not for this PR, but we don't need to construct most of these variables until after line 355.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675074494"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-08-02T19:56:46Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "The inline specialization pattern is inherited from develop's EscrowHelpers.h, the unlock helpers already live there. Happy to move the whole family into an EscrowHelpers.cpp as a follow up, kept this PR to code motion.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156269"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-08-02T19:56:48Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/82ede27f1020f380e44beade2f19bef75490b98b",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156299"
-    }
-   ]
-  },
-  {
    "number": 6329,
    "title": "feat: Smart Escrows (XLS-100)",
    "url": "https://github.com/XRPLF/rippled/pull/6329",
    "state": "open",
    "author": "mvadari",
    "createdAt": "2026-02-04T23:44:48Z",
-   "updatedAt": "2026-09-15T17:06:23Z",
+   "updatedAt": "2026-09-16T15:22:29Z",
    "closedAt": null,
    "labels": [],
    "comments": [
     {
      "author": "codecov[bot]",
      "date": "2026-02-05T18:56:12Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `79.19643%` with `466 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [crates/xrpl-wasm-vm-ffi/src/lib.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS1mZmkvc3JjL2xpYi5ycw==) | 16.9% | [439 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...-host-functions-macros/src/parsed\\_host\\_function.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtaG9zdC1mdW5jdGlvbnMtbWFjcm9zL3NyYy9wYXJzZWRfaG9zdF9mdW5jdGlvbi5ycw==) | 97.6% | [7 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/vm.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvdm0ucnM=) | 95.4% | [6 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/preflight/signature.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvcHJlZmxpZ2h0L3NpZ25hdHVyZS5ycw==) | 91.8% | [4 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-testkit/src/lib.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS10ZXN0a2l0L3NyYy9saWIucnM=) | 76.9% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/abi.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvYWJpLnJz) | 98.1% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/protocol/TxMeta.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1R4TWV0YS5o) | 80.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/register.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvcmVnaXN0ZXIucnM=) | 99.8% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/tx/wasm/WasmCommon.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3R4L3dhc20vV2FzbUNvbW1vbi5o) | 94.7% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `79.39876%` with `466 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [crates/xrpl-wasm-vm-ffi/src/lib.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS1mZmkvc3JjL2xpYi5ycw==) | 16.9% | [439 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...-host-functions-macros/src/parsed\\_host\\_function.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtaG9zdC1mdW5jdGlvbnMtbWFjcm9zL3NyYy9wYXJzZWRfaG9zdF9mdW5jdGlvbi5ycw==) | 97.6% | [7 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/vm.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvdm0ucnM=) | 95.4% | [6 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/preflight/signature.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvcHJlZmxpZ2h0L3NpZ25hdHVyZS5ycw==) | 91.8% | [4 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-testkit/src/lib.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS10ZXN0a2l0L3NyYy9saWIucnM=) | 76.9% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/abi.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvYWJpLnJz) | 98.1% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/protocol/TxMeta.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1R4TWV0YS5o) | 80.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/register.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvcmVnaXN0ZXIucnM=) | 99.8% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/tx/wasm/WasmCommon.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3R4L3dhc20vV2FzbUNvbW1vbi5o) | 94.7% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
      "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-3855573798"
     },
     {
@@ -279,11 +157,11 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:ripple/smart-escrow",
-   "additions": 39494,
+   "additions": 39585,
    "deletions": 250,
    "changedFiles": 342,
-   "commits": 746,
-   "reviewComments": 59,
+   "commits": 747,
+   "reviewComments": 61,
    "reviews": [
     {
      "author": "copilot-pull-request-reviewer[bot]",
@@ -566,6 +444,12 @@
      "state": "CHANGES_REQUESTED",
      "date": "2026-09-15T17:06:23Z",
      "body": "Documentation mismatch and data-loss bug on rejection — see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-16T15:22:29Z",
+     "body": "Reserve boundary math bug and duplicate attributes throughout HostFunc.h — see inline."
     }
    ],
    "reviewCommentsList": [
@@ -981,6 +865,142 @@
      "path": "crates/README.md",
      "body": "README incorrectly names `ledger` as the CMake target. Update to `xrpl.libxrpl.tx` to match XrplCore.cmake:\n\n```suggestion\n`xrpl.libxrpl.tx` (see `cmake/XrplCore.cmake`). The Rust toolchain pinned in\n```",
      "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4018215813"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-16T15:22:28Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "Boundary math bug: exact multiples of 500 overcharge by one increment. Fix with ceiling formula:\n\n```suggestion\nfinishFunction->size() == 0 ? 1 : 1 + ((finishFunction->size() - 1) / 500)\n```\n\n```suggestion\n    return finishFunction->size() == 0 ? 1 : static_cast<int32_t>(1 + ((finishFunction->size() - 1) / 500));\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4027711517"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-16T15:22:28Z",
+     "path": "include/xrpl/tx/wasm/HostFunc.h",
+     "body": "Duplicate `[[nodiscard]]` attributes (45+ instances). Remove one per line.\n\n```suggestion\n    [[nodiscard]] virtual std::expected<std::uint32_t, HostFunctionError>\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4027711545"
+    }
+   ]
+  },
+  {
+   "number": 7882,
+   "title": "refactor: Extract escrow lock helpers and paychan test helpers",
+   "url": "https://github.com/XRPLF/rippled/pull/7882",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-07-28T00:05:30Z",
+   "updatedAt": "2026-09-15T18:19:59Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-28T00:50:06Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7882?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5098573546"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-07T16:00:58Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5219273225"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-31T16:06:07Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5481021980"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-15T18:19:59Z",
+     "body": "@dangell7 ready to merge?",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5685679631"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nPulls the refactoring out of #5448 (XLS-93d Token-Enabled Payment Channels) into its own PR so it can merge ahead of the feature. Code motion only, no functional change.\n\n- Moves the escrow lock/unlock helpers from the Escrow transactors into `EscrowHelpers.h`.\n- Moves the jtx `paychan` helpers from `TestHelpers.h` into their own `test/jtx/paychan.h`, and hoists the file-local helpers from `PayChan_test.cpp` into them.\n- Moves the escrowed balance test helpers from `EscrowToken_test.cpp` into the shared jtx `TestHelpers.h`.\n\n### Context of Change\n\nSplit out of #5448 per review feedback. The token paychan transactors reuse the escrow lock/unlock helpers, so the extraction lands here first and the feature PR becomes mostly additive.\n\n### API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nNo new tests, the moved code is covered by the existing suites. Ran Escrow, EscrowToken, Sponsor, PayChan, MPToken, AMM.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "Transia-RnD:dangell7/escrow-paychan-refactor",
+   "additions": 592,
+   "deletions": 572,
+   "changedFiles": 13,
+   "commits": 5,
+   "reviewComments": 4,
+   "reviews": [
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-29T14:08:58Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-29T14:12:44Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-02T19:56:46Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-02T19:56:48Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "APPROVED",
+     "date": "2026-08-04T13:50:39Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:19:05Z",
+     "body": "### 🟢 Approval recommended\n\nThe changes are mechanical extractions with updated call sites/includes and no detected behavioral deltas in the moved logic.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR performs a pure refactor (code motion) to centralize token-escrow lock/unlock logic and payment-channel JTx test helpers, enabling reuse by upcoming token-enabled payment channel work while keeping transactor behavior unchanged.\n\n**Changes:**\n- Extracts escrow token lock/unlock preclaim/apply helper templates into `EscrowHelpers.h` and updates Escrow transactors to use them.\n- Splits payment channel JTx helpers out of `TestHelpers.h` into `test/jtx/paychan.h` (+ implementation) and updates relevant tests/includes.\n- Moves EscrowToken-specific issuer/escrowed-balance test helpers into shared `TestHelpers.{h,cpp}`.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/jtx/TestHelpers.h | Adds shared token escrow/balance helper declarations; removes embedded paychan helper API. |\n| src/test/jtx/paychan.h | New header providing payment-channel JTx helper API. |\n| src/test/jtx/impl/TestHelpers.cpp | Implements the newly-shared token escrow/balance helpers. |\n| src/test/jtx/impl/paychan.cpp | New implementation unit for the extracted paychan JTx helpers. |\n| src/test/app/Sponsor_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/test/app/PayChan_test.cpp | Includes new paychan helper header; removes now-hoisted file-local helpers. |\n| src/test/app/EscrowToken_test.cpp | Switches to shared TestHelpers for escrowed/issuer balance helpers. |\n| src/test/app/AMMMPT_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/test/app/AMM_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp | Replaces local preclaim helper with shared `escrowUnlockPreclaimHelper`. |\n| src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp | Replaces local lock preclaim/apply helpers with shared `escrowLock*Helper` templates. |\n| src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp | Replaces local preclaim helper with shared `escrowUnlockPreclaimHelper` (freeze check disabled to preserve behavior). |\n| include/xrpl/ledger/helpers/EscrowHelpers.h | Adds shared escrow lock/unlock helper templates used by escrow-related transactors. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 13/13 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2026-09-15T17:51:39Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-29T14:08:58Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "just a nit, but it might be worthwhile to considering moving these explicit template instantiations into a source file.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675042241"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-29T14:12:44Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "super nit and a problem not for this PR, but we don't need to construct most of these variables until after line 355.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675074494"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-02T19:56:46Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "The inline specialization pattern is inherited from develop's EscrowHelpers.h, the unlock helpers already live there. Happy to move the whole family into an EscrowHelpers.cpp as a follow up, kept this PR to code motion.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156269"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-02T19:56:48Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/82ede27f1020f380e44beade2f19bef75490b98b",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156299"
     }
    ]
   },

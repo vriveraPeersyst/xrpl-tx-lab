@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-09-16T11:14:35.058Z",
+ "fetchedAt": "2026-09-17T10:02:34.387Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-09-16T09:37:35Z",
+  "lastActivity": "2026-09-16T15:50:17Z",
   "lastMerged": "2026-09-03T19:42:39Z",
   "release": "0.90.0",
-  "totalComments": 407
+  "totalComments": 432
  },
  "release": {
   "version": "0.90.0",
@@ -31,7 +31,7 @@
    "state": "open",
    "author": "a1q123456",
    "createdAt": "2026-09-07T15:57:35Z",
-   "updatedAt": "2026-09-16T09:37:35Z",
+   "updatedAt": "2026-09-16T15:50:17Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -42,17 +42,17 @@
      "url": "https://github.com/XRPLF/rippled/pull/8183#issuecomment-5573127708"
     }
    ],
-   "body": "## High Level Overview of Change\n\nThis PR tightens invariant checks for LoanDelete, LoanBrokerDelete, and VaultDelete so that a deleting transaction can only delete the ledger object specified in the transaction.\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "body": "## High Level Overview of Change\n\nThis PR tightens invariant checks for LoanDelete, LoanBrokerDelete, and VaultDelete so that a deleting transaction can only delete the ledger object specified in the transaction.\n\n## Context of Change\n\nCurrent invariant checks for deletion don't check what objects have been deleted. For example, a corrupt `VaultDelete` additionally can delete vault B's pseudo-account holding, and passes all invariants.\n\nTo make the invariant checks work better and catch such a scenario, we should tighten the checks so that we require VaultDelete, LoanDelete, and LoanBrokerDelete:\n\n1) Must only delete the object specified in the transaction\n2) Must not modify other unrelated ledger entries\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
    "merged": false,
    "mergedAt": null,
    "draft": false,
    "base": "develop",
    "head": "XRPLF:a1q123456/tighten-vault-and-loan-delete-invariant-checks",
-   "additions": 362,
-   "deletions": 32,
-   "changedFiles": 8,
-   "commits": 1,
-   "reviewComments": 1,
+   "additions": 671,
+   "deletions": 37,
+   "changedFiles": 10,
+   "commits": 8,
+   "reviewComments": 13,
    "reviews": [
     {
      "author": "xrplf-ai-reviewer[bot]",
@@ -71,6 +71,84 @@
      "state": "APPROVED",
      "date": "2026-09-08T12:52:48Z",
      "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-09-16T13:34:18Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-16T13:36:13Z",
+     "body": "This PR tightens the delete-transaction invariants for LoanBroker, Loan, and Vault so that a deletion transaction can only remove the specific object named by the transaction and must not create/modify any other object. The changes are gated behind the new `fixCleanup3_5_0` amendment, follow the existing patterns already established in each invariant (e.g. brokers_/deletedBroker_, loans_/deletedLoans_, and the newly added deletedVault_ mirroring beforeVault_/afterVault_), and are checked last so more specific diagnostics still fire first. Check ordering (deletion-count check before the general single-object check, and the 'other object survives' check before the 'deletion succeeded without deleting' check) is correct and well covered by new gated (with/without amendment) unit tests in InvariantsVault_test.cpp and InvariantsPseudoAccount_test.cpp. I did not find any correctness, security, or resource issues in the added production code — the logic in LoanBrokerInvariant.cpp, LoanInvariant.cpp, and VaultInvariant.cpp is internally consistent and each new branch is exercised by a matching negative test case."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-16T13:46:08Z",
+     "body": "### 🟡 Changes recommended\n\nCritical invariant bypasses remain for missing loan/broker deletions and cross-vault ancillary holdings.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 8/8 changed files\n- **Comments generated:** 3\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-09-16T14:43:51Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-09-16T14:43:58Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-09-16T14:44:23Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-16T14:46:01Z",
+     "body": "This PR tightens delete invariants for LoanDelete, LoanBrokerDelete, and VaultDelete, gated behind fixCleanup3_5_0. The changes add identity checks (deleted object must match the ID in the transaction), cardinality checks (at most one object deleted), and no-collateral-damage checks (no other object created/modified), plus a corresponding narrowing in ValidMPTIssuance for vault pseudo-account holdings. I traced through the branch logic in LoanBrokerInvariant.cpp, LoanInvariant.cpp, and VaultInvariant.cpp against the accompanying test cases (which exercise each new failure path, the fixCleanup3_5_0 gate, and the tesSUCCESS gate) and did not find a case where the new logic misfires or fails to fire. The ValidVault ordering (deletion-count check before the general single-vault check, and the deleted-vault-survives-alongside-another-vault check before the 'deletion succeeded without deleting a vault' check) is deliberately sequenced and matches its test coverage. No correctness, security, or resource issues found in the changed lines."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-16T15:09:39Z",
+     "body": "### 🟡 Changes recommended\n\nThree critical invariant issues remain unresolved.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (2)\n\n**src/libxrpl/tx/invariants/MPTInvariant.cpp:175**\n* Using `view.read()` to classify ownership from the post-transaction state is incorrect for a `VaultDelete` that returns `tecHAS_OBLIGATIONS`: `VaultDelete::doApply()` removes the target vault's holding before discovering a remaining pseudo-account obligation, so the target pseudo-account still exists and this predicate classifies the target holding as another vault's holding, converting the legitimate `tec` result into `tecINVARIANT_FAILED`. Resolve the target pseudo-account/holding from the pre-transaction state or the transaction's `VaultID` so the target's own holding remains exempt.\n```\n            auto const isVaultPseudo = [&](AccountID const& acct) {\n                auto const sle = view.read(keylet::account(acct));\n                return sle && sle->isFieldPresent(sfVaultID);\n            };\n```\n**src/libxrpl/tx/invariants/MPTInvariant.cpp:175**\n* This predicate also leaves unrelated non-vault holdings unchecked. `ttVAULT_DELETE` has the `DestroyMptIssuance` privilege, whose finalizer path does not constrain `mptokensDeleted_`, and `isVaultPseudo` is false for a normal holder; a corrupt delete of another account's MPToken or RippleState can therefore pass this check. The allowed holdings need to be derived from the target vault (its asset holding and, where applicable, the owner's share MPToken), rather than only testing for a surviving vault pseudo-account.\n```\n            auto const isVaultPseudo = [&](AccountID const& acct) {\n                auto const sle = view.read(keylet::account(acct));\n                return sle && sle->isFieldPresent(sfVaultID);\n            };\n```\n\n- **Files reviewed:** 10/10 changed files\n- **Comments generated:** 3\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-16T15:27:20Z",
+     "body": "The change adds targeted invariant checks so LoanDelete, LoanBrokerDelete, and VaultDelete can only erase the single object named by the transaction and must not touch any other ledger entry. The VaultInvariant and LoanBrokerInvariant additions consistently guard against a missing ID field before dereferencing it (`tx.isFieldPresent(sfVaultID)` / `tx.isFieldPresent(sfLoanBrokerID)`), but the equivalent new check in LoanInvariant.cpp omits that guard for `sfLoanID`, which is an inconsistency worth fixing before merge."
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-09-16T15:31:44Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-16T15:37:23Z",
+     "body": "The change adds well-structured, feature-gated invariant checks so VaultDelete/LoanDelete/LoanBrokerDelete can only erase the object named by the transaction and cannot touch other objects. The Vault and LoanBroker versions of the new 'deleted object matches the ID field' check defensively verify the ID field is present before dereferencing it (`!tx.isFieldPresent(sfVaultID) || ...` and `!tx.isFieldPresent(sfLoanBrokerID) || ...`), but the analogous new check in LoanInvariant.cpp calls `tx[sfLoanID]` directly without that guard, which is an inconsistency with the sibling implementations added in this same PR."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-16T15:48:48Z",
+     "body": "### 🟡 Changes recommended\n\nUnresolved critical and moderate findings affect invariant enforcement and regression-test validity.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (6)\n\n**Previously missed (1)** — in code that hasn't changed since the last review.\n\n**src/libxrpl/tx/invariants/LoanInvariant.cpp:282**\n* Because all four checks are nested under `isTesSuccess(result)`, the second invariant pass receives `tecINVARIANT_FAILED` and skips this block. The new identity test in `InvariantsVault_test.cpp` therefore cannot escalate from `tecINVARIANT_FAILED` to `tefINVARIANT_FAILED`, and a prior invariant failure can similarly mask a wrong LoanDelete target. Restrict the success gate to the empty-deletion postcondition, while still checking an observed deletion on subsequent passes.\n\n**src/libxrpl/tx/invariants/LoanBrokerInvariant.cpp:214**\n* When no broker deletion is observed, this branch reports the problem only for a successful result. A failed Full pass can therefore update another Loan Broker and fall through to the existing per-entry checks, bypassing the new no-other-broker restriction. Keep the missing-deletion diagnostic success-gated, but reject any broker mutation observed for this delete transaction even when the tentative result is a failure.\n```\n        else if (fix350Enabled && tx.getTxnType() == ttLOAN_BROKER_DELETE && isTesSuccess(result))\n        {\n```\n**src/libxrpl/tx/invariants/LoanInvariant.cpp:303**\n* Unlike the analogous Vault and LoanBroker checks, this comparison indexes `sfLoanID` without first checking that the field is present. A malformed/synthetic `ttLOAN_DELETE` that deletes a loan but omits the required field makes `STObject::at()` throw instead of returning an invariant failure, taking down the invariant pass rather than reporting the violation. Guard the field before reading it.\n```\n        if (deletedLoans_.front().first->key() != keylet::loan(tx[sfLoanID]).key)\n```\n**src/libxrpl/tx/invariants/VaultInvariant.cpp:460**\n* These new VaultDelete checks are unreachable for any non-success result because `finalize()` returns at line 425 before reaching this block. The full invariant pass intentionally runs transaction-specific checks on `tec` outcomes, so a corrupt failed VaultDelete that erases the wrong/multiple vaults can bypass the new count and identity enforcement. Keep only the expected-deletion postcondition success-gated; validate any observed deletion and its identity even when the tentative result is a failure.\n```\n    if (fix350Enabled && deletedVault_.size() > 1)\n    {\n        JLOG(j.fatal()) << \"Invariant failed: more than one vault deleted\";\n        return false;  // That's all we can do here\n```\n**src/test/app/invariants/InvariantsVault_test.cpp:545**\n* This hand-built `ltVAULT` is missing required ledger fields such as `sfAsset`, `sfShareMPTID`, and `sfOwner`. Inserting it causes `ValidVault::visitEntry()` to call `Vault::make()` on an incomplete SLE, whose `at()` accesses those required fields before the new no-other-vault diagnostic can run; debug builds can assert/throw and make this test fail for the wrong reason. Build a complete valid vault SLE (including its share issuance) or reuse a real vault fixture.\n```\n                    std::make_shared<SLE>(keylet::vault(a2.id(), SeqProxy::rawSequence(sequence)));\n                auto const vaultPage = ac.view().dirInsert(\n                    keylet::ownerDir(a2.id()), sleOther->key(), describeOwnerDir(a2.id()));\n                sleOther->setFieldU64(sfOwnerNode, *vaultPage);\n                sleOther->setAccountID(sfAccount, a2.id());\n```\n**src/test/app/invariants/InvariantsVault_test.cpp:577**\n* This second hand-built `ltVAULT` has the same problem: required fields read by `ValidVault::Vault::make()` (notably `sfAsset`, `sfShareMPTID`, and `sfOwner`) are never initialized. The invariant walk can assert/throw as soon as this SLE is inserted, so the intended `ttVAULT_DELETE` no-other-vault test is not exercising the new check. Use a complete valid vault fixture instead.\n```\n                std::make_shared<SLE>(keylet::vault(a2.id(), SeqProxy::rawSequence(sequence)));\n            auto const vaultPage = ac.view().dirInsert(\n                keylet::ownerDir(a2.id()), sleOther->key(), describeOwnerDir(a2.id()));\n            sleOther->setFieldU64(sfOwnerNode, *vaultPage);\n            sleOther->setAccountID(sfAccount, a2.id());\n```\n\n- **Files reviewed:** 10/10 changed files\n- **Comments generated:** 1\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-16T15:50:17Z",
+     "body": "Focused, well-tested change tightening delete invariants for Loan, LoanBroker, and Vault objects. The Vault and LoanBroker delete-identity checks both defensively guard against the ID field being absent from the transaction before dereferencing it, but the equivalent LoanDelete check does not — an inconsistency worth fixing for safety."
     }
    ],
    "reviewCommentsList": [
@@ -80,6 +158,90 @@
      "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
      "body": "The new fixCleanup3_5_0 check for `deletedVault_` (\"vault deletion must not create or modify another vault\") is placed after the early return for `txnType == ttVAULT_DELETE`. As a result, a malformed `ttVAULT_DELETE` that both deletes a vault and also creates/modifies another vault will never hit the intended diagnostic and will instead be reported as \"vault deletion succeeded without deleting a vault\".\n\nMove the `deletedVault_` check above the `ttVAULT_DELETE` early-return so the stricter rule is enforced (and the correct diagnostic is emitted) for VaultDelete as well.",
      "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r3951388141"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-09-16T13:34:17Z",
+     "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4026628821"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-16T13:46:07Z",
+     "path": "src/libxrpl/tx/invariants/LoanBrokerInvariant.cpp",
+     "body": "Because this logic is reached only inside `if (deletedBroker_)`, a successful `ttLOAN_BROKER_DELETE` that deletes an allowed pseudo-account but no `ltLOAN_BROKER`, while modifying another broker, bypasses the new restriction. The existing `MustDeleteAcct` invariant only validates the account-root deletion and does not require a broker deletion. Require `ttLOAN_BROKER_DELETE` to observe exactly one deleted broker before applying the ID and no-other-broker checks, rather than making enforcement conditional on a deletion already being recorded.",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4026743090"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-16T13:46:07Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "The new checks are gated on observing a deletion, so a successful `ttLOAN_DELETE` that modifies another loan but deletes no `ltLOAN` bypasses this entire block (and a no-op LoanDelete is accepted as well). The normal loan checks do not require this transaction type to delete exactly one loan. Require `ttLOAN_DELETE` to observe exactly one deleted loan, then apply the no-other-loan and ID checks, so the invariant also covers the missing-deletion case.",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4026743164"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-16T13:46:08Z",
+     "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
+     "body": "This check only constrains `ltVAULT` entries. `ValidMPTIssuance` explicitly permits deletion of any vault pseudo-account's MPToken/RippleState holding when the transaction type is `ttVAULT_DELETE`, so a corrupt delete can erase vault A and a holding owned by vault B while `deletedVault_` still contains only one vault and no second vault is touched. Track the deleted holdings and validate them against the transaction's `VaultID` (or extend the MPT invariant) so the target vault's ancillary entries cannot be mixed with another vault's.",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4026743221"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-09-16T14:43:50Z",
+     "path": "src/libxrpl/tx/invariants/LoanBrokerInvariant.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4027320919"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-09-16T14:43:58Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4027322065"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-09-16T14:44:23Z",
+     "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
+     "body": "Fixed in `ValidMPTIssuance` because that's a better place.",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4027326263"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-16T15:09:38Z",
+     "path": "src/libxrpl/tx/invariants/LoanBrokerInvariant.cpp",
+     "body": "`sfLoanBrokerID` is also `SoeRequired`, so indexing it here asserts when the field is absent. The existing `InvariantsMisc_test.cpp:1390` case erases a broker with an empty `ttLOAN_BROKER_DELETE`; with Cleanup3_5_0 enabled, the new checks reach this line before `ObjectHasPseudoAccount` can report the intended failure. Guard `isFieldPresent(sfLoanBrokerID)` and treat a missing ID as a mismatch before indexing.",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4027583863"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-16T15:09:39Z",
+     "path": "src/libxrpl/tx/invariants/MPTInvariant.cpp",
+     "body": "The new VaultDelete restriction is nominally gated by `fixCleanup3_5_0`, but this entire block is still nested under `rules.enabled(fixCleanup3_2_0)`, and `visitEntry` only records `deletedHoldings_` when `fixCleanup3_2_0` is enabled. Amendments are independent flags in `Rules`, so a ruleset with Cleanup3_5_0 enabled but Cleanup3_2_0 disabled silently skips this new check. Gate the collection/finalization on Cleanup3_5_0 as well, or explicitly enforce and test a prerequisite.\n\nThis issue also appears in the following locations of the same file:\n- line 172\n- line 172",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4027583968"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-16T15:09:39Z",
+     "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
+     "body": "`sfVaultID` is a required field, so `tx[sfVaultID]` asserts/throws when it is absent. Existing invariant cases such as `InvariantsVault_test.cpp:485` intentionally construct an empty `ttVAULT_DELETE` and erase both the vault and its shares, which reaches this comparison; the invariant runner will abort instead of reporting a failure. Guard `isFieldPresent(sfVaultID)` and treat a missing ID as a mismatch before indexing.",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4027584047"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-09-16T15:31:44Z",
+     "path": "src/libxrpl/tx/invariants/MPTInvariant.cpp",
+     "body": ">  a ruleset with Cleanup3_5_0 enabled but Cleanup3_2_0 disabled \n\nThis won't happen",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4027804823"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-16T15:48:47Z",
+     "path": "src/libxrpl/tx/invariants/MPTInvariant.cpp",
+     "body": "This new restriction classifies a deleted holding using only the post-transaction account's `sfVaultID`. A corrupt VaultDelete can retag another vault pseudo-account (for example, replace `sfVaultID` with `sfLoanBrokerID` for a live broker) while deleting its holding; the existing pseudo-account invariant only requires one designator field, so `isVaultPseudo` then returns false and this check accepts the unrelated deletion. Track the account's pre-transaction pseudo-account type (as the MPT transfer invariant does) or otherwise bind the deleted holding to the VaultID/account being deleted instead of relying only on the post-state field.",
+     "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4027975712"
     }
    ]
   },

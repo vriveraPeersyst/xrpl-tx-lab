@@ -22,6 +22,8 @@ export interface BuilderProps {
   prerequisites?: string[];
   amendmentGate?: { name: string; enabled: boolean };
   pseudo?: boolean;
+  /** asf* values for AccountSet's SetFlag/ClearFlag. */
+  asf?: { name: string; value: number; doc?: string }[];
 }
 
 const HIDDEN_COMMON = new Set(["TransactionType", "Account", "SigningPubKey", "TxnSignature", "Signers", "Fee", "Sequence", "LastLedgerSequence", "PreviousTxnID", "NetworkID", "OperationLimit", "SponsorSignature", "SponsorFlags", "AccountTxnID"]);
@@ -118,7 +120,7 @@ export function TxBuilder(p: BuilderProps) {
           </div>
         ) : (
           <div className="space-y-3">
-            {visibleFields.map((f) => <FieldRow key={f.name} f={f} value={tx[f.name]} onChange={(v) => set(f.name, v)} flags={p.flags} innerObjects={p.innerObjects} />)}
+            {visibleFields.map((f) => <FieldRow key={f.name} f={f} value={tx[f.name]} onChange={(v) => set(f.name, v)} flags={p.flags} innerObjects={p.innerObjects} options={f.name === "SetFlag" || f.name === "ClearFlag" ? p.asf : undefined} />)}
             {showCommon && (
               <div className="space-y-3 border-t border-border pt-3">
                 <p className="text-xs text-muted">Fields common to all transactions. Xaman fills Fee, Sequence and LastLedgerSequence automatically.</p>
@@ -179,7 +181,7 @@ export function TxBuilder(p: BuilderProps) {
   );
 }
 
-function FieldRow({ f, value, onChange, flags, innerObjects }: { f: BuilderField; value: unknown; onChange(v: unknown): void; flags: BuilderProps["flags"]; innerObjects: BuilderProps["innerObjects"] }) {
+function FieldRow({ f, value, onChange, flags, innerObjects, options }: { f: BuilderField; value: unknown; onChange(v: unknown): void; flags: BuilderProps["flags"]; innerObjects: BuilderProps["innerObjects"]; options?: BuilderProps["asf"] }) {
   const R = rendererFor(f.type);
   const innerName = ARRAY_INNER[f.name];
   const inner = innerName && innerObjects[innerName] ? { name: innerName, fields: innerObjects[innerName] } : innerName === "Memo" ? { name: "Memo", fields: [{ name: "MemoType", type: "Blob", optionality: "optional" }, { name: "MemoData", type: "Blob", optionality: "optional" }, { name: "MemoFormat", type: "Blob", optionality: "optional" }] } : innerName === "RawTransaction" ? { name: "RawTransaction", fields: [] } : undefined;
@@ -189,7 +191,7 @@ function FieldRow({ f, value, onChange, flags, innerObjects }: { f: BuilderField
         <span><Link className="font-mono hover:underline" href={`/fields/${f.name}`}>{f.name}</Link>{f.optionality === "required" ? <span className="ml-1 text-danger">*</span> : null}{f.optionality === "default" ? <span className="ml-1 text-xs text-muted">(default)</span> : null}</span>
         <span className="field-type mono">{f.type}{f.mptSupported ? " · MPT" : ""}</span>
       </label>
-      {R({ field: f.name, value, onChange, hint: f.hint, required: f.optionality === "required", flags: f.name === "Flags" ? flags : undefined, inner: inner?.fields.length ? inner : undefined })}
+      {R({ field: f.name, value, onChange, hint: f.hint, required: f.optionality === "required", flags: f.name === "Flags" ? flags : undefined, inner: inner?.fields.length ? inner : undefined, options })}
       {f.hint && <p className="hint">{f.hint}</p>}
     </div>
   );

@@ -71,6 +71,7 @@ export default async function TxPage({ params }: { params: Promise<{ net: string
           prerequisites={spec?.prerequisites}
           amendmentGate={gate}
           pseudo={pseudo}
+          asf={name === "AccountSet" ? asf.map((f) => ({ name: f.name, value: f.value, doc: flagDoc("AccountSet", f.name) })) : undefined}
         />
         </Suspense>
       </section>

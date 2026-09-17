@@ -17,6 +17,8 @@ export interface RendererProps {
   inner?: { name: string; fields: { name: string; type: string; optionality: string }[] };
   /** For Flags: list of the transaction's flags. */
   flags?: { name: string; value: number; doc?: string }[];
+  /** Enumerated values (e.g. asf* for SetFlag/ClearFlag): rendered as a select. */
+  options?: { name: string; value: number; doc?: string }[];
 }
 
 export type Renderer = (p: RendererProps) => ReactNode;
@@ -105,6 +107,20 @@ function FlagsInput({ value, onChange, flags = [] }: RendererProps) {
   );
 }
 
+function SelectInput({ value, onChange, options = [] }: RendererProps) {
+  const v = value == null ? "" : String(value);
+  const doc = options.find((o) => String(o.value) === v)?.doc;
+  return (
+    <div>
+      <select className="input" value={v} onChange={(e) => onChange(e.target.value === "" ? undefined : Number(e.target.value))}>
+        <option value="">— none —</option>
+        {options.map((o) => <option key={o.name} value={o.value}>{o.value} · {o.name}</option>)}
+      </select>
+      {doc && <p className="hint">{doc}</p>}
+    </div>
+  );
+}
+
 function JsonInput({ value, onChange, placeholder }: { value: unknown; onChange(v: unknown): void; placeholder?: string }) {
   const s = value === undefined ? "" : JSON.stringify(value, null, 2);
   return <textarea className="input mono" value={s} placeholder={placeholder} spellCheck={false} onChange={(e) => { const t = e.target.value; if (!t.trim()) return onChange(undefined); try { onChange(JSON.parse(t)); } catch { /* keep editing */ } }} />;
@@ -160,7 +176,7 @@ export const renderers: Record<string, Renderer> = {
   Currency: (p) => <Text value={p.value} onChange={p.onChange} placeholder="USD or 40 hex" />,
   UInt8: (p) => <UInt value={p.value} onChange={p.onChange} max={0xff} />,
   UInt16: (p) => <UInt value={p.value} onChange={p.onChange} max={0xffff} />,
-  UInt32: (p) => (p.field === "Flags" ? <FlagsInput {...p} /> : <UInt value={p.value} onChange={p.onChange} max={0xffffffff} />),
+  UInt32: (p) => (p.field === "Flags" ? <FlagsInput {...p} /> : p.options?.length ? <SelectInput {...p} /> : <UInt value={p.value} onChange={p.onChange} max={0xffffffff} />),
   UInt64: (p) => <Text value={p.value} onChange={p.onChange} placeholder="integer (decimal or hex) as string" />,
   Int32: (p) => <Text value={p.value} onChange={p.onChange} placeholder="signed integer" pattern={/^-?\d+$/} />,
   Number: (p) => <Text value={p.value} onChange={p.onChange} placeholder="decimal number as string" />,
