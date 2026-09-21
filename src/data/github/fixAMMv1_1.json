@@ -1,6 +1,6 @@
 {
  "name": "fixAMMv1_1",
- "fetchedAt": "2026-09-17T10:09:42.661Z",
+ "fetchedAt": "2026-09-21T08:26:30.313Z",
  "summary": {
   "status": "in development",
   "prs": 2,
@@ -11,10 +11,10 @@
   "branches": [
    "gregtatcam/retire/fixAMMv1_1"
   ],
-  "lastActivity": "2026-09-16T15:36:44Z",
+  "lastActivity": "2026-09-17T14:22:14Z",
   "lastMerged": "2024-05-14T19:28:38Z",
   "release": "2.2.0",
-  "totalComments": 162
+  "totalComments": 163
  },
  "release": {
   "version": "2.2.0",
@@ -30,7 +30,7 @@
    "state": "open",
    "author": "gregtatcam",
    "createdAt": "2026-09-14T18:44:55Z",
-   "updatedAt": "2026-09-16T15:36:44Z",
+   "updatedAt": "2026-09-17T14:22:14Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -47,10 +47,10 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:gregtatcam/retire/fixAMMv1_1",
-   "additions": 655,
+   "additions": 656,
    "deletions": 1597,
    "changedFiles": 11,
-   "commits": 3,
+   "commits": 5,
    "reviewComments": 13,
    "reviews": [
     {
@@ -142,6 +142,12 @@
      "state": "COMMENTED",
      "date": "2026-09-16T15:36:44Z",
      "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-17T13:53:13Z",
+     "body": "This is a clean, mechanical retirement of fixAMMv1_1: the amendment macro moved to the retired list, gated branches replaced with the post-amendment behavior, and now-dead Rules parameters removed along with their call sites. I traced each removed conditional (changeSpotPriceQuality, swapAssetIn/Out, adjustAmountsByLPTokens, accountSendIOU, the AMMWithdraw LP-token checks, and the BookStep quality-threshold/adjustQualityWithFees lambdas) against the pre-amendment vs post-amendment logic and the kept branches consistently match the previously-enabled path, matching the description. The one intentional behavior change (path finding and transactors now agreeing on swap math) is explicitly called out and is not consensus-relevant. I flagged two newly-added LCOV_EXCL_LINE markers on error-return paths that look like they could still be reachable (rounding-induced LP token mismatch), which is worth a sanity check but not a functional bug."
     }
    ],
    "reviewCommentsList": [
