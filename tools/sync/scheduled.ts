@@ -63,11 +63,12 @@ if (fs.existsSync(LOCK)) {
 fs.writeFileSync(LOCK, String(process.pid));
 
 try {
+  // Never inherit the Claude Code session that started pm2, nor an API key (pay-per-token billing).
+  // Strip before loading sync.env, which brings our own CLAUDE_* values.
+  for (const k of Object.keys(process.env)) if (k.startsWith("CLAUDE_")) delete process.env[k];
+  process.env.ANTHROPIC_API_KEY = "";
   const envFile = path.join(STATE_DIR, "sync.env");
   if (fs.existsSync(envFile)) process.loadEnvFile(envFile);
-  // Never inherit the Claude Code session that started pm2, nor an API key (pay-per-token billing).
-  for (const k of Object.keys(process.env)) if (k.startsWith("CLAUDE_") && k !== "CLAUDE_CODE_OAUTH_TOKEN") delete process.env[k];
-  process.env.ANTHROPIC_API_KEY = "";
 
   // GitHub: pin the account (sync.ts uses `gh api` for the mining and the library releases).
   const tok = spawnSync("gh", ["auth", "token", "--user", GITHUB_USER], { encoding: "utf8" });
