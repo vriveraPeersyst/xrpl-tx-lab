@@ -76,6 +76,9 @@ try {
   const ghLogin = ghToken ? spawnSync("gh", ["api", "user", "--jq", ".login"], { encoding: "utf8", env: { ...process.env, GH_TOKEN: ghToken } }).stdout?.trim() : "";
   if (ghLogin !== GITHUB_USER) throw new Error(`GitHub: expected ${GITHUB_USER}, got "${ghLogin || tok.stderr.trim()}" (gh auth login, then retry)`);
   process.env.GH_TOKEN = ghToken;
+  // git push authenticates through gh with GH_TOKEN; if that ever fails, fail fast instead of
+  // waiting forever for a password prompt nobody will answer.
+  process.env.GIT_TERMINAL_PROMPT = "0";
   log("github as", ghLogin);
 
   // Claude: only the vrivera@peersyst.com subscription token, never the keychain login.
