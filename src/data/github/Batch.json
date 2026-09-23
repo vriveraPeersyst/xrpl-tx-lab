@@ -1,26 +1,26 @@
 {
  "name": "Batch",
- "fetchedAt": "2026-09-22T08:01:02.171Z",
+ "fetchedAt": "2026-09-23T08:01:16.907Z",
  "summary": {
   "status": "in development",
   "prs": 11,
-  "open": 10,
-  "merged": 0,
+  "open": 9,
+  "merged": 1,
   "issues": 1,
   "proposals": 3,
   "branches": [
    "a1q123456/support-lending-in-batch",
    "bthomee/shamap-invalid-12-batch-progress",
    "dangell7/batch-db",
-   "dangell7/batch-orderbook-deferral",
    "dangell7/fix-batch-account-txn-id",
    "mvadari/batch-multisign-prefix",
    "ripple/custody-old-batch-cmpt",
    "tialymov/FN-6-lending_batch_support"
   ],
-  "lastActivity": "2026-09-20T04:33:05Z",
+  "lastActivity": "2026-09-22T18:43:17Z",
+  "lastMerged": "2026-07-16T13:53:46Z",
   "release": "2.5.0",
-  "totalComments": 258
+  "totalComments": 371
  },
  "release": {
   "version": "2.5.0",
@@ -36,7 +36,7 @@
    "state": "open",
    "author": "oleks-rip",
    "createdAt": "2026-08-19T16:48:52Z",
-   "updatedAt": "2026-09-20T04:33:05Z",
+   "updatedAt": "2026-09-22T18:43:17Z",
    "closedAt": null,
    "labels": [
     "PR: has conflicts"
@@ -67,11 +67,11 @@
    "draft": false,
    "base": "develop",
    "head": "oleks-rip:txq_sponsor",
-   "additions": 2159,
-   "deletions": 676,
+   "additions": 2942,
+   "deletions": 683,
    "changedFiles": 6,
    "commits": 4,
-   "reviewComments": 35,
+   "reviewComments": 43,
    "reviews": [
     {
      "author": "depthfirst-app[bot]",
@@ -194,9 +194,56 @@
      "body": ""
     },
     {
-     "author": "darrentodd0101-tech",
      "state": "APPROVED",
      "date": "2026-09-20T04:33:05Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-09-22T17:36:01Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-09-22T17:45:17Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-09-22T18:40:58Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-09-22T18:41:18Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-09-22T18:41:50Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-09-22T18:42:48Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-09-22T18:43:06Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-09-22T18:43:17Z",
      "body": ""
     }
    ],
@@ -445,6 +492,62 @@
      "path": "src/xrpld/app/misc/detail/TxQ.cpp",
      "body": "It is how the Batch works,  all inner txs will be processed on ledger close event,  and yes, they may fail.",
      "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4040111098"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-09-22T17:36:01Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "TxQApplyImpl::tryClearAccountQueueUpThruTx() return non-empty result only when result is applied, check it internals more closely\n```\n  if (result.applied)\n  {\n      sandbox.apply(view_);\n      /* Can't erase (*replacedTxIter) here because success\n          implies that it has already been deleted.\n      */\n      return result;\n  }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4074551806"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-09-22T17:45:17Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "As TxMap doesn't support such behavior, we leave it as is for now (batch with duplicate seq will be rejected from the queue). But such a batch will still be able to direct application with high enough fee.",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4074629538"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-09-22T18:40:58Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "fixed 952ad84b513c2",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4075123292"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-09-22T18:41:18Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "fixed 952ad84b513c2",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4075126268"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-09-22T18:41:49Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "fixed 952ad84b513c2",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4075130920"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-09-22T18:42:48Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "fixed 952ad84b513c2",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4075139020"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-09-22T18:43:06Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "fixed 952ad84b513c2",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4075141509"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-09-22T18:43:17Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "fixed, allowed batch to replace other txs. 952ad84b513c2",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4075143161"
     }
    ]
   },
@@ -504,72 +607,6 @@
     }
    ],
    "reviewCommentsList": []
-  },
-  {
-   "number": 8248,
-   "title": "fix: Correct Batch order book registration and inner wrapper field",
-   "url": "https://github.com/XRPLF/rippled/pull/8248",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-09-18T22:53:14Z",
-   "updatedAt": "2026-09-18T23:53:42Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-18T22:56:21Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8248?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8248#issuecomment-5737161703"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nTwo fixes to how a Batch handles its inner transactions.\n\n- An inner `OfferCreate` registered the order book it created with the process-wide `OrderBookDB` as soon as the offer was placed, including when the batch then aborted and no offer reached the ledger. A batch inner no longer registers books at all.\n- Any object field with no `InnerObjectFormats` template could wrap an inner transaction in `RawTransactions` in place of `sfRawTransaction`, and the batch executed normally. `Batch::preflight` now returns `temMALFORMED` for any other wrapper, gated on `fixCleanup3_5_0`.\n\n## Context of Change\n\n**Order book registration.** `OfferCreate::applyGuts` calls `ctx_.addOrderBook` while the offer is being placed, and `ApplyContext::addOrderBook` wrote straight through to `OrderBookDB`, gated only on `TapDryRun`. A batch inner applies into a `perTxBatchView` that `applyBatchTransactions` may discard — under `tfAllOrNothing` one failing inner discards them all — so the index kept a currency pair whose book directory holds no offers. Submitting such a batch costs only its fee, and the pair can be chosen freely, so the set of phantom pairs an account can add is unbounded.\n\n`OrderBookDB` is a node-local, in-memory index with one consumer, `Pathfinder` (`getBookSize`, `isBookToXRP`, `getBooksByTakerPays`). Nothing in it reaches a ledger, a transaction result or consensus, so no amendment is involved. The cost of the phantom entries is pathfinding work spent enumerating books that hold nothing.\n\nThe fix adds `TapBatch` to the gate that already exists for `TapDryRun`, so the rule reads: do not touch the cache for changes that may not reach the ledger. The trade-off is deliberate and asserted in the tests — an offer created by a batch that *does* commit is in the ledger but not in the index, so a currency pair first traded inside a batch is not enumerated by `Pathfinder` until the next full update. `book_offers` reads the ledger and is unaffected.\n\nThat trade-off is acceptable because the index is already best-effort: it is maintained by hand from inside transaction execution, and `OrderBookDBImpl::setup` runs only at bootstrap and on a validated-stream gap, so it is never reconciled against the ledger on a running node. Deriving it from applied ledger state instead would remove both this gap and the drift, and is worth doing separately.\n\n**Inner wrapper field.** `STObject::applyTemplateFromSField` is a no-op when the field has no entry in `InnerObjectFormats`, and nothing else checked the name of a `RawTransactions` element. Every template-less object field therefore wrapped an inner as well as `sfRawTransaction` did: `CreatedNode`, `ModifiedNode`, `DeletedNode`, `TemplateEntry`, `EmitDetails`, `Memo`, `FinalFields`, `NewFields`, `PreviousFields` and `TransactionMetaData`. Each was submitted through the normal path and applied in full. `sfSigner`, `sfBatchSigner`, `sfSignerEntry` and `sfBook` were already rejected, by their templates rather than by name.\n\nSuch a batch is accepted and included today, so the check is behind `fixCleanup3_5_0`: before activation every node accepts it, after activation every node rejects it, and no node disagrees with another in between. That also decides where it goes — `STTx::buildBatchTxns` runs during deserialization, where no `Rules` are in scope — so it is folded into the loop `preflight` already walks over the inners.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nNo signature changes. `ApplyContext::addOrderBook` skips batch inners as well as dry runs.\n\n## Test Plan\n\n`Batch_test`:\n\n- `inner offer order book` — an `OfferCreate` outside a batch still registers its book; an aborted `tfAllOrNothing` batch registers nothing and leaves `sfOwnerCount` at 0; a committed batch leaves the offer in the ledger with `sfOwnerCount` at 1 and the index empty, which pins the trade-off above.\n- `wrapper field submission` — each of the eleven wrappers is submitted as a real transaction. Without `fixCleanup3_5_0` every one executes and delivers; with it, the ten poisoned wrappers return `temMALFORMED` and deliver nothing, while `RawTransaction` is unaffected.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:dangell7/batch-orderbook-deferral",
-   "additions": 228,
-   "deletions": 7,
-   "changedFiles": 8,
-   "commits": 2,
-   "reviewComments": 2,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-18T22:55:55Z",
-     "body": "This is a well-scoped, carefully designed fix for two real bugs: premature order-book registration for aborted batch inners, and unchecked wrapper fields around inner batch transactions. I traced the order-book lifecycle end-to-end (ApplyContext::addOrderBook -> orderBooks_ -> discard()/apply()/takeOrderBooks() -> Transactor's ApplyResult -> applyBatchTransactions -> applyTransaction's final registration) and it is internally consistent: books are only pushed to OrderBookDB when the owning view's changes actually reach the ledger, and discarded views correctly clear pending books. The new fixCleanup3_5_0-gated wrapper-field check in Batch::preflight matches the stated design (amendment-gated, since older behavior is already live) and is placed correctly since Rules aren't available at deserialization time. The two structured-binding call sites in TxQ.cpp were updated for the new ApplyResult field. I did not find a confident correctness or security issue introduced by this diff within the changed lines."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-18T23:01:16Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nUnconditional `OrderBookDB` lookups cause ordinary transactions and payment-only batches to fail with `tefEXCEPTION` in libxrpl contexts without that service.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (2)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Guard empty order book registration before service lookup](#discussion_r4051301619) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Avoid order book lookup when batch has no order books](#discussion_r4051301666) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nFixes Batch order-book registration and rejects invalid inner transaction wrappers after `fixCleanup3_5_0`.\n\n**Changes:**\n- Defers order-book registration until ledger changes commit.\n- Validates Batch inner wrappers.\n- Adds regression tests and updates `ApplyResult` consumers.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​apply.cpp` | Propagates and commits inner order books. |\n| `src/​libxrpl/​tx/​ApplyContext.cpp` | Buffers and discards order books. |\n| `include/​xrpl/​tx/​applySteps.h` | Extends `ApplyResult`. |\n| `include/​xrpl/​tx/​ApplyContext.h` | Adds order-book transfer API. |\n| `src/​libxrpl/​tx/​Transactor.cpp` | Returns deferred order books. |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Validates wrapper fields. |\n| `src/​test/​app/​Batch_test.cpp` | Adds Batch regression tests. |\n| `src/​xrpld/​app/​misc/​detail/​TxQ.cpp` | Updates structured bindings. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-18T23:37:32Z",
-     "body": "Reviewed the order-book registration fix (ApplyViewImpl/OpenView/ApplyContext/apply.cpp) and the Batch inner-wrapper validation fix (Batch.cpp), plus the associated Batch_test additions. The order-book plumbing is internally consistent: ApplyViewImpl now records books on the view being applied to, OpenView carries/transfers them via addOrderBooks/takeOrderBooks, ApplyContext::apply only registers immediately to the process-wide OrderBookDB when not inside a batch (TapBatch unset), and apply.cpp explicitly forwards books from perTxBatchView -> batchView -> the ledger view only when each stage actually commits — matching the described 'discarded view takes its books with it' design. The Batch::preflight wrapper-field check (gated on fixCleanup3_5_0) correctly rejects any RawTransactions element whose field name isn't sfRawTransaction, and the loop indices into rawTxns/innerTxns should stay in sync since buildBatchTxns unwraps every array element 1:1 regardless of wrapper name. I could not find a confident, diff-introduced bug: the changes I'd want to double check (e.g., whether `rawTxns` used in the new preflight loop is sized/ordered identically to `innerTxns`) depend on code outside the visible diff hunks, so per the review guidance I'm not asserting a defect there. No high-confidence correctness, security, or resource-leak issues found in the changed lines."
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-09-18T23:01:15Z",
-     "path": "src/libxrpl/tx/ApplyContext.cpp",
-     "body": "`getOrderBookDB()` is looked up for every non-batch transaction, even when `orderBooks_` is empty. The libxrpl `TestServiceRegistry` intentionally throws from this accessor (`src/tests/libxrpl/helpers/TestServiceRegistry.h:303-306`), so ordinary payment and similar applications now return `tefEXCEPTION`; the lookup is also unnecessary when there is nothing to register. Guard the lookup and loop on `!orderBooks_.empty()`.",
-     "url": "https://github.com/XRPLF/rippled/pull/8248#discussion_r4051301619"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-18T23:01:16Z",
-     "path": "src/libxrpl/tx/apply.cpp",
-     "body": "`batch.applied` only indicates that at least one inner transaction applied; it does not imply that an order book was created. For a successful batch containing ordinary payments, `batch.orderBooks` is empty, but this unconditional `getOrderBookDB()` call still throws in libxrpl's `TestServiceRegistry`, causing the batch application to fail. Acquire the service only when `batch.orderBooks` is non-empty.",
-     "url": "https://github.com/XRPLF/rippled/pull/8248#discussion_r4051301666"
-    }
-   ]
   },
   {
    "number": 8127,
@@ -2013,6 +2050,702 @@
    "reviewComments": 0,
    "reviews": [],
    "reviewCommentsList": []
+  },
+  {
+   "number": 7736,
+   "title": "fix: Refactor Batch Transaction IDs",
+   "url": "https://github.com/XRPLF/rippled/pull/7736",
+   "state": "closed",
+   "author": "dangell7",
+   "createdAt": "2026-07-06T17:53:36Z",
+   "updatedAt": "2026-07-16T16:26:42Z",
+   "closedAt": "2026-07-16T13:53:46Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-06T19:15:35Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.55072%` with `1 line` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 82.9%. Comparing base ([`a24e543`](https://app.codecov.io/gh/XRPLF/rippled/commit/a24e543af3b1aaa25803835bae54df2b1a743349?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`39ea5f6`](https://app.codecov.io/gh/XRPLF/rippled/commit/39ea5f6e542016d81e3c8b35adac5ce5f9cce22b?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)).\n:warning: Report is 4 commits behind head on develop.\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/protocol/STTx.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?src=pr&el=tree&filepath=src%2Flibxrpl%2Fprotocol%2FSTTx.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvU1RUeC5jcHA=) | 98.1% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n<details><summary>Additional details and impacted files</summary>\n\n\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/7736/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n```diff\n@@            Coverage Diff            @@\n##           develop   #7736     +/-   ##\n=========================================\n+ Coverage     82.8%   82.9%   +0.1%     \n=========================================\n  Files         1036    1036             \n  Lines        80107   80560    +453     \n  Branches      8932    8942     +10     \n=========================================\n+ Hits         66300   66746    +446     \n- Misses       13798   13805      +7     \n  Partials         9       9             \n```\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Coverage Δ | |\n|---|---|---|\n| [include/xrpl/protocol/STObject.h](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2FSTObject.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1NUT2JqZWN0Lmg=) | `94.1% <ø> (ø)` | |\n| [include/xrpl/protocol/STTx.h](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2FSTTx.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1NUVHguaA==) | `100.0% <ø> (ø)` | |\n| [include/xrpl/tx/transactors/system/Batch.h](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?src=pr&el=tree&filepath=include%2Fxrpl%2Ftx%2Ftransactors%2Fsystem%2FBatch.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3R4L3RyYW5zYWN0b3JzL3N5c3RlbS9CYXRjaC5o) | `100.0% <ø> (ø)` | |\n| [src/libxrpl/protocol/STObject.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?src=pr&el=tree&filepath=src%2Flibxrpl%2Fprotocol%2FSTObject.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvU1RPYmplY3QuY3Bw) | `93.5% <ø> (-0.1%)` | :arrow_down: |\n| [src/libxrpl/tx/apply.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Fapply.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvYXBwbHkuY3Bw) | `93.4% <100.0%> (ø)` | |\n| [src/libxrpl/tx/transactors/system/Batch.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Ftransactors%2Fsystem%2FBatch.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvc3lzdGVtL0JhdGNoLmNwcA==) | `93.0% <100.0%> (+1.3%)` | :arrow_up: |\n| [src/libxrpl/protocol/STTx.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?src=pr&el=tree&filepath=src%2Flibxrpl%2Fprotocol%2FSTTx.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvU1RUeC5jcHA=) | `91.1% <98.1%> (+0.4%)` | :arrow_up: |\n\n... and [7 files with indirect coverage changes](https://app.codecov.io/gh/XRPLF/rippled/pull/7736/indirect-changes?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/7736/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/7736?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n</details>\n<details><summary> :rocket: New features to boost your workflow: </summary>\n\n- :snowflake: [Test Analytics](https://docs.codecov.com/docs/test-analytics): Detect flaky tests, report on failures, and find test suite problems.\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#issuecomment-4896729237"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-13T14:07:40Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#issuecomment-4958830633"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-13T14:33:34Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#issuecomment-4959093491"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-07-16T12:18:12Z",
+     "body": "@dangell7 Please address any additional work in a follow-up PR. I'll merge this one now as we like to cut the first rc for testing.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#issuecomment-4991725058"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\nBatch-signer crypto already runs in STTx::checkSign (from #6446), which executes at the relay/submit boundary before the kMaxBatchSigners / kMaxBatchTxCount caps in preflight/local checks. That let a batch drive signature work over oversized sfBatchSigners / sfRawTransactions arrays before any size check.\n\ncheckBatchSign now rejects oversized sfBatchSigners up front, bounding verifications before the loop.\nBatch-signer checking is keyed only on sfBatchSigners being present, never gated on a size check, so it can't be skipped in favor of later local/preflight checks.\n\nbuildBatchTxnIds always seats the inner-id vector (cheap, bounded by the 1 MB tx limit), preserving the size invariant.\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-07-16T13:53:46Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:dangell7/fix-bad-merge",
+   "additions": 351,
+   "deletions": 265,
+   "changedFiles": 9,
+   "commits": 16,
+   "reviewComments": 48,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-06T17:55:46Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-06T18:14:20Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-07T19:58:11Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-13T14:12:50Z",
+     "body": "Clean changes\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-13T14:17:21Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-13T14:39:08Z",
+     "body": "LGTM\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-13T15:43:46Z",
+     "body": "Looks good.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-13T15:50:45Z",
+     "body": "LGTM\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-14T19:51:09Z",
+     "body": "## Pull request overview\n\nThis PR hardens and refactors Batch (XLS-56) inner-transaction handling by validating/building inners at `STTx` construction time, caching the resulting inner `STTx` objects + IDs for reuse, and adjusting fee/signature/local-check paths to avoid unbounded work on oversized signer arrays.\n\n**Changes:**\n- Build + validate Batch inner transactions during `STTx` construction (`buildBatchTxns()`), caching both inner tx IDs and `STTx` objects, and exposing them via `getBatchTransactions()`.\n- Refactor Batch transactor/apply paths to iterate cached inner `STTx` instances instead of reconstructing from `sfRawTransactions`.\n- Update tests to reflect construction-time failures for malformed/oversized/nested Batch inners; add a new unit test for invalid inner tx types.\n\n### Reviewed changes\n\nCopilot reviewed 7 out of 7 changed files in this pull request and generated 3 comments.\n\n<details>\n<summary>Show a summary per file</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/protocol/STTx_test.cpp | Adds a regression test ensuring invalid inner tx types are rejected at construction. |\n| src/test/app/Batch_test.cpp | Updates expectations to match construction-time Batch/inner validation and adds regression coverage around signer/size behavior. |\n| src/libxrpl/tx/transactors/system/Batch.cpp | Switches fee and preflight logic to reuse cached inner transactions and removes now-redundant raw-array checks. |\n| src/libxrpl/tx/applySteps.cpp | Wraps base-fee dispatch with exception handling to prevent throws escaping fee calculation. |\n| src/libxrpl/tx/apply.cpp | Applies inner transactions using cached inner `STTx` objects. |\n| src/libxrpl/protocol/STTx.cpp | Implements `buildBatchTxns()` and changes batch-signer checking to be keyed on `sfBatchSigners` with early bounding. |\n| include/xrpl/protocol/STTx.h | Adds public `getBatchTransactions()` and stores cached inner `STTx` objects. |\n</details>\n\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-14T22:25:40Z",
+     "body": "Ship it\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-14T22:43:36Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-15T02:51:02Z",
+     "body": "Looks good.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-15T13:05:14Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-15T14:03:06Z",
+     "body": "Looks good.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-15T16:00:21Z",
+     "body": "Ship it\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-15T16:05:58Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-15T16:06:00Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-15T16:06:02Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-15T16:06:03Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-15T18:03:01Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-15T19:28:51Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-15T20:10:27Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-15T20:10:29Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-15T20:13:49Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2026-07-15T20:21:11Z",
+     "body": "Yeah, this looks right."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-15T20:31:14Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-15T20:36:08Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 7 out of 7 changed files in this pull request and generated 4 comments."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-15T20:43:31Z",
+     "body": "Scanned through the diff\n\nABI-breaking signature change in a public `libxrpl` header flagged inline — the PR's `libxrpl` impact checkbox is unchecked.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-15T20:45:26Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-15T20:51:03Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-15T20:54:59Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-15T20:56:05Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-15T20:59:34Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-15T20:59:44Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-15T21:02:01Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-15T21:08:30Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-15T21:18:54Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-15T21:21:18Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-15T21:22:16Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-15T21:56:50Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-15T21:57:22Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-15T21:57:51Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-15T22:12:12Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-15T22:13:03Z",
+     "body": "Test isolation issue and incorrect result code on fee calculation failure — see inline."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-15T22:18:06Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 9 out of 9 changed files in this pull request and generated 4 comments."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-15T22:49:30Z",
+     "body": "Looks good."
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2026-07-15T23:15:46Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-16T01:38:18Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-07-16T02:03:38Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2026-07-16T02:13:24Z",
+     "body": "I left one comment but regardless of resolution I'm fine approving"
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-07-16T16:26:42Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ximinez",
+     "date": "2026-07-07T19:56:31Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "Right now, `sfRawTransactions` is required for Batch transactions. There's no reason to think that will ever change, but if it does, we could get into a bad situation.\n\nConsider a Batch transaction submitted without a raw transactions field, but with one or more batch signers, under the size limit. `buildBatchTxnIDs()` will exit early, leaving `batchTxnIds_` uninitialized, and then these signature check functions will access an uninitialized`batchTxnIds_` without any checking, which could have bad consequences depending on the `std::optional` implementation.\n\nThe chances of this ever happening are obviously very very slim, but I think it would not hurt to add a strictly defensive / future-proofing check here and/or in _both_ `checkBatchMultiSign` and `checkBatchSingleSign`.\n\n```\nif (!batchTxnIDs_) {\n    // LCOV_EXCL_START\n\tUNREACHABLE(...);\n\treturn std::unexpected(\"No inner transactions\");\n    // LCOV_EXCL_STOP\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3539278647"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-14T19:51:08Z",
+     "path": "include/xrpl/protocol/STTx.h",
+     "body": "The doc comment suggests getBatchTransactions() may be unseated when the batch exceeds the size cap, but in that case STTx construction throws and no STTx instance exists. For any successfully-constructed Batch STTx, batchTxns_ is always present (enforced by asserts). Updating the comment will better reflect the actual invariant.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3582171513"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-14T19:51:09Z",
+     "path": "include/xrpl/protocol/STTx.h",
+     "body": "This adds a new public accessor and a new data member to STTx in include/xrpl/, which is installed/exported for libxrpl consumers. That is an external API/ABI change (class layout change) and should be reflected in the PR's \"libxrpl change\" / API impact assessment (and any required release notes / versioning policy).",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3582171550"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-14T19:51:09Z",
+     "path": "src/libxrpl/tx/applySteps.cpp",
+     "body": "The catch fallback returns kInitialXrp, which can still be met by a transaction with a very large Fee, and it can also overflow in scaleFeeLoad under high load (scaleFeeLoad throws on mulDiv overflow), defeating the purpose of catching exceptions here. Consider returning a *large but scale-safe* fee (well below int64 max / max scaling factor) so fee escalation can't overflow while still making the tx effectively unaffordable.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3582171588"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-07-14T22:15:22Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "Optimization: `STTx::getTransactionID()` is a const inline function that just returns `tid_`. `ids` is just copying those IDs when they can just as quickly and easily be accessed from `txns` by calling `getTransactionID()`.\n\nIn other words, you can remove `batchTxnIds_` entirely. Doesn't necessarily have to be done now.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3582982128"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-07-14T22:18:14Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "You could iterate over `*batchTxns_` here, though you'd have to check that it's seated first.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3582995781"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-07-14T22:31:54Z",
+     "path": "src/libxrpl/tx/applySteps.cpp",
+     "body": "Other instances of `calculateBaseFee` that handle failures return the ledger base fee. (For example `LoanPay`.) As long as all the possible failures are also checked in `preflight`, there's no danger that the transaction will succeed, even with such a low base fee.\n\nI'd suggest making this change here, and in `Batch::calculateBaseFee` to negate the risk of overflow.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3583066724"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-07-14T22:38:21Z",
+     "path": "src/test/protocol/STTx_test.cpp",
+     "body": "Observation: It's so weird that the `testcase` call is here at the call site, and not inside the function like just about every other test suite. No change necessary.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3583097174"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-07-15T15:53:01Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "I had envisioned this as being done at all of the call sites, but I like this implementation!",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3588785588"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-15T16:05:58Z",
+     "path": "src/libxrpl/tx/applySteps.cpp",
+     "body": "resolved: https://github.com/XRPLF/rippled/commit/f274e54518aeeb33f4dbf2d727dec14160f188a3",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3588877678"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-15T16:06:00Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "resolved: https://github.com/XRPLF/rippled/commit/f274e54518aeeb33f4dbf2d727dec14160f188a3",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3588877898"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-15T16:06:02Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "resolved: https://github.com/XRPLF/rippled/commit/f274e54518aeeb33f4dbf2d727dec14160f188a3",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3588878068"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-15T16:06:03Z",
+     "path": "src/test/protocol/STTx_test.cpp",
+     "body": "resolved: https://github.com/XRPLF/rippled/commit/f274e54518aeeb33f4dbf2d727dec14160f188a3",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3588878228"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-07-15T17:09:33Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "My [previous comment](https://github.com/XRPLF/rippled/pull/7736#discussion_r3583066724) noted that\n> As long as all the possible failures are also checked in `preflight`, there's no danger that the transaction will succeed, even with such a low base fee.\n\nI don't think that all of these conditions are explicitly checked in `preflight`, and thus I have a concern that a malformed transaction could slip through paying an insufficient fee.\n\nFirst it's important to note, most of these failures should be impossible under protocol rules, like this one for example. There's no way that `Transactor::calculateBaseFee` is going to return a value large enough that adding one more \"base fee\" is going to overflow.\n\nAlso, with the number of transactions and the number of signers limited, even at their craziest maximum possible individual fees, the total just cannot reasonably reach the overflow value, which would be more XRP than has ever existed. Those limits _are_ enforced in `preflight` and the `STTx` ctor, so the transaction will fail, or fail to even be instantiated.\n\nThe only failures that are reasonably possible to create in a transaction are `signers.size() > kMaxBatchSigners` and `nestedSigners.size() > STTx::kMaxMultiSigners`. But those will both get caught in `STTx` signature verification. The tx will never get this far, because it will be improperly signed.\n\n**Conclusion:** Even though the conditions are not _explicitly_ checked in `preflight`, they are _implicitly_ checked in other ways or not reasonably possible. The chances of such a transaction succeeding are extremely low, but I can't guarantee that they're zero for all future scenarios (such as the ledger base fee changing).\n\n**Mitigation:** Here are two suggestions to be extra sure that there is no risk. There are certainly other ways to accomplish the same goal.\n\n1. Implement a `std::optional<XRPAmount> calculateBaseFeeImpl` which moves the existing implementation, but returns `std::nullopt` in the failure cases.\n\ta. Have `calculateBaseFee` call\n\n        if (auto const ret = calculateBaseFeeImpl(view, tx))\n            return *ret;\n        return view.fees().base;\n\n    b. Have `preclaim` call\n\n        if (auto const ret = calculateBaseFeeImpl(ctx.view, ctx.tx); !ret.has_value())\n            return tecINSUFF_FEE;\n\n2. Along the same lines, but with less refactoring, just have `preclaim` call\n\n        if (auto const ret = calculateBaseFeeImpl(view, tx); ret == view.fees().base)\n            return tecINSUFF_FEE;\n\n      The problem with this option is that networks running with 0 base fee (hey, it's possible) will always fail this check.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3589313302"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-07-15T17:24:59Z",
+     "path": "src/libxrpl/tx/applySteps.cpp",
+     "body": "After looking over the changes to `Batch`, I realize this is a real catch 22. Return a value too high, and load multiplication / fee escalation could cause an overflow. Too low and there's a risk that the transaction will succeed without paying an appropriate amount (though at least it's not getting through for free).\n\nThe most obvious mitigating factor is that up to this point, `Batch` is the only transactor that intentionally threw from `calculateBaseFee`, and we've never seen any crashes before now, so it's not likely that it'll happen in the future.\n\nWhat do you think about returning the XRP balance of the fee payer + 1? Any transaction that manages to sneak through other checks will fail with an insufficient balance. The only real overflow risk is for the genesis account or accounts holding comparable balances. And if that happens, the network is new, not likely to be under _any_ load, and if the node crashes, well, they can just restart and try again. 🤷 \n\nAlternatively, undo the changes to this function (only) so that any unexpected exception propagates. That may crash the submission node, but crashing is better than validating an invalid transaction.\n\nSorry about all the back-and-forth on this.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3589409006"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-15T19:28:51Z",
+     "path": "src/libxrpl/tx/applySteps.cpp",
+     "body": "Any reason we don't just want to throw here?",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590185071"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-15T20:10:27Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "resolved: https://github.com/XRPLF/rippled/commit/d1a9b9945faf68c5ad2cf9f0a65dd4610ec0a359",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590431525"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-15T20:10:29Z",
+     "path": "src/libxrpl/tx/applySteps.cpp",
+     "body": "resolved: https://github.com/XRPLF/rippled/commit/d1a9b9945faf68c5ad2cf9f0a65dd4610ec0a359",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590431647"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-15T20:31:14Z",
+     "path": "include/xrpl/protocol/STTx.h",
+     "body": "Given this change, can we move `getInitiator` back to `STTx`?",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590548633"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-15T20:36:08Z",
+     "path": "include/xrpl/protocol/STTx.h",
+     "body": "This change modifies installed public headers under include/xrpl (see cmake/XrplInstall.cmake:28-39), so changing getBatchTransactionIDs() return type and introducing getBatchTransactions()/passesLocalChecks(STTx) is an external libxrpl API/ABI change. If that’s not intended for this patch, consider preserving the existing API (e.g., keep the const& return and/or add a new accessor) or ensure downstream consumers + release notes/changelog reflect the breaking change.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590576119"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-15T20:36:08Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "buildBatchTxns()’s comment says it “seats its inner ids and transactions”, but this implementation only caches the inner STTx objects. getBatchTransactionIDs() now recomputes IDs on demand, so the comment is misleading (and suggests a stronger invariant than the code provides).",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590576155"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-15T20:36:08Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "getBatchTransactionIDs() now allocates and populates a new vector on every call. Some callers (e.g. batch signing helpers) may call this repeatedly in loops, which is a regression from the previous cached-IDs behavior and contradicts the PR description about always seating the inner-id vector. Consider caching the IDs (e.g., store a parallel ids vector alongside batchTxns_ or lazily compute+cache) and/or adjust high-frequency call sites to compute once and reuse.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590576179"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-15T20:36:08Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "Error message for oversized sfBatchSigners is inconsistent: checkBatchSign() returns \"BatchSigners array exceeds max entries.\", but passesLocalChecks() uses \"Batch Signers ...\" with an extra space. Using a single canonical string avoids brittle tests and makes RPC/local-check failures easier to correlate.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590576200"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-15T20:43:31Z",
+     "path": "include/xrpl/protocol/STTx.h",
+     "body": "ABI-breaking change: `getBatchTransactionIDs()` now returns by value instead of `const&`. Any `libxrpl` consumer holding a reference to the returned vector will silently break. The `libxrpl` checkbox in the PR description is unchecked — this should be marked and noted in the changelog.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590615475"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-15T20:45:26Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "Why was the comment removed here?",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590626429"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-15T20:51:03Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "Agreed with this, any reason this shouldn't be cached too? Could be done in `buildBatchTxns` too.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590659890"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-15T20:54:58Z",
+     "path": "include/xrpl/protocol/STTx.h",
+     "body": "resolved: https://github.com/XRPLF/rippled/commit/fae021e6f385393a5ab1c374728ae81943c25c0a",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590682636"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-15T20:59:34Z",
+     "path": "src/test/protocol/STTx_test.cpp",
+     "body": "nit:\n\n```suggestion\n            std::string errorMsg;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590710273"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-15T20:59:44Z",
+     "path": "src/test/protocol/STTx_test.cpp",
+     "body": "nit:\n\n```suggestion\n            std::string errorMsg;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590711044"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-15T21:02:01Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "This would also remove the need to pass in `txIds` into `checkBatchSingleSign` and `checkBatchMultiSign`",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590722593"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-15T21:08:30Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "^",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590753068"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-15T21:18:47Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "I believe this will throw an error if `raw.size() > kMaxBatchTxCount` or `rb.getFieldU16(sfTransactionType) == ttBATCH` in an inner tx",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590803721"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-15T21:21:18Z",
+     "path": "include/xrpl/protocol/STTx.h",
+     "body": "Not live code, doesn't matter",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590816053"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-15T21:22:16Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "There's a long list of preconditions for this function - why not just throw or return `std::expected` here instead to make it easier?",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3590820896"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-15T21:56:50Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "I can add back the defensive checks but this should never get here because the STTx would have thrown",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591003520"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-15T21:57:22Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "I cleaned up alot of comments I just felt that some were excessive but this looks like it should stay",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591006169"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-15T21:57:51Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "I had it like that, Ed suggested the other way",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591008361"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-15T22:12:12Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "Everything input can hit already throws. The only assert left is ctor ordering, input can't reach it. expected doesn't help since the only callers are the ctors and they'd just rethrow.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591092161"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-15T22:13:03Z",
+     "path": "src/test/protocol/STTx_test.cpp",
+     "body": "Test isolation: unused local `errorMsg` in both blocks; code uses class member `got` instead. Replace with `errorMsg`:\n```suggestion\n                errorMsg = err.what();\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591096004"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-15T22:13:03Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Return `temBAD_FEE` instead of `tecINSUFF_FEE` when fee calculation fails—rejects before apply, avoids charging fee:\n```suggestion\n        return temBAD_FEE;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591096009"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-15T22:18:05Z",
+     "path": "src/test/protocol/STTx_test.cpp",
+     "body": "This block declares `errorMsg` but assigns/reads `got`, which is not declared in this scope. This won’t compile and also makes the test intent unclear. Use a local `std::string got` (or rename consistently) and remove the unused variable.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591122467"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-15T22:18:05Z",
+     "path": "src/test/protocol/STTx_test.cpp",
+     "body": "Same issue as above: `errorMsg` is unused, and `got` is referenced without being declared in this scope. This won’t compile. Make the captured error string local to this block.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591122523"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-15T22:18:06Z",
+     "path": "include/xrpl/protocol/STTx.h",
+     "body": "`getBatchTransactionIDs()` now returns a freshly-built vector, which encourages repeated allocation/work at call sites (e.g. code that serializes/signs once per signer can end up rebuilding IDs each iteration). Consider restoring cached IDs (or adding a cached/\"view\" API) so callers can efficiently reuse the IDs without extra allocations.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591122573"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-07-15T22:18:06Z",
+     "path": "include/xrpl/protocol/STTx.h",
+     "body": "This change modifies installed public headers under `include/xrpl` (e.g. adds new STTx APIs and changes the return type of `getBatchTransactionIDs`). That’s a `libxrpl`-visible API change; the PR description’s “API Impact” checklist currently leaves `libxrpl` unchecked, which is inconsistent with the code changes.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591122604"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-07-15T23:15:46Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "> I had it like that, Ed suggested the other way\n\nMy reasoning was\n1. Parallel arrays bad.\n2. The IDs are only needed for a short time during signature validation. Signature validation is usually only done once in the lifetime of an `STTx`. There's no need to cache the IDs for the lifetime of the `STTx`.\n3. Because the transactions contain the IDs, storing the IDs separately is redundant.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591382200"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-16T01:38:18Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "Oh whoops got confused about the order of the checks",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3591993758"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-07-16T02:03:38Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "Is there a reason these checks are in a flipped order from everything else (e.g. skipping on the existence of sfRawTransactions, not the tx type being `ttBATCH`)? I think I can justify it given that the checks here are mainly around sfRawTransactions, but wanted to double check on that.",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3592107629"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-07-16T16:26:42Z",
+     "path": "src/libxrpl/protocol/STTx.cpp",
+     "body": "You're right it should check batch first",
+     "url": "https://github.com/XRPLF/rippled/pull/7736#discussion_r3597198085"
+    }
+   ]
   }
  ],
  "issues": [
@@ -2075,7 +2808,6 @@
   "a1q123456/support-lending-in-batch",
   "bthomee/shamap-invalid-12-batch-progress",
   "dangell7/batch-db",
-  "dangell7/batch-orderbook-deferral",
   "dangell7/fix-batch-account-txn-id",
   "mvadari/batch-multisign-prefix",
   "ripple/custody-old-batch-cmpt",

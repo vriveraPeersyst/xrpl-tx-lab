@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-09-22T08:01:21.978Z",
+ "fetchedAt": "2026-09-23T08:01:48.113Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-09-16T15:50:17Z",
+  "lastActivity": "2026-09-22T14:06:09Z",
   "lastMerged": "2026-09-03T19:42:39Z",
   "release": "0.90.0",
-  "totalComments": 432
+  "totalComments": 446
  },
  "release": {
   "version": "0.90.0",
@@ -24,6 +24,152 @@
   "excerpt": "The `Checks` amendment, which allows users to create deferred payments that can be cancelled or cashed by their intended recipients."
  },
  "prs": [
+  {
+   "number": 8257,
+   "title": "feat: Fixed-precision vault scale helpers and Open-zone deposit checks",
+   "url": "https://github.com/XRPLF/rippled/pull/8257",
+   "state": "open",
+   "author": "Tapanito",
+   "createdAt": "2026-09-22T10:27:52Z",
+   "updatedAt": "2026-09-22T14:06:09Z",
+   "closedAt": null,
+   "labels": [
+    "feature: LP1.2"
+   ],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-22T11:16:26Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#issuecomment-5775474462"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-22T11:42:06Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#issuecomment-5775813128"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-22T11:44:15Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8257?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `95.16129%` with `6 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8257?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/ledger/helpers/VaultHelpers.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8257?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvbGVkZ2VyL2hlbHBlcnMvVmF1bHRIZWxwZXJzLmNwcA==) | 94.3% | [5 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8257?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8257?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvdmF1bHQvVmF1bHRXaXRoZHJhdy5jcHA=) | 66.7% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8257?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#issuecomment-5775843299"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-22T13:49:15Z",
+     "body": "Stacked next PR: #8258 (LoanBroker first-loss cover grid).",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#issuecomment-5777712654"
+    }
+   ],
+   "body": "## Summary\nThis is the first PR in a stack. Next: #8258 (LoanBroker first-loss cover). Loan origination/payment and LoanBrokerDelete follow later.\n\n- New vaults created under `featureLendingProtocolV1_2` get `LEVersion` FixedPrecision, IOU Scale capped at 10, and `YieldUnrealized`. `featureLendingProtocolV1_2` is defined to require V1.1.\n- Vault helpers round at the vault live and posterior exponents. Optional deposits must stay on the lifetime base grid and inside the Open zone (`9 * 10^(15-P)`). Withdraw and clawback clamp toward zero at the posterior live exponent.\n- Pre-V1.2 vaults keep the dynamic `AssetsTotal` grid and are not migrated when V1.2 turns on. Cash-basis lending dispatch treats FixedPrecision as cash-basis so a version-2 vault does not fall back to accrual. LoanBroker cover and Loan origination/payment still use the existing dynamic grid in this PR.\n\n## Test plan\n- `xrpl_tests --gtest_filter=VaultGrid.*`\n- `--unittest VaultFixedPrecision,VaultHelpers,VaultBugs`\n- `--unittest LendingHelpers,LoanSet,LoanCashBasis`",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:tapanito/sav-fixed-precision-vault-rounding",
+   "additions": 1282,
+   "deletions": 165,
+   "changedFiles": 24,
+   "commits": 4,
+   "reviewComments": 8,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-22T10:32:22Z",
+     "body": "This is a well-structured, carefully-tested change adding FixedPrecision vault semantics (base/live/posterior scale helpers, Open-zone deposit admission) and extending cash-basis lending dispatch to treat FixedPrecision as cash-basis. I traced the new VaultVersion ordering (Legacy < CashBasis < FixedPrecision) across every comparison site touched in this diff (LendingHelpers.cpp, LoanSet.cpp x2, LoanTestBase.h x3) and they are all consistently updated (`>=`/`<` vs the old `==`), so the copy-paste-bug pattern I'd normally worry about here does not appear to have any missed spots. The new VaultHelpers.cpp scale/rounding functions are equivalent to the old inline logic for Legacy/CashBasis vaults (verified by hand-tracing the ToNearest/Downward vs TowardsZero rounding-mode substitution, which is a no-op for the always-non-negative deposit amounts involved), and the new FixedPrecision Open-zone check is only wired into VaultDeposit as intended (Withdraw/Clawback correctly skip it per the PR description). I did not find a concrete, high-confidence bug in the changed lines. One item below is a documentation/enforcement question worth a quick confirmation from the author rather than a defect."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-22T11:47:10Z",
+     "body": "Reviewed the fixed-precision vault scale helpers (VaultHelpers.h/.cpp), the new VaultVersion::FixedPrecision plumbing (Protocol.h, VaultCreate.cpp, sfields/ledger_entries macros, autogen Vault.h), the cash-basis dispatch change in LendingHelpers.cpp/LoanSet.cpp, and the Open-zone admission check wired into VaultDeposit.cpp. I traced getVaultScale/getVaultBaseScale/getPosteriorVaultScale/roundToPosteriorVaultScale and checkOptionalVaultInflow by hand against the new VaultFixedPrecision_test.cpp and VaultGridTests.cpp cases (including the '9e9 + 1 base unit' boundary case), and the arithmetic is internally consistent: the grid-floor via std::max(baseScale, scale(...)), the toward-zero rounding for deposit/withdraw/clawback, and the Open-zone capacity comparison all match the documented contracts and the accompanying tests. The VaultVersion::CashBasis -> >=CashBasis comparison change was applied consistently everywhere it appears in this diff (LendingHelpers.cpp, LoanSet.cpp preclaim/doApply, LoanTestBase.h x3), and getVaultVersion's bounds check was correctly widened to FixedPrecision. clampToAssetsTotalScale's new FixedPrecision branch correctly preserves the existing 'always return a non-negative magnitude' contract used by VaultWithdraw.cpp. I did not find a correctness or security issue in the added/changed lines that I'm confident is a real bug; the change is well-scoped and the new tests exercise the boundary conditions that would most likely expose an off-by-one in the grid/capacity checks."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-22T12:02:57Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nCritical amendment-dependency and FixedPrecision rounding/clamping paths remain unresolved.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 4 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (4)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [V1.2 can activate without required V1.1 dependency](#discussion_r4071376247) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fixed-precision rounding ignores the vault&#39;s LEVersion](#discussion_r4071376288) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Rounded deposit validation differs from the applied amount](#discussion_r4071376332) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fixed-precision payout clamp depends incorrectly on cleanup fix](#discussion_r4071376385) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds V1.2 FixedPrecision vaults, scale-aware accounting, Open-zone deposit checks, yield tracking, and version-aware lending behavior.\n\n**Changes:**\n- Adds FixedPrecision metadata, limits, helpers, and generated ledger accessors.\n- Implements rounding, clamping, and deposit validation.\n- Expands vault and lending test coverage.\n\n| File | Reviewed changes |\n|---|---|\n| `src/​tests/​libxrpl/​protocol/​VaultGridTests.cpp` | Tests vault scale and Open-zone helpers. |\n| `src/​tests/​libxrpl/​protocol_autogen/​ledger_entries/​VaultTests.cpp` | Tests generated yield-field accessors. |\n| `src/​test/​app/​vault/​VaultValidation_test.cpp` | Adjusts legacy validation scenarios. |\n| `src/​test/​app/​vault/​VaultTestBase.h` | Excludes V1.2 from legacy vault tests. |\n| `src/​test/​app/​vault/​VaultScale_test.cpp` | Updates legacy amendment configuration. |\n| `src/​test/​app/​vault/​VaultHelpers_test.cpp` | Clarifies legacy helper coverage. |\n| `src/​test/​app/​vault/​VaultFixedPrecision_test.cpp` | Adds FixedPrecision integration tests. |\n| `src/​test/​app/​vault/​VaultBugs_test.cpp` | Updates bug scenarios for amendment configuration. |\n| `src/​test/​app/​lending/​LoanTestBase.h` | Updates FixedPrecision cash-basis expectations. |\n| `src/​test/​app/​lending/​LendingHelpers_test.cpp` | Tests FixedPrecision dispatch. |\n| `src/​libxrpl/​tx/​transactors/​vault/​VaultWithdraw.cpp` | Updates withdrawal clamp handling; FixedPrecision gating remains unresolved. |\n| `src/​libxrpl/​tx/​transactors/​vault/​VaultDeposit.cpp` | Applies posterior rounding and Open-zone checks; FixedPrecision gating and applied-amount handling remain unresolved. |\n| `src/​libxrpl/​tx/​transactors/​vault/​VaultCreate.cpp` | Creates V1.2 FixedPrecision vaults and validates scale limits. |\n| `src/​libxrpl/​tx/​transactors/​lending/​LoanSet.cpp` | Treats newer vault versions as cash-basis. |\n| `src/​libxrpl/​ledger/​helpers/​VaultHelpers.cpp` | Implements scale, rounding, and inflow helpers. |\n| `src/​libxrpl/​ledger/​helpers/​LendingHelpers.cpp` | Updates cash-basis dispatch. |\n| `include/​xrpl/​protocol/​Protocol.h` | Defines scale limits and vault versions. |\n| `include/​xrpl/​protocol/​detail/​sfields.macro` | Adds `sfYieldUnrealized`. |\n| `include/​xrpl/​protocol/​detail/​ledger_entries.macro` | Adds the vault ledger field. |\n| `include/​xrpl/​protocol/​detail/​features.macro` | Registers V1.2; its V1.1 dependency is not enforced. |\n| `include/​xrpl/​protocol_autogen/​ledger_entries/​Vault.h` | Adds generated yield accessors and builder support. |\n| `include/​xrpl/​ledger/​helpers/​VaultHelpers.h` | Declares and documents new helpers. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-09-22T12:19:23Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-22T13:43:56Z",
+     "body": "This is a well-scoped, carefully tested change (VaultGridTests, VaultFixedPrecision_test, VaultHelpers_test additions all line up with the new helper semantics). I traced the core new logic in VaultHelpers.cpp (getVaultScale/getVaultBaseScale/getPosteriorVaultScale/roundToPosteriorVaultScale/checkOptionalVaultInflow, and the FixedPrecision branch of clampToAssetsTotalScale) against the new tests and the sign/rounding behavior checks out: the FixedPrecision debit/credit magnitude normalization, the Open-zone ceiling formula (9*10^(15-P)), and the cash-basis dispatch change (>= CashBasis) are all internally consistent and match the accompanying unit tests. The VaultCreate/VaultDeposit/VaultWithdraw/VaultClawback call-site changes correctly gate the new behavior on VaultVersion::FixedPrecision without regressing the Legacy/CashBasis paths. Only one minor documentation nit stood out; no correctness, security, or resource issues were found in the changed lines."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-22T14:06:08Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nUnresolved critical issues remain in dependency gating and FixedPrecision withdrawal/clawback rounding.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 3 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (3)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [FixedPrecision clawbacks can exceed requested amounts without fix340](#discussion_r4072555728) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [V1.2-only vaults bypass V1.1 phase and immutability checks](#discussion_r4072555851) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [FixedPrecision withdrawals can overpay without fix340](#discussion_r4072555955) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (4)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fixed-precision payout clamp depends incorrectly on cleanup fix](#discussion_r4071376385)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Rounded deposit validation differs from the applied amount](#discussion_r4071376332)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fixed-precision rounding ignores the vault&#39;s LEVersion](#discussion_r4071376288)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [V1.2 can activate without required V1.1 dependency](#discussion_r4071376247)\n</details>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-22T12:02:55Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "This comment does not enforce the stated dependency: `FeatureBitset`/`Rules` accept V1.2 without V1.1, and `VaultCreate` treats V1.2 as active in that combination. That can create FixedPrecision vaults while the other V1.1 gates remain disabled. Please enforce the dependency in amendment activation or reject a V1.2-only ruleset before applying V1.2 behavior.",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#discussion_r4071376247"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-22T12:02:56Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultDeposit.cpp",
+     "body": "The fixed-precision rounding is still gated only by `fixCleanup3_2_0`, not by the vault's `LEVersion`. If V1.2 is enabled while that older fix is disabled, a FixedPrecision vault skips the required posterior-scale rounding here (and in `doApply`), so deposits can be admitted/booked using the legacy path. Include `getVaultVersion(vault) == VaultVersion::FixedPrecision` in this condition, or make V1.2 explicitly depend on the cleanup amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#discussion_r4071376288"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-22T12:02:56Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultDeposit.cpp",
+     "body": "This admission check validates a rounded copy of `assetsDeposited`, but the unrounded `assetsDeposited` is still applied when `fixCleanup3_4_0` is disabled. Since V1.2 does not require that fix, a FixedPrecision deposit can pass the Open-zone/base-grid check and then credit a different amount. Clamp FixedPrecision deposits independently of `fixCleanup3_4_0`, or make the helper return the amount that must be applied.",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#discussion_r4071376332"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-22T12:02:56Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "This clamp call remains inside the `fix340Enabled`-only block, so a FixedPrecision vault does not get the required posterior-live-scale clamp when V1.2 is enabled without fixCleanup3_4_0. That allows the legacy share round-trip to determine the payout instead of the fixed-precision rule; gate the block on `fix340Enabled || getVaultVersion(vault) == VaultVersion::FixedPrecision` (and apply the same treatment to clawback).",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#discussion_r4071376385"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-22T12:19:23Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultDeposit.cpp",
+     "body": "fixCleanup3_2_0 is already activated. There is no way for v.1.2 to be enabled and fixCleanup3_2_0 disabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#discussion_r4071510306"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-22T14:06:07Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "The FixedPrecision clamp is applied after `sharesDestroyed` is computed, but that computation still uses nearest-share rounding whenever `fixCleanup3_4_0` is disabled. In a V1.2/fix340-off ruleset, an issuer can therefore recover more than the requested clawback amount; when the excess is on the posterior grid, this clamp does not remove it. Use truncating share conversion for FixedPrecision clawbacks too.",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#discussion_r4072555728"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-22T14:06:08Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultCreate.cpp",
+     "body": "This makes V1.2-only rules reachable, but the implication is applied only while creating the ledger entry. The phase gates in `VaultDeposit`, `VaultWithdraw`, and `LoanSet`, as well as the vault immutability invariant, still check only `featureLendingProtocolV1_1`; with the explicit V1.2-without-V1.1 configuration used by the tests, a closed-ended FixedPrecision vault can therefore bypass those V1.1 rules. Enforce the amendment dependency or use a shared `V1.1 || V1.2` predicate everywhere the V1.1 behavior is required.",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#discussion_r4072555851"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-22T14:06:08Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "This new FixedPrecision branch still depends on `fixCleanup3_4_0` for the share-to-asset conversion above: with V1.2 enabled but that independent fix disabled, an asset-denominated withdrawal uses nearest-share rounding, so `assetsWithdrawn` can exceed the requested amount. If the excess is already on the posterior grid, this clamp is a no-op and the vault overpays. FixedPrecision withdrawals need the truncating share conversion as well, rather than gating it only on `fixCleanup3_4_0`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8257#discussion_r4072555955"
+    }
+   ]
+  },
   {
    "number": 8183,
    "title": "feat: Tighten invariant checks so that a delete transaction only dele…",
@@ -3086,59 +3232,6 @@
     }
    ],
    "reviewCommentsList": []
-  },
-  {
-   "number": 7822,
-   "title": "feat: Add invariant checks and invariant check tests for LoanAccept",
-   "url": "https://github.com/XRPLF/rippled/pull/7822",
-   "state": "open",
-   "author": "a1q123456",
-   "createdAt": "2026-07-17T00:01:10Z",
-   "updatedAt": "2026-07-17T00:20:03Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [],
-   "body": "## High Level Overview of Change\n\nThis PR adds invariant checks and invariant check tests for LoanAccept with all related fields, flags, and a `LoanAccept` transactor that does nothing.\n\n\n\n### Context of Change\n\nThis PR defines what invariant checks should be performed before the actual development starts to ensure everything will work properly.\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "a1q123456/split-loan-set-and-loan-accept-temp",
-   "head": "XRPLF:a1q123456/split-loan-set-and-loan-accept",
-   "additions": 935,
-   "deletions": 14,
-   "changedFiles": 5,
-   "commits": 1,
-   "reviewComments": 2,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-07-17T00:06:18Z",
-     "body": "Ship it\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "state": "COMMENTED",
-     "date": "2026-07-17T00:20:03Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "depthfirst-app[bot]",
-     "date": "2026-07-17T00:20:03Z",
-     "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
-     "body": "🟠 **Severity: HIGH**\n\nWhen `isPendingLoan` is true and the vault balance is unchanged, `maybeVaultDeltaAssets` is `nullopt` but the guard no longer returns early. The subsequent dereference on line 1140 (`*maybeVaultDeltaAssets`) and line 1149 (`maybeVaultDeltaAssets->delta`) is undefined behavior—crashing the node or potentially corrupting memory. Compare with `ttLOAN_DELETE` at line 1560 which correctly uses `value_or()`.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Follow the safe-access pattern already used at lines 1227-1229 and 1559-1561 in this file: after the existing early-return guard, add a `value_or()` call to safely unwrap `maybeVaultDeltaAssets`, and then use the unwrapped value instead of direct dereferences.\n\nSpecifically:\n1. After the closing brace of the guard block (after line 1137), insert:\n```cpp\nauto const vaultDelta = maybeVaultDeltaAssets.value_or(\n    DeltaInfo{.delta = kZero, .scale = scale(afterVault.assetsTotal, vaultAsset)});\n```\n2. On line 1140, change `computeVaultMinScale(*maybeVaultDeltaAssets, view.rules())` to `computeVaultMinScale(vaultDelta, view.rules())`.\n3. On line 1149, change `maybeVaultDeltaAssets->delta` to `vaultDelta.delta`.\n\nThis mirrors exactly how `ttLOAN_DELETE` (line 1560) and `ttLOAN_IMPAIR`/`ttLOAN_UNIMPAIR` (line 1228) handle the same optional safely.\n\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/7822#discussion_r3599577775"
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "date": "2026-07-17T00:20:03Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "⚪ **Severity: LOW**\n\nThe Borrower authorization check reads from `after` (post-modification state) instead of `before` (pre-modification state). A buggy or malicious transactor that overwrites `sfBorrower` to match the submitter during execution would bypass this invariant, defeating its purpose as a last-line-of-defense authorization check.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Change `after->getAccountID(sfBorrower)` to `before->getAccountID(sfBorrower)` on line 132. The invariant check should read the `sfBorrower` field from the pre-modification state (`before`) rather than the post-modification state (`after`). This ensures that even if a buggy transactor overwrites `sfBorrower` during execution to match the submitter's account, the invariant will still catch the unauthorized access by comparing against the original, unmodified value. The `before` variable is already available in scope (the code is inside the `if (before)` block starting at line 77).\n\n> **⚠️ Experimental Feature**: This code suggestion is automatically generated. Please review carefully.\n\n```suggestion\n                if (before->getAccountID(sfBorrower) != tx.getAccountID(sfAccount))\n```\n\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/7822#discussion_r3599577780"
-    }
-   ]
   }
  ],
  "issues": [],
