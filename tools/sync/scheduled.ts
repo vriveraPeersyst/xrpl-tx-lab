@@ -44,7 +44,7 @@ const today = now.toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" });
 const hour = Number(now.toLocaleString("en-GB", { timeZone: "Europe/Madrid", hour: "2-digit", hour12: false }));
 
 fs.mkdirSync(STATE_DIR, { recursive: true });
-type State = { lastSuccess?: string; lastAttempt?: string; lastExit?: number; attemptsToday?: number };
+type State = { lastSuccess?: string; lastAttempt?: string; lastAttemptDay?: string; lastExit?: number; attemptsToday?: number };
 let state: State = {};
 try { state = JSON.parse(fs.readFileSync(STATE, "utf8")); } catch {}
 const save = () => fs.writeFileSync(STATE, JSON.stringify(state, null, 2) + "\n");
@@ -92,15 +92,18 @@ try {
     log(!hasToken ? `no CLAUDE_CODE_OAUTH_TOKEN in ${envFile} — stubs only` : `claude token declared for "${claudeAccount ?? "?"}", not ${CLAUDE_EMAIL} — stubs only`);
   }
 
-  const attempts = (state.lastAttempt?.startsWith(today) ? state.attemptsToday ?? 0 : 0) + 1;
-  log(`attempt ${attempts} for ${today}`);
+  const attempts = (state.lastAttemptDay === today ? state.attemptsToday ?? 0 : 0) + 1;
+  // Exit 3 means today's data was already merged into main and only the deploy failed: retry the
+  // deploy alone, so the day does not end up with a second PR for the same data.
+  if (state.lastAttemptDay === today && state.lastExit === 3) process.env.SYNC_DEPLOY_ONLY = "1";
+  log(`attempt ${attempts} for ${today}${process.env.SYNC_DEPLOY_ONLY ? " (deploy only)" : ""}`);
   const r = spawnSync("pnpm", ["exec", "tsx", "tools/sync/sync.ts"], { cwd: ROOT, stdio: "inherit", env: process.env });
   const code = r.status ?? 1;
 
   // 2 = coverage errors: missing docs/registry entries that a retry will not fix. The data is
   // committed and deployed anyway, so the day counts as done.
   const ok = code === 0 || code === 2;
-  state = { ...state, lastAttempt: now.toISOString(), lastExit: code, attemptsToday: attempts, ...(ok ? { lastSuccess: today } : {}) };
+  state = { ...state, lastAttempt: now.toISOString(), lastAttemptDay: today, lastExit: code, attemptsToday: attempts, ...(ok ? { lastSuccess: today } : {}) };
   save();
   if (ok) log(`done for ${today}${code === 2 ? " (with coverage errors, see src/data/coverage.json)" : ""}`);
   else log(hour >= LAST_HOUR ? `failed (exit ${code}); last slot of the day, giving up until tomorrow` : `failed (exit ${code}); retrying at ${hour + 1}:00`);

@@ -43,6 +43,13 @@ const STATE_DIR = process.env.SYNC_STATE_DIR ?? path.join(os.homedir(), ".config
 const NET_DIR = path.join(ROOT, "src/data/networks");
 const readSnap = (id: string) => readJson(`src/data/networks/${id}/snapshot.json`);
 const netIds = () => (fs.existsSync(NET_DIR) ? fs.readdirSync(NET_DIR).filter((n) => fs.existsSync(path.join(NET_DIR, n, "snapshot.json"))).sort() : []);
+// Retry of a run whose data was already merged and only the deploy failed: redeploy what main
+// has, without regenerating anything or opening a second PR for the same day.
+if (process.env.SYNC_DEPLOY_ONLY === "1") {
+  log("deploy-only retry");
+  process.exit(deploy() ? 0 : 3);
+}
+
 const hasRemote = !process.env.SYNC_NO_GIT && !process.env.SYNC_NO_PUSH && sh("git remote").length > 0;
 
 // 0. Start from an up-to-date main. Generated data is thrown away (it is regenerated below);
@@ -189,19 +196,20 @@ if (!process.env.SYNC_NO_GIT) {
 }
 
 // 6. Deploy to Vercel when the project is linked and HEAD has not been deployed yet.
-let deployFailed = false;
-if (!process.env.SYNC_NO_GIT && !process.env.SYNC_NO_DEPLOY && fs.existsSync(path.join(ROOT, ".vercel/project.json"))) {
+const deployFailed = !deploy();
+process.exit(deployFailed ? 3 : cov.ok ? 0 : 2);
+
+function deploy(): boolean {
+  if (process.env.SYNC_NO_GIT || process.env.SYNC_NO_DEPLOY || !fs.existsSync(path.join(ROOT, ".vercel/project.json"))) return true;
   const marker = path.join(STATE_DIR, "deployed-commit");
   const head = sh("git rev-parse HEAD");
   const deployed = fs.existsSync(marker) ? fs.readFileSync(marker, "utf8").trim() : "";
-  if (head === deployed) log("Vercel already has", head.slice(0, 7));
-  else {
-    try {
-      run("vercel deploy --prod --yes");
-      fs.mkdirSync(STATE_DIR, { recursive: true });
-      fs.writeFileSync(marker, head + "\n");
-      log("deployed to Vercel", head.slice(0, 7));
-    } catch (e) { deployFailed = true; log("vercel deploy failed:", e instanceof Error ? e.message : e); }
-  }
+  if (head === deployed) { log("Vercel already has", head.slice(0, 7)); return true; }
+  try {
+    run("vercel deploy --prod --yes");
+    fs.mkdirSync(STATE_DIR, { recursive: true });
+    fs.writeFileSync(marker, head + "\n");
+    log("deployed to Vercel", head.slice(0, 7));
+    return true;
+  } catch (e) { log("vercel deploy failed:", e instanceof Error ? e.message : e); return false; }
 }
-process.exit(deployFailed ? 3 : cov.ok ? 0 : 2);
