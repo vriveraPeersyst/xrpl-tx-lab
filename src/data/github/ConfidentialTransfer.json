@@ -1,18 +1,18 @@
 {
  "name": "ConfidentialTransfer",
- "fetchedAt": "2026-09-22T08:01:38.560Z",
+ "fetchedAt": "2026-09-23T08:02:08.692Z",
  "summary": {
-  "status": "merged",
-  "prs": 6,
-  "open": 0,
+  "status": "in development",
+  "prs": 7,
+  "open": 1,
   "merged": 4,
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-07-02T19:05:46Z",
+  "lastActivity": "2026-09-23T01:48:28Z",
   "lastMerged": "2026-07-02T19:05:46Z",
   "release": "3.3.0",
-  "totalComments": 16
+  "totalComments": 20
  },
  "release": {
   "version": "3.3.0",
@@ -21,6 +21,57 @@
   "excerpt": "feat: Enable ConfidentialTransfer and BatchV1_1 by @yinyiqian1 in https://github.com/XRPLF/rippled/pull/7698"
  },
  "prs": [
+  {
+   "number": 8265,
+   "title": "refactor: Clean up ConfidentialTransfer test helpers",
+   "url": "https://github.com/XRPLF/rippled/pull/8265",
+   "state": "open",
+   "author": "yinyiqian1",
+   "createdAt": "2026-09-22T20:12:25Z",
+   "updatedAt": "2026-09-23T01:48:28Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-22T20:15:36Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8265?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8265#issuecomment-5783441950"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\nMove the implementations of the confidential transfer test helpers out of\n`src/test/jtx/ConfidentialTransfer.h` and into\n`src/test/jtx/impl/ConfidentialTransfer.cpp`. Test-only refactor; no\nproduction code or transaction behavior changes.\n\n- Comment fixes:\n  - `getForgedBulletproof`: removed an incorrect \"returns 1 on success, 0 on\n    failure\" note (it returns a `Buffer` and throws on failure).\n  - `getForgedConvertBackProof`: the bulletproof is built from\n    `realBalance - amt`, not `realBalance`; clarified which inputs are\n    on-ledger.\n  - `ConfidentialEnv`: now describes what the constructor actually does.\n  - `getTrivialSendProofHex`: added a comment.\n- Removed the unused `ConfidentialSendSetup::nRecipients` member.\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "yinyiqian1:clean-confidential",
+   "additions": 663,
+   "deletions": 575,
+   "changedFiles": 2,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-22T20:19:55Z",
+     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nNo unresolved review issues remain.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nThis test-only refactor moves ConfidentialTransfer helper implementations from the header into the implementation file without changing production behavior.\n\n**Changes:**\n- Moved helper implementations to `ConfidentialTransfer.cpp`.\n- Removed unused `nRecipients`.\n- Updated documentation and includes.\n\n| File | Description |\n|---|---|\n| `src/​test/​jtx/​impl/​ConfidentialTransfer.cpp` | Contains the extracted helper implementations. |\n| `src/​test/​jtx/​ConfidentialTransfer.h` | Retains helper declarations and updated documentation. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "Kassaking7",
+     "state": "APPROVED",
+     "date": "2026-09-22T21:23:21Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "oleks-rip",
+     "state": "APPROVED",
+     "date": "2026-09-23T01:48:28Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
   {
    "number": 7698,
    "title": "feat: Enable ConfidentialTransfer and BatchV1_1",

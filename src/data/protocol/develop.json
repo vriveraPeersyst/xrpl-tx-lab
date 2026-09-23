@@ -1,11 +1,11 @@
 {
   "source": {
     "version": "3.5.0-b0",
-    "commit": "2bc17c3e735e2c46d27bddb01518ee756299e41b",
-    "commitDate": "2026-09-21T19:47:23Z",
+    "commit": "5a5ad8673ab7dc4572bbd703d802dfe423b711f9",
+    "commitDate": "2026-09-22T22:39:23Z",
     "branch": "develop",
     "repo": "https://github.com/XRPLF/rippled",
-    "extractedAt": "2026-09-22T09:00:16.988Z"
+    "extractedAt": "2026-09-23T08:00:18.274Z"
   },
   "transactions": [
     {
@@ -13931,7 +13931,7 @@
         "headerFile": "include/xrpl/tx/transactors/sponsor/SponsorshipTransfer.h",
         "functions": {
           "getFlagsMask": {
-            "line": 94,
+            "line": 95,
             "ter": [],
             "features": [],
             "flags": [
@@ -13940,13 +13940,15 @@
             "fields": []
           },
           "preflight": {
-            "line": 100,
+            "line": 101,
             "ter": [
               "temINVALID_FLAG",
               "temMALFORMED",
               "tesSUCCESS"
             ],
-            "features": [],
+            "features": [
+              "fixCleanup3_5_0"
+            ],
             "flags": [
               "tfSponsorshipCreate",
               "tfSponsorshipEnd",
@@ -13962,7 +13964,7 @@
             ]
           },
           "preclaim": {
-            "line": 213,
+            "line": 221,
             "ter": [
               "tecINTERNAL",
               "tecNO_ENTRY",
@@ -13984,7 +13986,7 @@
             ]
           },
           "doApply": {
-            "line": 299,
+            "line": 307,
             "ter": [
               "tefINTERNAL",
               "tesSUCCESS"
@@ -14009,14 +14011,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 543,
+            "line": 551,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 548,
+            "line": 556,
             "ter": [],
             "features": [],
             "flags": [],
@@ -14034,7 +14036,8 @@
           "tesSUCCESS"
         ],
         "allFeatures": [
-          "fixCleanup3_4_0"
+          "fixCleanup3_4_0",
+          "fixCleanup3_5_0"
         ],
         "allFlags": [
           "tfSponsorshipCreate",
@@ -14055,7 +14058,7 @@
           "SponsoringAccountCount",
           "SponsoringOwnerCount"
         ],
-        "lines": 559,
+        "lines": 567,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -14298,6 +14301,179 @@
         "ownerCountCalls": [
           "increaseOwnerCount(view(), sponsorAccSle, reserveSponsorAccSle, 1, ctx_.journal)"
         ]
+      }
+    },
+    {
+      "tag": "ttCONFIDENTIAL_MPT_MIRROR_UPDATE",
+      "value": 92,
+      "name": "ConfidentialMPTMirrorUpdate",
+      "delegable": true,
+      "amendment": "ConfidentialMPTKeyRotation",
+      "privileges": [],
+      "fields": [
+        {
+          "name": "MPTokenIssuanceID",
+          "optionality": "required",
+          "mptSupported": false
+        },
+        {
+          "name": "Holder",
+          "optionality": "optional",
+          "mptSupported": false
+        },
+        {
+          "name": "IssuerEncryptedAmount",
+          "optionality": "optional",
+          "mptSupported": false
+        },
+        {
+          "name": "AuditorEncryptedAmount",
+          "optionality": "optional",
+          "mptSupported": false
+        },
+        {
+          "name": "ZKProof",
+          "optionality": "required",
+          "mptSupported": false
+        }
+      ],
+      "pseudo": false,
+      "transactor": {
+        "file": "src/libxrpl/tx/transactors/token/ConfidentialMPTMirrorUpdate.cpp",
+        "headerFile": "include/xrpl/tx/transactors/token/ConfidentialMPTMirrorUpdate.h",
+        "functions": {
+          "checkExtraFeatures": {
+            "line": 23,
+            "ter": [],
+            "features": [
+              "featureConfidentialTransfer"
+            ],
+            "flags": [],
+            "fields": []
+          },
+          "preflight": {
+            "line": 30,
+            "ter": [
+              "temBAD_CIPHERTEXT",
+              "temMALFORMED",
+              "tesSUCCESS"
+            ],
+            "features": [],
+            "flags": [],
+            "fields": [
+              "Account",
+              "AuditorEncryptedAmount",
+              "Holder",
+              "IssuerEncryptedAmount",
+              "MPTokenIssuanceID",
+              "ZKProof"
+            ]
+          },
+          "calculateBaseFee": {
+            "line": 86,
+            "ter": [],
+            "features": [],
+            "flags": [],
+            "fields": []
+          },
+          "preclaim": {
+            "line": 92,
+            "ter": [
+              "tecNO_PERMISSION",
+              "tecNO_TARGET",
+              "tecOBJECT_NOT_FOUND",
+              "tefINTERNAL",
+              "terNO_ACCOUNT",
+              "tesSUCCESS"
+            ],
+            "features": [],
+            "flags": [
+              "lsfMPTCanHoldConfidentialBalance"
+            ],
+            "fields": [
+              "Account",
+              "AuditorEncryptedAmount",
+              "AuditorEncryptionKey",
+              "ConfidentialBalanceInbox",
+              "ConfidentialBalanceSpending",
+              "Holder",
+              "HolderEncryptionKey",
+              "Issuer",
+              "IssuerEncryptedAmount",
+              "IssuerEncryptedBalance",
+              "IssuerEncryptionKey",
+              "MPTokenIssuanceID"
+            ]
+          },
+          "doApply": {
+            "line": 208,
+            "ter": [
+              "tecINTERNAL",
+              "tesSUCCESS"
+            ],
+            "features": [],
+            "flags": [],
+            "fields": [
+              "AuditorEncryptedAmount",
+              "AuditorEncryptedBalance",
+              "Holder",
+              "IssuerEncryptedAmount",
+              "IssuerEncryptedBalance",
+              "MPTokenIssuanceID"
+            ]
+          },
+          "visitInvariantEntry": {
+            "line": 258,
+            "ter": [],
+            "features": [],
+            "flags": [],
+            "fields": []
+          },
+          "finalizeInvariants": {
+            "line": 263,
+            "ter": [],
+            "features": [],
+            "flags": [],
+            "fields": []
+          }
+        },
+        "allTer": [
+          "tecINTERNAL",
+          "tecNO_PERMISSION",
+          "tecNO_TARGET",
+          "tecOBJECT_NOT_FOUND",
+          "tefINTERNAL",
+          "temBAD_CIPHERTEXT",
+          "temMALFORMED",
+          "terNO_ACCOUNT",
+          "tesSUCCESS"
+        ],
+        "allFeatures": [
+          "featureConfidentialTransfer"
+        ],
+        "allFlags": [
+          "lsfMPTCanHoldConfidentialBalance"
+        ],
+        "allFields": [
+          "Account",
+          "AuditorEncryptedAmount",
+          "AuditorEncryptedBalance",
+          "AuditorEncryptionKey",
+          "ConfidentialBalanceInbox",
+          "ConfidentialBalanceSpending",
+          "Holder",
+          "HolderEncryptionKey",
+          "Issuer",
+          "IssuerEncryptedAmount",
+          "IssuerEncryptedBalance",
+          "IssuerEncryptionKey",
+          "MPTokenIssuanceID",
+          "ZKProof"
+        ],
+        "lines": 274,
+        "ownerReserveFee": false,
+        "customBaseFee": true,
+        "ownerCountCalls": []
       }
     },
     {

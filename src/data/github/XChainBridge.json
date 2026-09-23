@@ -1,6 +1,6 @@
 {
  "name": "XChainBridge",
- "fetchedAt": "2026-09-22T08:06:10.895Z",
+ "fetchedAt": "2026-09-23T08:06:59.010Z",
  "summary": {
   "status": "in development",
   "prs": 4,
@@ -9,10 +9,10 @@
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-09-21T18:25:11Z",
+  "lastActivity": "2026-09-22T18:36:24Z",
   "lastMerged": "2026-06-25T17:25:10Z",
   "release": "2.2.0",
-  "totalComments": 243
+  "totalComments": 246
  },
  "release": {
   "version": "2.2.0",
@@ -28,15 +28,23 @@
    "state": "open",
    "author": "mvadari",
    "createdAt": "2026-09-21T18:02:50Z",
-   "updatedAt": "2026-09-21T18:25:11Z",
+   "updatedAt": "2026-09-22T18:36:24Z",
    "closedAt": null,
-   "labels": [],
+   "labels": [
+    "PR: has conflicts"
+   ],
    "comments": [
     {
      "author": "codecov[bot]",
      "date": "2026-09-21T18:05:05Z",
      "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8255?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
      "url": "https://github.com/XRPLF/rippled/pull/8255#issuecomment-5765182020"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-22T18:36:24Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8255#issuecomment-5781906485"
     }
    ],
    "body": "## High Level Overview of Change\n\nRemoves the `XChainBridge` feature: the three ledger entries (`Bridge`, `XChainOwnedClaimID`, `XChainOwnedCreateAccountClaimID`), the eight transactors, the `STXChainBridge` and `XChainAttestations` serialized types, the RPC handling for them, and their tests — about 16.8k lines.\n\n`XChainBridge` and `fixXChainRewardRounding` become `VoteBehavior::Obsolete`, so they can no longer be voted for. The `sfield` codes, ledger entry types, transaction types, and inner object formats they used are left marked unused so the numbers are not reassigned. The `temXCHAIN_*` and `tecXCHAIN_*` result codes are kept, since result code values must stay stable.\n\n## Context of Change\n\nNeither amendment was ever enabled on Mainnet, so no ledger contains these objects and no new amendment is needed to remove the code. Keeping the transactors, invariants, and 5k-line test suite alive costs maintenance on every protocol-wide refactor (`PreflightHelpers`, the autogen builders, the Beast-to-GTest migration) for a feature nobody is going to enable.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n`ledger_entry` no longer accepts `bridge`, `xchain_owned_claim_id`, or `xchain_owned_create_account_claim_id`. `account_objects` no longer accepts those values in `type`. `server_definitions` no longer lists the removed ledger entry types, transaction types, fields, and the `XChainBridge` serialized type. `API-CHANGELOG.md` is updated.\n\n`libxrpl` consumers lose the `STXChainBridge` and `XChainAttestations` classes, the `keylet::bridge`, `keylet::xChainClaimID`, and `keylet::xChainCreateAccountClaimID` functions, and the `sfXChain*` fields.\n\n## Test Plan\n\n- `cmake --build .build` — clean.\n- `.build/xrpl_tests` — 881 tests from 188 suites pass.\n- `.build/xrpld --unittest --unittest-jobs 8` — 251 suites, 4857 cases, 0 failures.\n- `cmake --build build/codegen --target code_gen` — no diff, the checked-in autogen headers match the macro files.\n- `pre-commit run --all-files` — all hooks pass.\n\n`Delegate_test`'s `expectedDelegableCount` drops from 56 to 48 for the eight removed delegable transactions.",
@@ -45,10 +53,10 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:mvadari/remove-xcb",
-   "additions": 26,
-   "deletions": 16822,
-   "changedFiles": 61,
-   "commits": 1,
+   "additions": 31,
+   "deletions": 17048,
+   "changedFiles": 67,
+   "commits": 4,
    "reviewComments": 8,
    "reviews": [
     {
@@ -68,6 +76,18 @@
      "state": "COMMENTED",
      "date": "2026-09-21T18:25:11Z",
      "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nUnresolved API compatibility and protocol identifier reservation issues remain.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Preserve legacy API behavior for removed bridge keys](#discussion_r4065143860) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nThis PR removes the never-enabled XChainBridge feature and marks its amendments obsolete while preserving protocol result-code assignments.\n\n**Changes:**\n- Removes XChainBridge transactors, ledger entries, serialization types, keylets, RPC handling, and tests.\n- Retires related protocol definitions while reserving numeric slots.\n- Documents the breaking API and `libxrpl` changes.\n\n**Review findings:**\n- `LedgerEntry.cpp`: **Critical (1 vote)** — preserve prior API-version behavior for removed bridge keys, or update the compatibility plan.\n- `ledger_entries.macro`: **Moderate (1 vote each; three findings)** — retain deprecated reservations for `0x0069`, `0x0071`, and `0x0074`.\n- `sfields.macro`: **Moderate (1 vote)** — remove `sfSignatureReward` and `sfMinAccountCreateAmount` and reserve codes 29–30.\n- `transactions.macro`: **Moderate (1 vote)** — retain deprecated reservations for transaction values 41–48.\n\n| File | Summary |\n|---|---|\n| `src/​xrpld/​rpc/​handlers/​server_info/​ServerDefinitions.cpp` | Removes obsolete bridge type exposure. |\n| `src/​xrpld/​rpc/​handlers/​ledger/​LedgerEntryHelpers.h` | Removes bridge parsing helpers. |\n| `src/​xrpld/​rpc/​handlers/​ledger/​LedgerEntry.cpp` | Removes bridge ledger-entry parsing; API compatibility finding applies. |\n| `src/​xrpld/​rpc/​handlers/​account/​AccountObjects.cpp` | Removes bridge account-object filters. |\n| `src/​tests/​libxrpl/​protocol/​STXChainBridge.cpp` | Removes serialized bridge tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​transactions/​XChainModifyBridgeTests.cpp` | Removes transaction tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​transactions/​XChainCreateClaimIDTests.cpp` | Removes transaction tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​transactions/​XChainCreateBridgeTests.cpp` | Removes transaction tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​transactions/​XChainCommitTests.cpp` | Removes transaction tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​transactions/​XChainClaimTests.cpp` | Removes transaction tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​transactions/​XChainAddClaimAttestationTests.cpp` | Removes transaction tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​transactions/​XChainAddAccountCreateAttestationTests.cpp` | Removes transaction tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​transactions/​XChainAccountCreateCommitTests.cpp` | Removes transaction tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​TestHelpers.h` | Removes bridge test helpers. |\n| `src/​tests/​libxrpl/​protocol_autogen/​ledger_entries/​XChainOwnedCreateAccountClaimIDTests.cpp` | Removes ledger-entry tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​ledger_entries/​XChainOwnedClaimIDTests.cpp` | Removes ledger-entry tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​ledger_entries/​BridgeTests.cpp` | Removes bridge ledger-entry tests. |\n| `src/​test/​rpc/​LedgerEntry_test.cpp` | Removes bridge RPC tests. |\n| `src/​test/​rpc/​AccountObjects_test.cpp` | Removes bridge account-object tests. |\n| `src/​test/​protocol/​STParsedJSON_test.cpp` | Removes bridge JSON tests. |\n| `src/​test/​jtx/​xchain_bridge.h` | Removes bridge transaction helpers. |\n| `src/​test/​jtx/​impl/​attester.cpp` | Removes attestation signing helpers. |\n| `src/​test/​jtx/​attester.h` | Removes attestation declarations. |\n| `src/​test/​app/​MPToken_test.cpp` | Removes bridge-related test cases. |\n| `src/​test/​app/​Delegate_test.cpp` | Removes bridge delegation cases. |\n| `src/​libxrpl/​protocol/​STXChainBridge.cpp` | Removes bridge serialization implementation. |\n| `src/​libxrpl/​protocol/​STVar.cpp` | Removes bridge type construction. |\n| `src/​libxrpl/​protocol/​STParsedJSON.cpp` | Removes bridge JSON parsing. |\n| `src/​libxrpl/​protocol/​InnerObjectFormats.cpp` | Removes bridge inner-object formats. |\n| `src/​libxrpl/​protocol/​Indexes.cpp` | Removes bridge keylets and namespaces. |\n| `src/​libxrpl/​ledger/​ApplyStateTable.cpp` | Adds the direct account-type dependency. |\n| `include/​xrpl/​tx/​transactors/​bridge/​XChainBridge.h` | Removes bridge transactor declarations. |\n| `include/​xrpl/​protocol/​TxFlags.h` | Removes bridge transaction flags. |\n| `include/​xrpl/​protocol/​STXChainBridge.h` | Removes the bridge serialized-type API. |\n| `include/​xrpl/​protocol/​STObject.h` | Adds the direct account-type dependency. |\n| `include/​xrpl/​protocol/​SField.h` | Removes the bridge serialized type. |\n| `include/​xrpl/​protocol/​jss.h` | Removes bridge RPC field names. |\n| `include/​xrpl/​protocol/​Indexes.h` | Removes bridge keylet declarations. |\n| `include/​xrpl/​protocol/​detail/​transactions.macro` | Removes bridge transaction definitions; deprecated reservations are required. |\n| `include/​xrpl/​protocol/​detail/​sfields.macro` | Updates removed field declarations; reservations for codes 29–30 are required. |\n| `include/​xrpl/​protocol/​detail/​ledger_entries.macro` | Removes bridge ledger formats; deprecated reservations are required. |\n| `include/​xrpl/​protocol/​detail/​features.macro` | Marks bridge amendments obsolete. |\n| `include/​xrpl/​protocol_autogen/​transactions/​XChainModifyBridge.h` | Removes generated transaction API. |\n| `include/​xrpl/​protocol_autogen/​transactions/​XChainCreateClaimID.h` | Removes generated transaction API. |\n| `include/​xrpl/​protocol_autogen/​transactions/​XChainCreateBridge.h` | Removes generated transaction API. |\n| `include/​xrpl/​protocol_autogen/​transactions/​XChainCommit.h` | Removes generated transaction API. |\n| `include/​xrpl/​protocol_autogen/​transactions/​XChainClaim.h` | Removes generated transaction API. |\n| `include/​xrpl/​protocol_autogen/​transactions/​XChainAddClaimAttestation.h` | Removes generated transaction API. |\n| `include/​xrpl/​protocol_autogen/​transactions/​XChainAccountCreateCommit.h` | Removes generated transaction API. |\n| `include/​xrpl/​protocol_autogen/​TransactionBuilderBase.h` | Removes bridge type dependencies. |\n| `include/​xrpl/​protocol_autogen/​ledger_entries/​XChainOwnedCreateAccountClaimID.h` | Removes generated ledger-entry API. |\n| `include/​xrpl/​protocol_autogen/​ledger_entries/​XChainOwnedClaimID.h` | Removes generated ledger-entry API. |\n| `include/​xrpl/​protocol_autogen/​ledger_entries/​Bridge.h` | Removes generated ledger-entry API. |\n| `API-CHANGELOG.md` | Documents the breaking API removal. |\n| `.cspell.config.yaml` | Removes obsolete bridge vocabulary. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener no"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-22T16:47:13Z",
+     "body": "This is a large, purely mechanical removal of the XChainBridge feature (ledger entries, transactors, serialized types, RPC handlers, tests) plus marking two amendments as VoteBehavior::Obsolete. I checked the sfield/ledger-entry/transaction macro renumbering for gaps or mismatched ranges (a common failure mode when collapsing multiple 'unused' comments), verified the LedgerEntry.cpp/LedgerEntryHelpers.h refactor no longer references removed STXChainBridge/keylet functions, and checked that test suite removals (BEAST_DEFINE_TESTSUITE) match the deleted test classes. Everything is internally consistent: the sfield number ranges collapse correctly, the transaction/ledger-entry numbers are left as explicit 'unused' placeholders rather than reassigned, and no added line references a deleted symbol. I did not find any correctness, security, or consistency issues in the added/changed lines."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-22T18:11:18Z",
+     "body": "Large, mechanical removal of the XChainBridge feature (ledger entries, transactors, serialized types, RPC handling, and tests). Reviewed the actual added (+) lines across the diff — most of the diff is pure deletion, and the surviving added code (VoteBehavior::Obsolete flags, the simplified doLedgerEntry parse call, the Delegate_test count update, the AccountObjects_test features expression, new includes, and the API-CHANGELOG entry) is internally consistent with the removed code paths. Field/entry/tx-type numbering is correctly left marked 'unused' rather than reassigned, matching the stated goal of keeping values stable. No correctness, security, or consistency issues found in the changed lines."
     }
    ],
    "reviewCommentsList": [
