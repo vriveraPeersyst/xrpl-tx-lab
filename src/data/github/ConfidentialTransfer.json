@@ -1,16 +1,16 @@
 {
  "name": "ConfidentialTransfer",
- "fetchedAt": "2026-09-23T08:02:08.692Z",
+ "fetchedAt": "2026-09-24T08:02:27.976Z",
  "summary": {
-  "status": "in development",
+  "status": "merged",
   "prs": 7,
-  "open": 1,
-  "merged": 4,
+  "open": 0,
+  "merged": 5,
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-09-23T01:48:28Z",
-  "lastMerged": "2026-07-02T19:05:46Z",
+  "lastActivity": "2026-09-23T16:57:15Z",
+  "lastMerged": "2026-09-23T16:57:15Z",
   "release": "3.3.0",
   "totalComments": 20
  },
@@ -23,14 +23,16 @@
  "prs": [
   {
    "number": 8265,
-   "title": "refactor: Clean up ConfidentialTransfer test helpers",
+   "title": "test: Clean up ConfidentialTransfer test helpers",
    "url": "https://github.com/XRPLF/rippled/pull/8265",
-   "state": "open",
+   "state": "closed",
    "author": "yinyiqian1",
    "createdAt": "2026-09-22T20:12:25Z",
-   "updatedAt": "2026-09-23T01:48:28Z",
-   "closedAt": null,
-   "labels": [],
+   "updatedAt": "2026-09-23T16:57:15Z",
+   "closedAt": "2026-09-23T16:57:15Z",
+   "labels": [
+    "Ready to merge"
+   ],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -40,8 +42,8 @@
     }
    ],
    "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\nMove the implementations of the confidential transfer test helpers out of\n`src/test/jtx/ConfidentialTransfer.h` and into\n`src/test/jtx/impl/ConfidentialTransfer.cpp`. Test-only refactor; no\nproduction code or transaction behavior changes.\n\n- Comment fixes:\n  - `getForgedBulletproof`: removed an incorrect \"returns 1 on success, 0 on\n    failure\" note (it returns a `Buffer` and throws on failure).\n  - `getForgedConvertBackProof`: the bulletproof is built from\n    `realBalance - amt`, not `realBalance`; clarified which inputs are\n    on-ledger.\n  - `ConfidentialEnv`: now describes what the constructor actually does.\n  - `getTrivialSendProofHex`: added a comment.\n- Removed the unused `ConfidentialSendSetup::nRecipients` member.\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
+   "merged": true,
+   "mergedAt": "2026-09-23T16:57:15Z",
    "draft": false,
    "base": "develop",
    "head": "yinyiqian1:clean-confidential",
