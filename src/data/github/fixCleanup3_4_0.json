@@ -1,18 +1,18 @@
 {
  "name": "fixCleanup3_4_0",
- "fetchedAt": "2026-09-23T08:10:44.002Z",
+ "fetchedAt": "2026-09-24T08:10:59.135Z",
  "summary": {
-  "status": "in development",
-  "prs": 4,
-  "open": 1,
+  "status": "merged",
+  "prs": 3,
+  "open": 0,
   "merged": 2,
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-09-07T15:01:17Z",
+  "lastActivity": "2026-08-17T13:22:38Z",
   "lastMerged": "2026-08-17T13:22:35Z",
   "release": "3.4.0",
-  "totalComments": 59
+  "totalComments": 30
  },
  "release": {
   "version": "3.4.0",
@@ -21,218 +21,6 @@
   "excerpt": "fixCleanup3_4_0**: Bundles amendment-gated fixes."
  },
  "prs": [
-  {
-   "number": 8134,
-   "title": "fix: Skip the AccountTxnID update for Batch wrappers (fixCleanup3_4_0)",
-   "url": "https://github.com/XRPLF/rippled/pull/8134",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-08-27T15:03:32Z",
-   "updatedAt": "2026-09-07T15:01:17Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-08-27T15:05:41Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8134?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#issuecomment-5441085372"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-08-27T18:30:38Z",
-     "body": "@xrplf-ai-reviewer your last review says you're flagging one edge case worth confirming with the author, but there's no comment with it. What's the edge case?",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#issuecomment-5443535224"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-01T15:01:20Z",
-     "body": "As @dangell7 and I discussed separately, this will break the chain if a Batch tx is submitted by an account that doesn't have any inner txs, and then wants to use `AccountTxnID` after the Batch tx.",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#issuecomment-5495958365"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-09-07T15:01:17Z",
-     "body": "Agreed. One option: leave the outer Batch updating sfAccountTxnID on the AccountRoot as it does today, so the next transaction always chains off the Batch ID, and instead have Batch preflight return temINVALID_INNER_BATCH under fixCleanup3_4_0 for an inner whose sfAccount matches the outer and carries sfAccountTxnID. An inner can never hold the ID of the Batch containing it, same contradiction as sfTicketSequence + sfAccountTxnID. Conditioning on the pre-batch state still works by putting sfAccountTxnID on the outer Batch. Thoughts?",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#issuecomment-5572497306"
-    }
-   ],
-   "body": "AccountTxnID chaining is unusable inside a Batch. The wrapper stamps the account root's sfAccountTxnID with its own transaction ID, and that ID hashes over sfRawTransactions, so a same-account inner can never carry a matching prior-txn ID. Any value fails preclaim with tefWRONG_PRIOR. Reported as Attackathon finding F121 (issue 993); it fails closed, so this is a functionality gap rather than an exploit.\n\nGated on fixCleanup3_4_0: a ttBATCH transaction no longer updates sfAccountTxnID. The first inner chains off the last pre-batch transaction, the inners update the field as they apply, and a post-batch transaction chains off the last inner. The wrapper's only effects are its inners plus fee and sequence, so the chain still covers every state-changing action.\n\nBehavior change on activation: a later transaction can no longer chain off the wrapper's own ID. It chains off the last same-account inner instead, and a batch with no same-account inners does not advance the chain.\n\nNew account txn id case in Batch_test covers both amendment paths, and a subscriptions case pins the stream behavior: the proposed stream carries only the outer, the validated stream carries the outer and both inners with metadata.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:dangell7/fix-batch-account-txn-id",
-   "additions": 431,
-   "deletions": 1,
-   "changedFiles": 2,
-   "commits": 5,
-   "reviewComments": 10,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-27T15:04:39Z",
-     "body": "The core fix in Transactor.cpp correctly gates the sfAccountTxnID stamp to skip only when the currently-applying transaction is the ttBATCH wrapper itself and fixBatchAccountTxnID is enabled — inner transactions still go through their own Transactor::apply() call with their own txn type, so they continue to update the field normally. The accompanying test exercises both the fix-enabled path (inner chains off the last pre-batch AccountTxnID, chain ends at the last applied inner, and a post-batch txn can chain off it) and the fix-disabled path (wrapper stamps its own ID, causing tefWRONG_PRIOR and an all-or-nothing revert), with sequence/balance assertions that check out arithmetically. No correctness, security, or consistency issues found in the changed lines."
-    },
-    {
-     "author": "kennyzlei",
-     "state": "COMMENTED",
-     "date": "2026-08-27T17:12:07Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-08-27T17:16:19Z",
-     "body": "## Pull request overview\n\nThis PR introduces a new fix amendment (`fixBatchAccountTxnID`) to make `sfAccountTxnID` chaining usable when submitting `ttBATCH` transactions. When the fix is enabled, the Batch wrapper no longer stamps the account root’s `sfAccountTxnID`, allowing same-account inner transactions to reference the last pre-batch transaction ID without failing preclaim.\n\n**Changes:**\n- Register the new `BatchAccountTxnID` fix amendment (default vote: No).\n- Update `Transactor::apply()` to skip `sfAccountTxnID` stamping for `ttBATCH` when `fixBatchAccountTxnID` is enabled.\n- Add a new `Batch_test` unit test case covering both amendment-enabled and amendment-disabled behavior.\n\n### Reviewed changes\n\nCopilot reviewed 3 out of 3 changed files in this pull request and generated 1 comment.\n\n| File | Description |\n| ---- | ----------- |\n| `src/test/app/Batch_test.cpp` | Adds coverage for `sfAccountTxnID` behavior inside Batch under both amendment states. |\n| `src/libxrpl/tx/Transactor.cpp` | Conditionally skips updating `sfAccountTxnID` for `ttBATCH` when the fix amendment is enabled. |\n| `include/xrpl/protocol/detail/features.macro` | Registers the new `BatchAccountTxnID` fix amendment. |\n\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/en/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-27T17:19:52Z",
-     "body": "The core logic change (skip stamping sfAccountTxnID on the ttBATCH outer transaction when the guarding amendment is enabled) is correctly implemented — the boolean condition is right in all branches, and the new test exercises both the with-fix and without-fix paths with reasonable assertions. The one thing worth a second look before merge is that the code and test gate on `fixCleanup3_4_0`, not `fixBatchAccountTxnID` as named in the MR title/description — worth confirming that's intentional (e.g. a shared release-bundle amendment) rather than a leftover flag from another change."
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-08-27T17:54:26Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-27T17:54:34Z",
-     "body": "The core fix in Transactor.cpp correctly gates the sfAccountTxnID update: it skips stamping the account root's sfAccountTxnID only when the transaction is a ttBATCH wrapper and fixCleanup3_4_0 is enabled, letting inner transactions (which are not ttBATCH) continue to chain normally. This matches the described intent (wrapper's ID hashes over sfRawTransactions so no inner can match it) and is properly amendment-gated. Test coverage in Batch_test.cpp exercises both the fixed and pre-fix paths. No correctness, security, or infrastructure issues found in the changed lines."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-27T18:02:36Z",
-     "body": "Focused, well-tested fix: gates the account-root sfAccountTxnID stamp on the ttBATCH wrapper behind fixCleanup3_4_0, restoring usable AccountTxnID chaining for inner transactions. The core logic change is a single condition and looks correct (skip update only when txn type is ttBATCH and the amendment is enabled); new Batch_test coverage exercises both the fixed and pre-fix paths plus a subscriptions regression test. No clear bugs found in the changed lines; flagging one edge case worth confirming with the author."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-08-27T18:37:16Z",
-     "body": "Chain invariant gap when all Batch inners fail — see inline."
-    },
-    {
-     "author": "kennyzlei",
-     "state": "COMMENTED",
-     "date": "2026-08-27T19:41:40Z",
-     "body": "The fix and its gating condition look correct — the skip applies only to the ttBATCH wrapper with `fixCleanup3_4_0` enabled, inners still stamp, and preclaim still validates. Two test-coverage suggestions inline, covering the two corner behaviors the fix creates: a batch whose inners all belong to another account, and an outer Batch that itself carries `sfAccountTxnID`. Both were verified against the transactor/preclaim code paths but not compiled or run.\n\n~Separately, worth an explicit decision: this gates new consensus-affecting behavior on `fixCleanup3_4_0`, which already shipped as `Supported::Yes` in the 3.4.0-b1/b2 betas — nodes on those builds would stamp the wrapper after activation while nodes with this commit would not. Presumably fine if no persistent network's validators are voting it from b1/b2 binaries, but flagging in case it should be its own amendment.~\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_"
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-08-31T16:02:11Z",
-     "body": ""
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-08-31T16:02:15Z",
-     "body": ""
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-08-31T16:02:18Z",
-     "body": ""
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-08-31T16:02:21Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-31T16:03:16Z",
-     "body": "The core fix correctly gates the sfAccountTxnID stamp using De Morgan's equivalent of \"skip only when the transaction is the ttBATCH wrapper AND fixCleanup3_4_0 is enabled\"; since inner transactions are applied through their own Transactor::apply() calls with their real (non-ttBATCH) type, they continue to update the field as before, and non-batch transactions are unaffected. The accompanying Batch_test.cpp coverage exercises same-account inners, other-account-only inners, all-inners-failing, and wrapper-preclaim-validation cases under both amendment states, which lines up with the behavior described in the MR. I did not find correctness, security, or resource-management issues in the added lines."
-    },
-    {
-     "author": "shawnxie999",
-     "state": "APPROVED",
-     "date": "2026-09-01T14:58:54Z",
-     "body": "LGTM"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "kennyzlei",
-     "date": "2026-08-27T17:11:32Z",
-     "path": "include/xrpl/protocol/detail/features.macro",
-     "body": "let's consider bundling this fix into the Cleanup3_4_0 fix amendment if possible",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3874031709"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-08-27T17:16:19Z",
-     "path": "src/libxrpl/tx/Transactor.cpp",
-     "body": "The new comment reads as unconditional, but the behavior is conditional on the fixBatchAccountTxnID amendment. As written, it’s misleading when the amendment is disabled (ttBATCH will still stamp sfAccountTxnID).",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3874066650"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-08-27T17:54:26Z",
-     "path": "include/xrpl/protocol/detail/features.macro",
-     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/aa5987efd0",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3874406265"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-08-27T18:37:16Z",
-     "path": "src/libxrpl/tx/Transactor.cpp",
-     "body": "All-inners-failed Batch leaves sfAccountTxnID unstamped despite fee/sequence changes. Verify wrapper ID stamping:\n\n```suggestion\n// TODO: When all inners fail, consider stamping wrapper ID to preserve chain invariant.\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3874788137"
-    },
-    {
-     "author": "kennyzlei",
-     "date": "2026-08-27T19:41:02Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "The new test covers same-account inners, but not a batch whose inners all belong to **another** account — which is exactly where the wrapper's stamp/skip becomes observable on its own. With the fix, nothing writes the outer account's `sfAccountTxnID` (the wrapper skips and no inner is the outer account's), so it must keep its pre-batch value; without the fix the wrapper stamps its own ID even though the outer account authored no inner. In the current test the same-account inners re-stamp the field as they apply, so a future change that stamps the wrapper \"when no same-account inner applied\" (e.g. on an all-foreign batch) would pass the suite unnoticed.\n\n```suggestion\n        }\n\n        // A wrapper whose inners all belong to another account: with the fix\n        // nothing stamps the outer account's sfAccountTxnID, so it keeps its\n        // pre-batch value; without the fix the wrapper stamps its own ID even\n        // though the outer account authored no inner.\n        for (bool const withFix : {true, false})\n        {\n            auto const amend = withFix ? features : features - fixCleanup3_4_0;\n            Env env{*this, amend};\n\n            auto const alice = Account(\"alice\");\n            auto const bob = Account(\"bob\");\n            env.fund(XRP(10000), alice, bob);\n            env.close();\n\n            env(fset(alice, asfAccountTxnID));\n            env.close();\n\n            env(noop(alice));\n            env.close();\n            uint256 const priorID = env.tx()->getTransactionID();\n\n            auto const preAlice = env.balance(alice);\n            auto const aliceSeq = env.seq(alice);\n            auto const bobSeq = env.seq(bob);\n            auto const batchFee = batch::calcBatchFee(env, 1, 2);\n            auto const [txIDs, batchID] = submitBatch(\n                env,\n                tesSUCCESS,\n                batch::outer(alice, aliceSeq, batchFee, tfAllOrNothing),\n                batch::Inner(pay(bob, alice, XRP(1)), bobSeq),\n                batch::Inner(pay(bob, alice, XRP(2)), bobSeq + 1),\n                batch::Sig(bob));\n            env.close();\n\n            // Both inners are bob's, so they apply under either amendment\n            // state: alice's prior-txn chain constrains only her own\n            // transactions.\n            std::vector<TestLedgerData> const testCases = {\n                {.index = 0,\n                 .txType = \"Batch\",\n                 .result = \"tesSUCCESS\",\n                 .txHash = batchID,\n                 .batchID = std::nullopt},\n                {.index = 1,\n                 .txType = \"Payment\",\n                 .result = \"tesSUCCESS\",\n                 .txHash = txIDs[0],\n                 .batchID = batchID},\n                {.index = 2,\n                 .txType = \"Payment\",\n                 .result = \"tesSUCCESS\",\n                 .txHash = txIDs[1],\n                 .batchID = batchID},\n            };\n            validateClosedLedger(env, testCases);\n\n            BEAST_EXPECT(env.seq(alice) == aliceSeq + 1);\n            BEAST_EXPECT(env.seq(bob) == bobSeq + 2);\n            BEAST_EXPECT(env.balance(alice) == preAlice + XRP(3) - batchFee);\n\n            auto const sle = env.le(keylet::account(alice));\n            BEAST_EXPECT(sle && sle->isFieldPresent(sfAccountTxnID));\n            if (withFix)\n            {\n                // Nothing stamped the field: it keeps its pre-batch value.\n                BEAST_EXPECT(sle->getFieldH256(sfAccountTxnID) == priorID);\n\n                // A post-batch transaction chains off the pre-batch\n                // transaction, not the batch.\n                auto jv = pay(alice, bob, XRP(1));\n                jv[sfAccountTxnID.jsonName] = strHex(priorID);\n                env(jv);\n                env.close();\n            }\n            else\n            {\n                BEAST_EXPECT(strHex(sle->getFieldH256(sfAccountTxnID)) == batchID);\n            }\n        }\n```\n\nCaveat: drafted and reviewed against the transactor/preclaim code paths, but not compiled or run (no dependency access in my environment) — please run the Batch suite over it.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3875250235"
-    },
-    {
-     "author": "kennyzlei",
-     "date": "2026-08-27T19:41:24Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "The other corner this fix creates: an outer Batch that itself **carries** `sfAccountTxnID`. It's a legal common field on ttBATCH, and `checkPriorTxAndLastLedger` still validates it in preclaim for the wrapper (untouched by the fix) — so a stale value must fail with `tefWRONG_PRIOR` under both amendment states, and a matching value must admit the batch without the wrapper then stamping over the field. Nothing in the suite exercises this today; the existing `tefWRONG_PRIOR` expectation fires on an inner *Payment* during batch application, so it would not catch a refactor that accidentally extends the ttBATCH skip into the preclaim check.\n\n```suggestion\n        // The wrapper's own sfAccountTxnID is still validated in preclaim\n        // under both amendment states; with the fix a matching value admits\n        // the batch without the wrapper then stamping over the field.\n        for (bool const withFix : {true, false})\n        {\n            auto const amend = withFix ? features : features - fixCleanup3_4_0;\n            Env env{*this, amend};\n\n            auto const alice = Account(\"alice\");\n            auto const bob = Account(\"bob\");\n            env.fund(XRP(10000), alice, bob);\n            env.close();\n\n            env(fset(alice, asfAccountTxnID));\n            env.close();\n            // The fset only creates the (empty) field, so its own ID is a\n            // guaranteed-stale prior-txn value.\n            uint256 const staleID = env.tx()->getTransactionID();\n\n            env(noop(alice));\n            env.close();\n            uint256 const priorID = env.tx()->getTransactionID();\n\n            // A stale value fails preclaim, fix or no fix.\n            {\n                auto const aliceSeq = env.seq(alice);\n                auto const bobSeq = env.seq(bob);\n                auto const batchFee = batch::calcBatchFee(env, 1, 2);\n                auto outer = batch::outer(alice, aliceSeq, batchFee, tfAllOrNothing);\n                outer[sfAccountTxnID.jsonName] = strHex(staleID);\n                submitBatch(\n                    env,\n                    tefWRONG_PRIOR,\n                    outer,\n                    batch::Inner(pay(bob, alice, XRP(1)), bobSeq),\n                    batch::Inner(pay(bob, alice, XRP(2)), bobSeq + 1),\n                    batch::Sig(bob));\n                env.close();\n\n                BEAST_EXPECT(env.seq(alice) == aliceSeq);\n                BEAST_EXPECT(env.seq(bob) == bobSeq);\n            }\n\n            // The current value passes preclaim.\n            {\n                auto const aliceSeq = env.seq(alice);\n                auto const bobSeq = env.seq(bob);\n                auto const batchFee = batch::calcBatchFee(env, 1, 2);\n                auto outer = batch::outer(alice, aliceSeq, batchFee, tfAllOrNothing);\n                outer[sfAccountTxnID.jsonName] = strHex(priorID);\n                auto const [txIDs, batchID] = submitBatch(\n                    env,\n                    tesSUCCESS,\n                    outer,\n                    batch::Inner(pay(bob, alice, XRP(1)), bobSeq),\n                    batch::Inner(pay(bob, alice, XRP(2)), bobSeq + 1),\n                    batch::Sig(bob));\n                env.close();\n\n                std::vector<TestLedgerData> const testCases = {\n                    {.index = 0,\n                     .txType = \"Batch\",\n                     .result = \"tesSUCCESS\",\n                     .txHash = batchID,\n                     .batchID = std::nullopt},\n                    {.index = 1,\n                     .txType = \"Payment\",\n                     .result = \"tesSUCCESS\",\n                     .txHash = txIDs[0],\n                     .batchID = batchID},\n                    {.index = 2,\n                     .txType = \"Payment\",\n                     .result = \"tesSUCCESS\",\n                     .txHash = txIDs[1],\n                     .batchID = batchID},\n                };\n                validateClosedLedger(env, testCases);\n\n                BEAST_EXPECT(env.seq(alice) == aliceSeq + 1);\n                BEAST_EXPECT(env.seq(bob) == bobSeq + 2);\n\n                auto const sle = env.le(keylet::account(alice));\n                BEAST_EXPECT(sle && sle->isFieldPresent(sfAccountTxnID));\n                if (withFix)\n                {\n                    // Validated in preclaim, but not stamped.\n                    BEAST_EXPECT(sle->getFieldH256(sfAccountTxnID) == priorID);\n                }\n                else\n                {\n                    BEAST_EXPECT(strHex(sle->getFieldH256(sfAccountTxnID)) == batchID);\n                }\n            }\n        }\n    }\n```\n\nSame caveat as the sibling suggestion: reviewed against the code paths but not compiled or run in my environment.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3875252656"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-08-31T16:02:11Z",
-     "path": "src/libxrpl/tx/Transactor.cpp",
-     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/9f89fce012",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3896166870"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-08-31T16:02:15Z",
-     "path": "src/libxrpl/tx/Transactor.cpp",
-     "body": "Working as designed. The wrapper only claims fee and sequence, and the next transaction chains off the last pre-batch ID. Pinned in a test: https://github.com/XRPLF/rippled/commit/7092269f72",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3896167250"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-08-31T16:02:18Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/7092269f72",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3896167651"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-08-31T16:02:21Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/7092269f72",
-     "url": "https://github.com/XRPLF/rippled/pull/8134#discussion_r3896168138"
-    }
-   ]
-  },
   {
    "number": 8004,
    "title": "fix: Extend locked-MPToken unauthorize check to fixCleanup3_4_0",
