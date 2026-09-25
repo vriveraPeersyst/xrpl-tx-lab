@@ -1,6 +1,6 @@
 {
  "name": "BatchV1_1",
- "fetchedAt": "2026-09-24T08:01:50.536Z",
+ "fetchedAt": "2026-09-25T08:01:35.001Z",
  "summary": {
   "status": "in development",
   "prs": 8,
@@ -17,10 +17,10 @@
    "ripple/custody-old-batch-cmpt",
    "tialymov/FN-6-lending_batch_support"
   ],
-  "lastActivity": "2026-09-23T23:00:01Z",
+  "lastActivity": "2026-09-24T19:20:00Z",
   "lastMerged": "2026-07-02T19:05:46Z",
   "release": "3.3.0",
-  "totalComments": 241
+  "totalComments": 249
  },
  "release": {
   "version": "3.3.0",
@@ -30,65 +30,20 @@
  },
  "prs": [
   {
-   "number": 8281,
-   "title": "test: Cover LastLedgerSequence on Batch inner transactions",
-   "url": "https://github.com/XRPLF/rippled/pull/8281",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-09-23T22:42:02Z",
-   "updatedAt": "2026-09-23T23:00:01Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-23T22:44:02Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8281?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8281#issuecomment-5804178314"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\n`inner last ledger sequence` in `Batch_test`: an inner transaction's own `LastLedgerSequence` is honoured. An inner whose value is ahead of the ledger applies; one whose value has passed fails `tefMAX_LEDGER` in preclaim, so under `tfAllOrNothing` no inner applies and under `tfIndependent` only that inner fails.\n\n## Context of Change\n\n`Transactor::checkPriorTxAndLastLedger` runs for every Batch inner in preclaim, but no test exercised `LastLedgerSequence` on an inner. Client libraries currently forbid the field on inners, and this is the behaviour they would be relaxing to.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nN/A",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:dangell7/batch-inner-last-ledger-sequence",
-   "additions": 124,
-   "deletions": 0,
-   "changedFiles": 1,
-   "commits": 1,
-   "reviewComments": 0,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-23T22:42:51Z",
-     "body": "Test-only addition to Batch_test.cpp covering LastLedgerSequence handling for Batch inner transactions (ahead-of-ledger success, expired-inner failure under tfAllOrNothing, and partial failure under tfIndependent). The three scenarios are internally consistent with the described preclaim/tefMAX_LEDGER behavior, follow existing jtx/Batch test DSL conventions (submitBatch, validateClosedLedger, TestLedgerData), and the sequence/balance assertions in each block match the expected inner-application outcomes. No correctness, security, or resource issues found in the added code."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-23T23:00:00Z",
-     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nThe reviewed test coverage is complete with no unresolved blocking issues.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds Batch tests covering inner `LastLedgerSequence` behavior in atomic and independent execution modes.\n\n**Changes:**\n- Tests valid future ledger sequences.\n- Tests expired inners under `tfAllOrNothing` and `tfIndependent`.\n- Verifies resulting ledger state.\n\n| File | Description |\n|---|---|\n| `src/​test/​app/​Batch_test.cpp` | Adds inner `LastLedgerSequence` Batch test coverage. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    }
-   ],
-   "reviewCommentsList": []
-  },
-  {
    "number": 8052,
    "title": "feat: Add batch transactions to TxQ",
    "url": "https://github.com/XRPLF/rippled/pull/8052",
    "state": "open",
    "author": "oleks-rip",
    "createdAt": "2026-08-19T16:48:52Z",
-   "updatedAt": "2026-09-23T17:24:33Z",
+   "updatedAt": "2026-09-24T19:20:00Z",
    "closedAt": null,
    "labels": [],
    "comments": [
     {
      "author": "codecov[bot]",
      "date": "2026-08-19T16:51:06Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `95.94096%` with `22 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/misc/detail/TxQ.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL2RldGFpbC9UeFEuY3Bw) | 96.1% | [21 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/applySteps.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvYXBwbHlTdGVwcy5jcHA=) | 80.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
      "url": "https://github.com/XRPLF/rippled/pull/8052#issuecomment-5345276319"
     },
     {
@@ -116,11 +71,11 @@
    "draft": false,
    "base": "develop",
    "head": "oleks-rip:txq_sponsor",
-   "additions": 2944,
-   "deletions": 684,
+   "additions": 2993,
+   "deletions": 691,
    "changedFiles": 6,
    "commits": 3,
-   "reviewComments": 45,
+   "reviewComments": 48,
    "reviews": [
     {
      "author": "depthfirst-app[bot]",
@@ -300,6 +255,24 @@
      "state": "COMMENTED",
      "date": "2026-09-23T17:24:32Z",
      "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nBatch readiness, same-account handling, and queued application contain unresolved correctness defects.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (2)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Treat outer entry as part of same-account batch](#discussion_r4085308741) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Check batch inner readiness before direct application](#discussion_r4085308810) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (12)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [The no-replacement rule is enforced only in `retrieveTxToReplace()`, but a high-fee Batch takes the…](#discussion_r4029695982)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Batch inners are deliberately not inserted into `byFee_`, but they still run `processQueueIsFull()`…](#discussion_r4029695953)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [This returns every result from `tryClearAccountQueueUpThruTx`, but that helper deliberately returns…](#discussion_r4029695924)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Queue-full admission can evict an unrelated `byFee_` entry before `processInnerBatch()` has…](#discussion_r4029695895)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [On a successful queued Batch, `MaybeTx::apply` only calls `doApply`; `Batch::doApply` returns…](#discussion_r4029695845)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [`isFirstInAccount` is only consulted from `eraseAndAdvance`, so the first candidate visited by…](#discussion_r4029695796)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [The Batch branch computes whether the outer entry is first in its account, but then ignores…](#discussion_r4029695738)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [This cached `PreflightResult` is built with a standalone `PreflightContext`, so it has no…](#discussion_r4029695686)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [These inners are queued as independent candidates, and `accept` later applies them one at a time…](#discussion_r4029695636)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Inner processors are constructed before `TxQ::apply` acquires `txq_.mutex_`, but this initializer…](#discussion_r4029695592)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"htt"
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-09-24T17:04:38Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-09-24T17:10:17Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-09-24T18:21:57Z",
+     "body": ""
     }
    ],
    "reviewCommentsList": [
@@ -617,6 +590,27 @@
      "path": "src/xrpld/app/misc/detail/TxQ.cpp",
      "body": "This direct-apply fast path runs before the new batch-wide `isSeqReady` check. A high-fee Batch whose outer account is ready can therefore be applied immediately while an inner's account still has an earlier queued sequence transaction. When the Batch is later processed, that inner can return `terPRE_SEQ` and be discarded by `tfAllOrNothing`, even though the outer was already accepted, which defeats the readiness/hold behavior implemented for queued Batches. Apply the same cross-account readiness check before direct-applying a Batch, or force a Batch with blocked inners through normal queue admission.",
      "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4085308810"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-09-24T17:04:38Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "This description is confusing. At this place candidate is always Batch tx, and its check every other txs from the account. If account txs is the same batch - we skip it  1587: if (it->second.txn == candidate.txn) , if it is not the sam tx we check if this is regular tx (!parentTx)  then seq is blocked. Or if this is inner tx but from other batch (then seq is blocked too).  Re describe the issue if you think it is still present.",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4096300021"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-09-24T17:10:17Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "> and the outer has no parentTx\n\nThis sentence is meaningless, yes Batch tx doesn't have parent, but it never checked in condition and will not return false. In condition checked account's transaction, which can be inner tx of the candidate batch, or can be any other tx.",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4096350293"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-09-24T18:21:56Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "The same check is not possible, as require inner tx to be applied. Added simplified check. Even if some inner transactions of the batch will fail later - this is natural flow for it, not all tx may succeed .  b5fd9a84e38be",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4097010478"
     }
    ]
   },
@@ -627,7 +621,7 @@
    "state": "open",
    "author": "tyalymov",
    "createdAt": "2026-09-17T20:52:54Z",
-   "updatedAt": "2026-09-23T12:25:43Z",
+   "updatedAt": "2026-09-24T13:00:44Z",
    "closedAt": null,
    "labels": [
     "feature: LP1.2"
@@ -650,7 +644,7 @@
    "deletions": 20,
    "changedFiles": 3,
    "commits": 3,
-   "reviewComments": 1,
+   "reviewComments": 2,
    "reviews": [
     {
      "author": "xrplf-ai-reviewer[bot]",
@@ -681,6 +675,12 @@
      "state": "CHANGES_REQUESTED",
      "date": "2026-09-23T12:25:43Z",
      "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-24T13:00:43Z",
+     "body": ""
     }
    ],
    "reviewCommentsList": [
@@ -690,8 +690,60 @@
      "path": "src/test/app/Batch_test.cpp",
      "body": "Let's add more tests:\n\n- Full lifecycle, VaultCreate,Deposit,Withdraw,Delete\n- VaulCreate, Deposit, LoanBrokerCreate, LoanSet, LoanPay",
      "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4082375206"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-09-24T13:00:43Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "@Tapanito Looks like we read the test scope differently, so here is what I propose to cover.\nAll with LendingProtocolV1_2 on, tfAllOrNothing unless noted:\n\n1. VaultCreate → VaultDeposit → VaultWithdraw → VaultDelete\n2. VaultCreate → VaultDeposit → LoanBrokerCreate → LoanSet → LoanPay\n   (borrower co-signs the batch, LoanPay is an early full payment)\n3. Risk-free arbitrage from the original request: borrow → DEX buy → DEX sell → LoanPay.\n   One run succeeds, one where the sell offer does not fill and the whole batch rolls back.\n4. LoanSet → LoanManage (default) → LoanBrokerCoverWithdraw\n5. The same chains with tfIndependent, where one failing inner must not block the rest.\n\nThe existing pre-amendment check stays as is: a batch with a Vault inner is rejected with\ntemINVALID_INNER_BATCH. I don't plan to repeat it per transaction type.\n\nDoes this cover what you had in mind, or should I add or drop anything?",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4093878165"
     }
    ]
+  },
+  {
+   "number": 8281,
+   "title": "test: Cover LastLedgerSequence on Batch inner transactions",
+   "url": "https://github.com/XRPLF/rippled/pull/8281",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-09-23T22:42:02Z",
+   "updatedAt": "2026-09-23T23:00:01Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-23T22:44:02Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8281?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8281#issuecomment-5804178314"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n`inner last ledger sequence` in `Batch_test`: an inner transaction's own `LastLedgerSequence` is honoured. An inner whose value is ahead of the ledger applies; one whose value has passed fails `tefMAX_LEDGER` in preclaim, so under `tfAllOrNothing` no inner applies and under `tfIndependent` only that inner fails.\n\n## Context of Change\n\n`Transactor::checkPriorTxAndLastLedger` runs for every Batch inner in preclaim, but no test exercised `LastLedgerSequence` on an inner. Client libraries currently forbid the field on inners, and this is the behaviour they would be relaxing to.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nN/A",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:dangell7/batch-inner-last-ledger-sequence",
+   "additions": 124,
+   "deletions": 0,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-23T22:42:51Z",
+     "body": "Test-only addition to Batch_test.cpp covering LastLedgerSequence handling for Batch inner transactions (ahead-of-ledger success, expired-inner failure under tfAllOrNothing, and partial failure under tfIndependent). The three scenarios are internally consistent with the described preclaim/tefMAX_LEDGER behavior, follow existing jtx/Batch test DSL conventions (submitBatch, validateClosedLedger, TestLedgerData), and the sequence/balance assertions in each block match the expected inner-application outcomes. No correctness, security, or resource issues found in the added code."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-23T23:00:00Z",
+     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nThe reviewed test coverage is complete with no unresolved blocking issues.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds Batch tests covering inner `LastLedgerSequence` behavior in atomic and independent execution modes.\n\n**Changes:**\n- Tests valid future ledger sequences.\n- Tests expired inners under `tfAllOrNothing` and `tfIndependent`.\n- Verifies resulting ledger state.\n\n| File | Description |\n|---|---|\n| `src/​test/​app/​Batch_test.cpp` | Adds inner `LastLedgerSequence` Batch test coverage. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    }
+   ],
+   "reviewCommentsList": []
   },
   {
    "number": 8127,
