@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-09-24T08:02:08.591Z",
+ "fetchedAt": "2026-09-25T08:01:52.024Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-09-23T14:24:22Z",
+  "lastActivity": "2026-09-24T16:40:42Z",
   "lastMerged": "2026-09-03T19:42:39Z",
   "release": "0.90.0",
-  "totalComments": 457
+  "totalComments": 459
  },
  "release": {
   "version": "0.90.0",
@@ -24,6 +24,571 @@
   "excerpt": "The `Checks` amendment, which allows users to create deferred payments that can be cancelled or cashed by their intended recipients."
  },
  "prs": [
+  {
+   "number": 7822,
+   "title": "feat: Add invariant checks and invariant check tests for LoanAccept",
+   "url": "https://github.com/XRPLF/rippled/pull/7822",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2026-07-17T00:01:10Z",
+   "updatedAt": "2026-09-24T16:40:42Z",
+   "closedAt": "2026-09-24T16:40:42Z",
+   "labels": [],
+   "comments": [],
+   "body": "## High Level Overview of Change\n\nThis PR adds invariant checks and invariant check tests for LoanAccept with all related fields, flags, and a `LoanAccept` transactor that does nothing.\n\n\n\n### Context of Change\n\nThis PR defines what invariant checks should be performed before the actual development starts to ensure everything will work properly.\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "a1q123456/split-loan-set-and-loan-accept-temp",
+   "head": "XRPLF:a1q123456/split-loan-set-and-loan-accept",
+   "additions": 935,
+   "deletions": 14,
+   "changedFiles": 5,
+   "commits": 1,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-17T00:06:18Z",
+     "body": "Ship it\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-17T00:20:03Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-07-17T00:20:03Z",
+     "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
+     "body": "🟠 **Severity: HIGH**\n\nWhen `isPendingLoan` is true and the vault balance is unchanged, `maybeVaultDeltaAssets` is `nullopt` but the guard no longer returns early. The subsequent dereference on line 1140 (`*maybeVaultDeltaAssets`) and line 1149 (`maybeVaultDeltaAssets->delta`) is undefined behavior—crashing the node or potentially corrupting memory. Compare with `ttLOAN_DELETE` at line 1560 which correctly uses `value_or()`.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Follow the safe-access pattern already used at lines 1227-1229 and 1559-1561 in this file: after the existing early-return guard, add a `value_or()` call to safely unwrap `maybeVaultDeltaAssets`, and then use the unwrapped value instead of direct dereferences.\n\nSpecifically:\n1. After the closing brace of the guard block (after line 1137), insert:\n```cpp\nauto const vaultDelta = maybeVaultDeltaAssets.value_or(\n    DeltaInfo{.delta = kZero, .scale = scale(afterVault.assetsTotal, vaultAsset)});\n```\n2. On line 1140, change `computeVaultMinScale(*maybeVaultDeltaAssets, view.rules())` to `computeVaultMinScale(vaultDelta, view.rules())`.\n3. On line 1149, change `maybeVaultDeltaAssets->delta` to `vaultDelta.delta`.\n\nThis mirrors exactly how `ttLOAN_DELETE` (line 1560) and `ttLOAN_IMPAIR`/`ttLOAN_UNIMPAIR` (line 1228) handle the same optional safely.\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/7822#discussion_r3599577775"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-07-17T00:20:03Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "⚪ **Severity: LOW**\n\nThe Borrower authorization check reads from `after` (post-modification state) instead of `before` (pre-modification state). A buggy or malicious transactor that overwrites `sfBorrower` to match the submitter during execution would bypass this invariant, defeating its purpose as a last-line-of-defense authorization check.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Change `after->getAccountID(sfBorrower)` to `before->getAccountID(sfBorrower)` on line 132. The invariant check should read the `sfBorrower` field from the pre-modification state (`before`) rather than the post-modification state (`after`). This ensures that even if a buggy transactor overwrites `sfBorrower` during execution to match the submitter's account, the invariant will still catch the unauthorized access by comparing against the original, unmodified value. The `before` variable is already available in scope (the code is inside the `if (before)` block starting at line 77).\n\n> **⚠️ Experimental Feature**: This code suggestion is automatically generated. Please review carefully.\n\n```suggestion\n                if (before->getAccountID(sfBorrower) != tx.getAccountID(sfAccount))\n```\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/7822#discussion_r3599577780"
+    }
+   ]
+  },
+  {
+   "number": 6517,
+   "title": "feat: Integrate Permissioned Domain & Credential Checks for Lending Protocol",
+   "url": "https://github.com/XRPLF/rippled/pull/6517",
+   "state": "open",
+   "author": "a1q123456",
+   "createdAt": "2026-03-10T15:56:03Z",
+   "updatedAt": "2026-09-24T09:15:58Z",
+   "closedAt": null,
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-03-10T16:38:25Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.71795%` with `1 line` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 82.4%. Comparing base ([`8abe82e`](https://app.codecov.io/gh/XRPLF/rippled/commit/8abe82eefa2357777af075d252ea8613f2948ae6?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`7491a23`](https://app.codecov.io/gh/XRPLF/rippled/commit/7491a230800c89bed052c3bd7d615a4348431810?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)).\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/lending/LoanSet.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Ftransactors%2Flending%2FLoanSet.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvbGVuZGluZy9Mb2FuU2V0LmNwcA==) | 93.3% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n<details><summary>Additional details and impacted files</summary>\n\n\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/6517/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n```diff\n@@           Coverage Diff           @@\n##           develop   #6517   +/-   ##\n=======================================\n  Coverage     82.4%   82.4%           \n=======================================\n  Files         1011    1011           \n  Lines        76911   76988   +77     \n  Branches      8965    8965           \n=======================================\n+ Hits         63343   63415   +72     \n- Misses       13559   13564    +5     \n  Partials         9       9           \n```\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Coverage Δ | |\n|---|---|---|\n| [include/xrpl/protocol/LedgerFormats.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2FLedgerFormats.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL0xlZGdlckZvcm1hdHMuaA==) | `100.0% <ø> (ø)` | |\n| [include/xrpl/protocol/TxFlags.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2FTxFlags.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1R4RmxhZ3MuaA==) | `100.0% <ø> (ø)` | |\n| [include/xrpl/protocol/detail/ledger\\_entries.macro](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2Fdetail%2Fledger_entries.macro&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL2RldGFpbC9sZWRnZXJfZW50cmllcy5tYWNybw==) | `100.0% <ø> (ø)` | |\n| [include/xrpl/protocol/detail/transactions.macro](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2Fdetail%2Ftransactions.macro&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL2RldGFpbC90cmFuc2FjdGlvbnMubWFjcm8=) | `100.0% <ø> (ø)` | |\n| [.../xrpl/protocol\\_autogen/ledger\\_entries/LoanBroker.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol_autogen%2Fledger_entries%2FLoanBroker.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sX2F1dG9nZW4vbGVkZ2VyX2VudHJpZXMvTG9hbkJyb2tlci5o) | `100.0% <100.0%> (ø)` | |\n| [...xrpl/protocol\\_autogen/transactions/LoanBrokerSet.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol_autogen%2Ftransactions%2FLoanBrokerSet.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sX2F1dG9nZW4vdHJhbnNhY3Rpb25zL0xvYW5Ccm9rZXJTZXQuaA==) | `100.0% <100.0%> (ø)` | |\n| [...nclude/xrpl/tx/transactors/lending/LoanBrokerSet.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Ftx%2Ftransactors%2Flending%2FLoanBrokerSet.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3R4L3RyYW5zYWN0b3JzL2xlbmRpbmcvTG9hbkJyb2tlclNldC5o) | `100.0% <ø> (ø)` | |\n| [src/libxrpl/tx/invariants/InvariantCheck.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Finvariants%2FInvariantCheck.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvaW52YXJpYW50cy9JbnZhcmlhbnRDaGVjay5jcHA=) | `95.4% <100.0%> (+<0.1%)` | :arrow_up: |\n| [src/libxrpl/tx/invariants/LoanBrokerInvariant.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Finvariants%2FLoanBrokerInvariant.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvaW52YXJpYW50cy9Mb2FuQnJva2VySW52YXJpYW50LmNwcA==) | `95.6% <100.0%> (+0.2%)` | :arrow_up: |\n| [...c/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Ftransactors%2Flending%2FLoanBrokerSet.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvbGVuZGluZy9Mb2FuQnJva2VyU2V0LmNwcA==) | `97.0% <100.0%> (+0.9%)` | :arrow_up: |\n| ... and [1 more](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | |\n\n... and [4 files with indirect coverage changes](https://app.codecov.io/gh/XRPLF/rippled/pull/6517/indirect-changes?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/6517/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n</details>\n<details><summary> :rocket: New features to boost your workflow: </summary>\n\n- :snowflake: [Test Analytics](https://docs.codecov.com/docs/test-analytics): Detect flaky tests, report on failures, and find test suite problems.\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4032854707"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-31T08:01:21Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4160685163"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-05T11:41:59Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4631243913"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-10T23:21:16Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4675617860"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\nhttps://github.com/XRPLF/XRPL-Standards/pull/484\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [x] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [x] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/adding-perimissioned-domain-to-lending",
+   "additions": 1070,
+   "deletions": 3,
+   "changedFiles": 18,
+   "commits": 32,
+   "reviewComments": 44,
+   "reviews": [
+    {
+     "author": "Tapanito",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-03-12T12:22:37Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-23T17:46:19Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-23T18:35:40Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-25T16:23:42Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-25T16:25:30Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-25T16:25:37Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-25T16:36:13Z",
+     "body": "Scanned through the diff\n\nOne confirmed copy-paste bug (`tfLoanSetMask` returned from `LoanBrokerSet::getFlagsMask`), a TOCTOU inconsistency between `preclaim`/`doApply` credential validators, a missing amendment guard in `doApply`, and two invariant coverage gaps — see inline comments.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Opus 4.6* · Prompt: V12"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-26T12:13:13Z",
+     "body": "Several correctness and security issues flagged inline: a reserve-burning usability gap (private broker without DomainID), a missing zero-value guard in the broker creation path, a potential divergence between `verifyValidDomain`/`validDomain` semantics, an invariant that passes on zero-valued DomainID, and a weak test assertion. See inline comments for details.\n\n*Review by Claude Opus 4.6* · Prompt: V12"
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-05-21T13:45:27Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-05T11:54:06Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:12:07Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:16:15Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:22:45Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:25:19Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:28:10Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:28:42Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:30:08Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:40:24Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:54:15Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-05T12:54:19Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:54:38Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-06-05T12:55:04Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-06T20:41:21Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-06-06T20:44:28Z",
+     "body": "All clear\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:05:05Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes core transaction validation/apply paths and invariants behind a new amendment, so it warrants final human review for protocol correctness and edge-case behavior.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR adds support for making LoanBrokers “private” by associating them with a Permissioned Domain (via `sfDomainID`) and enforcing borrower credential membership checks when creating new loans through that broker, gated by a new `LendingPermissionedDomain` amendment.\n\n**Changes:**\n- Introduces `sfDomainID` as an optional field on `LoanBroker` ledger entries and `LoanBrokerSet` transactions, including protocol-autogen wrappers and builder APIs.\n- Adds a new `tfLoanBrokerPrivate` tx flag / `lsfLoanBrokerPrivate` ledger flag and enforces: DomainID only on private brokers, optional DomainID updates for private brokers, and domain existence checks.\n- Enforces permissioned-domain credential validation for borrowers in `LoanSet` when the broker is private, and adds invariants plus extensive new unit tests for expected behaviors.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/tests/libxrpl/protocol_autogen/transactions/LoanBrokerSetTests.cpp | Extends autogen transaction wrapper tests to round-trip `sfDomainID`. |\n| src/tests/libxrpl/protocol_autogen/ledger_entries/LoanBrokerTests.cpp | Extends autogen ledger-entry wrapper tests to round-trip `sfDomainID`. |\n| src/test/jtx/TestHelpers.h | Adds `loanBroker::kDomainId` JTx field wrapper for `sfDomainID`. |\n| src/test/app/LoanBroker_test.cpp | Adds tests for creating/modifying private brokers with DomainID and expected TERs. |\n| src/test/app/Loan_test.cpp | Adds tests ensuring borrower credential validation is enforced for private brokers (and not for LoanPay). |\n| src/test/app/Invariants_test.cpp | Adds invariant tests for invalid DomainID/flag combinations. |\n| src/libxrpl/tx/transactors/lending/LoanSet.cpp | Enforces permissioned-domain credential checks for borrowers when broker is private. |\n| src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp | Adds DomainID/flag validation, domain existence checks, and applies DomainID updates for private brokers. |\n| src/libxrpl/tx/invariants/LoanBrokerInvariant.cpp | Adds an invariant preventing `sfDomainID` on public LoanBrokers (when amendment enabled). |\n| src/libxrpl/tx/invariants/InvariantCheck.cpp | Prevents modifying LoanBroker `sfFlags` under “unmodifiable fields” invariant logic. |\n| include/xrpl/tx/transactors/lending/LoanBrokerSet.h | Declares `LoanBrokerSet::getFlagsMask`. |\n| include/xrpl/protocol/TxFlags.h | Defines `tfLoanBrokerPrivate` and `tfLoanBrokerSetMask`. |\n| include/xrpl/protocol/LedgerFormats.h | Defines `lsfLoanBrokerPrivate` for `LoanBroker` ledger objects. |\n| include/xrpl/protocol/detail/transactions.macro | Adds `sfDomainID` as optional on `ttLOAN_BROKER_SET`. |\n| include/xrpl/protocol/detail/ledger_entries.macro | Adds `sfDomainID` as optional on `ltLOAN_BROKER`. |\n| include/xrpl/protocol/detail/features.macro | Introduces `featureLendingPermissionedDomain`. |\n| include/xrpl/protocol_autogen/transactions/LoanBrokerSet.h | Adds `getDomainID/hasDomainID` and `setDomainID` to autogen transaction wrapper/builder. |\n| include/xrpl/protocol_autogen/ledger_entries/LoanBroker.h | Adds `getDomainID/hasDomainID` and `setDomainID` to autogen ledger wrapper/builder. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 18/18 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:23:58Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "@a1q123456 please add a unit-test for this invariant.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923637464"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:25:39Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "While this flag cannot be set without the amendment, in the spirit of defensive programming, this code should only be executed when the amendment is enabled.\n\n```suggestion\n    if (ctx.view.rules().enabled(fixLendingProtocolV1_1) && brokerSle->isFlag(lsfLoanBrokerPrivate))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923646934"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:37:11Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "We shouldn't try to read `DomainID` without the amendment enabled, even if it's safe. This gives the impression that DomainID might be provided even with `LendingProtocol v1.0`. Please, move this variable to line ~:58.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923707101"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:38:59Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "This check should be moved higher up, before we determine whether the user is updating or creating a new LoanBroker.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923716208"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:39:21Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Please add a unit-test to ensure that pre v1.1  behaviour is preserved.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923718110"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:43:30Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "nit: In the rest of the file we comment the motivation behind a particular `if` block before the if-statement, not inside of it. This comment applies to all occurrences in the PR.\n\n Consider:\n\n```suggestion\n             // Cannot change private flag on existing broker\n            if (tx.isFlag(tfLoanBrokerPrivate))\n            {\n                return temINVALID;\n            }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923738989"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T10:45:23Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "I think we should be explicit here, only read these fields in the amendment is enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923748657"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T11:12:13Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "If somehow the preclaim of preflight checks fail, this code would allow setting a domainID to a public LoanBroker. \n\nI suggest the following:\n\n```suggestion\n        if (ctx_.view().rules().enabled(fixLendingProtocolV1_1))\n        {\n            if (tx.isFlag(tfLoanBrokerPrivate))\n            {\n                broker->setFlag(lsfLoanBrokerPrivate);\n                if (auto domainID = tx[~sfDomainID])\n                    broker->setFieldH256(sfDomainID, *domainID);\n            }\n        }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923893409"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T11:28:32Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "There might be an issue here. With the current logic, we would be updating the DomainID at every call to LoanBrokerSet. DomainID should only be updated when the DomainID field is provided in the transaction. If the `DomainID` is provided, and is empty, the `LoanBroker.DomainID` should be cleared.\n\nAlso, this logic should be amendment gated. I understand, that we perform amendment gating prior, but again the spirit of defensive programming.\n\n```suggestion\n        if (ctx_.view().rules().enabled(fixLendingProtocolV1_1) &&\n            broker->isFlag(lsfLoanBrokerPrivate))\n        {\n            if (auto const domainID = tx[~sfDomainID])\n            {\n                if (*domainID != beast::zero)\n                {\n                    broker->setFieldH256(sfDomainID, *domainID);\n                }\n                else if (broker->isFieldPresent(sfDomainID))\n                {\n                    broker->makeFieldAbsent(sfDomainID);\n                }\n            }\n        }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923978354"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T11:38:18Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Let's amendment gate this. This should not run, under any circumstance if the amendment is disabled. Also, [as per our discussion ](https://github.com/XRPLF/XRPL-Standards/pull/484/changes#r2912419048) we should fail the transaction if DomainID is set, and the LoanBroker is not private.\n\n\n```suggestion\n        if (ctx.view.rules().enabled(fixLendingProtocolV1_1))\n        {\n            if (sleBroker->isFlag(lsfLoanBrokerPrivate) && domainID)\n                return tecNO_PERMISSION;\n        }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924028207"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T12:03:34Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "@ximinez, I'd like to draw your attention to this code here. The call to `validDomain` is correct, but the way expired credentials are deleted isn't great. Should we add a call to `verifyValidDomain` to delete expired credentials? \n\nEdit: I think so.. I don't see the design changing any time soon.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924153841"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T12:19:12Z",
+     "path": "src/test/app/LoanBroker_test.cpp",
+     "body": "Could you please add a test to ensure that a call to `LoanBrokerSet` to update an existing object, but without `domainID` does not affect the `domainID`? Also, vice versa, updating `domainID` does not affect any other fields.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924243262"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T12:20:12Z",
+     "path": "src/test/app/LoanBroker_test.cpp",
+     "body": "Could you also please add a test for the pre-amendment behaviour, that specifying `tfLoanBrokerPrivate` flag fails with `temINVALID_FLAG` ?",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924248411"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-12T12:21:22Z",
+     "path": "src/test/app/LoanBroker_test.cpp",
+     "body": "Also, could you please add a test showing that LoanBroker cannot create loans if they're not part of the permissioned domain.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924254921"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-23T17:46:19Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "Thanks, Vito! I've added the tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2976599383"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-23T18:35:40Z",
+     "path": "src/test/app/LoanBroker_test.cpp",
+     "body": "> Could you also please add a test for the pre-amendment behaviour, that specifying tfLoanBrokerPrivate flag fails with temINVALID_FLAG ?\n\nThis is already covered by the line 1856",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2976857169"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-25T16:23:42Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989468896"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-25T16:25:30Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Covered by the lines 1839 and 1842",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989481522"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-25T16:25:37Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989482436"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Copy-paste bug: `getFlagsMask` returns the wrong mask, allowing invalid `LoanSet` flags on `LoanBrokerSet` transactions.\n\n```suggestion\n        return tfLoanBrokerSetMask;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548105"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "TOCTOU inconsistency: `preclaim` validates credentials via `credentials::validDomain` but `doApply` uses `verifyValidDomain`. Semantic divergence between the two (e.g. expired/revoked credential handling) could allow a credential state that passes `preclaim` to behave differently in `doApply`. Use the same function in both paths, or document why the difference is intentional.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548115"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "`doApply` checks `lsfLoanBrokerPrivate` without an amendment guard, unlike `preclaim` which wraps the check with `rules().enabled(featureLendingProtocolV1_1)`. If the amendment is ever rolled back, a broker with this flag set could hit the private-broker path unexpectedly. Is the omission intentional?\n\n```suggestion\n    if (ctx_.view().rules().enabled(featureLendingProtocolV1_1) && brokerSle->isFlag(lsfLoanBrokerPrivate))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548117"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "Invariant only fires for modifications — a bug that creates a broker with `sfDomainID` but without `lsfLoanBrokerPrivate` may not be caught if `finalize` is not called for insertions. Verify the invariant framework invokes `finalize` on inserts as well as updates for `ltLOAN_BROKER` entries.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548123"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "Invariant only enforces one direction: `DomainID present → private flag set`. The reverse (`private flag set → DomainID present`) is not checked, so a private broker without a DomainID won't trigger a failure. Add the complementary check:\n\n```suggestion:0+7\n            JLOG(j.fatal()) << \"Invariant failed: DomainID is set on public Loan Broker\";\n            return false;\n        }\n\n        if (after->isFlag(lsfLoanBrokerPrivate) && !after->at(~sfDomainID))\n        {\n            JLOG(j.fatal()) << \"Invariant failed: private Loan Broker has no DomainID\";\n            return false;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548127"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-25T16:36:13Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Bug: This returns `tfLoanSetMask` (the mask for `LoanSet` transactions) instead of `tfLoanBrokerSetMask`...",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548130"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Design gap: private broker can be created without `DomainID`, but `LoanSet::preclaim` rejects loans against such brokers (`tecNO_AUTH`). Users can burn reserves creating a permanently unusable broker. Should `tfLoanBrokerPrivate` require `sfDomainID` to be present?\n\nConsider adding:\n```cpp\nif (tx.isFlag(tfLoanBrokerPrivate) && !domainID)\n    return temMALFORMED;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458045"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "No domain ownership check on `sfDomainID` — any account can attach any permissioned domain to their broker. Is this intentional? If not, verify `ctx.tx[sfAccount] == sleDomain->at(sfOwner)`.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458054"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "Missing zero-value guard in creation path — modification path has `if (*domainID != beast::zero)` but creation path does not, risking a zero DomainID on-ledger if preflight is bypassed.\n\n```suggestion:0+1\n                if (*domainID != beast::zero)\n                    broker->setFieldH256(sfDomainID, *domainID);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458060"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "`doApply` uses `verifyValidDomain()` while `preclaim` uses `credentials::validDomain()`. If their semantics differ (e.g., revocation checks), a borrower whose credential is revoked after `preclaim` could still complete the operation. Confirm these are equivalent or document the intentional difference.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458068"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "Invariant misses zero-value `DomainID` — the optional evaluates true when present regardless of value, so `sfDomainID = 0` on a public broker would silently pass.\n\n```suggestion\n        if (after->at(~sfDomainID) && *after->at(~sfDomainID) != beast::zero && !after->isFlag(lsfLoanBrokerPrivate))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458075"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-26T12:13:14Z",
+     "path": "src/test/app/Loan_test.cpp",
+     "body": "Weak assertion — test title says \"LoanPay works after credential revoked\" but only checks loan existence, not that the payment was applied. Add a `sfPaymentsMade` check after `loan::pay` to confirm payment state changed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458082"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-26T16:31:04Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "doApply validates credentials for wrong account. preclaim (line 353) correctly calls credentials::validDomain(ctx.view, *domainID, borrower) using the computed borrower, but doApply (line 406) calls\n  verifyValidDomain(view, account_, *domainID, j_) using account_ (the tx submitter). When the broker owner submits on behalf of a counterparty borrower, account_ is the broker owner, not the borrower. This means the\n  credential check in doApply verifies the wrong party. Should be verifyValidDomain(view, borrower, *domainID, j_) where borrower is computed at line 384.\n\n\nAlso, please add a corresponding unit-test.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2996218951"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-26T16:38:19Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "Please add `featureLendingV1_1` amendment guard.\n\n\nSince invariants can fail with a `tec` code, they should equally be amendment gated.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2996259869"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:12:07Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "False positive. From the comment for `validDomain()`:\n```\n// Check if subject has any credential maching the given domain. If you call it\n// in preclaim and it returns tecEXPIRED, you should call verifyValidDomain in\n// doApply. This will ensure that expired credentials are deleted.\n```\nHowever, there is an issue with it, which I'm currently checking against different subject. Will fix it.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362534962"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:16:15Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "The case is fully covered. We've got a test for it in `Invariants_test.cpp`:\n```\ndoInvariantCheck(\n                {{\"DomainID is set on public Loan Broker\"}},\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362554268"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:22:45Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "It's allowed to have a private loan broker with the domain id not configured yet, as per the spec: https://github.com/XRPLF/XRPL-Standards/pull/484/changes",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362586629"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:25:19Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "This is allowed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362599280"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:28:09Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "> any account can attach any permissioned domain to their broker\n\nI don't think this is possible. The PermissionedDomainSet transactor manages adding or removing an account to/from a domain.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362612674"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:28:42Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "This is how the two functions are supposed to be used.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362615314"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:30:08Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "No, you're trying to loosen the restriction. We should not allow `sfDomainID` to present on the ledger entry if it does not have the `lsfLoanBrokerPrivate` flag.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362623072"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:40:24Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
+     "body": "`preflight` can't be bypassed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362677949"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:54:15Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": "Good spot! Thanks, Vito! I've fixed it added unit test.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362750779"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:54:38Z",
+     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
+     "body": "moved to LoanBrokerInvariant and added an amendment gate.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362752800"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-06-05T12:55:04Z",
+     "path": "src/test/app/Loan_test.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362755226"
+    }
+   ]
+  },
   {
    "number": 8183,
    "title": "feat: Tighten invariant checks so that a delete transaction only dele…",
@@ -1063,518 +1628,6 @@
      "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
      "body": "These new `Throw<std::runtime_error>` paths change the public exception behavior of `PeerReservationTable::insert_or_assign`/`erase`, but the API documentation in `include/xrpl/core/PeerReservationTable.h` only mentions `soci::soci_error` (and `erase` documents no throws). Please update the header docs to reflect the new `std::runtime_error` throws.",
      "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908845019"
-    }
-   ]
-  },
-  {
-   "number": 6517,
-   "title": "feat: Integrate Permissioned Domain & Credential Checks for Lending Protocol",
-   "url": "https://github.com/XRPLF/rippled/pull/6517",
-   "state": "open",
-   "author": "a1q123456",
-   "createdAt": "2026-03-10T15:56:03Z",
-   "updatedAt": "2026-09-01T22:05:06Z",
-   "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-03-10T16:38:25Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.71795%` with `1 line` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 82.4%. Comparing base ([`8abe82e`](https://app.codecov.io/gh/XRPLF/rippled/commit/8abe82eefa2357777af075d252ea8613f2948ae6?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`7491a23`](https://app.codecov.io/gh/XRPLF/rippled/commit/7491a230800c89bed052c3bd7d615a4348431810?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)).\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/lending/LoanSet.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Ftransactors%2Flending%2FLoanSet.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvbGVuZGluZy9Mb2FuU2V0LmNwcA==) | 93.3% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n<details><summary>Additional details and impacted files</summary>\n\n\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/6517/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n```diff\n@@           Coverage Diff           @@\n##           develop   #6517   +/-   ##\n=======================================\n  Coverage     82.4%   82.4%           \n=======================================\n  Files         1011    1011           \n  Lines        76911   76988   +77     \n  Branches      8965    8965           \n=======================================\n+ Hits         63343   63415   +72     \n- Misses       13559   13564    +5     \n  Partials         9       9           \n```\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Coverage Δ | |\n|---|---|---|\n| [include/xrpl/protocol/LedgerFormats.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2FLedgerFormats.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL0xlZGdlckZvcm1hdHMuaA==) | `100.0% <ø> (ø)` | |\n| [include/xrpl/protocol/TxFlags.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2FTxFlags.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1R4RmxhZ3MuaA==) | `100.0% <ø> (ø)` | |\n| [include/xrpl/protocol/detail/ledger\\_entries.macro](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2Fdetail%2Fledger_entries.macro&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL2RldGFpbC9sZWRnZXJfZW50cmllcy5tYWNybw==) | `100.0% <ø> (ø)` | |\n| [include/xrpl/protocol/detail/transactions.macro](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2Fdetail%2Ftransactions.macro&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL2RldGFpbC90cmFuc2FjdGlvbnMubWFjcm8=) | `100.0% <ø> (ø)` | |\n| [.../xrpl/protocol\\_autogen/ledger\\_entries/LoanBroker.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol_autogen%2Fledger_entries%2FLoanBroker.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sX2F1dG9nZW4vbGVkZ2VyX2VudHJpZXMvTG9hbkJyb2tlci5o) | `100.0% <100.0%> (ø)` | |\n| [...xrpl/protocol\\_autogen/transactions/LoanBrokerSet.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol_autogen%2Ftransactions%2FLoanBrokerSet.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sX2F1dG9nZW4vdHJhbnNhY3Rpb25zL0xvYW5Ccm9rZXJTZXQuaA==) | `100.0% <100.0%> (ø)` | |\n| [...nclude/xrpl/tx/transactors/lending/LoanBrokerSet.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=include%2Fxrpl%2Ftx%2Ftransactors%2Flending%2FLoanBrokerSet.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3R4L3RyYW5zYWN0b3JzL2xlbmRpbmcvTG9hbkJyb2tlclNldC5o) | `100.0% <ø> (ø)` | |\n| [src/libxrpl/tx/invariants/InvariantCheck.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Finvariants%2FInvariantCheck.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvaW52YXJpYW50cy9JbnZhcmlhbnRDaGVjay5jcHA=) | `95.4% <100.0%> (+<0.1%)` | :arrow_up: |\n| [src/libxrpl/tx/invariants/LoanBrokerInvariant.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Finvariants%2FLoanBrokerInvariant.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvaW52YXJpYW50cy9Mb2FuQnJva2VySW52YXJpYW50LmNwcA==) | `95.6% <100.0%> (+0.2%)` | :arrow_up: |\n| [...c/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Ftransactors%2Flending%2FLoanBrokerSet.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvbGVuZGluZy9Mb2FuQnJva2VyU2V0LmNwcA==) | `97.0% <100.0%> (+0.9%)` | :arrow_up: |\n| ... and [1 more](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | |\n\n... and [4 files with indirect coverage changes](https://app.codecov.io/gh/XRPLF/rippled/pull/6517/indirect-changes?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/6517/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/6517?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n</details>\n<details><summary> :rocket: New features to boost your workflow: </summary>\n\n- :snowflake: [Test Analytics](https://docs.codecov.com/docs/test-analytics): Detect flaky tests, report on failures, and find test suite problems.\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4032854707"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-03-31T08:01:21Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4160685163"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-06-05T11:41:59Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4631243913"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-06-10T23:21:16Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-4675617860"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\nhttps://github.com/XRPLF/XRPL-Standards/pull/484\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [x] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [x] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:a1q123456/adding-perimissioned-domain-to-lending",
-   "additions": 1070,
-   "deletions": 3,
-   "changedFiles": 18,
-   "commits": 32,
-   "reviewComments": 44,
-   "reviews": [
-    {
-     "author": "Tapanito",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-03-12T12:22:37Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-23T17:46:19Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-23T18:35:40Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-25T16:23:42Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-25T16:25:30Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-25T16:25:37Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-03-25T16:36:13Z",
-     "body": "Scanned through the diff\n\nOne confirmed copy-paste bug (`tfLoanSetMask` returned from `LoanBrokerSet::getFlagsMask`), a TOCTOU inconsistency between `preclaim`/`doApply` credential validators, a missing amendment guard in `doApply`, and two invariant coverage gaps — see inline comments.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Opus 4.6* · Prompt: V12"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-03-26T12:13:13Z",
-     "body": "Several correctness and security issues flagged inline: a reserve-burning usability gap (private broker without DomainID), a missing zero-value guard in the broker creation path, a potential divergence between `verifyValidDomain`/`validDomain` semantics, an invariant that passes on zero-valued DomainID, and a weak test assertion. See inline comments for details.\n\n*Review by Claude Opus 4.6* · Prompt: V12"
-    },
-    {
-     "author": "Tapanito",
-     "state": "COMMENTED",
-     "date": "2026-05-21T13:45:27Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-06-05T11:54:06Z",
-     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-06-05T12:12:07Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-06-05T12:16:15Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-06-05T12:22:45Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-06-05T12:25:19Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-06-05T12:28:10Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-06-05T12:28:42Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-06-05T12:30:08Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-06-05T12:40:24Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-06-05T12:54:15Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-06-05T12:54:19Z",
-     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-06-05T12:54:38Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-06-05T12:55:04Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-06-06T20:41:21Z",
-     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-06-06T20:44:28Z",
-     "body": "All clear\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-01T22:05:05Z",
-     "body": "### 🔵 Needs a closer look\n\nIt changes core transaction validation/apply paths and invariants behind a new amendment, so it warrants final human review for protocol correctness and edge-case behavior.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR adds support for making LoanBrokers “private” by associating them with a Permissioned Domain (via `sfDomainID`) and enforcing borrower credential membership checks when creating new loans through that broker, gated by a new `LendingPermissionedDomain` amendment.\n\n**Changes:**\n- Introduces `sfDomainID` as an optional field on `LoanBroker` ledger entries and `LoanBrokerSet` transactions, including protocol-autogen wrappers and builder APIs.\n- Adds a new `tfLoanBrokerPrivate` tx flag / `lsfLoanBrokerPrivate` ledger flag and enforces: DomainID only on private brokers, optional DomainID updates for private brokers, and domain existence checks.\n- Enforces permissioned-domain credential validation for borrowers in `LoanSet` when the broker is private, and adds invariants plus extensive new unit tests for expected behaviors.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/tests/libxrpl/protocol_autogen/transactions/LoanBrokerSetTests.cpp | Extends autogen transaction wrapper tests to round-trip `sfDomainID`. |\n| src/tests/libxrpl/protocol_autogen/ledger_entries/LoanBrokerTests.cpp | Extends autogen ledger-entry wrapper tests to round-trip `sfDomainID`. |\n| src/test/jtx/TestHelpers.h | Adds `loanBroker::kDomainId` JTx field wrapper for `sfDomainID`. |\n| src/test/app/LoanBroker_test.cpp | Adds tests for creating/modifying private brokers with DomainID and expected TERs. |\n| src/test/app/Loan_test.cpp | Adds tests ensuring borrower credential validation is enforced for private brokers (and not for LoanPay). |\n| src/test/app/Invariants_test.cpp | Adds invariant tests for invalid DomainID/flag combinations. |\n| src/libxrpl/tx/transactors/lending/LoanSet.cpp | Enforces permissioned-domain credential checks for borrowers when broker is private. |\n| src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp | Adds DomainID/flag validation, domain existence checks, and applies DomainID updates for private brokers. |\n| src/libxrpl/tx/invariants/LoanBrokerInvariant.cpp | Adds an invariant preventing `sfDomainID` on public LoanBrokers (when amendment enabled). |\n| src/libxrpl/tx/invariants/InvariantCheck.cpp | Prevents modifying LoanBroker `sfFlags` under “unmodifiable fields” invariant logic. |\n| include/xrpl/tx/transactors/lending/LoanBrokerSet.h | Declares `LoanBrokerSet::getFlagsMask`. |\n| include/xrpl/protocol/TxFlags.h | Defines `tfLoanBrokerPrivate` and `tfLoanBrokerSetMask`. |\n| include/xrpl/protocol/LedgerFormats.h | Defines `lsfLoanBrokerPrivate` for `LoanBroker` ledger objects. |\n| include/xrpl/protocol/detail/transactions.macro | Adds `sfDomainID` as optional on `ttLOAN_BROKER_SET`. |\n| include/xrpl/protocol/detail/ledger_entries.macro | Adds `sfDomainID` as optional on `ltLOAN_BROKER`. |\n| include/xrpl/protocol/detail/features.macro | Introduces `featureLendingPermissionedDomain`. |\n| include/xrpl/protocol_autogen/transactions/LoanBrokerSet.h | Adds `getDomainID/hasDomainID` and `setDomainID` to autogen transaction wrapper/builder. |\n| include/xrpl/protocol_autogen/ledger_entries/LoanBroker.h | Adds `getDomainID/hasDomainID` and `setDomainID` to autogen ledger wrapper/builder. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 18/18 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T10:23:58Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "@a1q123456 please add a unit-test for this invariant.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923637464"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T10:25:39Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
-     "body": "While this flag cannot be set without the amendment, in the spirit of defensive programming, this code should only be executed when the amendment is enabled.\n\n```suggestion\n    if (ctx.view.rules().enabled(fixLendingProtocolV1_1) && brokerSle->isFlag(lsfLoanBrokerPrivate))\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923646934"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T10:37:11Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "We shouldn't try to read `DomainID` without the amendment enabled, even if it's safe. This gives the impression that DomainID might be provided even with `LendingProtocol v1.0`. Please, move this variable to line ~:58.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923707101"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T10:38:59Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "This check should be moved higher up, before we determine whether the user is updating or creating a new LoanBroker.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923716208"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T10:39:21Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "Please add a unit-test to ensure that pre v1.1  behaviour is preserved.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923718110"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T10:43:30Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "nit: In the rest of the file we comment the motivation behind a particular `if` block before the if-statement, not inside of it. This comment applies to all occurrences in the PR.\n\n Consider:\n\n```suggestion\n             // Cannot change private flag on existing broker\n            if (tx.isFlag(tfLoanBrokerPrivate))\n            {\n                return temINVALID;\n            }\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923738989"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T10:45:23Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "I think we should be explicit here, only read these fields in the amendment is enabled.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923748657"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T11:12:13Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "If somehow the preclaim of preflight checks fail, this code would allow setting a domainID to a public LoanBroker. \n\nI suggest the following:\n\n```suggestion\n        if (ctx_.view().rules().enabled(fixLendingProtocolV1_1))\n        {\n            if (tx.isFlag(tfLoanBrokerPrivate))\n            {\n                broker->setFlag(lsfLoanBrokerPrivate);\n                if (auto domainID = tx[~sfDomainID])\n                    broker->setFieldH256(sfDomainID, *domainID);\n            }\n        }\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923893409"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T11:28:32Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "There might be an issue here. With the current logic, we would be updating the DomainID at every call to LoanBrokerSet. DomainID should only be updated when the DomainID field is provided in the transaction. If the `DomainID` is provided, and is empty, the `LoanBroker.DomainID` should be cleared.\n\nAlso, this logic should be amendment gated. I understand, that we perform amendment gating prior, but again the spirit of defensive programming.\n\n```suggestion\n        if (ctx_.view().rules().enabled(fixLendingProtocolV1_1) &&\n            broker->isFlag(lsfLoanBrokerPrivate))\n        {\n            if (auto const domainID = tx[~sfDomainID])\n            {\n                if (*domainID != beast::zero)\n                {\n                    broker->setFieldH256(sfDomainID, *domainID);\n                }\n                else if (broker->isFieldPresent(sfDomainID))\n                {\n                    broker->makeFieldAbsent(sfDomainID);\n                }\n            }\n        }\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2923978354"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T11:38:18Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "Let's amendment gate this. This should not run, under any circumstance if the amendment is disabled. Also, [as per our discussion ](https://github.com/XRPLF/XRPL-Standards/pull/484/changes#r2912419048) we should fail the transaction if DomainID is set, and the LoanBroker is not private.\n\n\n```suggestion\n        if (ctx.view.rules().enabled(fixLendingProtocolV1_1))\n        {\n            if (sleBroker->isFlag(lsfLoanBrokerPrivate) && domainID)\n                return tecNO_PERMISSION;\n        }\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924028207"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T12:03:34Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
-     "body": "@ximinez, I'd like to draw your attention to this code here. The call to `validDomain` is correct, but the way expired credentials are deleted isn't great. Should we add a call to `verifyValidDomain` to delete expired credentials? \n\nEdit: I think so.. I don't see the design changing any time soon.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924153841"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T12:19:12Z",
-     "path": "src/test/app/LoanBroker_test.cpp",
-     "body": "Could you please add a test to ensure that a call to `LoanBrokerSet` to update an existing object, but without `domainID` does not affect the `domainID`? Also, vice versa, updating `domainID` does not affect any other fields.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924243262"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T12:20:12Z",
-     "path": "src/test/app/LoanBroker_test.cpp",
-     "body": "Could you also please add a test for the pre-amendment behaviour, that specifying `tfLoanBrokerPrivate` flag fails with `temINVALID_FLAG` ?",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924248411"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-12T12:21:22Z",
-     "path": "src/test/app/LoanBroker_test.cpp",
-     "body": "Also, could you please add a test showing that LoanBroker cannot create loans if they're not part of the permissioned domain.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2924254921"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-23T17:46:19Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "Thanks, Vito! I've added the tests.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2976599383"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-23T18:35:40Z",
-     "path": "src/test/app/LoanBroker_test.cpp",
-     "body": "> Could you also please add a test for the pre-amendment behaviour, that specifying tfLoanBrokerPrivate flag fails with temINVALID_FLAG ?\n\nThis is already covered by the line 1856",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2976857169"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-25T16:23:42Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "Fixed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989468896"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-25T16:25:30Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "Covered by the lines 1839 and 1842",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989481522"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-25T16:25:37Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "Fixed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989482436"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-25T16:36:13Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "Copy-paste bug: `getFlagsMask` returns the wrong mask, allowing invalid `LoanSet` flags on `LoanBrokerSet` transactions.\n\n```suggestion\n        return tfLoanBrokerSetMask;\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548105"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-25T16:36:13Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
-     "body": "TOCTOU inconsistency: `preclaim` validates credentials via `credentials::validDomain` but `doApply` uses `verifyValidDomain`. Semantic divergence between the two (e.g. expired/revoked credential handling) could allow a credential state that passes `preclaim` to behave differently in `doApply`. Use the same function in both paths, or document why the difference is intentional.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548115"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-25T16:36:13Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
-     "body": "`doApply` checks `lsfLoanBrokerPrivate` without an amendment guard, unlike `preclaim` which wraps the check with `rules().enabled(featureLendingProtocolV1_1)`. If the amendment is ever rolled back, a broker with this flag set could hit the private-broker path unexpectedly. Is the omission intentional?\n\n```suggestion\n    if (ctx_.view().rules().enabled(featureLendingProtocolV1_1) && brokerSle->isFlag(lsfLoanBrokerPrivate))\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548117"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-25T16:36:13Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "Invariant only fires for modifications — a bug that creates a broker with `sfDomainID` but without `lsfLoanBrokerPrivate` may not be caught if `finalize` is not called for insertions. Verify the invariant framework invokes `finalize` on inserts as well as updates for `ltLOAN_BROKER` entries.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548123"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-25T16:36:13Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "Invariant only enforces one direction: `DomainID present → private flag set`. The reverse (`private flag set → DomainID present`) is not checked, so a private broker without a DomainID won't trigger a failure. Add the complementary check:\n\n```suggestion:0+7\n            JLOG(j.fatal()) << \"Invariant failed: DomainID is set on public Loan Broker\";\n            return false;\n        }\n\n        if (after->isFlag(lsfLoanBrokerPrivate) && !after->at(~sfDomainID))\n        {\n            JLOG(j.fatal()) << \"Invariant failed: private Loan Broker has no DomainID\";\n            return false;\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548127"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-25T16:36:13Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "Bug: This returns `tfLoanSetMask` (the mask for `LoanSet` transactions) instead of `tfLoanBrokerSetMask`...",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2989548130"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-26T12:13:14Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "Design gap: private broker can be created without `DomainID`, but `LoanSet::preclaim` rejects loans against such brokers (`tecNO_AUTH`). Users can burn reserves creating a permanently unusable broker. Should `tfLoanBrokerPrivate` require `sfDomainID` to be present?\n\nConsider adding:\n```cpp\nif (tx.isFlag(tfLoanBrokerPrivate) && !domainID)\n    return temMALFORMED;\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458045"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-26T12:13:14Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "No domain ownership check on `sfDomainID` — any account can attach any permissioned domain to their broker. Is this intentional? If not, verify `ctx.tx[sfAccount] == sleDomain->at(sfOwner)`.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458054"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-26T12:13:14Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "Missing zero-value guard in creation path — modification path has `if (*domainID != beast::zero)` but creation path does not, risking a zero DomainID on-ledger if preflight is bypassed.\n\n```suggestion:0+1\n                if (*domainID != beast::zero)\n                    broker->setFieldH256(sfDomainID, *domainID);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458060"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-26T12:13:14Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
-     "body": "`doApply` uses `verifyValidDomain()` while `preclaim` uses `credentials::validDomain()`. If their semantics differ (e.g., revocation checks), a borrower whose credential is revoked after `preclaim` could still complete the operation. Confirm these are equivalent or document the intentional difference.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458068"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-26T12:13:14Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "Invariant misses zero-value `DomainID` — the optional evaluates true when present regardless of value, so `sfDomainID = 0` on a public broker would silently pass.\n\n```suggestion\n        if (after->at(~sfDomainID) && *after->at(~sfDomainID) != beast::zero && !after->isFlag(lsfLoanBrokerPrivate))\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458075"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-26T12:13:14Z",
-     "path": "src/test/app/Loan_test.cpp",
-     "body": "Weak assertion — test title says \"LoanPay works after credential revoked\" but only checks loan existence, not that the payment was applied. Add a `sfPaymentsMade` check after `loan::pay` to confirm payment state changed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2994458082"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-26T16:31:04Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
-     "body": "doApply validates credentials for wrong account. preclaim (line 353) correctly calls credentials::validDomain(ctx.view, *domainID, borrower) using the computed borrower, but doApply (line 406) calls\n  verifyValidDomain(view, account_, *domainID, j_) using account_ (the tx submitter). When the broker owner submits on behalf of a counterparty borrower, account_ is the broker owner, not the borrower. This means the\n  credential check in doApply verifies the wrong party. Should be verifyValidDomain(view, borrower, *domainID, j_) where borrower is computed at line 384.\n\n\nAlso, please add a corresponding unit-test.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2996218951"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-26T16:38:19Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "Please add `featureLendingV1_1` amendment guard.\n\n\nSince invariants can fail with a `tec` code, they should equally be amendment gated.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r2996259869"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-06-05T12:12:07Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
-     "body": "False positive. From the comment for `validDomain()`:\n```\n// Check if subject has any credential maching the given domain. If you call it\n// in preclaim and it returns tecEXPIRED, you should call verifyValidDomain in\n// doApply. This will ensure that expired credentials are deleted.\n```\nHowever, there is an issue with it, which I'm currently checking against different subject. Will fix it.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362534962"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-06-05T12:16:15Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "The case is fully covered. We've got a test for it in `Invariants_test.cpp`:\n```\ndoInvariantCheck(\n                {{\"DomainID is set on public Loan Broker\"}},\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362554268"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-06-05T12:22:45Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "It's allowed to have a private loan broker with the domain id not configured yet, as per the spec: https://github.com/XRPLF/XRPL-Standards/pull/484/changes",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362586629"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-06-05T12:25:19Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "This is allowed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362599280"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-06-05T12:28:09Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "> any account can attach any permissioned domain to their broker\n\nI don't think this is possible. The PermissionedDomainSet transactor manages adding or removing an account to/from a domain.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362612674"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-06-05T12:28:42Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
-     "body": "This is how the two functions are supposed to be used.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362615314"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-06-05T12:30:08Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "No, you're trying to loosen the restriction. We should not allow `sfDomainID` to present on the ledger entry if it does not have the `lsfLoanBrokerPrivate` flag.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362623072"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-06-05T12:40:24Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerSet.cpp",
-     "body": "`preflight` can't be bypassed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362677949"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-06-05T12:54:15Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
-     "body": "Good spot! Thanks, Vito! I've fixed it added unit test.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362750779"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-06-05T12:54:38Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "moved to LoanBrokerInvariant and added an amendment gate.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362752800"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-06-05T12:55:04Z",
-     "path": "src/test/app/Loan_test.cpp",
-     "body": "Fixed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r3362755226"
     }
    ]
   },
@@ -3265,47 +3318,6 @@
      "url": "https://github.com/XRPLF/rippled/pull/7411#discussion_r3796896501"
     }
    ]
-  },
-  {
-   "number": 7856,
-   "title": "ci: Pre-commit clang-tidy checks for the build directory at the top level",
-   "url": "https://github.com/XRPLF/rippled/pull/7856",
-   "state": "closed",
-   "author": "mvadari",
-   "createdAt": "2026-07-23T19:45:44Z",
-   "updatedAt": "2026-07-23T20:33:51Z",
-   "closedAt": "2026-07-23T20:33:41Z",
-   "labels": [
-    "Trivial"
-   ],
-   "comments": [
-    {
-     "author": "mvadari",
-     "date": "2026-07-23T20:33:41Z",
-     "body": "> This doesn't make sense - `git rev-parse --show-toplevel` returns the repo root if it's run from anywhere in the repo. I checked, and I wasn't able to reproduce. cwd is there to make sure we're indeed in the repo when calling `git`\n\nHuh, I'm not able to replicate either, but I was definitely having the issue. Will close the PR for now and revisit if I encounter the issue again.",
-     "url": "https://github.com/XRPLF/rippled/pull/7856#issuecomment-5063135142"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nThis PR fixes the clang-tidy pre-commit check to look for the build folders at the top level, not in `bin/pre-commit`.\n\n### Context of Change\n\nPreviously:\n```\nclang-tidy (enable with: TIDY=1)..............................................Failed\n- hook id: clang-tidy\n- exit code: 1\n\nfind_build_dir: candidate:  /Users/mvadari/Documents/rippled-all/copilot/bin/pre-commit/.build  <--- log line added by me\nfind_build_dir: candidate:  /Users/mvadari/Documents/rippled-all/copilot/bin/pre-commit/build  <--- log line added by me\nclang-tidy check failed: no build directory with compile_commands.json found (looked for .build/ and build/)\n```\n\n### API Impact\n\nN/A",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "mvadari:mvadari/fix-precom-ctidy",
-   "additions": 0,
-   "deletions": 1,
-   "changedFiles": 1,
-   "commits": 1,
-   "reviewComments": 0,
-   "reviews": [
-    {
-     "author": "mathbunnyru",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-07-23T20:02:40Z",
-     "body": "This doesn't make sense - `git rev-parse --show-toplevel` returns the repo root if it's run from anywhere in the repo.\nI checked, and I wasn't able to reproduce.\ncwd is there to make sure we're indeed in the repo when calling `git`"
-    }
-   ],
-   "reviewCommentsList": []
   }
  ],
  "issues": [],
