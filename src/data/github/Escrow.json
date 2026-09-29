@@ -1,6 +1,6 @@
 {
  "name": "Escrow",
- "fetchedAt": "2026-09-28T13:04:32.615Z",
+ "fetchedAt": "2026-09-29T16:04:00.245Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -20,10 +20,10 @@
    "smart-escrow/versioning",
    "timothybanks/smart-escrow-deletion"
   ],
-  "lastActivity": "2026-09-25T19:44:20Z",
+  "lastActivity": "2026-09-28T21:40:37Z",
   "lastMerged": "2026-09-22T21:34:31Z",
   "release": "0.60.0",
-  "totalComments": 380
+  "totalComments": 383
  },
  "release": {
   "version": "0.60.0",
@@ -33,59 +33,20 @@
  },
  "prs": [
   {
-   "number": 8301,
-   "title": "fix: getLedgerEntryOwnerCount should handle smart escrow case",
-   "url": "https://github.com/XRPLF/rippled/pull/8301",
-   "state": "open",
-   "author": "TimothyBanks",
-   "createdAt": "2026-09-25T19:40:28Z",
-   "updatedAt": "2026-09-25T19:44:20Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-25T19:44:19Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8301?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8301#issuecomment-5838530393"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nAddresses detailed finding 3.7: Sponsorship does not account for weighted Smart Escrow reserves\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "ripple/smart-escrow",
-   "head": "XRPLF:timothybanks/additional-reserve",
-   "additions": 229,
-   "deletions": 0,
-   "changedFiles": 3,
-   "commits": 1,
-   "reviewComments": 0,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-25T19:43:13Z",
-     "body": "Core change adds an ltESCROW case to getLedgerEntryOwnerCount that delegates entirely to calculateAdditionalReserve(sle[~sfBytecode]), replacing the previous flat weight of 1. The main risk is whether this helper returns 1 (not 0) when sfBytecode is absent — the vast majority of escrows have no smart-contract bytecode, and the diff's tests only exercise the bytecode-present path (weight 3), so a regression for plain escrows wouldn't be caught. Test additions in Sponsor_test.cpp and InvariantsMisc_test.cpp look reasonable and well-commented; no issues flagged there."
-    }
-   ],
-   "reviewCommentsList": []
-  },
-  {
    "number": 6329,
    "title": "feat: Smart Escrows (XLS-100)",
    "url": "https://github.com/XRPLF/rippled/pull/6329",
    "state": "open",
    "author": "mvadari",
    "createdAt": "2026-02-04T23:44:48Z",
-   "updatedAt": "2026-09-24T15:47:08Z",
+   "updatedAt": "2026-09-28T21:40:37Z",
    "closedAt": null,
    "labels": [],
    "comments": [
     {
      "author": "codecov[bot]",
      "date": "2026-02-05T18:56:12Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `80.21277%` with `465 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [crates/xrpl-wasm-vm-ffi/src/lib.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS1mZmkvc3JjL2xpYi5ycw==) | 17.8% | [439 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...-host-functions-macros/src/parsed\\_host\\_function.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtaG9zdC1mdW5jdGlvbnMtbWFjcm9zL3NyYy9wYXJzZWRfaG9zdF9mdW5jdGlvbi5ycw==) | 97.6% | [7 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/vm.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvdm0ucnM=) | 95.6% | [6 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/preflight/signature.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvcHJlZmxpZ2h0L3NpZ25hdHVyZS5ycw==) | 91.8% | [4 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-testkit/src/lib.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS10ZXN0a2l0L3NyYy9saWIucnM=) | 76.9% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/abi.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvYWJpLnJz) | 98.1% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/protocol/TxMeta.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1R4TWV0YS5o) | 80.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/register.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvcmVnaXN0ZXIucnM=) | 99.8% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `80.22959%` with `465 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [crates/xrpl-wasm-vm-ffi/src/lib.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS1mZmkvc3JjL2xpYi5ycw==) | 17.8% | [439 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...-host-functions-macros/src/parsed\\_host\\_function.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtaG9zdC1mdW5jdGlvbnMtbWFjcm9zL3NyYy9wYXJzZWRfaG9zdF9mdW5jdGlvbi5ycw==) | 97.6% | [7 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/vm.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvdm0ucnM=) | 95.6% | [6 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/preflight/signature.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvcHJlZmxpZ2h0L3NpZ25hdHVyZS5ycw==) | 91.8% | [4 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-testkit/src/lib.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS10ZXN0a2l0L3NyYy9saWIucnM=) | 76.9% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/abi.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvYWJpLnJz) | 98.1% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/protocol/TxMeta.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1R4TWV0YS5o) | 80.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [crates/xrpl-wasm-vm/src/register.rs](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-Y3JhdGVzL3hycGwtd2FzbS12bS9zcmMvcmVnaXN0ZXIucnM=) | 99.8% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
      "url": "https://github.com/XRPLF/rippled/pull/6329#issuecomment-3855573798"
     },
     {
@@ -209,10 +170,10 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:ripple/smart-escrow",
-   "additions": 40841,
+   "additions": 41729,
    "deletions": 258,
-   "changedFiles": 346,
-   "commits": 757,
+   "changedFiles": 347,
+   "commits": 761,
    "reviewComments": 69,
    "reviews": [
     {
@@ -556,6 +517,24 @@
      "state": "CHANGES_REQUESTED",
      "date": "2026-09-24T15:47:08Z",
      "body": "Rounding bug in escrow fee calculation and gas voting logic bug causing spurious proposals pre-amendment—see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-28T19:55:01Z",
+     "body": "Smart-escrow vote gating mismatch — see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-28T20:37:40Z",
+     "body": "This adds a new proc-macro support module (parsed_host_function.rs) mapping declared Rust parameter/return types to their wasm ABI representation. The logic in ParamType::parse, ResultType::parse, wasm_names/as_wasm_params, argument_type/argument_trait, and the WasmValType ToTokens impl are all internally consistent with each other and are backed by thorough unit tests (including exhaustive positive and negative mapping tables) included in the same diff. I traced each match arm against its corresponding test case and found no discrepancies, arity mismatches, or unreachable/incorrect branches. No security, correctness, or resource-management issues were found in the added code."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-28T21:40:37Z",
+     "body": "Fee calculation error, test fee API design gap, and unused parameter flagged inline."
     }
    ],
    "reviewCommentsList": [
@@ -1043,6 +1022,45 @@
      "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4075957269"
     }
    ]
+  },
+  {
+   "number": 8301,
+   "title": "fix: getLedgerEntryOwnerCount should handle smart escrow case",
+   "url": "https://github.com/XRPLF/rippled/pull/8301",
+   "state": "open",
+   "author": "TimothyBanks",
+   "createdAt": "2026-09-25T19:40:28Z",
+   "updatedAt": "2026-09-25T19:44:20Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-25T19:44:19Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8301?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8301#issuecomment-5838530393"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAddresses detailed finding 3.7: Sponsorship does not account for weighted Smart Escrow reserves\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "ripple/smart-escrow",
+   "head": "XRPLF:timothybanks/additional-reserve",
+   "additions": 229,
+   "deletions": 0,
+   "changedFiles": 3,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-25T19:43:13Z",
+     "body": "Core change adds an ltESCROW case to getLedgerEntryOwnerCount that delegates entirely to calculateAdditionalReserve(sle[~sfBytecode]), replacing the previous flat weight of 1. The main risk is whether this helper returns 1 (not 0) when sfBytecode is absent — the vast majority of escrows have no smart-contract bytecode, and the diff's tests only exercise the bytecode-present path (weight 3), so a regression for plain escrows wouldn't be caught. Test additions in Sponsor_test.cpp and InvariantsMisc_test.cpp look reasonable and well-commented; no issues flagged there."
+    }
+   ],
+   "reviewCommentsList": []
   },
   {
    "number": 8264,

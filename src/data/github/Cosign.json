@@ -1,0 +1,1955 @@
+{
+ "name": "Cosign",
+ "fetchedAt": "2026-09-29T16:02:44.738Z",
+ "summary": {
+  "status": "in development",
+  "prs": 12,
+  "open": 2,
+  "merged": 8,
+  "issues": 0,
+  "proposals": 3,
+  "branches": [
+   "ripple/cosign"
+  ],
+  "lastActivity": "2026-09-28T20:55:18Z",
+  "lastMerged": "2026-09-28T19:44:40Z",
+  "totalComments": 242
+ },
+ "release": {},
+ "prs": [
+  {
+   "number": 8130,
+   "title": "Add TransactionProposal invariants for Cosign",
+   "url": "https://github.com/XRPLF/rippled/pull/8130",
+   "state": "open",
+   "author": "ckeshava",
+   "createdAt": "2026-08-26T23:42:46Z",
+   "updatedAt": "2026-09-28T20:55:18Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-26T23:54:17Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#issuecomment-5432484242"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-27T01:39:51Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#issuecomment-5433266481"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-27T01:41:43Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8130?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `99.34641%` with `1 line` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8130?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/invariants/CosignerInvariant.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8130?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvaW52YXJpYW50cy9Db3NpZ25lckludmFyaWFudC5jcHA=) | 99.3% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8130?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#issuecomment-5433278524"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds `ValidTransactionProposal`, a global invariant for the `TransactionProposal` ledger entry, plus tests. No behavior change for valid transactions.\n\nThe invariant enforces four properties:\n\n1. **Immutable payload.** `ProposedTransaction` may change only in its signature fields (`SigningPubKey`, `TxnSignature`, `Signers`, `CounterpartySignature`, `SponsorSignature`, `BatchSigners`, and nested `Signers`), plus `PreviousTxn` bookkeeping. `SponsorshipTransfer` may reassign the object's `Sponsor` and nothing else.\n2. **Reserve accounting.** Creating or deleting a proposal moves the owner's `OwnerCount` by that proposal's own reserve size (5, or 10 for a proposed `Batch`), and moves `SponsoredOwnerCount` / `SponsoringOwnerCount` consistently when the reserve is sponsored.\n3. **Effect whitelist.** Only transaction types implementing a proposal lifecycle operation may create, modify, or delete a proposal, with the exact counts the result allows. A failed `TransactionProposalCreate` must leave no trace; a successful one must create exactly one entry.\n4. **Canonical signer arrays.** Collected signer arrays stay sorted by account, free of duplicates, and within `STTx::kMaxMultiSigners` (32) and `kMaxBatchSigners` (24).\n\n### Context of Change\n\nThis is the invariant layer for the On-Chain Cosigner work ([XLS-0103](https://github.com/shawnxie999/XRPL-Standards/blob/cosign/XLS-0103-onchain-cosigner/README.md)). Properties 1 and 4 restate spec sections 4.2.1 and 6.1; property 2 restates section 4.4.\n\nIt is implemented as a **global** invariant rather than in `TransactionProposalCreate::visitInvariantEntry`, because the properties are about the ledger entry itself and must hold no matter which transactor touches it. That is what makes property 3 meaningful: as `TransactionProposalSign` and `TransactionProposalCancel` land, each has to be added to the whitelist deliberately, and until then no other transaction type can manufacture or mutate a proposal.\n\nReserve reconciliation is applied only once a transaction has actually touched a proposal. Owner counts also move for offers, escrows, and for the ticket a transaction consumes to pay for itself, so the modelled deltas describe the ledger accurately only when a proposal is in play.\n\n### API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nThe invariant is gated on `featureCosign`, so it cannot change behavior on a ledger where the amendment is not enabled.\n\n## Test Plan\n\nThirteen cases in `Invariants_test.cpp`. Eleven violate exactly one rule: a mutated `TicketSequence`; an insertion with no `OwnerCount` bump; an insertion from `AccountSet`; and eight signer-array cases covering duplicates, descending order, both length limits, an entry with no `Account`, and duplicates nested under `CounterpartySignature`, `SponsorSignature`, and a `BatchSigner`.\n\nTwo are negative controls asserting `tesSUCCESS`: a well-formed create, and a proposal left untouched. The first reuses the setup of the two failure cases above it and differs only in the `OwnerCount` bump and the transaction type, which pins each of those failures to the defect it names rather than to the hand-built ledger state.\n\nThe success path is also covered indirectly, since invariants run on every transaction in every test: the existing `TransactionProposalCreate` suite (17 cases, 1067 tests) exercises this invariant returning true, including sponsored create and sponsorship transfer.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "ripple/cosign",
+   "head": "ckeshava:cosign-invariants-v1",
+   "additions": 664,
+   "deletions": 1,
+   "changedFiles": 6,
+   "commits": 3,
+   "reviewComments": 12,
+   "reviews": [
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-28T16:22:09Z",
+     "body": "first bit"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-28T18:32:23Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-28T18:47:27Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-28T20:55:18Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-28T15:54:33Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "Can be simplified to something like this, I don't think we necessarily need to conditionally check `before`/`after`, using only `after` should be sufficient\n```\n    // `after` is always present (on deletion it holds the final state), so it\n    // alone determines the entry type. LedgerEntryTypesMatch owns malformed\n    // type transitions; skip them rather than read one side with the other's\n    // schema.\n    if (!after || (before && before->getType() != after->getType()))\n        return;\n\n    auto const type = after->getType();\n\n    if (type == ltACCOUNT_ROOT)\n    {\n        auto const account = after->getAccountID(sfAccount);\n        ownerCountDelta_[account] += fieldDelta(isDelete, before, after, sfOwnerCount);\n        sponsoredOwnerCountDelta_[account] +=\n            fieldDelta(isDelete, before, after, sfSponsoredOwnerCount);\n        sponsoringOwnerCountDelta_[account] +=\n            fieldDelta(isDelete, before, after, sfSponsoringOwnerCount);\n        return;\n    }\n\n    // A TransactionProposalCreate may itself consume a different Ticket.\n    // Account for that independent owner-count change so the proposal's\n    // five- or ten-unit reserve delta is still checked exactly.\n    if (type == ltTICKET)\n    {\n        auto const owner = after->getAccountID(sfAccount);\n        if (!before && !isDelete)\n        {\n            expectedOwnerCountDelta_[owner] += 1;\n        }\n        else if (before && isDelete)\n        {\n            expectedOwnerCountDelta_[owner] -= 1;\n        }\n        return;\n    }\n\n    if (type != ltTRANSACTION_PROPOSAL)\n        return;\n\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4124271078"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-28T16:17:46Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "```suggestion\n    if (before)\n        recordReserveState(before, -1);\n    if (!isDelete)\n        recordReserveState(after, 1);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4124499212"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-28T16:18:20Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "```suggestion\n    if (!isDelete && !validSignerArrays(after->getFieldObject(sfProposedTransaction)))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4124504510"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-28T17:53:00Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "We don't need to keep a `valid` variable here; we can return `false` immediately whenever we detect an invariant violation.\n\nThe other invariants use a variable because those features have already been live, so there may be existing ledger states where the invariant is violated, making it useful to log the issue while continuing. In our case, the cosign amendment is not live yet, so we don't need that behavior.\n\nAlso, we should put the cosign amendment guard at the beginning.\n\n```\n    if (!view.rules().enabled(featureCosign))\n        return true;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4125359896"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-28T17:56:19Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "this check can be moved before the for-loop (`for (auto const& change : changes_)`) since the bool is already computed",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4125390859"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-28T18:25:32Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "a comment and example would be helpful here:\n\n```\n    // Subtract the reserve the proposal held before, then add the reserve it\n    // holds now. For a proposal with a reserve of 5:\n    //   Create:                   +5                -> owner +5\n    //   Delete:                   -5                -> owner -5\n    //   Add a signature:          -5 then +5        -> owner  0\n    //   Transfer sponsor A to B:  -5 on A, +5 on B  -> owner  0, A -5, B +5\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4125641906"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-28T18:26:43Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "could add a comment:\n```\n// A live proposal's signer lists must stay submittable: within size\n// limits, sorted by account, and free of duplicates.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4125652634"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-28T18:39:48Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "Nothing tests this branch, either here or in `TransactionProposalCreate_test`: no test submits `TransactionProposalCreate` with its own `ticket::Use(...)`. If the adjustment were wrong, every ticketed create would fail with `tecINVARIANT_FAILED` and CI would stay green. Could you add a real-flow case to `TransactionProposalCreate_test` that creates a proposal using a ticket and expects `tesSUCCESS`?",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4125768166"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-28T18:39:48Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "The reassign flow in `TransactionProposalCreate_test` only shows this accepting a valid transfer. Please add an invariant case under `ttSPONSORSHIP_TRANSFER` whose precheck changes a field other than `sfSponsor` on the live proposal (such as `sfExpiration`), expecting `\"TransactionProposal immutable fields changed\"`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4125768175"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-28T18:39:48Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "The \"reserve accounting\" test only covers a plain `OwnerCount` that wasn't raised, so these two comparisons are never shown to fail. The case that matters most is a sponsored proposal whose reserve is charged to the wrong sponsor: the proposal's `sfSponsor` is X, but Y's `SponsoringOwnerCount` is raised. The totals still balance there, so `SponsorshipOwnerCountsMatch` passes and this invariant is the only thing that would catch it.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4125768181"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-28T18:39:48Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "The real-flow `tec` cases in `TransactionProposalCreate_test` (`tecEXPIRED`, `tecNO_PERMISSION`, ...) only show the failed-result side of these ternaries (here and at L293) accepting a transaction that changed nothing. No test shows it rejecting one. `doInvariantCheck` takes an `initialResult` argument for this. Suggested cases:\n- `ttTRANSACTION_PROPOSAL_CREATE` with `initialResult = tecNO_PERMISSION` (or any `tec`) where the precheck still inserts a proposal.\n- The same for `ttSPONSORSHIP_TRANSFER` with a modification.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4125768192"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-28T20:55:18Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "Building on this: I think there's an actual bug in this branch, not just a gap in coverage. It only adjusts `expectedOwnerCountDelta_`. When a sponsored Ticket is consumed, `ticketDelete` → `decreaseOwnerCountForObject` also decrements the owner's `SponsoredOwnerCount` and the sponsor's `SponsoringOwnerCount`.\n\nMeanwhile, `recordReserveState` always inserts the owner into `expectedSponsoredOwnerCountDelta_` (+0 if the proposal is unsponsored, +5 if sponsored). So the actual delta is -1 / +4 against an expected 0 / +5, and a valid `TransactionProposalCreate` submitted with a sponsored ticket fails with `tecINVARIANT_FAILED`. The same applies to a `SponsorshipTransfer` on a proposal that uses a sponsored ticket. If the ticket's sponsor also sponsors the proposal, the `SponsoringOwnerCount` check fails too.\n\nA plain-ticket test would pass and miss this, so it'd be good to also add a case where the ticket itself is sponsored. Suggested fix, in the `ltTICKET` branch:\n\n```cpp\nif (ticket->isFieldPresent(sfSponsor))\n{\n    expectedSponsoredOwnerCountDelta_[owner] += delta;\n    expectedSponsoringOwnerCountDelta_[ticket->getAccountID(sfSponsor)] += delta;\n}",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4126943266"
+    }
+   ]
+  },
+  {
+   "number": 8208,
+   "title": "line coverage for ripple/cosign",
+   "url": "https://github.com/XRPLF/rippled/pull/8208",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-09-09T20:54:29Z",
+   "updatedAt": "2026-09-28T19:58:24Z",
+   "closedAt": "2026-09-28T19:58:24Z",
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-16T18:23:04Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8208?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.46939%` with `6 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8208?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [...transactors/proposal/TransactionProposalCreate.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8208?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvcHJvcG9zYWwvVHJhbnNhY3Rpb25Qcm9wb3NhbENyZWF0ZS5jcHA=) | 97.7% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8208?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8208?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvZXNjcm93L0VzY3Jvd0NyZWF0ZS5jcHA=) | 75.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8208?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8208?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvZXNjcm93L0VzY3Jvd0ZpbmlzaC5jcHA=) | 80.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8208?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/transactors/system/Change.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8208?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvc3lzdGVtL0NoYW5nZS5jcHA=) | 66.7% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8208?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8208#issuecomment-5702445721"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-16T20:21:32Z",
+     "body": "@Kassaking7  there is a failing CI check ^",
+     "url": "https://github.com/XRPLF/rippled/pull/8208#issuecomment-5703966848"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-28T19:46:51Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8208#issuecomment-5877250073"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "ripple/cosign",
+   "head": "Kassaking7:cosign-v1-line-coverage",
+   "additions": 1236,
+   "deletions": 51,
+   "changedFiles": 42,
+   "commits": 8,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-10T12:59:59Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 7979,
+   "title": "Add TransactionProposalCancel for Cosign",
+   "url": "https://github.com/XRPLF/rippled/pull/7979",
+   "state": "open",
+   "author": "ckeshava",
+   "createdAt": "2026-08-07T22:06:22Z",
+   "updatedAt": "2026-09-28T19:58:23Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-07T22:38:24Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7979?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#issuecomment-5222890652"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-20T20:46:55Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#issuecomment-5361477147"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-24T17:21:29Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#issuecomment-5398807945"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T17:32:39Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#issuecomment-5414238862"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T17:54:45Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#issuecomment-5414490452"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-26T17:22:03Z",
+     "body": "Could you update the branch again, the newest develop merged introduced some changes which you may need to update for this txn. Thanks",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#issuecomment-5428653815"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-08T19:29:51Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#issuecomment-5590664417"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-10T20:49:18Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#issuecomment-5625243482"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-10T22:03:43Z",
+     "body": "@shawnxie999  @Kassaking7  let me know when I can merge this PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#issuecomment-5626046827"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds the `TransactionProposalCancel` transaction (Cosigner Spec §7, transaction type 94): deletes a `TransactionProposal` ledger entry and releases the proposer's reserve. \n\n### Context of Change\n\nThird transaction of the On-Chain Cosigner feature ([Cosigner spec](https://github.com/shawnxie999/XRPL-Standards/blob/cosign/XLS-0103-onchain-cosigner/README.md)), building on `TransactionProposalCreate` (#7887).\n\n- While a proposal is live, only its Owner (the proposer) or its target (the proposed transaction's `Account`, or the `Delegate` named in it) may cancel: `tecNO_PERMISSION` otherwise.\n- Once a proposal is terminal (its `Expiration` has passed, or the ledger sequence is strictly past the proposed transaction's `LastLedgerSequence`, mirroring the ordinary transactor's `tefMAX_LEDGER` rule), anyone may delete it.\n- A zero `ProposalID` is `temMALFORMED`; a missing entry is `tecNO_ENTRY`.\n- `isProposalTx` now also rejects proposing a Cancel, or any proposal transaction hidden inside a proposed Batch (XLS-0103 §5.3.1).\n- Includes shared jtx helper `proposal::cancel` and a 19-case test suite covering authorization, terminal boundaries, Batch/multisign/sponsorship/ticket interactions, and nesting rejections.\n\n### API Impact\n\n- [x] `libxrpl` change (new amendment-gated transaction type, `featureCosign`)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "ripple/cosign",
+   "head": "ckeshava:txnProposalCancel",
+   "additions": 3945,
+   "deletions": 30,
+   "changedFiles": 17,
+   "commits": 24,
+   "reviewComments": 67,
+   "reviews": [
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-08-17T18:05:29Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-18T18:59:07Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-18T20:19:20Z",
+     "body": "first bit of comments"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-18T21:01:13Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:19:32Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:19:33Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:19:35Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:19:36Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:19:42Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:19:43Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:19:44Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:19:45Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:19:47Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:19:47Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-19T17:59:58Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T19:53:55Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-19T20:47:14Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T21:03:45Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T21:03:45Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T21:03:46Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T21:03:47Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T21:03:47Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-19T21:03:47Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-21T15:04:21Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-21T15:09:01Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-24T17:21:41Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-24T17:21:55Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-08-26T17:27:00Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-27T13:50:07Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-27T15:51:39Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-27T15:56:41Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-27T16:04:56Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-27T16:58:28Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-27T16:59:04Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-27T19:50:27Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-27T19:50:29Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-27T19:50:30Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-27T19:50:32Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-27T20:41:48Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-28T15:36:50Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-28T15:51:59Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-28T15:53:04Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:43:12Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-28T16:53:04Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T17:05:16Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-28T17:29:32Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T17:31:53Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-28T17:31:58Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-28T17:41:08Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-28T18:09:28Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-29T00:53:03Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-29T00:53:11Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-01T19:15:12Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-03T13:53:29Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-03T16:41:05Z",
+     "body": "Don't have much further comments except for the outstanding ones. But we should hold off merging this PR for now."
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-03T18:42:53Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-03T18:43:06Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-03T20:25:13Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "APPROVED",
+     "date": "2026-09-03T21:24:10Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-10T13:08:56Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-10T13:09:21Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Kassaking7",
+     "date": "2026-08-17T18:05:30Z",
+     "path": "include/xrpl/tx/transactors/proposal/ProposalHelpers.h",
+     "body": "Since we add more code and include more headers because of it, we should move `isProposalTx` implementation to .cpp.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3797727667"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-18T18:06:18Z",
+     "path": "src/test/jtx/impl/proposal.cpp",
+     "body": "could use jss::TransactionProposalCancel",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3806669370"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-18T18:46:04Z",
+     "path": "src/test/app/TransactionProposalCancel_test.cpp",
+     "body": "can we refactor this file into clear categories of preflight, preclaim, and doapply tests? Eg, in TransactionProposalCreate_test.cpp, we have something like this, it makes it much easier to review and maintain\n```\n\n run() override\n    {\n        using namespace jtx;\n\n        FeatureBitset const all{testableAmendments()};\n\n        testReserveCounts();\n\n        // Preflight\n        testDisabled(all);\n        testRejectedPayload(all);\n        testRejectedSignatureFields(all);\n\n        // Preclaim\n        testPreclaim(all);\n        testPseudoTarget(all);\n\n        // Apply\n        testCreate(all);\n        testOtherTransactionTypes(all);\n        testAuxiliaryCoSignatureTypes(all);\n        testReserve(all);\n        testBatchReserve(all);\n        testMultiAccountBatch(all);\n    }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3806951872"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-18T18:46:51Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "let's refactor this so that the end of function returns tesSUCCESS, this is a pattern where we only return success at the end, for readability and maintainability. Maybe something like this\n\n```\n    // A terminal proposal can never complete, so anyone may delete it and\n    // release the Owner's reserve (XLS-0103 §7.2).\n    bool const terminal = proposal::isTerminal(ctx.view, (*sleProposal)[~sfExpiration], proposedTx);\n\n    AccountID const account = ctx.tx[sfAccount];\n    bool const ownerOrTarget = account == sleProposal->getAccountID(sfOwner) ||\n        account == proposedTx.getAccountID(sfAccount) || account == proposedTx[~sfDelegate];\n\n    if (!terminal && !ownerOrTarget)\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCancel: proposal is live and \"\n                               \"canceller is neither its Owner nor its target.\";\n        return tecNO_PERMISSION;\n    }\n\n    return tesSUCCESS;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3806958164"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-18T18:52:23Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "dont need the amendment check since proposal objects exists only if the amendment is enabled",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3806999605"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-18T18:57:42Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "same here . dont need amendment gate",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3807037303"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-18T18:59:07Z",
+     "path": "include/xrpl/tx/transactors/proposal/ProposalHelpers.h",
+     "body": "Done in e5b6dc4594 — moved `isProposalTx` into `ProposalHelpers.cpp` and dropped the now-unneeded `STArray.h` from the header.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3807048251"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-18T21:01:13Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "We should remove this - we probably don't want Cancel to consume the reserved ticket either. The spec did not explicitly say this, and it introduces potential risk and complexities in `ticketDelete`.Note, it is unlikely anyone will use ticket for a `TransactionProposalCancel` anyways, tickets are mainly used for proposals or submitting transactions in parallel, not for a one-off txn like `TransactionProposalCancel`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3807893201"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T16:19:32Z",
+     "path": "src/test/jtx/impl/proposal.cpp",
+     "body": "Done in 4fdc4cc1a49b3907dd88e8c479da9adec3da83a3 — switched the jtx helper to `jss::TransactionProposalCancel`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3814773305"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T16:19:33Z",
+     "path": "src/test/app/TransactionProposalCancel_test.cpp",
+     "body": "Done in 4fdc4cc1a49b3907dd88e8c479da9adec3da83a3 — grouped the cancel suite into Preflight / Preclaim / Apply like Create.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3814773420"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T16:19:35Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "Done in 4fdc4cc1a49b3907dd88e8c479da9adec3da83a3 — `preclaim` now returns `tesSUCCESS` only at the end.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3814773564"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T16:19:36Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "Done in 4fdc4cc1a49b3907dd88e8c479da9adec3da83a3 — dropped the `featureCosign` gate in `checkSeqProxy`; proposal objects only exist when the amendment is enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3814773700"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T16:19:41Z",
+     "path": "src/test/jtx/impl/proposal.cpp",
+     "body": "Done in 4fdc4cc1 — switched the jtx helper to `jss::TransactionProposalCancel`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3814774356"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T16:19:43Z",
+     "path": "src/test/app/TransactionProposalCancel_test.cpp",
+     "body": "Done in 4fdc4cc1 — grouped the cancel suite into Preflight / Preclaim / Apply like Create.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3814774539"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T16:19:44Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "Done in 4fdc4cc1 — `preclaim` now returns `tesSUCCESS` only at the end.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3814774692"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T16:19:45Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "Done in 4fdc4cc1 — dropped the `featureCosign` gate in `checkSeqProxy`; proposal objects only exist when the amendment is enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3814774857"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T16:19:47Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "Done in 4fdc4cc1 — dropped the matching `featureCosign` gate in `ticketDelete`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3814775064"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T16:19:47Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "Done in 4fdc4cc1 — Cancel no longer consumes a reserved ticket; `mayConsumeReservedTicket` is payload-match only.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3814775071"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-19T17:19:10Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "we can probably have an array for these types",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3815199927"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-19T17:21:00Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "should assert that RawTransactions field must exist if it's batch",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3815212400"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-19T17:29:50Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "maybe we can make this return a tecINTERNAL so that it run in release mode?",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3815271442"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-19T17:43:20Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "```suggestion\n        // a final failure. \n```\nnit - don't need this comment",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3815362568"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-19T17:57:07Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "maybe we can refactor it too smth like \n\n```\n        if (!proposal::canConsumeTicket(view, tx))\n        {\n            JLOG(j.trace()) << \"applyTransaction: ticket \" << tSeqProx\n                            << \" is reserved\";\n            return terTICKET_RESERVED;\n        }\n```\n\n```\nbool\ncanConsumeTicket(ReadView const& view, STTx const& tx)\n{\n    SeqProxy const seqProx = tx.getSeqProxy();\n    if (!seqProx.isTicket())\n    {\n        // The caller only reaches here for a Ticket-based transaction.\n        // LCOV_EXCL_START\n        UNREACHABLE(\"xrpl::proposal::canConsumeTicket : tx spends a Sequence\");\n        return false;\n        // LCOV_EXCL_STOP\n    }\n\n    // read() returns nullptr unless the entry exists and is a\n    // TransactionProposal, so no Ticket is reserved here.\n    auto const sleProposal =\n        view.read(keylet::txProposal(tx.getAccountID(sfAccount), seqProx.value()));\n    if (!sleProposal)\n        return true;\n\n    // The proposal's own proposed transaction is the one transaction the\n    // reservation lets through.\n    return payloadMatches(sleProposal->getFieldObject(sfProposedTransaction), tx);\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3815457600"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-19T17:57:26Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "```suggestion\n    // Tickets. \n```\n\nnit - dont need this comment",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3815459990"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T19:53:55Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "Hypothetically, if this error were hit out in the real-world, we would be interested in the call-stack and the core of the aborted program. Are those artifacts available in release mode? My understanding is that the Debug mode has a map of additional compiler mangled symbols that helps with interpreting the core-dump.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3816254225"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-19T20:47:14Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "The program should never be intentionally aborted, neither `tecINTERNAL` nor asssertion will do that (infact they are there to prevent that from happening). \n\n`tecINTERNAL` will be returned as a normal error code. However, a good practice is to add a log when we return it",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3816594122"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T21:03:44Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "Addressed in a16021198a: proposal types are now a `kProposalTxTypes` array.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3816700318"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T21:03:45Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "Addressed in a16021198a: Batch payloads now assert that `RawTransactions` is present.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3816700334"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T21:03:46Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "Addressed in a16021198a: `deleteProposal` logs and returns `tecINTERNAL` instead of asserting.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3816700422"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T21:03:47Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "Addressed in a16021198a: dropped the amendment-gate comment in `checkSeqProxy`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3816700506"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T21:03:47Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "Addressed in a16021198a: reserved-ticket handling is now `proposal::canConsumeTicket`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3816700579"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-19T21:03:47Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "Addressed in a16021198a: dropped the amendment-gate comment in `ticketDelete`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3816700600"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-21T15:04:21Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "could we also add doc/doxygen to this function saying that it will also auto-delete whichever proposal that reserved it alongside with the ticket?",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3831317855"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-21T15:09:01Z",
+     "path": "include/xrpl/ledger/helpers/ProposalHelpers.h",
+     "body": "Could we resolve conflicts? there has been some updates from the previous PR",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3831352667"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-24T17:21:41Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "I have added a doxygen docstring in this commit: ad12dd57ac",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3845824425"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-24T17:21:55Z",
+     "path": "include/xrpl/ledger/helpers/ProposalHelpers.h",
+     "body": "this branch has been rebased as of this PR: ad12dd57ac",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3845826180"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-08-26T17:27:00Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Once u merged ripple/cosign , NotDelegable & NoPriv will be no longer needed (they are introduced somewhere else as default). I believe there are other changes you need to address, just cmake it and it should reports the compile error.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3865148461"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-27T13:50:07Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Addressed this change in [dbe4e91](https://github.com/XRPLF/rippled/pull/7979/commits/dbe4e91fb81282210c741d2d73719f9c9222ca22)",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3872339530"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-27T15:51:39Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "we have two `ProposalHelper.cpp` files. Could we merge them into one? I believe there might need need some additional refactoring since, `isProposalTx` seem to overlap with `isValidProposal` \n\n<img width=\"476\" height=\"62\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/753a3975-e698-4877-acf7-18437ef6188b\" />",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3873414623"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-27T15:56:42Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "could we replace XLS-0103 with \"On-Chain Cosigner spec\" in this PR? (to be consistent with the existing convention). Also I believe the number is not final so the spec could be assigned with some other number",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3873456118"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-27T16:04:56Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "also isValidProposal is calling isProposalTx, which does't seem to be right",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3873523096"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-27T16:58:28Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "we prob don't need to mention about the proposal resservation in the comment. (since in the future they will probably be a new feature that implement a generic ticket reservation mechanism",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3873937017"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-27T16:59:05Z",
+     "path": "src/libxrpl/protocol/TER.cpp",
+     "body": "same here, don't need to mention proposal, so that error code can also applies to future ticket reservation features",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3873941681"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-27T19:50:27Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalHelpers.cpp",
+     "body": "Addressed in 878435a726: merged into `src/libxrpl/ledger/helpers/ProposalHelpers.cpp`, next to the header. `isProposalTx` also walked Batch inners, which is why the call read backwards; the type check is now inline and `isValidProposal` owns the Batch rules. Dropped `isProposalTx` — it had no other caller.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3875316413"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-27T19:50:28Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "Addressed in 878435a726: all 23 `XLS-0103` references renamed to \"On-Chain Cosigner spec\".",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3875316587"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-27T19:50:30Z",
+     "path": "include/xrpl/protocol/TER.h",
+     "body": "Addressed in 878435a726: now reads \"Ticket is reserved and cannot be consumed until the reservation is released\".",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3875316762"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-27T19:50:32Z",
+     "path": "src/libxrpl/protocol/TER.cpp",
+     "body": "Addressed in 878435a726: message is now \"Ticket is reserved.\"",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3875316958"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-27T20:41:48Z",
+     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
+     "body": "Hello, I want to confirm that this is the expected behavior. Suppose a proposal is past its expiration, hence it is in \"terminal\" status. However, a matching-payload is executed by the target-account. In this case, we are consuming the \"proposal-object\" and its associated ticket.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3875693188"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-28T15:36:50Z",
+     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
+     "body": "I think this should be fine. The expiration indicates the deadline when signatures can no longer be appended. but if the a proposal has already collected all the signatures, then expiration won't really matter anymore.\n\nEg.\n1. Alice creates proposal requiring bob's sig\n2. Bob adds his signature, (now the proposal has reached enough quorum to submit)\n3. proposal expires\n4. someone submits the txn - this should be fine since it already has all the signatures needed",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3881892799"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-28T15:51:59Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "should we return false here? a txn without TransactionType is invalid",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3881999669"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-28T15:53:04Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "minor - i think `isValidProposalTxnType` might a better name for function since it doesn't actually check the txn payload, it only checks the transaction type",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3882006869"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T16:43:12Z",
+     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
+     "body": "okay, thanks for the clarification.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3882353338"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-28T16:53:05Z",
+     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
+     "body": "minor - can have a const for the amendments `auto const all = testableAmendments();`",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3882416328"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T17:05:16Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Yes, I had considered this course of action.\n\n1. If we return false here, the `TransactionProposalCreate` will fail with a `temINVALID` error code in the preflight of this Transactor.\n\n2. (current behavior) If we do not return false here, the preflight of the Batch transaction should return `temMALFORMED`. The preflight of the Batch transaction will run before the `isValidProposal` check anyway.\n\nHowever, I do not have a strong opinion on this. I just wanted to point out the difference in error codes.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3882495266"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-28T17:29:32Z",
+     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
+     "body": "Really appreciate the really thorough testing here :p \nCould we consider a few more scenarios (also should validate that tem errors do not consume ticket nor delete proposal):\n\n## Deferred signature-presence checks\n- **LoanSet submitted without `CounterpartySignature`** → `temBAD_SIGNER`. `testCounterpartySignatureMatches` always attaches the signature, so the skipped check is never observed failing.\n- **SponsorshipTransfer, account-level create/reassign, without `SponsorSignature`** → `temMALFORMED`. There is no proposed-SponsorshipTransfer test at all; `testSponsorSignatureMatches` proposes a fee-sponsored ordinary payload, which is a different thing.\n- **Batch with malformed `BatchSigners`** (unsorted, duplicated, or containing the outer account) → `temBAD_SIGNER`. Only the *absent* case is covered.\n\n## Signature content and authority\n\nNone of these are covered:\n\n- Malformed `SigningPubKey` at submission → `temBAD_SIGNATURE`.\n- Signature that doesn't verify → `temINVALID`.\n- Signed by an unauthorized key → `tefBAD_AUTH`; master key used after `asfDisableMaster` → `tefMASTER_DISABLED`.\n- **Target edits its SignerList while signatures are being collected**: signer removed → `tefBAD_SIGNATURE`; quorum raised → `tefBAD_QUORUM`. This is the one I'd rank first in the whole list — a proposal exists precisely because the target uses a SignerList, and nothing prevents the target from changing it mid-collection.\n\n## Fee frozen at creation\n\n- **Under-budgeted `Fee` once signatures are attached** → `telINSUF_FEE_P`, and permanently so, since nothing can raise the fee later. Cancel is the only exit. Both `unsignedBatch`'s `numSigners` parameter and the LoanSet test's `Fee = base * 2` exist specifically to avoid this, but no test actually hits it.\n- Open-ledger fee escalation pushing `feeDue` past the fixed `Fee` → same code, but transient.\n\n## Timing\n\n- **Payload's `LastLedgerSequence` passing while signatures are collected** → `tefMAX_LEDGER`. Create only rejects an *already*-passed bound (`tecEXPIRED`), and `testTerminalStillReservesTicket` sets a far-future `LastLedgerSequence` on purpose to keep that arm inert, so the case is deliberately excluded everywhere.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3882657956"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T17:31:53Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Addressed in c80b8b0a94 — renamed to `isValidProposalTxnType`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3882672279"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-28T17:31:58Z",
+     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
+     "body": "Addressed in c80b8b0a94 — hoisted into `auto const all = testableAmendments();`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3882672805"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-28T17:41:08Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "> If we return false here, the TransactionProposalCreate will fail with a temINVALID error code in the preflight of this Transactor.\n\nSry I may have some misunderstanding. If, as you mentioned, the preflight of Batch is ran before `isValidProposal`(which it is), why would returning false here change the error code to `temINVALID`? Shouldn't the Batch preflight always return first and fail with `temMALFORED` regardless of whether we return false here?",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3882731030"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-28T18:09:28Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "According to line cov, it appears that this line is never tested (meaning unreachable). So perhaps changing false here actually wouldn't change any test result?",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3882924173"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-29T00:53:03Z",
+     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
+     "body": "Added in abee58199e — all in `TransactionProposalReservedTicket_test.cpp`:\n\n| Requested scenario | Test | Result asserted |\n|---|---|---|\n| LoanSet without `CounterpartySignature` | `testDeferredSignatureChecksFireOnSubmission` | `temBAD_SIGNER` |\n| Account-level `SponsorshipTransfer` without `SponsorSignature`, both create and reassign | `testDeferredSignatureChecksFireOnSubmission` | `temMALFORMED` |\n| Malformed `BatchSigners` — outer account, duplicated, unsorted | `testMalformedBatchSignersOnSubmission` | `temBAD_SIGNER`, three distinct branches of `Batch::preflightSigValidated` |\n| Malformed `SigningPubKey` | `testSubmissionSignatureContent` | `temBAD_SIGNATURE` (see note 3) |\n| Signature that does not verify | `testSubmissionSignatureContent` | `temINVALID` (see note 3) |\n| Unauthorized key; master key after `asfDisableMaster` | `testSubmissionSigningAuthority` | `tefBAD_AUTH`, `tefMASTER_DISABLED` |\n| Target edits its SignerList mid-collection | `testSignerListChangedUnderProposal` | `tefBAD_SIGNATURE` (signer removed), `tefBAD_QUORUM` (quorum raised), `telINSUF_FEE_P` (the fixed fee cannot cover the raised quorum) |\n| Under-budgeted `Fee` once signatures are attached | `testFeeFixedAtCreationCannotCoverSignatures` | `telINSUF_FEE_P`, with the stored `Fee` read back off the ledger entry |\n| Open-ledger escalation past the fixed `Fee` | `testOpenLedgerFeeEscalation` | `terQUEUED`, applied unchanged on close (see note 2) |\n| Payload's `LastLedgerSequence` passing | `testPayloadLastLedgerSequencePasses` | `tefMAX_LEDGER`, plus the at-bound ledger still applying |\n| A `tem` consumes neither ticket nor proposal | `testTemSubmissionConsumesNothing` | `temBAD_SIGNER`, with the submission asserted to match the stored payload under `payloadMatches`, and balances asserted unchanged |\n\nA few notes on the list:\n\n1. Every `tem`/`tef` row asserts the proposal entry, the ticket and the proposer's owner count are untouched after the failure, not just the last row. `testTemSubmissionConsumesNothing` goes further and completes the proposal on that same ticket afterwards, so the ticket is shown to be usable rather than merely present.\n2. Open-ledger escalation is not `telINSUF_FEE_P`. The queue holds the payload at `terQUEUED` and applies it unchanged once the escalated fee drops, so an expensive ledger delays a completed proposal rather than stranding one. The test asserts both the escalation and the return to the base fee.\n3. The two signature-content rows go through `xrpl::apply` against a scratch `OpenView` that is then discarded, because the submit path rejects a bad signature itself before any transactor sees it. Their evidence is the returned code alone — they assert nothing about ledger state, so the reservation invariant for those two comes from `testTemSubmissionConsumesNothing` rather than from these cases.\n4. To be precise about the last row: `payloadMatches` compares every non-signature field, with the signature containers and `SigningPubKey` excluded, which is what lets a proposal be completed by a submission carrying signatures the stored payload does not. So the claim is that the submission is the proposal's own transaction, not that the two are byte-identical.\n5. `testSignerListChangedUnderProposal` and `testSubmissionSigningAuthority` also show the proposal is stalled rather than bricked — it still completes under the master key and under a regular key respectively.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3884943712"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-29T00:53:11Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "You're right on both counts, and my earlier answer was wrong — returning false here changes no test result.\n\nChanged it to `return false` in ee7abd445c. Added a direct-call test so the branch is covered.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3884944123"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-01T19:15:12Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "I think it should be `>`? if current seq is LLS, then there's still chance for proposal to submit. Also in our spec\n\n```\nTerminal proposal: A proposal is terminal when it can no longer be completed and submitted, i.e. when either of the following is true relative to the parent ledger:\n\nThe parent ledger's close time is at or after Expiration; or\nThe proposed transaction includes a LastLedgerSequence and the current ledger sequence is greater than it.\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3907531508"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-03T13:53:28Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Currently the transactor uses > as well, so I believe you are right.\n\n```\n    if (ctx.tx.isFieldPresent(sfLastLedgerSequence) &&\n        (ctx.view.seq() > ctx.tx.getFieldU32(sfLastLedgerSequence)))\n        return tefMAX_LEDGER;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3925259828"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-03T18:42:53Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Are you happy with this change? Can I resolve this thread?",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3927604641"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-03T18:43:06Z",
+     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
+     "body": "let me know if I can resolve this thread",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3927606569"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-03T20:25:13Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Addressed in 962ec09555: changed `isTerminal`'s `LastLedgerSequence` arm to `view.seq() > LLS`, matching the spec and the transactor's `tefMAX_LEDGER` rule. `testLastLedgerSequenceTerminal` and the reserved-ticket test comments were updated to pin the new boundary.",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3928409271"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-10T13:08:56Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Yes, TY for the change!",
+     "url": "https://github.com/XRPLF/rippled/pull/7979#discussion_r3979378664"
+    }
+   ]
+  },
+  {
+   "number": 8324,
+   "title": "Merge ripple cosign",
+   "url": "https://github.com/XRPLF/rippled/pull/8324",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-09-28T18:13:29Z",
+   "updatedAt": "2026-09-28T19:44:40Z",
+   "closedAt": "2026-09-28T19:44:40Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-28T18:16:54Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `94.24142%` with `52 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/protocol/STValidation.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvU1RWYWxpZGF0aW9uLmNwcA==) | 25.0% | [12 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/protocol/Serializer.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvU2VyaWFsaXplci5jcHA=) | 83.8% | [11 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/applySteps.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvYXBwbHlTdGVwcy5jcHA=) | 37.5% | [10 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/transactors/system/Batch.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvc3lzdGVtL0JhdGNoLmNwcA==) | 33.3% | [4 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/protocol/STPathSet.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1NUUGF0aFNldC5o) | 88.0% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/invariants/MPTInvariant.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvaW52YXJpYW50cy9NUFRJbnZhcmlhbnQuY3Bw) | 87.0% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...ude/xrpl/ledger/entries/TransactionProposalEntry.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL2xlZGdlci9lbnRyaWVzL1RyYW5zYWN0aW9uUHJvcG9zYWxFbnRyeS5o) | 0.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/protocol/PathAsset.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1BhdGhBc3NldC5o) | 75.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/protocol/STPathSet.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvU1RQYXRoU2V0LmNwcA==) | 94.7% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/shamap/SHAMap.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvc2hhbWFwL1NIQU1hcC5jcHA=) | 98.4% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| ... and [3 more](https://app.codecov.io/gh/XRPLF/rippled/pull/8324?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8324#issuecomment-5875897142"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-09-28T19:44:40Z",
+   "draft": false,
+   "base": "ripple/cosign",
+   "head": "Kassaking7:merge-ripple-cosign",
+   "additions": 15844,
+   "deletions": 3588,
+   "changedFiles": 269,
+   "commits": 43,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-28T18:21:20Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 8205,
+   "title": "feat: Introduce Cosign v1 amendment with TransactionProposalCreate",
+   "url": "https://github.com/XRPLF/rippled/pull/8205",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-09-09T15:54:05Z",
+   "updatedAt": "2026-09-28T17:00:44Z",
+   "closedAt": "2026-09-28T17:00:41Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-09T15:57:53Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.22064%` with `5 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [...transactors/proposal/TransactionProposalCreate.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvcHJvcG9zYWwvVHJhbnNhY3Rpb25Qcm9wb3NhbENyZWF0ZS5jcHA=) | 97.8% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...ude/xrpl/ledger/entries/TransactionProposalEntry.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL2xlZGdlci9lbnRyaWVzL1RyYW5zYWN0aW9uUHJvcG9zYWxFbnRyeS5o) | 0.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#issuecomment-5604820179"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-09T20:46:37Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#issuecomment-5608513641"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-23T19:56:32Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#issuecomment-5801942691"
+    }
+   ],
+   "body": "Implementation of https://github.com/XRPLF/XRPL-Standards/pull/613\n\n\n\n## High Level Overview of Change\n\nIntroduces the `Cosign` amendment (v1), enabling on-ledger transaction\ncosigning. This PR delivers the *create* step of the proposal lifecycle:\n- New ledger object `TransactionProposal` (`ltTRANSACTION_PROPOSAL`, `0x0091`)\n  that stores an unsigned proposed transaction pending multi-signature\n  collection.\n- New transaction `TransactionProposalCreate` (tx type `93`, fields\n  `sfProposedTransaction` + `sfExpiration`) that posts such a proposal\n  on-ledger.\n- RPC surface: proposals are returned by `account_objects` and looked up\n  via `ledger_entry.transaction_proposal`.\nThe amendment is `Supported::No, VoteBehavior::DefaultNo` — not enabled on\nany network yet. Follow-up PRs will add `TransactionProposalSign` /\n`Execute` / `Cancel`.\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-09-28T17:00:41Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:ripple/cosign-v1",
+   "additions": 4035,
+   "deletions": 6,
+   "changedFiles": 32,
+   "commits": 23,
+   "reviewComments": 14,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-09T16:00:25Z",
+     "body": "This diff consists solely of a new, extremely thorough unit test file (TransactionProposalCreate_test.cpp) covering preflight/preclaim/apply behavior, reserve accounting, and sponsorship for the new TransactionProposalCreate transaction; the second listed file (src/test/jtx/impl/proposal.cpp) has no diff content shown, so there is nothing to review there. The test file is well-commented and internally consistent — ticket/owner-count bookkeeping, TER expectations, and scoping of each Env instance all check out on inspection, and no resource leaks, missing cleanup, or logic errors that would produce false test passes were found within the visible diff. Note that the actual production code (new ledger object, new Transactor, RPC wiring) referenced in the MR description is not part of this diff, so correctness of the underlying implementation could not be assessed here — that should be reviewed separately if not already covered elsewhere in the MR."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-09T16:06:53Z",
+     "body": "### 🔵 Needs a closer look\n\nIt introduces a new amendment-gated transaction/ledger object and modifies core preflight semantics (via new apply flags) across multiple transactors, warranting final human review.\n\n<details>\n<summary>Pull request overview</summary>\n\nImplements the first step of the proposed on-ledger cosigning lifecycle (“create”) behind the new `Cosign` amendment, introducing an on-ledger `TransactionProposal` object and the `TransactionProposalCreate` transaction to post unsigned, ticket-based proposed transactions for later signature collection.\n\n**Changes:**\n- Adds `ltTRANSACTION_PROPOSAL` (keyed by `target + TicketSequence`) and `ttTRANSACTION_PROPOSAL_CREATE`, plus supporting protocol fields/feature flagging.\n- Introduces `TapProposal` apply/preflight semantics to allow proposal-time “unsigned storage” by deferring signature-presence requirements (notably Batch signer matching and auxiliary co-signatures).\n- Expands RPC/test support: `ledger_entry.transaction_proposal`, `account_objects` filtering/deletion-blockers handling, plus extensive unit tests and new jtx helpers.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/rpc/handlers/ledger/LedgerEntry.cpp | Adds parsing support for `ledger_entry.transaction_proposal` lookup (account + ticket sequence or by key). |\n| src/xrpld/rpc/handlers/account/AccountObjects.cpp | Includes `TransactionProposal` in `deletion_blockers_only` filtering/types. |\n| src/tests/libxrpl/protocol_autogen/transactions/TransactionProposalCreateTests.cpp | Auto-generated wrapper/builder round-trip tests for `TransactionProposalCreate`. |\n| src/tests/libxrpl/protocol_autogen/ledger_entries/TransactionProposalTests.cpp | Auto-generated wrapper/builder tests for the `TransactionProposal` ledger entry. |\n| src/test/rpc/AccountObjects_test.cpp | Adds regression coverage ensuring proposals appear in deletion blockers and can be type-filtered there. |\n| src/test/jtx/proposal.h | Introduces jtx helpers for proposal creation, unsigned payload shaping, and validation hooks. |\n| src/test/jtx/impl/proposal.cpp | Implements proposal jtx helpers and a detailed `verify::Create` ledger-effects checker. |\n| src/test/app/TransactionProposalCreate_test.cpp | Comprehensive behavioral tests for proposal creation (preflight/preclaim/apply, sponsorship, delegation, Batch interactions). |\n| src/libxrpl/tx/transactors/system/Batch.cpp | For proposed payloads, forwards `TapProposal|TapDryRun` into inner preflights and skips signer-presence checks in `preflightSigValidated`. |\n| src/libxrpl/tx/transactors/sponsor/SponsorshipTransfer.cpp | Allows missing `sfSponsorSignature` for proposed (TapProposal) account-reserve sponsorship transfers. |\n| src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp | Implements the `TransactionProposalCreate` transactor (preflight/preclaim/apply scaffolding). |\n| src/libxrpl/tx/transactors/lending/LoanSet.cpp | Allows missing `sfCounterpartySignature` for proposed (TapProposal) LoanSet payloads. |\n| src/libxrpl/tx/applySteps.cpp | Enforces `TapProposal` ⇒ `TapDryRun` invariant in release builds and adds type-erased `invokeCheckPermission`. |\n| src/libxrpl/protocol/Indexes.cpp | Adds `keylet::txProposal` and a new ledger namespace discriminator for proposals. |\n| src/libxrpl/ledger/helpers/SponsorHelpers.cpp | Adds sponsorship support/owner-count sizing for `ltTRANSACTION_PROPOSAL`. |\n| src/libxrpl/ledger/helpers/ProposalHelpers.cpp | Implements `proposal::isValidProposal` (rejects nested proposals/pseudo-txs/inner-batch misuse). |\n| include/xrpl/tx/transactors/proposal/TransactionProposalCreate.h | Declares the new transactor. |\n| include/xrpl/tx/Transactor.h | Adds debug-time assertion that proposal preflight implies dry-run. |\n| include/xrpl/tx/applySteps.h | Declares `invokeCheckPermission(ReadView, STTx)` API used for delegation checks. |\n| include/xrpl/protocol/Indexes.h | Declares `keylet::txProposal` in the public protocol header. |\n| include/xrpl/protocol/detail/transactions.macro | Registers `ttTRANSACTION_PROPOSAL_CREATE` (92) under `featureCosign`. |\n| include/xrpl/protocol/detail/sfields.macro | Adds new SFields used by cosign/proposals (e.g., `sfProposedTransaction`, `sfProposalID`, `sfSigningFor`). |\n| include/xrpl/protocol/detail/ledger_entries.macro | Registers `ltTRANSACTION_PROPOSAL` (0x0091) and its required fields. |\n| include/xrpl/protocol/detail/features.macro | Adds the `Cosign` amendment flag (`Supported::No`, `DefaultNo`). |\n| include/xrpl/protocol_autogen/transactions/TransactionProposalCreate.h | Auto-generated typed wrapper/builder for the transaction. |\n| include/xrpl/protocol_autogen/ledger_entries/TransactionProposal.h | Auto-generated typed wrapper/builder for the ledger entry. |\n| include/xrpl/ledger/helpers/ProposalHelpers.h | Defines proposal reserve sizing and shared signature/validity checks. |\n| include/xrpl/ledger/ApplyView.h | Introduces `TapProposal` apply flag to model proposal-payload preflight behavior. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 28/28 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-22T22:04:31Z",
+     "body": "Proposal nesting can exhaust stack — see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-23T19:01:20Z",
+     "body": "Null pointer dereference risk in CTID block — see inline."
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-23T20:00:19Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-23T20:02:32Z",
+     "body": "This diff adds the RPC-surface plumbing for the new TransactionProposal ledger object (account_objects filter, ledger_entry.transaction_proposal parser) plus auto-generated builder/wrapper tests and a new unit test file for a ProposalHelpers::isValidProposal guard. The changes are small, mechanical, and internally consistent with existing sibling code (parseSponsorship, parseTicket patterns). I didn't find any correctness, security, or resource-management bugs in the lines actually added. The one thing worth a quick sanity check with the author is the RPC lookup design for transaction_proposal, noted below as informational."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-23T20:04:05Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nUnresolved validation, ticket reservation, protocol type, and API documentation issues remain.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (4)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject empty signature containers in Batch inner transactions](#discussion_r4086766341) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Run local checks on proposed transaction payloads](#discussion_r4086766407) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Resolve conflicting TransactionProposalCreate transaction type assignment](#discussion_r4086766468) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document new transaction proposal API behavior](#discussion_r4086766536) · New\n</details>"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-23T20:28:22Z",
+     "body": "LGTM, each commit in this PR has been reviewed separately"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-23T20:39:11Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-23T20:49:38Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-25T19:19:37Z",
+     "body": "Diff is mostly test scaffolding (autogenerated STTx builder tests, gtest coverage for a new ProposalHelpers::isValidProposal guard) plus a small addition to AccountObjects.cpp's type filter table and a new parseTransactionProposal() lookup function in LedgerEntry.cpp. The new production code (parseTransactionProposal) is small, follows the existing parseTicket/parseSponsorship pattern in the file, and I don't see a clear correctness or security defect in the visible diff. One item worth a quick author confirmation below; otherwise no high-confidence issues found."
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-25T20:32:18Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-25T20:32:50Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-25T20:33:49Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "APPROVED",
+     "date": "2026-09-25T20:33:56Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-25T21:45:38Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-25T22:03:28Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nTicket use is not reserved or blocked after proposal creation, allowing live proposals to become permanently unexecutable.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Ticket can be consumed while referenced by a live proposal](#discussion_r4108996604) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (4)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Run local checks on proposed transaction payloads](#discussion_r4086766407)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject empty signature containers in Batch inner transactions](#discussion_r4086766341)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document new transaction proposal API behavior](#discussion_r4086766536)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Resolve conflicting TransactionProposalCreate transaction type assignment](#discussion_r4086766468)\n</details>"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-28T14:42:42Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-28T15:50:06Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-22T22:04:31Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "Stack exhaustion risk from nested proposal recursion. Move validation before preflight:\n\n```suggestion\n    if (proposal::isProposalTx(proposedTx))\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCreate: nested proposals not allowed.\";\n        return temINVALID;\n    }\n\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4076992839"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-23T20:00:18Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "```\nSTObject::STObject(SerialIter& sit, SField const& name, int depth) noexcept(false) : STBase(name)\n{\n    if (depth > 10)\n        Throw<std::runtime_error>(\"Maximum nesting depth of STObject exceeded\");\n    set(sit, depth);\n```\nFrom here we know once the depth > 10, we throw the error.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086735015"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-23T20:04:04Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "`isValidProposal` only checks nested proposal/pseudo types, so a proposed Batch can still contain an inner `CounterpartySignature` or `SponsorSignature` object. `Batch::preflight` accepts these when the object has no actual signature bytes, and the top-level `hasSignatureField(proposedTx)` never sees fields inside `RawTransactions`; this lets a non-canonical signature container be persisted even though this transaction requires no signature fields at creation. Include the signature-field check for each inner (and add a regression test for an empty nested signature object).",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766341"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-23T20:04:04Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "This validates the payload only through the transactor preflight path; it never runs `passesLocalChecks` on the constructed `STTx`. The outer transaction's local checks do not recurse into `sfProposedTransaction`, so payloads with an invalid/oversized memo, a default account field, or an unsupported MPT amount can be stored even though the same transaction can never be submitted later. Run the payload's local checks here and reject/map failures before creating the proposal.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766407"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-23T20:04:05Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "The PR description says `TransactionProposalCreate` uses transaction type 92, but this table assigns it type 93; type 92 is already assigned to `ConfidentialMPTMirrorUpdate` immediately above. Resolve the spec/code assignment before merging, since this numeric type is part of the serialized transaction wire format.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766468"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-23T20:04:05Z",
+     "path": "src/xrpld/rpc/handlers/account/AccountObjects.cpp",
+     "body": "This adds new public `ledger_entry.transaction_proposal` and `account_objects` behavior, but `API-CHANGELOG.md` has no corresponding addition. The PR template requires documenting public API additions, so add the API entry (and update the PR metadata) before merging.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766536"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-23T20:39:11Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Not applicable since inner txns are allowed to have empty signature fields.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4087075074"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-23T20:49:38Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "updated PR description",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4087162284"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-25T20:32:18Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "^ This has been fixed in a recent commit.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108395034"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-25T20:32:50Z",
+     "path": "src/xrpld/rpc/handlers/account/AccountObjects.cpp",
+     "body": "@Kassaking7  this appears to be a valid suggestion ^",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108398483"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-25T20:33:49Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "[d902f17](https://github.com/XRPLF/rippled/pull/8205/commits/d902f17790f1d2c54f1092ccc9e68449260d6a50)",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108405128"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-25T21:45:38Z",
+     "path": "src/xrpld/rpc/handlers/account/AccountObjects.cpp",
+     "body": "I believe we need this once when we release it. For now we shouldn't add. cc @shawnxie999",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108899807"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-25T22:03:27Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "Checking that the Ticket exists here does not reserve it for the proposal. After this transaction succeeds, the target can submit any ticket-based transaction using the same `TicketSequence` (or AccountDelete can remove the ticket), and the normal ticket-consumption path has no `txProposal` check, leaving this proposal permanently unable to execute while still occupying the proposer's reserve. The ticket-consumption/deletion paths need to reject or otherwise resolve use of a ticket referenced by a live proposal, and this case should be covered by a regression test.\n\nThis issue also appears on line 324 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108996604"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-28T15:50:05Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "This existence check is only Create-time validation (spec §5.3.2 #7): a proposal cannot be opened against a ticket that is not on ledger. It does not lock the Ticket SLE, and that is intentional.\n\nA live proposal must not block other transactions from consuming the same TicketSequence. The object is a bulletin board, not an execution gate: cancel does not revoke already-collected signatures, so the target’s way to actually prevent execution is to spend that ticket with another transaction (spec §13.4). Rejecting ticket consumption (including via AccountDelete) would break that revocation path.\n\nThe remaining follow-up is the other side of §4.5 / §11: when a ticket is consumed, look up txProposal(account, ticketSeq) and delete a matching proposal so the owner’s reserve is not stranded. That belongs in the ticket-deletion path, not here. Same for line 324 — doApply only uses the ticket as the proposal key; there is no second reservation check.  cc @shawnxie999",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4124223889"
+    }
+   ]
+  },
+  {
+   "number": 8278,
+   "title": "Cosign v1 merge 3",
+   "url": "https://github.com/XRPLF/rippled/pull/8278",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-09-23T19:30:01Z",
+   "updatedAt": "2026-09-23T19:56:16Z",
+   "closedAt": "2026-09-23T19:56:16Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-23T19:43:26Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8278?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8278#issuecomment-5801709926"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-09-23T19:56:16Z",
+   "draft": false,
+   "base": "ripple/cosign-v1",
+   "head": "Kassaking7:cosign-v1-merge-3",
+   "additions": 1182,
+   "deletions": 686,
+   "changedFiles": 52,
+   "commits": 40,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-23T19:32:21Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 8268,
+   "title": "Cosign v1 merge conflict 2",
+   "url": "https://github.com/XRPLF/rippled/pull/8268",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-09-22T22:04:13Z",
+   "updatedAt": "2026-09-23T18:40:36Z",
+   "closedAt": "2026-09-23T18:40:36Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-22T22:06:54Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `91.75258%` with `80 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/rpc/detail/Handler.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL3JwYy9kZXRhaWwvSGFuZGxlci5jcHA=) | 82.6% | [15 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/protocol/STValidation.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvU1RWYWxpZGF0aW9uLmNwcA==) | 25.0% | [12 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/protocol/Serializer.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvU2VyaWFsaXplci5jcHA=) | 83.8% | [11 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/applySteps.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvYXBwbHlTdGVwcy5jcHA=) | 37.5% | [10 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/xrpld/app/misc/detail/TxQ.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL2RldGFpbC9UeFEuY3Bw) | 69.0% | [9 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/transactors/system/Batch.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvc3lzdGVtL0JhdGNoLmNwcA==) | 33.3% | [4 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/xrpld/app/misc/NetworkOPs.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL05ldHdvcmtPUHMuY3Bw) | 60.0% | [4 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/protocol/STPathSet.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1NUUGF0aFNldC5o) | 88.0% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/invariants/MPTInvariant.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvaW52YXJpYW50cy9NUFRJbnZhcmlhbnQuY3Bw) | 87.0% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...ude/xrpl/ledger/entries/TransactionProposalEntry.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL2xlZGdlci9lbnRyaWVzL1RyYW5zYWN0aW9uUHJvcG9zYWxFbnRyeS5o) | 0.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| ... and [5 more](https://app.codecov.io/gh/XRPLF/rippled/pull/8268?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8268#issuecomment-5784976928"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-09-23T18:40:36Z",
+   "draft": false,
+   "base": "ripple/cosign-v1",
+   "head": "Kassaking7:cosign-v1-merge-conflict-2",
+   "additions": 13190,
+   "deletions": 2819,
+   "changedFiles": 216,
+   "commits": 42,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-22T22:18:07Z",
+     "body": ""
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-22T22:22:29Z",
+     "body": ""
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-23T17:15:15Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-23T17:58:51Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-23T18:35:10Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-22T22:18:07Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "🔴 **Severity: CRITICAL**\n\nDuplicate transaction type ID 92: `ttCONFIDENTIAL_MPT_MIRROR_UPDATE` reuses the same numeric ID as `ttTRANSACTION_PROPOSAL_CREATE`. This merge conflict artifact causes two distinct transaction types to share one wire-format tag, enabling transaction type confusion where a serialized transaction of one type is deserialized and processed as the other.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** This is a merge conflict artifact that needs to be resolved. The fix requires two changes:\n\n1. **Close the `ttTRANSACTION_PROPOSAL_CREATE` macro properly**: After line 1146 (`{sfExpiration, SoeRequired},`), add `}))` to terminate the TRANSACTION macro call.\n\n2. **Assign a unique transaction type ID to `ttCONFIDENTIAL_MPT_MIRROR_UPDATE`**: Change its ID from `92` to `93` (or the next available unused ID), since `92` is already taken by `ttTRANSACTION_PROPOSAL_CREATE`.\n\n3. **Add a proper separator**: Insert a blank line and comment block between the two TRANSACTION entries.\n\nThe corrected code for lines 1142-1158 should be:\n```\nTRANSACTION(ttTRANSACTION_PROPOSAL_CREATE, 92, TransactionProposalCreate,\n    ({.amendment = featureCosign}),\n    ({\n    {sfProposedTransaction, SoeRequired},\n    {sfExpiration, SoeRequired},\n}))\n\n#if TRANSACTION_INCLUDE\n#   include <xrpl/tx/transactors/token/ConfidentialMPTMirrorUpdate.h>\n#endif\nTRANSACTION(ttCONFIDENTIAL_MPT_MIRROR_UPDATE, 93, ConfidentialMPTMirrorUpdate,\n    ({.delegable = Delegation::Delegable, .amendment = featureConfidentialMPTKeyRotation}),\n    ({\n    {sfMPTokenIssuanceID, SoeRequired},\n    {sfHolder, SoeOptional},\n    {sfIssuerEncryptedAmount, SoeOptional},\n    {sfAuditorEncryptedAmount, SoeOptional},\n    {sfZKProof, SoeRequired},\n}))\n```\n\nAdditionally, after fixing the macro file, regenerate the auto-generated headers (e.g., `ConfidentialMPTMirrorUpdate.h`) so they reference the corrected ID (93 instead of 92).\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/8268#discussion_r4077103049"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-22T22:18:07Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "⚪ **Severity: LOW**\n\nBroken merge: the `ConfidentialMPTMirrorUpdate` TRANSACTION block is injected inside `TransactionProposalCreate`'s field list (before its closing `}))`) and consumes that closing delimiter, leaving `TransactionProposalCreate` with a malformed definition. This corrupts the transaction type registry, potentially allowing fields from one type to be accepted as belonging to the other.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** This is a broken merge conflict resolution. Two fixes are needed at lines 1142-1158 of `include/xrpl/protocol/detail/transactions.macro`:\n\n1. **Close `TransactionProposalCreate` before `ConfidentialMPTMirrorUpdate`**: Add `}))` after line 1146 (`{sfExpiration, SoeRequired},`) to properly close the `TransactionProposalCreate` TRANSACTION macro invocation. Then add a blank line and the `ConfidentialMPTMirrorUpdate` comment/include/TRANSACTION block as a separate, independent entry.\n\n2. **Fix the type-ID collision**: Both `ttTRANSACTION_PROPOSAL_CREATE` and `ttCONFIDENTIAL_MPT_MIRROR_UPDATE` are assigned type-ID `92`. Assign a unique type-ID to `ConfidentialMPTMirrorUpdate` (e.g., `93`).\n\nThe corrected code for lines 1142-1158 should be:\n```\nTRANSACTION(ttTRANSACTION_PROPOSAL_CREATE, 92, TransactionProposalCreate,\n    ({.amendment = featureCosign}),\n    ({\n    {sfProposedTransaction, SoeRequired},\n    {sfExpiration, SoeRequired},\n}))\n\n#if TRANSACTION_INCLUDE\n#   include <xrpl/tx/transactors/token/ConfidentialMPTMirrorUpdate.h>\n#endif\nTRANSACTION(ttCONFIDENTIAL_MPT_MIRROR_UPDATE, 93, ConfidentialMPTMirrorUpdate,\n    ({.delegable = Delegation::Delegable, .amendment = featureConfidentialMPTKeyRotation}),\n    ({\n    {sfMPTokenIssuanceID, SoeRequired},\n    {sfHolder, SoeOptional},\n    {sfIssuerEncryptedAmount, SoeOptional},\n    {sfAuditorEncryptedAmount, SoeOptional},\n    {sfZKProof, SoeRequired},\n}))\n```\nVerify that the chosen type-ID (93) is not already in use elsewhere in the file, and update any autogenerated headers accordingly.\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/8268#discussion_r4077103056"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-22T22:22:29Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "🔴 **Severity: CRITICAL**\n\nMerge conflict artifact: `ttCONFIDENTIAL_MPT_MIRROR_UPDATE` (type 92) is nested inside the unclosed `ttTRANSACTION_PROPOSAL_CREATE` (also type 92) macro call. The preprocessor consumes this as part of the outer macro's field list argument, breaking the transaction dispatch table, format registration, and enum generation. Two transaction types sharing ID 92 could cause one transactor's authorization/validation checks to be bypassed.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** This is a merge conflict artifact that requires two fixes:\n\n1. **Close the `ttTRANSACTION_PROPOSAL_CREATE` macro call**: Lines 1142-1146 open the TRANSACTION macro for `ttTRANSACTION_PROPOSAL_CREATE` (ID 92) but never close its field list with `}))`. Add `}))` after line 1146 (`{sfExpiration, SoeRequired},`) to properly terminate it.\n\n2. **Move the `#include` for ConfidentialMPTMirrorUpdate outside**: The `#if TRANSACTION_INCLUDE` / `#include <xrpl/tx/transactors/token/ConfidentialMPTMirrorUpdate.h>` / `#endif` block (lines 1147-1149) is currently inside the unclosed `ttTRANSACTION_PROPOSAL_CREATE` field list. It should be placed between the closed `ttTRANSACTION_PROPOSAL_CREATE` and the `ttCONFIDENTIAL_MPT_MIRROR_UPDATE` TRANSACTION macro, similar to how other transaction entries are structured (e.g., lines 1139-1141 for TransactionProposalCreate).\n\n3. **Assign a unique transaction type ID to `ttCONFIDENTIAL_MPT_MIRROR_UPDATE`**: Both transaction types currently share ID 92. One of them needs a different ID. Looking at the existing IDs, 93 through 99 are available (91 is SponsorshipSet, 92 is TransactionProposalCreate, next used is 100 for ttAMENDMENT). Assign an appropriate unique ID (e.g., 93) to `ttCONFIDENTIAL_MPT_MIRROR_UPDATE` — but confirm this with the protocol team as transaction type IDs are protocol-level constants.\n\nThe corrected structure should look like:\n```\nTRANSACTION(ttTRANSACTION_PROPOSAL_CREATE, 92, TransactionProposalCreate,\n    ({.amendment = featureCosign}),\n    ({\n    {sfProposedTransaction, SoeRequired},\n    {sfExpiration, SoeRequired},\n}))\n\n#if TRANSACTION_INCLUDE\n#   include <xrpl/tx/transactors/token/ConfidentialMPTMirrorUpdate.h>\n#endif\nTRANSACTION(ttCONFIDENTIAL_MPT_MIRROR_UPDATE, <unique_id>, ConfidentialMPTMirrorUpdate,\n    ...\n```\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/8268#discussion_r4077136838"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-23T17:15:15Z",
+     "path": "include/xrpl/tx/transactors/token/ConfidentialMPTMirrorUpdate.h",
+     "body": "🔴 **Severity: CRITICAL**\n\nThe `doApply` implementation writes transaction-supplied ciphertexts (`sfIssuerEncryptedAmount`, `sfAuditorEncryptedAmount`) directly to the ledger's mirror fields without cryptographically verifying the `sfZKProof`. Only the proof's byte **length** is checked in `preflight`. Other confidential MPT transactors (e.g. `ConfidentialMPTSend`, `ConfidentialMPTConvertBack`) verify their ZK proofs in `preclaim`. An issuer or holder can submit arbitrary ciphertext, corrupting the encrypted mirror balances.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add cryptographic verification of `sfZKProof` in the `preclaim` method of `ConfidentialMPTMirrorUpdate`, following the same pattern used by other confidential MPT transactors.\n\nSpecifically:\n1. Create a `getMirrorUpdateContextHash()` function (in `ConfidentialTransfer.h/.cpp`) that generates a transaction-specific context hash binding the proof to this particular mirror update (incorporating account, issuanceID, sequence, holder, and relevant epoch/version info) to prevent proof replay.\n2. Create or expose a `verifyMirrorUpdateProof()` (or `verifyEqualityProof()`) function that wraps the appropriate mpt-crypto library call (e.g., `mpt_verify_equality_proof`) to cryptographically verify that the submitted ciphertexts (`sfIssuerEncryptedAmount`, `sfAuditorEncryptedAmount`) encrypt the same plaintext value as the holder's existing `sfConfidentialBalanceSpending`. This must verify the `sfZKProof` against the old ciphertext, the new ciphertext, the old public key, and the new public key.\n3. In `ConfidentialMPTMirrorUpdate::preclaim()`, after the existing validation checks, call the new verification function for each mirror being updated (issuer and/or auditor), returning `tecBAD_PROOF` if verification fails.\n4. Handle all migration modes appropriately: issuer-mode (flows 1-4) should verify against the issuer's/auditor's new key and the existing mirror balance; holder self-migration (flows 5-7) should verify against the holder's spending balance and the new encryption keys.\n5. Update the test helpers to generate valid equality proofs instead of zero buffers (`gMakeZeroBuffer`).\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/8268#discussion_r4085217469"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-23T17:58:51Z",
+     "path": "include/xrpl/tx/transactors/token/ConfidentialMPTMirrorUpdate.h",
+     "body": "Introduced by another PR, not related to cosign",
+     "url": "https://github.com/XRPLF/rippled/pull/8268#discussion_r4085620706"
+    }
+   ]
+  },
+  {
+   "number": 8207,
+   "title": "line coverage for cosign-v1",
+   "url": "https://github.com/XRPLF/rippled/pull/8207",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-09-09T17:43:02Z",
+   "updatedAt": "2026-09-22T21:53:47Z",
+   "closedAt": "2026-09-22T21:53:46Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-09T17:44:55Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8207?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.96373%` with `4 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8207?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8207?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvZXNjcm93L0VzY3Jvd0NyZWF0ZS5jcHA=) | 75.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8207?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8207?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvZXNjcm93L0VzY3Jvd0ZpbmlzaC5jcHA=) | 80.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8207?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...transactors/proposal/TransactionProposalCreate.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8207?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvcHJvcG9zYWwvVHJhbnNhY3Rpb25Qcm9wb3NhbENyZWF0ZS5jcHA=) | 99.2% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8207?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/transactors/system/Change.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8207?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvc3lzdGVtL0NoYW5nZS5jcHA=) | 66.7% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8207?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#issuecomment-5606237826"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-16T16:58:49Z",
+     "body": "> @Kassaking7 can you first merge `develop` branch into the `ripple/cosign-v1` branch? Are all the 41 files modified in this PR relevant to the cosign-test coverage?\n> \n> For example, are the changes to `.github/scripts/strategy-matrix/linux.json` file required for improving the test coverage?\n\nAh I think that's my last commit merging develop that introduced files that were not relevant. In this case I would suggest just checking by commits (u can just hide the merge develop commit change). Because normally we need a PR to merge develop into feature branch, which will takes more time than expected",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#issuecomment-5701320623"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-16T20:20:43Z",
+     "body": "@Kassaking7  there is a failing CI check ^",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#issuecomment-5703957173"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-09-22T21:53:46Z",
+   "draft": false,
+   "base": "ripple/cosign-v1",
+   "head": "Kassaking7:cosign-v1-line-coverage",
+   "additions": 1236,
+   "deletions": 51,
+   "changedFiles": 42,
+   "commits": 8,
+   "reviewComments": 10,
+   "reviews": [
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-09T18:58:08Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-09T20:21:23Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-12T00:40:27Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-16T16:38:41Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-16T16:38:48Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-16T16:39:11Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-16T16:43:31Z",
+     "body": "@Kassaking7  can you first merge `develop` branch into the `ripple/cosign-v1` branch? Are all the 41 files modified in this PR relevant to the cosign-test coverage?\n\nFor example, are the changes to `.github/scripts/strategy-matrix/linux.json` file required for improving the test coverage?"
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-16T18:20:46Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-16T18:21:48Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "APPROVED",
+     "date": "2026-09-22T20:59:20Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-09T18:58:08Z",
+     "path": "src/libxrpl/tx/applySteps.cpp",
+     "body": "we dont need to comment about the unreachable here",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#discussion_r3971984507"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-12T00:20:18Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "Can we test this by modifying the OpenLedger reference (similar to the examples in Invariants test) ? I vaguely remember seeing some corrupt / unreadable `SignerList` unit-tests. In such a corrupt ledger-state, it is useful to validate that we hit the `tefBAD_LEDGER` error code.",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#discussion_r3994375659"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-12T00:24:06Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "Could you explain why this line is unreachable in unit-tests? My understanding is that we need to construct a corrupt ledger-state where the `Delegate` ledger-object exists, however the associated `SignerList` is unparseable.",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#discussion_r3994389517"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-12T00:25:37Z",
+     "path": "src/libxrpl/tx/applySteps.cpp",
+     "body": "Isn't this block testable by specifying a sfDelegate inside a proposed-transaction and ensuring that the proposed-transaction has an ill-specified transaction-type ??",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#discussion_r3994394232"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-12T00:39:23Z",
+     "path": "src/xrpld/rpc/handlers/ledger/LedgerEntry.cpp",
+     "body": "An error string to the effect of \"expect a hex string to parse the proposal-ID\" would be helpful here.",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#discussion_r3994442773"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-16T16:38:41Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "@Kassaking7  can you address this comment from my previous review?",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#discussion_r4028427992"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-16T16:38:48Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "@Kassaking7  can you address this comment from my previous review?",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#discussion_r4028428957"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-16T16:39:11Z",
+     "path": "src/libxrpl/tx/applySteps.cpp",
+     "body": "@Kassaking7  can you address this comment from my previous review?",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#discussion_r4028432611"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-16T18:20:45Z",
+     "path": "src/libxrpl/tx/applySteps.cpp",
+     "body": "`xrpl::invokeCheckPermission(view, tx)` is currently called only from\n`TransactionProposalCreate::preclaim`, and the `tx` it hands in is built\nas `STTx const proposedStTx{STObject{proposedTx}};`.\n`STTx::STTx(STObject&&)` routes every construction through `getTxFormat`\n(`src/libxrpl/protocol/STTx.cpp` ~L58–75), which `Throw<std::runtime_error>`s\non any TxType not registered in `TxFormats`. That throw happens in\n`TransactionProposalCreate::preflight`, whose `catch (std::exception const&)`\nreturns `temMALFORMED` — so an ill-specified TransactionType is rejected\nbefore `preclaim` (and therefore `invokeCheckPermission`) ever runs.\n`testRejectedPayload` already pins that behavior:\n`tx[jss::TransactionType] = 65535; reject(tx, temMALFORMED);`.\nThe switch inside `withTxnType` is generated from `transactions.macro`, so\nevery registered TxType has its own `case`. The `default: throw UnknownTxnType(...)`\nis therefore only reachable if a new TxType is added to the enum without\nbeing added to `transactions.macro`, which is a coding error that no public API can\nprovoke. That is exactly what the `UNREACHABLE(...)` next to it asserts, and\nwhy the block sits under `LCOV_EXCL_START/STOP`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#discussion_r4029345466"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-16T18:21:48Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "It turns out it could be tested. Added a test :D",
+     "url": "https://github.com/XRPLF/rippled/pull/8207#discussion_r4029354767"
+    }
+   ]
+  },
+  {
+   "number": 8197,
+   "title": "Cosign merge develop",
+   "url": "https://github.com/XRPLF/rippled/pull/8197",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-09-08T19:35:41Z",
+   "updatedAt": "2026-09-09T14:52:42Z",
+   "closedAt": "2026-09-09T14:52:42Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-08T19:38:24Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `95.45455%` with `31 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/overlay/detail/PeerImp.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL292ZXJsYXkvZGV0YWlsL1BlZXJJbXAuY3Bw) | 0.0% | [7 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/xrpld/rpc/BookChanges.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL3JwYy9Cb29rQ2hhbmdlcy5o) | 72.0% | [7 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/xrpld/app/misc/NetworkOPs.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL05ldHdvcmtPUHMuY3Bw) | 84.4% | [5 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/xrpld/rpc/detail/PathRequest.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL3JwYy9kZXRhaWwvUGF0aFJlcXVlc3QuY3Bw) | 66.7% | [4 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/protocol/MPTAmount.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL01QVEFtb3VudC5o) | 50.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/ledger/helpers/VaultHelpers.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvbGVkZ2VyL2hlbHBlcnMvVmF1bHRIZWxwZXJzLmNwcA==) | 91.7% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/protocol/Sign.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvU2lnbi5jcHA=) | 93.5% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/Transactor.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvVHJhbnNhY3Rvci5jcHA=) | 75.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/transactors/vault/VaultDeposit.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvdmF1bHQvVmF1bHREZXBvc2l0LmNwcA==) | 85.7% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8197?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8197#issuecomment-5590777517"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-09-09T14:52:42Z",
+   "draft": false,
+   "base": "ripple/cosign",
+   "head": "Kassaking7:cosign-v1-merge-develop",
+   "additions": 12893,
+   "deletions": 1479,
+   "changedFiles": 174,
+   "commits": 42,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-09T14:52:09Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 8113,
+   "title": "Cosign develop",
+   "url": "https://github.com/XRPLF/rippled/pull/8113",
+   "state": "closed",
+   "author": "shawnxie999",
+   "createdAt": "2026-08-25T18:44:08Z",
+   "updatedAt": "2026-08-28T17:53:01Z",
+   "closedAt": "2026-08-28T17:53:01Z",
+   "labels": [],
+   "comments": [],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": true,
+   "base": "develop",
+   "head": "shawnxie999:cosign-develop",
+   "additions": 3278,
+   "deletions": 3,
+   "changedFiles": 25,
+   "commits": 8,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 8124,
+   "title": "Merge develop into Cosign",
+   "url": "https://github.com/XRPLF/rippled/pull/8124",
+   "state": "closed",
+   "author": "shawnxie999",
+   "createdAt": "2026-08-26T14:52:29Z",
+   "updatedAt": "2026-08-26T16:57:36Z",
+   "closedAt": "2026-08-26T16:57:36Z",
+   "labels": [],
+   "comments": [],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-08-26T16:57:36Z",
+   "draft": false,
+   "base": "ripple/cosign",
+   "head": "shawnxie999:cosign-develop3",
+   "additions": 59522,
+   "deletions": 34727,
+   "changedFiles": 908,
+   "commits": 165,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "Kassaking7",
+     "state": "APPROVED",
+     "date": "2026-08-26T15:25:38Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-08-26T15:29:45Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-08-26T15:42:29Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Kassaking7",
+     "date": "2026-08-26T15:29:45Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "We don't have delegation for cosign right? The NotDelegable here disable proposer to create a proposal with delegater. The inner tx need but it depends on inner tx's config",
+     "url": "https://github.com/XRPLF/rippled/pull/8124#discussion_r3864302414"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-08-26T15:42:28Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "The new change disabled delegate by default:\n\n```\n *     struct TxSettings\n *     {\n *         Delegation delegable{Delegation::NotDelegable};\n *         uint256 amendment{};\n *         Privilege privileges{Privilege::NoPriv};\n *     };\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8124#discussion_r3864386424"
+    }
+   ]
+  },
+  {
+   "number": 8117,
+   "title": "Revert \"Merge develop into Cosign\"",
+   "url": "https://github.com/XRPLF/rippled/pull/8117",
+   "state": "closed",
+   "author": "shawnxie999",
+   "createdAt": "2026-08-25T21:09:46Z",
+   "updatedAt": "2026-08-25T21:33:06Z",
+   "closedAt": "2026-08-25T21:19:01Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-25T21:33:06Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `90.52133%` with `20 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [include/xrpl/peerfinder/detail/Logic.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3BlZXJmaW5kZXIvZGV0YWlsL0xvZ2ljLmg=) | 75.0% | [6 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/net/HTTPClientSSLContext.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL25ldC9IVFRQQ2xpZW50U1NMQ29udGV4dC5o) | 0.0% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/beast/net/IPAddressConversion.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL2JlYXN0L25ldC9JUEFkZHJlc3NDb252ZXJzaW9uLmg=) | 50.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/beast/net/IPEndpoint.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL2JlYXN0L25ldC9JUEVuZHBvaW50Lmg=) | 50.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/nodestore/detail/codec.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL25vZGVzdG9yZS9kZXRhaWwvY29kZWMuaA==) | 60.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/protocol/ApiVersion.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL0FwaVZlcnNpb24uaA==) | 77.8% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/protocol/STArray.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1NUQXJyYXkuaA==) | 0.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [include/xrpl/peerfinder/detail/Checker.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3BlZXJmaW5kZXIvZGV0YWlsL0NoZWNrZXIuaA==) | 0.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8117?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8117#issuecomment-5417100466"
+    }
+   ],
+   "body": "Reverts XRPLF/rippled#8112",
+   "merged": true,
+   "mergedAt": "2026-08-25T21:19:01Z",
+   "draft": false,
+   "base": "ripple/cosign",
+   "head": "XRPLF:revert-8112-cosign-develop",
+   "additions": 34431,
+   "deletions": 57611,
+   "changedFiles": 904,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  }
+ ],
+ "issues": [],
+ "proposals": [
+  {
+   "number": 612,
+   "title": "Cosign work",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/612",
+   "state": "closed",
+   "isPr": true,
+   "author": "shawnxie999",
+   "createdAt": "2026-08-26T15:26:38Z",
+   "updatedAt": "2026-08-26T15:29:53Z",
+   "comments": 0,
+   "labels": []
+  },
+  {
+   "number": 586,
+   "title": "Cosign",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/586",
+   "state": "closed",
+   "isPr": true,
+   "author": "shawnxie999",
+   "createdAt": "2026-07-21T20:50:43Z",
+   "updatedAt": "2026-08-17T18:28:50Z",
+   "comments": 1,
+   "labels": []
+  },
+  {
+   "number": 602,
+   "title": "Cosign",
+   "url": "https://github.com/XRPLF/XRPL-Standards/pull/602",
+   "state": "closed",
+   "isPr": true,
+   "author": "shawnxie999",
+   "createdAt": "2026-08-17T17:44:22Z",
+   "updatedAt": "2026-08-17T17:44:28Z",
+   "comments": 0,
+   "labels": []
+  }
+ ],
+ "branches": [
+  "ripple/cosign"
+ ]
+}
