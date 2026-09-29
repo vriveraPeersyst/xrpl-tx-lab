@@ -1,6 +1,6 @@
 {
  "name": "AMM",
- "fetchedAt": "2026-09-28T13:02:02.983Z",
+ "fetchedAt": "2026-09-29T16:01:02.144Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -11,10 +11,10 @@
   "branches": [
    "gregtatcam/retire/fixAMMv1_1"
   ],
-  "lastActivity": "2026-09-23T20:36:03Z",
+  "lastActivity": "2026-09-28T15:59:55Z",
   "lastMerged": "2026-08-24T13:50:52Z",
   "release": "1.12.0",
-  "totalComments": 418
+  "totalComments": 420
  },
  "release": {
   "version": "1.12.0",
@@ -30,9 +30,11 @@
    "state": "open",
    "author": "Kassaking7",
    "createdAt": "2026-08-26T22:13:19Z",
-   "updatedAt": "2026-09-23T20:36:03Z",
+   "updatedAt": "2026-09-28T15:59:55Z",
    "closedAt": null,
-   "labels": [],
+   "labels": [
+    "Needs additional review"
+   ],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -51,7 +53,7 @@
    "deletions": 24,
    "changedFiles": 10,
    "commits": 4,
-   "reviewComments": 1,
+   "reviewComments": 2,
    "reviews": [
     {
      "author": "copilot-pull-request-reviewer[bot]",
@@ -64,6 +66,12 @@
      "state": "APPROVED",
      "date": "2026-09-23T20:36:03Z",
      "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-28T15:59:55Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nAdd LoanBroker holder-side deep-freeze regression coverage and update the libxrpl impact checklist.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Add regression test for holder-side deep-freeze rejection](#discussion_r4124322515) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [`destIsIssuer` is currently true for MPT amounts as well as IOUs (it only checks…](#discussion_r3908842326)\n</details>"
     }
    ],
    "reviewCommentsList": [
@@ -73,6 +81,13 @@
      "path": "src/libxrpl/tx/transactors/check/CheckCash.cpp",
      "body": "`destIsIssuer` is currently true for MPT amounts as well as IOUs (it only checks `!value.native()`), which makes the new `FreezeHandling::IgnoreFreeze` path apply to locked/frozen MPT balances too. If the intent is only to allow IOU redemption to the issuer (as described in the comment/PR description), scope this to `Issue` amounts so MPT behavior is unchanged.",
      "url": "https://github.com/XRPLF/rippled/pull/8129#discussion_r3908842326"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-28T15:59:54Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerCoverDeposit.cpp",
+     "body": "This adds a new holder-side deep-freeze rejection path for `LoanBrokerCoverDeposit`, but the existing `testCoverDepositFreezes` cases only exercise issuer-side freezes (for the source and pseudo-account). Please add a regression case that sets the depositor's own-side deep-freeze flag and verifies the `fixCleanup3_5_0` result, including the pre-amendment behavior, so this newly introduced branch is covered independently of the Vault/AMM callers.",
+     "url": "https://github.com/XRPLF/rippled/pull/8129#discussion_r4124322515"
     }
    ]
   },
