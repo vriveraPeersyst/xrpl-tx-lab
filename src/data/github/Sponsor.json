@@ -1,25 +1,26 @@
 {
  "name": "Sponsor",
- "fetchedAt": "2026-09-29T16:06:39.672Z",
+ "fetchedAt": "2026-10-01T08:06:46.027Z",
  "summary": {
   "status": "in development",
   "prs": 12,
   "open": 2,
-  "merged": 8,
+  "merged": 9,
   "issues": 0,
   "proposals": 2,
   "branches": [
    "dangell7/sponsor-reap",
+   "mvadari/rearch/sponsorship-entry",
    "mvadari/sponsor/ai-tests",
    "mvadari/sponsor-add",
    "vvysokikh/sponsor-bug-repros",
    "xrplf/sponsor",
    "xrplf/sponsor-supported"
   ],
-  "lastActivity": "2026-09-26T13:33:58Z",
-  "lastMerged": "2026-09-01T15:14:50Z",
+  "lastActivity": "2026-09-29T18:50:25Z",
+  "lastMerged": "2026-09-29T18:50:20Z",
   "release": "3.3.0",
-  "totalComments": 432
+  "totalComments": 435
  },
  "release": {
   "version": "3.3.0",
@@ -32,11 +33,11 @@
    "number": 8304,
    "title": "fix: Use reserveToAdd when sponsored",
    "url": "https://github.com/XRPLF/rippled/pull/8304",
-   "state": "open",
+   "state": "closed",
    "author": "TimothyBanks",
    "createdAt": "2026-09-26T13:31:57Z",
-   "updatedAt": "2026-09-26T13:33:58Z",
-   "closedAt": null,
+   "updatedAt": "2026-09-29T18:50:25Z",
+   "closedAt": "2026-09-29T18:50:20Z",
    "labels": [],
    "comments": [
     {
@@ -44,18 +45,30 @@
      "date": "2026-09-26T13:33:58Z",
      "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8304?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
      "url": "https://github.com/XRPLF/rippled/pull/8304#issuecomment-5846690484"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-29T18:07:10Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8304#issuecomment-5895865943"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-29T18:23:21Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8304#issuecomment-5896113325"
     }
    ],
    "body": "## High Level Overview of Change\n\nPR addresses detailed finding 3.16: EscrowCreate::doApply() calculates the bytecode-proportional reserveToAdd and correctly uses it when checking the creator’s pre-lock balance\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
+   "merged": true,
+   "mergedAt": "2026-09-29T18:50:20Z",
    "draft": false,
    "base": "ripple/smart-escrow",
    "head": "XRPLF:timothybanks/reserve-to-add",
    "additions": 57,
    "deletions": 4,
    "changedFiles": 2,
-   "commits": 1,
+   "commits": 2,
    "reviewComments": 0,
    "reviews": [
     {
@@ -63,6 +76,63 @@
      "state": "APPROVED",
      "date": "2026-09-26T13:33:00Z",
      "body": "This is a focused, well-scoped fix: EscrowCreate::doApply() now uses the bytecode-proportional `reserveToAdd` (instead of a hardcoded `1`) when computing the owner's pre-lock reserve requirement in the unsponsored case, matching the described finding 3.16. The accompanying BytecodeRun.cpp test directly exercises the boundary (funding one reserve unit short vs. exactly enough) and asserts tecUNFUNDED vs tesSUCCESS, which validates the fix. I don't see any changed lines that introduce a new correctness, security, or resource-management problem — the sponsored branch's behavior (ownerCountDelta = 0) is unchanged, and the test's arithmetic (oneUnit < twoUnits, dave underfunded, erin funded) is internally consistent with the fix."
+    },
+    {
+     "author": "pwang200",
+     "state": "DISMISSED",
+     "date": "2026-09-29T17:40:38Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-29T18:23:54Z",
+     "body": "The change correctly replaces the hardcoded ownerCountDelta of 1 with the previously-computed reserveToAdd when checking the escrow creator's pre-lock balance in the unsponsored case, matching the PR's stated goal (fixing finding 3.16 so bytecode-proportional reserve is enforced pre-lock, not just at creation). The comment update accurately reflects the new behavior, and the added test (a_lock_leaving_the_owner_short_of_the_bytecode_reserve_is_refused) exercises both the under-funded (tecUNFUNDED) and exactly-funded (tesSUCCESS) boundary cases using a bytecode size that requires 2 reserve units. I don't see a correctness or security issue introduced by this diff — it's a narrow, well-tested fix."
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2026-09-29T18:24:06Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
+   "number": 8331,
+   "title": "test: Sponsor checkSign additional tests",
+   "url": "https://github.com/XRPLF/rippled/pull/8331",
+   "state": "open",
+   "author": "oleks-rip",
+   "createdAt": "2026-09-29T18:10:19Z",
+   "updatedAt": "2026-09-29T18:19:55Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-29T18:12:27Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8331?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8331#issuecomment-5895948093"
+    }
+   ],
+   "body": "Add more tests for sponsor + different signatures combination",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "oleks-rip:sponsor_check_sign",
+   "additions": 72,
+   "deletions": 0,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-29T18:19:55Z",
+     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nThe added tests correctly exercise the expected sponsor authorization outcomes.\n\n**Review effort:** Balanced  \n**Findings:** None\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds sponsor authorization coverage for single-signature and multisignature edge cases.\n\n**Changes:**\n- Tests regular keys, disabled master keys, unrelated keys, and pseudo-accounts.\n- Tests insufficient multisignature quorum and unknown signers.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​test/​app/​Sponsor_test.cpp` | Expands sponsor signature validation tests. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
     }
    ],
    "reviewCommentsList": []
@@ -3099,59 +3169,6 @@
      "url": "https://github.com/XRPLF/rippled/pull/7556#discussion_r3502088948"
     }
    ]
-  },
-  {
-   "number": 7726,
-   "title": "Add repro tests: ValidVault fee-sponsor false positive, SponsorshipTransfer tecINTERNAL",
-   "url": "https://github.com/XRPLF/rippled/pull/7726",
-   "state": "closed",
-   "author": "vvysokikh1",
-   "createdAt": "2026-07-06T10:32:45Z",
-   "updatedAt": "2026-07-08T16:54:20Z",
-   "closedAt": "2026-07-08T16:54:20Z",
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-07-06T10:59:02Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7726?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 82.5%. Comparing base ([`6c90277`](https://app.codecov.io/gh/XRPLF/rippled/commit/6c902777eebd542110129bf0060688fb8cdfbafb?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`5490b6d`](https://app.codecov.io/gh/XRPLF/rippled/commit/5490b6dc97a233d2d5f40ba4283fd9d471ebcc65?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)).\n:warning: Report is 10 commits behind head on xrplf/sponsor.\n\n<details><summary>Additional details and impacted files</summary>\n\n\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/7726/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/7726?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n```diff\n@@              Coverage Diff              @@\n##           xrplf/sponsor   #7726   +/-   ##\n=============================================\n  Coverage           82.5%   82.5%           \n=============================================\n  Files               1034    1035    +1     \n  Lines              79898   79943   +45     \n  Branches            9014    9014           \n=============================================\n+ Hits               65918   65961   +43     \n- Misses             13971   13973    +2     \n  Partials               9       9           \n```\n[see 9 files with indirect coverage changes](https://app.codecov.io/gh/XRPLF/rippled/pull/7726/indirect-changes?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/7726/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/7726?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n</details>\n<details><summary> :rocket: New features to boost your workflow: </summary>\n\n- :snowflake: [Test Analytics](https://docs.codecov.com/docs/test-analytics): Detect flaky tests, report on failures, and find test suite problems.\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/7726#issuecomment-4892005602"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-07-06T15:16:56Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7726#issuecomment-4894454125"
-    },
-    {
-     "author": "vvysokikh1",
-     "date": "2026-07-08T16:54:18Z",
-     "body": "closing as https://github.com/XRPLF/rippled/pull/7738 fixes this",
-     "url": "https://github.com/XRPLF/rippled/pull/7726#issuecomment-4917182774"
-    }
-   ],
-   "body": "",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "xrplf/sponsor",
-   "head": "XRPLF:vvysokikh/sponsor-bug-repros",
-   "additions": 87,
-   "deletions": 0,
-   "changedFiles": 1,
-   "commits": 1,
-   "reviewComments": 0,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-07-06T10:39:47Z",
-     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
-    }
-   ],
-   "reviewCommentsList": []
   }
  ],
  "issues": [],
@@ -3183,6 +3200,7 @@
  ],
  "branches": [
   "dangell7/sponsor-reap",
+  "mvadari/rearch/sponsorship-entry",
   "mvadari/sponsor/ai-tests",
   "mvadari/sponsor-add",
   "vvysokikh/sponsor-bug-repros",

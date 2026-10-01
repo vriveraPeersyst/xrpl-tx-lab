@@ -1,19 +1,153 @@
 {
  "name": "MPTokensV2",
- "fetchedAt": "2026-09-29T16:05:11.437Z",
+ "fetchedAt": "2026-10-01T08:05:11.758Z",
  "summary": {
-  "status": "no GitHub trail found",
-  "prs": 0,
-  "open": 0,
+  "status": "in development",
+  "prs": 2,
+  "open": 1,
   "merged": 0,
   "issues": 1,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-05-13T19:22:30Z",
-  "totalComments": 0
+  "lastActivity": "2026-09-29T18:22:58Z",
+  "totalComments": 12
  },
  "release": {},
- "prs": [],
+ "prs": [
+  {
+   "number": 8330,
+   "title": "fix: Enable the large Number mantissa with MPTokensV2",
+   "url": "https://github.com/XRPLF/rippled/pull/8330",
+   "state": "open",
+   "author": "gregtatcam",
+   "createdAt": "2026-09-29T17:53:10Z",
+   "updatedAt": "2026-09-29T18:22:58Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-29T17:56:10Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8330?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8330#issuecomment-5895697254"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nMPT arithmetic under MPTokensV2 uses Number, and a 19-digit MPT amount\ndoesn't fit the small 16-digit mantissa that transactions use unless\nSingleAssetVault or LendingProtocol is enabled. Add MPTokensV2 to the\namendments that enable the large mantissa, so MPT math never runs at\nthe small scale regardless of activation order.\n\nThe IOU AMM tests keep the small mantissa, as they do for\nSingleAssetVault and LendingProtocol. The MPT AMM tests now run with\nthe large mantissa, and their expected values are updated.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n## Test Plan\n\n- Test changes:\n  - `testAMM()` and the IOU AMM suites (AMM, AMMExtended, AMMClawback) strip MPTokensV2 for pools without an MPT asset, so they keep the small mantissa, as they already do for SingleAssetVault and LendingProtocol.\n  - EscrowToken and AMMClawbackMPT treat MPTokensV2 as enabling the large mantissa.\n  - AMMMPT and AMMExtendedMPT expected values are updated to the large-mantissa results. Most are more precise (LP tokens, withdraw remainders, a full single-sided deposit that the small mantissa rounded down by one unit). A few move by one unit because of the AMM's rounding in the pool's favor. One \"calculated tokens are 0\" withdraw uses 1e-16 USD, since the previous 1e-11 now yields valid nonzero tokens.\n  - No IOU or XRP test expectations change.\n- Verified with MPTokensV2 on and SingleAssetVault/LendingProtocol off. Before this change, `divide(maxMPT, 1)` threw a Number overflow and an MPT AMM clawback returned `tecINTERNAL`. With the large mantissa, both behave correctly.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:gregtatcam/mpt/add-mptv2gate-large-mantissa",
+   "additions": 66,
+   "deletions": 53,
+   "changedFiles": 9,
+   "commits": 1,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-29T17:56:20Z",
+     "body": "This MR extends the large-Number-mantissa gating (Rules.cpp) to include featureMPTokensV2, and updates the various AMM/Escrow test suites and their expected values accordingly. The core Rules.cpp change is correct and consistent with the existing pattern (both enableLargeNumbers and useRulesGuards updated together). Most test-value updates look like mechanical adjustments to reflect increased precision and are consistent with the PR description. One real issue found: redefining `all` in AMMClawback_test.cpp to already exclude featureMPTokensV2 makes the very next `testInvalidRequest(all - featureMPTokensV2)` call identical to `testInvalidRequest(all)`, silently dropping coverage of the 'MPTokensV2 enabled' scenario for invalid-request tests."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-29T18:03:49Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nMPTokensV2-specific IOU test branches become unreachable, and the activation-order guarantee lacks direct guard coverage.\n\n**Review effort:** Balanced  \n**Findings:** 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (3)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Retain MPTokensV2 fill-mode coverage](#discussion_r4136710065) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Preserve MPTokensV2-enabled regression coverage](#discussion_r4136710123) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Update mantissa-selection documentation for MPTokensV2](#discussion_r4136710166) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nEnables large `Number` mantissas under MPTokensV2 and updates affected AMM and escrow tests.\n\n**Changes:**\n- Adds MPTokensV2 to large-mantissa rule selection.\n- Updates MPT AMM expected rounding results.\n- Adjusts test feature configurations and clawback expectations.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​protocol/​Rules.cpp` | Enables large mantissas and rule guards for MPTokensV2. |\n| `src/​test/​jtx/​impl/​AMMTest.cpp` | Selects MPTokensV2 based on pool assets. |\n| `src/​test/​app/​EscrowToken_test.cpp` | Updates mantissa-aware escrow expectations. |\n| `src/​test/​app/​AMMMPT_test.cpp` | Updates MPT AMM rounding results. |\n| `src/​test/​app/​AMMExtendedMPT_test.cpp` | Updates an MPT path-payment result. |\n| `src/​test/​app/​AMMExtended_test.cpp` | Removes MPTokensV2 from the default IOU feature set. |\n| `src/​test/​app/​AMMClawbackMPT_test.cpp` | Treats MPTokensV2 as enabling large mantissas. |\n| `src/​test/​app/​AMMClawback_test.cpp` | Keeps IOU clawback tests on small mantissas. |\n| `src/​test/​app/​AMM_test.cpp` | Keeps IOU AMM tests on small mantissas. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-29T18:03:48Z",
+     "path": "src/test/app/AMMExtended_test.cpp",
+     "body": "This makes the two `testFillModes` invocations at lines 1453–1454 identical and permanently skips the `features[featureMPTokensV2]` branch at line 271. Keep one explicitly MPTokensV2-enabled invocation so the post-amendment `tfPassive` behavior remains covered, while retaining the stripped baseline for legacy-mantissa tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/8330#discussion_r4136710065"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-29T18:03:49Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Removing `featureMPTokensV2` from this suite-wide baseline makes the existing post-amendment cases unreachable. In particular, the paired calls at lines 7484–7485 and 7507–7508 now pass identical feature sets, and the `featureMPTokensV2` branches in `testAMMAndCLOB`/`testFixAMMOfferBlockedByLOB` can no longer run. Please retain a dedicated MPTokensV2-enabled feature set for those regression cases while using the stripped baseline only for tests that specifically require the legacy mantissa.",
+     "url": "https://github.com/XRPLF/rippled/pull/8330#discussion_r4136710123"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-29T18:03:49Z",
+     "path": "src/libxrpl/protocol/Rules.cpp",
+     "body": "This changes the documented mantissa-selection contract, but `include/xrpl/basics/Number.h:312-348` still says only SingleAssetVault and LendingProtocol select the large range and instructs tests to check only those amendments. Update that documentation to include MPTokensV2 so callers and future tests do not follow a stale contract.\n\nThis issue also appears on line 88 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/8330#discussion_r4136710166"
+    }
+   ]
+  },
+  {
+   "number": 8329,
+   "title": "fix: Enable the large Number mantissa with MPTokensV2",
+   "url": "https://github.com/XRPLF/rippled/pull/8329",
+   "state": "closed",
+   "author": "gregtatcam",
+   "createdAt": "2026-09-29T17:02:41Z",
+   "updatedAt": "2026-09-29T17:24:55Z",
+   "closedAt": "2026-09-29T17:21:25Z",
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-29T17:05:19Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8329?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.43750%` with `1 line` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8329?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/ledger/helpers/MPTokenHelpers.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvbGVkZ2VyL2hlbHBlcnMvTVBUb2tlbkhlbHBlcnMuY3Bw) | 75.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8329?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8329#issuecomment-5894921449"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-09-29T17:21:25Z",
+     "body": "Closing as it's based on wrong branch.",
+     "url": "https://github.com/XRPLF/rippled/pull/8329#issuecomment-5895169613"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nMPT arithmetic under MPTokensV2 uses Number, and a 19-digit MPT amount\ndoesn't fit the small 16-digit mantissa that transactions use unless\nSingleAssetVault or LendingProtocol is enabled. Add MPTokensV2 to the\namendments that enable the large mantissa, so MPT math never runs at\nthe small scale regardless of activation order.\n\nThe IOU AMM tests keep the small mantissa, as they do for\nSingleAssetVault and LendingProtocol. The MPT AMM tests now run with\nthe large mantissa, and their expected values are updated.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n## Test Plan\n\n- Test changes:\n  - `testAMM()` and the IOU AMM suites (AMM, AMMExtended, AMMClawback) strip MPTokensV2 for pools without an MPT asset, so they keep the small mantissa, as they already do for SingleAssetVault and LendingProtocol.\n  - EscrowToken and AMMClawbackMPT treat MPTokensV2 as enabling the large mantissa.\n  - AMMMPT and AMMExtendedMPT expected values are updated to the large-mantissa results. Most are more precise (LP tokens, withdraw remainders, a full single-sided deposit that the small mantissa rounded down by one unit). A few move by one unit because of the AMM's rounding in the pool's favor. One \"calculated tokens are 0\" withdraw uses 1e-16 USD, since the previous 1e-11 now yields valid nonzero tokens.\n  - No IOU or XRP test expectations change.\n- Verified with MPTokensV2 on and SingleAssetVault/LendingProtocol off. Before this change, `divide(maxMPT, 1)` threw a Number overflow and an MPT AMM clawback returned `tecINTERNAL`. With the large mantissa, both behave correctly.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:gregtatcam/mpt/mptv2gate-large-mantissa",
+   "additions": 2058,
+   "deletions": 289,
+   "changedFiles": 19,
+   "commits": 9,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-29T17:07:47Z",
+     "body": "This diff adds two new BookStep test scenarios to FlowMPT_test.cpp (testBookStepInputAboveMaximumAmount and testBookStepMissingIssuance) and updates a few pre-existing expected-value assertions/comments to reflect large-mantissa Number results. The new test code is test-only, self-contained (each scenario builds its own jtx::Env), and the arithmetic in the comments checks out against the asserted values (e.g. the four-round crossing sequence sums to bidGets=2000, and the transfer-fee gross-up math is consistent). No production/library code is touched in this diff. I did not find resource leaks, missing cleanup, or logic errors that would cause flaky or incorrect test behavior, so I'm not flagging any issues with confidence."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-29T17:22:00Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nA valid issuer-filled MPT bid can be rejected, and the broader non-MPT consensus impact is not documented.\n\n**Review effort:** Balanced  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (2)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Asset-rate check rejects valid MPT bids](#discussion_r4136352172) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [MPT large scale changes non-MPT transaction behavior](#discussion_r4136352259) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nEnables large-mantissa arithmetic for MPTokensV2 and updates MPT offer, payment, escrow, and AMM behavior accordingly.\n\n**Changes:**\n- Routes MPT arithmetic through large-precision `Number` operations.\n- Handles MPT transfer-fee overflow, zero-rounded offers, and issuance limits.\n- Updates and expands regression tests for affected calculations.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​test/​rpc/​BookChanges_test.cpp` | Updates book-change rate tests. |\n| `src/​test/​protocol/​STAmount_test.cpp` | Adds large-MPT arithmetic coverage. |\n| `src/​test/​jtx/​impl/​AMMTest.cpp` | Selects mantissa behavior by pool assets. |\n| `src/​test/​app/​OfferMPT_test.cpp` | Expands MPT offer edge-case tests. |\n| `src/​test/​app/​FlowMPT_test.cpp` | Tests MPT flow limits and missing issuances. |\n| `src/​test/​app/​EscrowToken_test.cpp` | Accounts for MPTokensV2 precision. |\n| `src/​test/​app/​AMMMPT_test.cpp` | Updates MPT AMM rounding expectations. |\n| `src/​test/​app/​AMMExtendedMPT_test.cpp` | Updates extended MPT AMM expectations. |\n| `src/​test/​app/​AMMExtended_test.cpp` | Preserves legacy IOU AMM precision. |\n| `src/​test/​app/​AMMClawbackMPT_test.cpp` | Recognizes MPTokensV2 large mantissas. |\n| `src/​test/​app/​AMMClawback_test.cpp` | Preserves legacy IOU clawback precision. |\n| `src/​test/​app/​AMM_test.cpp` | Preserves legacy IOU AMM precision. |\n| `src/​libxrpl/​tx/​transactors/​dex/​OfferCreate.cpp` | Handles large MPT rates and fee overflow. |\n| `src/​libxrpl/​tx/​paths/​BookStep.cpp` | Adds zero-rounding and issuance-cap handling. |\n| `src/​libxrpl/​protocol/​STAmount.cpp` | Uses `Number` arithmetic for MPT operands. |\n| `src/​libxrpl/​protocol/​Rules.cpp` | Enables large mantissas for MPTokensV2. |\n| `src/​libxrpl/​ledger/​PaymentSandbox.cpp` | Allows zero self-debit tracking. |\n| `src/​libxrpl/​ledger/​helpers/​MPTokenHelpers.cpp` | Adds optional maximum-amount lookup. |\n| `include/​xrpl/​ledger/​helpers/​MPTokenHelpers.h` | Declares and documents helper behavior. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-29T17:21:59Z",
+     "path": "src/libxrpl/tx/transactors/dex/OfferCreate.cpp",
+     "body": "This rejects valid bids, because the future input transfer rate is context-dependent. For example, with zero outstanding supply, a holder can bid for `MaximumAmount` of a fee-bearing MPT and the issuer can take that bid by issuing exactly `MaximumAmount`; `BookOfferCrossingStep::getOfrInRate` uses parity when the preceding MPT endpoint issues, so no gross-up or overflow occurs. This unconditional asset-rate check nevertheless returns `tecKILLED`. Avoid deciding restability from the raw transfer rate here; the crossing path needs to apply the effective rate (and partial limits) for the actual taker.",
+     "url": "https://github.com/XRPLF/rippled/pull/8329#discussion_r4136352172"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-29T17:22:00Z",
+     "path": "src/libxrpl/protocol/Rules.cpp",
+     "body": "Enabling the large scale here changes `Number` arithmetic for every transaction under MPTokensV2, including pure IOU/XRP paths. The added BookStep tests explicitly expect MPTokensV2 to change pure IOU and XRP offer outcomes, while the PR overview describes only MPT arithmetic and says IOU/XRP expectations do not change. This consensus-scope expansion should either be constrained to MPT operations or explicitly documented and reviewed as a non-MPT behavior change.",
+     "url": "https://github.com/XRPLF/rippled/pull/8329#discussion_r4136352259"
+    }
+   ]
+  }
+ ],
  "issues": [
   {
    "number": 7163,
