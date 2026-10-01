@@ -1,6 +1,6 @@
 {
  "name": "PayChan",
- "fetchedAt": "2026-09-29T16:05:47.301Z",
+ "fetchedAt": "2026-10-01T08:05:49.935Z",
  "summary": {
   "status": "in development",
   "prs": 5,
@@ -10,12 +10,13 @@
   "proposals": 1,
   "branches": [
    "dangell7/token-paychan-clawback",
+   "mvadari/rearch/paychannel-entry",
    "token-paychan"
   ],
-  "lastActivity": "2026-09-15T18:19:59Z",
+  "lastActivity": "2026-09-30T15:58:57Z",
   "lastMerged": "2025-10-14T19:20:07Z",
   "release": "0.33.0",
-  "totalComments": 136
+  "totalComments": 139
  },
  "release": {
   "version": "0.33.0",
@@ -31,9 +32,11 @@
    "state": "open",
    "author": "dangell7",
    "createdAt": "2026-07-28T00:05:30Z",
-   "updatedAt": "2026-09-15T18:19:59Z",
+   "updatedAt": "2026-09-30T15:58:57Z",
    "closedAt": null,
-   "labels": [],
+   "labels": [
+    "PR: has conflicts"
+   ],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -58,6 +61,18 @@
      "date": "2026-09-15T18:19:59Z",
      "body": "@dangell7 ready to merge?",
      "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5685679631"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-09-30T15:46:09Z",
+     "body": "@mvadari yes, ready once CI is green. clang-tidy is fixed in 40a6ebe713 and develop is merged in.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5914699723"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-30T15:58:57Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5914916136"
     }
    ],
    "body": "## High Level Overview of Change\n\nPulls the refactoring out of #5448 (XLS-93d Token-Enabled Payment Channels) into its own PR so it can merge ahead of the feature. Code motion only, no functional change.\n\n- Moves the escrow lock/unlock helpers from the Escrow transactors into `EscrowHelpers.h`.\n- Moves the jtx `paychan` helpers from `TestHelpers.h` into their own `test/jtx/paychan.h`, and hoists the file-local helpers from `PayChan_test.cpp` into them.\n- Moves the escrowed balance test helpers from `EscrowToken_test.cpp` into the shared jtx `TestHelpers.h`.\n\n### Context of Change\n\nSplit out of #5448 per review feedback. The token paychan transactors reuse the escrow lock/unlock helpers, so the extraction lands here first and the feature PR becomes mostly additive.\n\n### API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nNo new tests, the moved code is covered by the existing suites. Ran Escrow, EscrowToken, Sponsor, PayChan, MPToken, AMM.",
@@ -67,9 +82,9 @@
    "base": "develop",
    "head": "Transia-RnD:dangell7/escrow-paychan-refactor",
    "additions": 592,
-   "deletions": 572,
+   "deletions": 573,
    "changedFiles": 13,
-   "commits": 5,
+   "commits": 7,
    "reviewComments": 4,
    "reviews": [
     {
@@ -113,6 +128,12 @@
      "state": "APPROVED",
      "date": "2026-09-15T17:51:39Z",
      "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-30T15:39:01Z",
+     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nNo unresolved review issues were identified.\n\n**Review effort:** Lite  \n**Findings:** None"
     }
    ],
    "reviewCommentsList": [
@@ -1061,13 +1082,14 @@
    "isPr": true,
    "author": "dangell7",
    "createdAt": "2026-05-10T06:08:57Z",
-   "updatedAt": "2026-09-03T16:05:01Z",
+   "updatedAt": "2026-09-30T14:52:14Z",
    "comments": 7,
    "labels": []
   }
  ],
  "branches": [
   "dangell7/token-paychan-clawback",
+  "mvadari/rearch/paychannel-entry",
   "token-paychan"
  ]
 }

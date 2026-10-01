@@ -1,10 +1,10 @@
 {
  "name": "fixBatchV1_2",
- "fetchedAt": "2026-09-29T16:10:15.981Z",
+ "fetchedAt": "2026-10-01T08:10:25.874Z",
  "summary": {
   "status": "in development",
   "prs": 7,
-  "open": 7,
+  "open": 6,
   "merged": 0,
   "issues": 1,
   "proposals": 3,
@@ -17,8 +17,8 @@
    "ripple/custody-old-batch-cmpt",
    "tialymov/FN-6-lending_batch_support"
   ],
-  "lastActivity": "2026-09-29T10:14:45Z",
-  "totalComments": 214
+  "lastActivity": "2026-09-30T18:24:11Z",
+  "totalComments": 295
  },
  "release": {},
  "prs": [
@@ -29,7 +29,7 @@
    "state": "open",
    "author": "tyalymov",
    "createdAt": "2026-09-17T20:52:54Z",
-   "updatedAt": "2026-09-29T10:14:45Z",
+   "updatedAt": "2026-09-30T18:24:11Z",
    "closedAt": null,
    "labels": [
     "feature: LP1.2"
@@ -54,11 +54,11 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:tialymov/FN-6-lending_batch_support",
-   "additions": 811,
-   "deletions": 20,
-   "changedFiles": 4,
-   "commits": 6,
-   "reviewComments": 12,
+   "additions": 988,
+   "deletions": 30,
+   "changedFiles": 7,
+   "commits": 9,
+   "reviewComments": 20,
    "reviews": [
     {
      "author": "xrplf-ai-reviewer[bot]",
@@ -143,6 +143,66 @@
      "state": "CHANGES_REQUESTED",
      "date": "2026-09-29T10:13:02Z",
      "body": "I checked that the counterparty still has to sign the Batch for an inner `LoanSet` (`LoanSet::preflight` requires `sfCounterparty` on inners, and `Batch::preflightSigValidated` adds it to the required signers). The gate itself looks correct. The comments are mostly about test precision. The main question is why the impair inner in `testLoan` was dropped."
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:21Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:22Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:23Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:24Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:25Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:26Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:28Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-30T17:40:53Z",
+     "body": "The core change is a small, well-contained amendment gate in Batch::preflight: the pre-existing kDisabledTxTypes rejection is now skipped when featureLendingProtocolV1_2 is enabled, with downstream transactors still enforcing their own feature requirements (e.g. Vault/Lending amendments) via their normal preflight/preclaim checks. The logic is equivalent to the old behavior when the amendment is disabled and correctly permissive when enabled. The bulk of the diff is new/refactored test code (LendingBatch_test.cpp, Batch_test.cpp, batch.h/cpp helper), which looks internally consistent with the stated test plan. I didn't find correctness, security, or resource-leak issues in the changed lines."
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:59:51Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-30T18:24:11Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nThe broad protocol and lending transaction changes require final human review.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Calculate batch fee for both signers](#discussion_r4106802684)\n</details>"
     }
    ],
    "reviewCommentsList": [
@@ -229,169 +289,62 @@
      "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
      "body": "Nit: once V1_2 is enabled, this list only matters for replaying older ledgers. Maybe rename it to something like `rejectedPreV1_2`, and add a note on `kDisabledTxTypes` in `Batch.h` that it can go away when the amendment is retired.",
      "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216675"
-    }
-   ]
-  },
-  {
-   "number": 8091,
-   "title": "fix: Count partial batch progress in a TX-set reply",
-   "url": "https://github.com/XRPLF/rippled/pull/8091",
-   "state": "open",
-   "author": "bthomee",
-   "createdAt": "2026-08-23T22:10:04Z",
-   "updatedAt": "2026-09-28T13:39:25Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-25T19:36:28Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415709461"
     },
     {
-     "author": "github-actions[bot]",
-     "date": "2026-08-25T19:36:35Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415710850"
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:21Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "That was deliberate. Since `fixCleanup3_4_0`, `LoanManage` rejects `tfLoanImpair` with `tecTOO_SOON` until a payment is late, so a `LoanSet` and an impair can't both succeed in one batch, and `tfAllOrNothing` rolls the whole batch back. The old block never ran on develop anyway: `kDisabledTxTypes` always contained `ttLOAN_BROKER_SET`, so `lendingBatchEnabled` was always false. Impairment is now covered by `testImpairAndCoverDeposit` in LendingBatch. It creates the loan, moves the clock past `NextPaymentDueDate`, then impairs the loan and deposits cover in one batch, and checks `lsfLoanImpaired`, the vault's `LossUnrealized` and the broker's `CoverAvailable`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527054"
     },
     {
-     "author": "github-actions[bot]",
-     "date": "2026-08-25T19:48:27Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415850563"
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:22Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527275"
     },
     {
-     "author": "github-actions[bot]",
-     "date": "2026-08-25T19:48:33Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415851731"
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:23Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527454"
     },
     {
-     "author": "github-actions[bot]",
-     "date": "2026-08-25T19:48:33Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415851746"
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:24Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527653"
     },
     {
-     "author": "codecov[bot]",
-     "date": "2026-08-26T00:23:04Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `91.30435%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/ledger/detail/TransactionAcquire.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9sZWRnZXIvZGV0YWlsL1RyYW5zYWN0aW9uQWNxdWlyZS5jcHA=) | 90.9% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5418838721"
-    }
-   ],
-   "body": "Part 14/28 of a stack. Base: part 13 (`bthomee/shamap-invalid-11-revive-timer`).\n\n## High Level Overview of Change\n\n`TransactionAcquire::takeNodes()` now accumulates one combined verdict across a whole batch instead of\nstopping at the first bad node, so a packet that ends badly still gets credit — and clears the\ntimeout-postponing progress flag — for the good nodes ahead of it, matching what\n`InboundLedger::receiveNode()` already does.\n\n### Context of Change\n\n`TransactionAcquire::takeNodes()` accumulates one `SHAMapAddNode` across the batch and hands it back, so\na packet ending on one bad node still counts the nodes hooked in ahead of it. A root the set already\nholds counts as a duplicate rather than passing unremarked, which is what tells a batch of nodes we\nalready have from one that was never examined at all.\n\nThe body moves to `takeNodesLocked()` and `takeNodes()` becomes a thin wrapper that takes the lock and\nrecords what the batch achieved on the one exit — several of the inner exits stop the batch early, and\nnothing in the compiler catches one that forgets to record progress. Progress turns on the batch being\nuseful rather than good, so a batch of nothing but duplicates records none: that flag is what keeps the\nnext timer tick from counting a timeout, and a reply carrying nothing new advanced nothing. It costs\nretry budget on the ordinary second responder to a fan-out and nothing else.\n\n`InboundTransactions::gotData()` asks `isGood()` rather than `isUseful()` for the useless-data charge,\nwhich keeps that duplicate free — now that the verdict distinguishes a duplicate from an empty tally,\nthe useful test would charge for it while the batch that was never examined still needs charging.\n\n`testPartialBatchIsCounted` feeds two good nodes followed by one at a position it cannot occupy, and\nchecks the verdict names both halves and that the flag is set; then a batch of nothing but a root\nalready held, checking it is good, not useful, and records nothing; then that root alongside a node the\nset does need, checking the duplicate is reported as one while the other records the progress.\n\n### API Impact\n\nNone of the checkboxes below apply: this is an internal `xrpld` correctness fix with no `libxrpl`,\npublic-API, or peer-protocol surface.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "bthomee/shamap-invalid-11-revive-timer",
-   "head": "XRPLF:bthomee/shamap-invalid-12-batch-progress",
-   "additions": 148,
-   "deletions": 14,
-   "changedFiles": 4,
-   "commits": 1,
-   "reviewComments": 3,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-08-23T22:14:11Z",
-     "body": "## Pull request overview\n\nThis PR improves `TransactionAcquire::takeNodes()` accounting so partial success in a TX-set node batch is preserved (good nodes counted) even when the batch ends with a bad node, and “progress” is recorded based on actual map advancement rather than “overall good.” This aligns TX-set acquisition behavior with how inbound ledger node batches are already handled.\n\n**Changes:**\n- Refactors `TransactionAcquire::takeNodes()` to delegate to `takeNodesLocked()` and record progress on a single exit path based on `SHAMapAddNode::isUseful()`.\n- Accumulates a combined `SHAMapAddNode` verdict across the whole batch, including explicit duplicate counting for an already-held root.\n- Updates `InboundTransactions::gotData()` to charge useless-data fees based on `!san.isGood()` (so duplicate-only replies are not charged) and adds a focused regression test.\n\n### Reviewed changes\n\nCopilot reviewed 4 out of 4 changed files in this pull request and generated no comments.\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/app/ledger/detail/TransactionAcquire.h | Documents batch-level verdict semantics and introduces `takeNodesLocked()` for single-exit progress recording. |\n| src/xrpld/app/ledger/detail/TransactionAcquire.cpp | Implements batch verdict accumulation, early-exit returns that preserve prior counts, and progress recording only when the batch added nodes. |\n| src/xrpld/app/ledger/detail/InboundTransactions.cpp | Adjusts useless-data charging to use `isGood()` so duplicate-only replies aren’t penalized while empty/unprocessed replies still are. |\n| src/test/app/TransactionAcquire_test.cpp | Adds `testPartialBatchIsCounted` to validate partial-batch tallying, duplicate handling, and progress flag behavior. |\n\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/bthomee/shamap-invalid-11-revive-timer?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/en/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:25Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527811"
     },
     {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-08-24T14:45:20Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 4 changed files in this pull request and generated no new comments."
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:26Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527984"
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-29T00:20:20Z",
-     "body": "This is a well-scoped, carefully tested change: `TransactionAcquire::takeNodesLocked()` now accumulates a combined `SHAMapAddNode` verdict across a batch instead of bailing out with a fresh `invalid()` on the first bad node, so good nodes processed earlier in the packet still count and correctly set `progress_` (gated on `isUseful()` in the thin `takeNodes()` wrapper). The `InboundTransactions.cpp` switch from `isUseful()` to `isGood()` for the useless-data charge correctly avoids penalizing an honest duplicate-only reply from a second responder in a fan-out. I traced the root/non-root branches, the duplicate-increment paths, and the new `testPartialBatchIsCounted` test cases against the implementation and didn't find a correctness bug — the accumulation, early-return-on-bad-node, and duplicate-vs-useful distinction all line up with the stated intent and the test's expected tallies. One minor point worth a quick sanity check below (not a blocker)."
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:28Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147528153"
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-27T14:43:36Z",
-     "body": "This change refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a batch (splitting the body into takeNodesLocked()), and switches InboundTransactions::gotData() to check isGood() instead of isUseful() so duplicate-only replies aren't charged as useless. The control flow (root-duplicate handling, early-return-on-bad-node while retaining prior accumulated tally, exception path retaining partial progress, and the new progress_ logic based on isUseful()||getDuplicate()>0) is internally consistent and matches the accompanying test (testPartialBatchIsCounted), which exercises the partial-good-then-bad batch, duplicate-root-only batch, and mixed duplicate+useful batch cases. I traced the added/changed lines in TransactionAcquire.cpp/.h, InboundTransactions.cpp, and the new test closely and did not find a clear correctness, security, or resource-management bug in the changed lines; the logic appears deliberate and well-tested. No issues are being raised with high confidence."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-27T15:36:46Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nDuplicate-only replies must not set progress, or timeout accounting can be bypassed.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917) · New\n</details>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-27T16:20:13Z",
-     "body": "This is a well-structured refactor of `TransactionAcquire::takeNodes()` to accumulate a combined `SHAMapAddNode` verdict across a batch instead of bailing on the first bad node, mirroring the pattern already used in `InboundLedger::receiveNode()`. The control flow in `takeNodesLocked()` (root-duplicate → continue, root-add-fail → return, non-root-add-fail → return, success → trigger+return) is internally consistent, and the new `testPartialBatchIsCounted` test exercises the partial-batch, duplicate-only, and mixed-duplicate cases with tallies that match the code's logic. The `progress_`/`isUseful() || getDuplicate() > 0` gating in the thin `takeNodes()` wrapper correctly ties the timeout-postponing flag to any useful-or-duplicate outcome rather than requiring full success. The one point worth double-checking (not flagged as a defect, since `SHAMapAddNode`'s `isGood()`/`getDuplicate()` aren't in this diff and are presumably established in an earlier part of this 28-part stack) is that `InboundTransactions::gotData()`'s new `!san.isGood()` check must actually differ from the case already excluded by the preceding `!san.isValid()`/`isInvalid()` branch — i.e. `isGood()` must be false for a truly empty/never-examined tally and true for a duplicate-only tally — otherwise the useless-data charge could become unreachable. No changed lines otherwise show a clear bug, resource leak, or security issue."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-27T16:25:08Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAddress the unresolved duplicate-progress and missing follow-up trigger paths.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917)\n</details>"
-    },
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2026-09-27T16:50:52Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-27T19:25:17Z",
-     "body": "The core batch-accumulation logic in TransactionAcquire.cpp looks correct and well-tested (root/known-node paths correctly accumulate the combined verdict, and the wrapper correctly gates progress_ on usefulness-or-duplicate). However, the companion change in InboundTransactions.cpp that swaps the useless-data charge from isUseful() to isGood() appears to overshoot the stated intent: it stops charging both genuine duplicates (the intended fix) and the 'never examined' empty-tally case (complete_/failed_/early-return paths), which the MR description says should still be charged."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-27T19:27:27Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAn unresolved discrepancy between duplicate progress tracking, tests, and documented timeout semantics requires human review.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917)\n</details>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-27T19:55:19Z",
-     "body": "This change refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a batch instead of stopping at the first bad node, mirroring InboundLedger::receiveNode(). The accumulation logic (san += result, incDuplicate/incInvalid, early-return-with-accumulated-tally) is applied consistently for both root and non-root node paths, and the progress_ flag is now set based on isUseful() || duplicate>0 in the new thin wrapper, matching the new unit test's expectations (partial-good-then-bad batch, pure-duplicate-root batch, and mixed duplicate+useful batch). The InboundTransactions.cpp switch from isUseful() to isGood() for the useless-data charge is explained by the MR description as intentional (keeping duplicate-only replies free of a useless-data charge while still charging a batch that was never examined), and this mirrors an established pattern used elsewhere in the codebase. I traced the control flow for missed returns, double-counting, lock/thread-safety around the new takeNodesLocked() split, and move-semantics on the node vector, and did not find a concrete correctness bug introduced by this diff. No high-confidence issues to flag."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-27T23:10:46Z",
-     "body": "This diff refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a whole batch instead of bailing on the first bad node, moving the body into a new takeNodesLocked() helper and updating InboundTransactions::gotData() to charge based on isGood() rather than isUseful() so duplicate-only replies aren't penalized. I traced the accumulation logic (root duplicate handling, non-root addKnownNode handling, the exception path, and the progress_ flag update in the wrapper) against the new testPartialBatchIsCounted test cases and the design rationale in the description (mirroring InboundLedger::receiveNode()), and the implementation is internally consistent: partial-good batches still report isUseful()==true, pure-duplicate batches report isGood()==true/isUseful()==false while still setting progress_ via the explicit getDuplicate()>0 check, and the early-exit paths (complete_/failed_/empty data) are untouched and still produce a non-good tally so they remain chargeable. No correctness, security, or resource issues were found in the changed lines."
-    },
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2026-09-28T13:39:25Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-09-27T15:36:46Z",
-     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
-     "body": "A duplicate does not advance the acquisition, so including `getDuplicate() > 0` leaves `progress_` set for a packet containing only nodes already held. A peer can replay that root on every timer interval and prevent `TimeoutCounter` from counting timeouts, potentially keeping the acquisition alive indefinitely; progress should depend only on `san.isUseful()`, with the duplicate-only test adjusted to expect no progress.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4115930917"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-09-27T16:50:52Z",
-     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
-     "body": "Confirmed, and this one needs a human decision, so I am leaving it open. `invokeOnTimer` increments `timeouts_` **only** when `!progress_`; otherwise it clears `progress_` and counts nothing. Because a duplicate-only batch from any peer already in `requestedPeers_` sets `progress_`, that set is never cleared, and duplicate replies are free, an asked peer can hold `timeouts_` still at no cost, so `onTimer`'s failure path is never reached.\n\nTwo qualifications in fairness. It is bounded rather than indefinite: `newRound()` erases the entry, so the exposure is one keep-window, not forever. And the widened predicate was a deliberate choice, made to stop a peer that loses a fan-out race from looking like a stall. Your finding argues against that choice rather than against an oversight, which is why it needs the maintainer rather than me.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4116142963"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-09-28T13:39:25Z",
-     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
-     "body": "The mechanism you describe is right: `TimeoutCounter::invokeOnTimer` advances `timeouts_` only when `!progress_`, `requestedPeers_` is never erased, and a duplicate-only batch costs its sender nothing.\n\nIt is bounded rather than reverted, on `bthomee/shamap-invalid-17-duplicate-progress` (#8149), which owns the predicate. A duplicate-only batch from a peer we asked now spends from a budget of `kMaxDuplicateCredits` consecutive intervals with no useful node in between. Any batch that advances the set sets the budget back to full, and `stillNeed()` resets it when a round revives the acquisition. A credit is spent only when nothing else has answered in that interval, so a wide fan-out costs one credit rather than one per loser.\n\n`kMaxDuplicateCredits` is `kNormTimeouts`, which is generous for the case the credit exists for: a peer that loses a fan-out race is settled in one or two intervals.\n\nReverting to `san.isUseful()` alone would be stricter than the base rather than equal to it. On `develop` the success path of `takeNodes` returns `SHAMapAddNode::useful()` unconditionally, so a duplicate-only batch from any sender, asked or not, sets `progress_` there.\n\nA new case, `testDuplicateCreditRunsOut`, feeds one more duplicate-only batch than the budget holds and asserts that the last one records no progress. Removing the bound turns that case red, with one failure at the bound assertion. None of the seven existing cases that touch this predicate changed its expectation, and the suite ran green at the same count as before the change.\n\n_The change is on the local branch and appears here on the next push of this stack._",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4122805279"
+     "author": "tyalymov",
+     "date": "2026-09-30T17:59:51Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "This batch has one batch signer, `batch::Sig(borrower)`, and `calcBatchFee(env, 1, 5)` matches it. The two-signer batch is in `testArbitrage` (`batch::Sig(lender, mm2)`), which uses `calcBatchFee(env, 2, 5)`. Both batches succeed with `tesSUCCESS`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147720397"
     }
    ]
   },
@@ -402,9 +355,11 @@
    "state": "open",
    "author": "oleks-rip",
    "createdAt": "2026-08-19T16:48:52Z",
-   "updatedAt": "2026-09-24T19:20:00Z",
+   "updatedAt": "2026-09-30T15:59:05Z",
    "closedAt": null,
-   "labels": [],
+   "labels": [
+    "PR: has conflicts"
+   ],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -429,6 +384,12 @@
      "date": "2026-09-23T17:00:16Z",
      "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
      "url": "https://github.com/XRPLF/rippled/pull/8052#issuecomment-5799120442"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-30T15:59:05Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#issuecomment-5914918226"
     }
    ],
    "body": "## High Level Overview of Change\nBatch transactions allow to be queued.\nSome limitations:  Inner tx can't be replaced, Batch tx (or its inner)  can't replace any tx.  (regular tx still can replace batch tx)",
@@ -981,6 +942,665 @@
    ]
   },
   {
+   "number": 6360,
+   "title": "feat: Support lending in batch",
+   "url": "https://github.com/XRPLF/rippled/pull/6360",
+   "state": "closed",
+   "author": "a1q123456",
+   "createdAt": "2026-02-12T16:21:30Z",
+   "updatedAt": "2026-09-30T07:30:54Z",
+   "closedAt": "2026-09-30T07:30:54Z",
+   "labels": [
+    "DraftRunCI",
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "Tapanito",
+     "date": "2026-02-23T18:14:36Z",
+     "body": "Why does this require another amendment? Hey can't we reuse\nfixLendingProtocolV1_1?\n\nOn Mon, Feb 23, 2026, 18:39 Ed Hennis ***@***.***> wrote:\n\n> ***@***.**** requested changes on this pull request.\n>\n> This 100% requires an amendment.\n>\n> —\n> Reply to this email directly, view it on GitHub\n> <https://github.com/XRPLF/rippled/pull/6360#pullrequestreview-3842570383>,\n> or unsubscribe\n> <https://github.com/notifications/unsubscribe-auth/ABMDKU7FH6G2PDPLU7ZUXFD4NM3NFAVCNFSM6AAAAACU5JSXVOVHI2DSMVQWIX3LMV43YUDVNRWFEZLROVSXG5CSMV3GSZLXHMZTQNBSGU3TAMZYGM>\n> .\n> You are receiving this because your review was requested.Message ID:\n> ***@***.***>\n>",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-3946465656"
+    },
+    {
+     "author": "ximinez",
+     "date": "2026-02-24T00:21:31Z",
+     "body": "> Why does this require another amendment? Hey can't we reuse fixLendingProtocolV1_1?\n\nOh man. My bad - partially. I didn't notice that it was based on that new amendment.\n\nHowever, the reason I say \"partially\" is that the changes are not _controlled by / gated on_ the amendment. That's why I missed the base at first glance. I'll update the original comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-3948128308"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-26T16:25:13Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4136387569"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-27T00:11:14Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4139142213"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-03-27T02:38:13Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `50.00000%` with `1 line` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 81.5%. Comparing base ([`68e4fbd`](https://app.codecov.io/gh/XRPLF/rippled/commit/68e4fbdf2b524a593a20854e3ea17fe8df3e070e?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`2bc11be`](https://app.codecov.io/gh/XRPLF/rippled/commit/2bc11becfc84708556dc613f100d4f40b5268dff?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)).\n:warning: Report is 205 commits behind head on tapanito/lending-fix-amendment.\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/system/Batch.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Ftransactors%2Fsystem%2FBatch.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvc3lzdGVtL0JhdGNoLmNwcA==) | 50.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n<details><summary>Additional details and impacted files</summary>\n\n\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/6360/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n```diff\n@@                      Coverage Diff                       @@\n##           tapanito/lending-fix-amendment   #6360   +/-   ##\n==============================================================\n  Coverage                            81.5%   81.5%           \n==============================================================\n  Files                                 999     999           \n  Lines                               74550   74551    +1     \n  Branches                             7560    7547   -13     \n==============================================================\n+ Hits                                60722   60740   +18     \n+ Misses                              13828   13811   -17     \n```\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Coverage Δ | |\n|---|---|---|\n| [src/libxrpl/tx/transactors/system/Batch.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Ftransactors%2Fsystem%2FBatch.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvc3lzdGVtL0JhdGNoLmNwcA==) | `95.8% <50.0%> (+0.6%)` | :arrow_up: |\n\n... and [6 files with indirect coverage changes](https://app.codecov.io/gh/XRPLF/rippled/pull/6360/indirect-changes?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/6360/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n</details>\n<details><summary> :rocket: New features to boost your workflow: </summary>\n\n- :snowflake: [Test Analytics](https://docs.codecov.com/docs/test-analytics): Detect flaky tests, report on failures, and find test suite problems.\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4139723534"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-31T08:01:19Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4160684945"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-15T15:36:02Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4253395403"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-08T09:49:33Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4647549296"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-06-08T09:49:34Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4647549484"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-30T07:30:54Z",
+     "body": "Closing in favour of: https://github.com/XRPLF/rippled/pull/8244",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-5906385679"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR allows lending transactions to be in a batch and adds unit tests for the scenarios where we put lending related transactions in a batch. \n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [x] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [x] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:a1q123456/support-lending-in-batch",
+   "additions": 2678,
+   "deletions": 1201,
+   "changedFiles": 23,
+   "commits": 70,
+   "reviewComments": 39,
+   "reviews": [
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-02-23T17:39:09Z",
+     "body": "~This 100% requires an amendment.~\n\nThis 100% requires the changes to be gated on the `fixLendingProtocolV1_1` amendment."
+    },
+    {
+     "author": "Tapanito",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-03-05T15:24:50Z",
+     "body": "Partial Review I"
+    },
+    {
+     "author": "Tapanito",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-03-09T13:36:12Z",
+     "body": "Also, @a1q123456 please update the PR description."
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T15:24:16Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T15:39:22Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T16:11:59Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T16:16:43Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T16:22:12Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T16:24:25Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T16:30:28Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T16:33:36Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T16:35:01Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T16:35:24Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T16:37:10Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-03-24T16:49:31Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-03-24T17:02:36Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-27T00:16:04Z",
+     "body": "Two correctness issues flagged inline: a feature-flag scope bug in `Batch.cpp` and a compile-breaking variadic misuse in `LoanBase.h`.\n\n*Review by Claude Opus 4.6* · Prompt: V12"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-27T00:27:51Z",
+     "body": "Two correctness issues flagged inline: a logic bug in `Batch.cpp` where the lending feature gate bypasses all disabled tx types (not just lending ones), and a missing `getTxn()` accessor in `batch.cpp` that will cause a compile error.\n\n*Review by Claude Opus 4.6* · Prompt: V12"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-03-27T02:10:44Z",
+     "body": "Went over the changes\n\nLogic gap in the `disabledTxTypes` guard — when `featureLendingProtocolV1_1` is enabled, the entire disabled-type check is bypassed, not just lending types. See inline.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Opus 4.6* · Prompt: V12"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-04-15T15:38:23Z",
+     "body": "Good to go\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-06-02T16:23:33Z",
+     "body": "It looks like this is basically a two line change with 2000 lines of refactoring tacked on.\n\nPlease split this into two stacked PRs:\n1. Refactoring only. No functional changes.\n2. The functional change that adds lending support to batch. Also any test changes and updates that are relevant to that change, but within the refactored framework."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T21:48:10Z",
+     "body": "### 🟡 Changes recommended\n\nThe new `Vault::create` test helper exposes a `.sequence` argument but does not currently encode that sequence into the generated transaction JSON, which can cause keylet/tx mismatches for callers relying on explicit sequencing.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR extends the Batch transaction support to allow lending-related (and required vault-related) inner transactions when the new `featureLendingProtocolV1_1` amendment is enabled. It also adds an optional `sfMemoData` field to `VaultDelete` (gated by the same feature) and updates vault invariants/rounding logic with accompanying tests.\n\n**Changes:**\n- Gate Batch inner-transaction type restrictions on `featureLendingProtocolV1_1`, enabling lending/vault transactions to be included in batches.\n- Add optional `sfMemoData` to `VaultDelete` with preflight validation and protocol-autogen builder/wrapper support.\n- Add/refactor extensive unit tests for lending-in-batch scenarios, and adjust vault invariant rounding to handle scale/rounding correctly.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/tests/libxrpl/protocol_autogen/transactions/VaultDeleteTests.cpp | Adds round-trip tests for new optional `sfMemoData` on `VaultDelete`. |\n| src/test/jtx/vault.h | Adds optional sequence override for VaultCreate test helper args. |\n| src/test/jtx/impl/vault.cpp | Uses optional sequence for vault keylet derivation in test helper. |\n| src/test/jtx/impl/batch.cpp | Adds `batch::make(...)` helper to assemble outer+inner batch JSON in tests. |\n| src/test/jtx/batch.h | Declares `batch::make(...)` and adds `<vector>` include. |\n| src/test/app/Vault_test.cpp | Adds VaultDelete memo-data feature-gating/size tests. |\n| src/test/app/LendingHelpers_test.cpp | Removes unused include. |\n| src/test/app/lending/LoanBroker_test.cpp | Adds a small amendment-enabled assertion test. |\n| src/test/app/lending/LoanBatch_test.cpp | New test suite covering multiple lending/vault batch scenarios. |\n| src/test/app/lending/LoanBase.h | New shared base/helper utilities extracted from `Loan_test.cpp`. |\n| src/test/app/lending/Loan_test.cpp | Refactors to use `LoanBase`, adjusts batch-bypass test logic, adds regression test. |\n| src/test/app/Invariants_test.cpp | Adds unit tests for vault invariant scale selection logic. |\n| src/test/app/Batch_test.cpp | Updates lending batch enablement detection to consider `featureLendingProtocolV1_1`. |\n| src/libxrpl/tx/transactors/vault/VaultDelete.cpp | Adds feature-gated `sfMemoData` handling and length validation in preflight. |\n| src/libxrpl/tx/transactors/system/Batch.cpp | Skips `disabledTxTypes` inner-type rejection when `featureLendingProtocolV1_1` is enabled. |\n| src/libxrpl/tx/transactors/lending/LoanBrokerCoverWithdraw.cpp | Adjusts rounding scale selection using new `scale(...)` helper. |\n| src/libxrpl/tx/invariants/VaultInvariant.cpp | Tracks deltas with scale info and rounds consistently to prevent invariant false-positives. |\n| include/xrpl/tx/transactors/lending/LendingHelpers.h | Uses `scale(...)` helper for vault total scale calculation. |\n| include/xrpl/tx/invariants/VaultInvariant.h | Introduces `DeltaInfo` and declares `computeMinScale(...)`. |\n| include/xrpl/protocol/STAmount.h | Makes offset constants `constexpr` and adds `scale(Number, Asset)` helper. |\n| include/xrpl/protocol/detail/transactions.macro | Adds `sfMemoData` as optional field on `VaultDelete`. |\n| include/xrpl/protocol/detail/features.macro | Introduces `XRPL_FEATURE(LendingProtocolV1_1, ...)`. |\n| include/xrpl/protocol_autogen/transactions/VaultDelete.h | Adds memo-data accessors and builder setter for `VaultDelete`. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**src/test/jtx/impl/vault.cpp:25**\n* `Vault::create` computes a custom sequence for the returned keylet but does not write that sequence into the returned transaction JSON. Callers that rely on `.sequence` (e.g. for prebuilt/batched transactions) can end up with a mismatch between the computed keylet and the transaction actually submitted.\n```\nstd::tuple<Json::Value, Keylet>\nVault::create(CreateArgs const& args) const\n{\n    auto sequence = args.sequence ? *args.sequence : env.seq(args.owner);\n    auto keylet = keylet::vault(args.owner.id(), sequence);\n    Json::Value jv;\n    jv[jss::TransactionType] = jss::VaultCreate;\n    jv[jss::Account] = args.owner.human();\n    jv[jss::Asset] = to_json(args.asset);\n    if (args.flags)\n        jv[jss::Flags] = *args.flags;\n    return {jv, keylet};\n```\n\n- **Files reviewed:** 23/23 changed files\n- **Comments generated:** 2\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Tapanito",
+     "date": "2026-03-05T14:02:31Z",
+     "path": "include/xrpl/basics/Number.h",
+     "body": "These changes should not be included, they're part of the old changes to the Number class.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890180430"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-05T14:03:21Z",
+     "path": "src/test/app/lending/Loan_test.cpp",
+     "body": "Please rename the folder name to `loan`, not `Loan` we have agreed to not mix conventions.\n\nIn addition, the folder name should be `lending` to reflect the folder name used in transactions.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890184916"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-05T14:05:39Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "This pattern of iterating over disabled transaction types to to determine if a transaction is supported for Batch is used across multiple places. It would be good to implement a helper functor to not have this repetition.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890197398"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-05T14:21:43Z",
+     "path": "src/test/app/lending/LoanBatch_test.cpp",
+     "body": "This seems to be a recurring pattern across batch transaction tests. \n\n1. Create transactions\n2. Create a batch transaction with manually increased sequence number for inner transactions.\n\n\nCould we simplify this flow with a helper functor to avoid introducing errors into sequence numbers?\n\n\nSomething along the lines of:\n\n```\nmakeBatchTransaction(AccountID const& account, std::uint32_t sequence, XRPAmount const& fee, std::uint32_t batchType, std::vector<Json::Value> txns);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890294266"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-05T14:23:33Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Is this still pending? Can we remove this comment?",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890305469"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-05T14:25:26Z",
+     "path": "src/test/app/lending/LoanBatch_test.cpp",
+     "body": "Please add the expected code, and `THISLINE` to all env calls to make investigating issues easier.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890316880"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-05T14:25:51Z",
+     "path": "src/test/app/lending/LoanBatch_test.cpp",
+     "body": "This comment applies to all occurrences: \n```suggestion\n        auto const brokerInfo = createVaultAndBroker(env, IOU, broker);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890319427"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-05T14:28:04Z",
+     "path": "src/test/app/lending/LoanBatch_test.cpp",
+     "body": "nit: Could you please review the unit-tests and add const qualifiers where necessary",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890334214"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-05T14:29:05Z",
+     "path": "src/test/app/lending/LoanBatch_test.cpp",
+     "body": "The comment above states that the batch outer transaction will consume the first sequence number. In this transaction here we are reusing the same sequence number again. Why?",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890340725"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-09T13:05:25Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Why is the fix amendment not included here?",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905307940"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-09T13:08:55Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "@ximinez do I remember correctly that you had a fix that replaces this assertion with an exact one?",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905326227"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-09T13:10:09Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Why is this a call to `env.test.expect` where as the other call is to `env.test.BEAST_EXPECT`?",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905332895"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-09T13:12:34Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "nit: Why not invert this check, and exit early? This reduces unnecessary nesting.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905345745"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-09T13:13:26Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Please refactor this code to remove the nesting.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905350496"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-09T13:35:35Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Why is this test part of the LoanBase.h? Shouldn't it live in `Loan_test`?",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905471939"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T15:24:16Z",
+     "path": "src/test/app/lending/LoanBatch_test.cpp",
+     "body": "I don't think THISLINE is defined?",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982413726"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T15:39:18Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "It's supported::yes so it's included automatically",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982517871"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:11:58Z",
+     "path": "src/test/app/lending/Loan_test.cpp",
+     "body": "Yeah, have renamed it. Thanks, Vito!",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982737179"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:16:43Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Not sure, I just moved it from Loan_test.cpp. Let's use `expect` for all cases",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982765946"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:19:36Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Oops. That was an accident.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982784276"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:21:08Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982793616"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:21:24Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Have repalced all cases in this file",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982795305"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:21:33Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Done",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982796060"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:21:44Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Moved.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982797078"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:24:25Z",
+     "path": "include/xrpl/basics/Number.h",
+     "body": "Removed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982813429"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:30:28Z",
+     "path": "src/test/app/lending/LoanBatch_test.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982850490"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:33:36Z",
+     "path": "src/test/app/lending/LoanBatch_test.cpp",
+     "body": "```c++\n        // The starting sequence should be brokerSeq + 1 because the batch\n        // outer transaction will consume the first sequence.\n        auto const txns = createVaultAndBrokerTransactions(\n            env, IOU, broker, BrokerParameters::defaults(), brokerSeq + 1);\n```\n\n`createVaultAndBrokerTransactions` doesn't submit a transaction, it asks for the starting sequence number because we need to calculate the broker key, so we're not reusing a sequence.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982869875"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:35:00Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Thanks, Vito! Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982878437"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:35:24Z",
+     "path": "src/test/app/lending/LoanBatch_test.cpp",
+     "body": "Fixed. Thanks, Vito!",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982881060"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T16:37:10Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "It only occurred once here.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982894129"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-03-24T16:49:31Z",
+     "path": "src/test/app/lending/LoanBatch_test.cpp",
+     "body": "Yes, I made my comment while `THISLINE` was still a thing. Feel free to ignore.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982964593"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-03-24T17:02:36Z",
+     "path": "src/test/app/lending/LoanBatch_test.cpp",
+     "body": "have added `batch::make`",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2983038649"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-27T00:16:04Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Feature flag bypasses the **entire** `disabledTxTypes` list, not just lending types. If a non-lending type is ever added, it gets silently unblocked. Scope this guard to lending-specific types only, or document that `disabledTxTypes` is exclusively for lending:\n\n> **Note:** The suggestion above is a no-op (preserves existing code). The real fix is to restructure so that `featureLendingProtocolV1_1` only gates the lending entries in `disabledTxTypes`, not the entire check.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2998353669"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-27T00:16:04Z",
+     "path": "src/test/app/lending/LoanBase.h",
+     "body": "Variadic pack `fN` is incorrectly forwarded to `getTransaction`, which only accepts 2 params — this won't compile when `fN` is non-empty. Remove the forwarding from the `getTransaction` call:\n\n```suggestion\n            auto tx = getTransaction(env, broker);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2998353675"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-27T00:27:51Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Feature flag short-circuits the entire `disabledTxTypes` check, not just lending types.\n\nIf `disabledTxTypes` ever contains (or gains) non-lending entries, they'll be silently bypassed when `featureLendingProtocolV1_1` is active. The guard should be applied per-type inside the lambda, e.g.:\n\n```cpp\nif (std::any_of(\n    disabledTxTypes.begin(), disabledTxTypes.end(),\n    [&ctx, txType](auto const& disabled) {\n        // Skip only lending-specific disabled types when the feature is enabled\n        if (ctx.rules.enabled(featureLendingProtocolV1_1) && isLendingTxType(disabled))\n            return false;\n        return txType == disabled;\n    }))\n```\n\nThis keeps future non-lending entries in `disabledTxTypes` correctly blocked regardless of the lending feature flag.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2998381483"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-27T00:27:52Z",
+     "path": "src/test/jtx/impl/batch.cpp",
+     "body": "`inner::getTxn()` is not declared in `batch.h` — this will fail to compile. Add the accessor to the `inner` class:\n\n```cpp\nJson::Value getTxn() const { return txn_; }\n```\n\nOr rewrite the loop to populate `batchTransaction` via a temporary `JTx` and `inner::operator()`.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2998381485"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-03-27T02:10:44Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "This skips the **entire** `disabledTxTypes` check when `featureLendingProtocolV1_1` is enabled, not just lending-related types. Any non-lending tx types in `disabledTxTypes` would also be silently bypassed in batch. Should this filter only lending tx types out of the disabled check rather than short-circuiting the whole thing?",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2998609869"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:48:09Z",
+     "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
+     "body": "`ValidVault::computeMinScale` does not use its `asset` parameter; in builds that treat warnings as errors this can fail compilation. Either remove the parameter name in the definition or mark it `[[maybe_unused]]`.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r3908729280"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:48:09Z",
+     "path": "src/test/jtx/vault.h",
+     "body": "CreateArgs::sequence uses an unqualified `uint32_t` which may rely on non-portable global typedefs from <cstdint> and is inconsistent with the surrounding `std::uint32_t` usage.",
+     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r3908729336"
+    }
+   ]
+  },
+  {
+   "number": 8091,
+   "title": "fix: Count partial batch progress in a TX-set reply",
+   "url": "https://github.com/XRPLF/rippled/pull/8091",
+   "state": "open",
+   "author": "bthomee",
+   "createdAt": "2026-08-23T22:10:04Z",
+   "updatedAt": "2026-09-28T13:39:25Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T19:36:28Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415709461"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T19:36:35Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415710850"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T19:48:27Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415850563"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T19:48:33Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415851731"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T19:48:33Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415851746"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-26T00:23:04Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `91.30435%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/ledger/detail/TransactionAcquire.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9sZWRnZXIvZGV0YWlsL1RyYW5zYWN0aW9uQWNxdWlyZS5jcHA=) | 90.9% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5418838721"
+    }
+   ],
+   "body": "Part 14/28 of a stack. Base: part 13 (`bthomee/shamap-invalid-11-revive-timer`).\n\n## High Level Overview of Change\n\n`TransactionAcquire::takeNodes()` now accumulates one combined verdict across a whole batch instead of\nstopping at the first bad node, so a packet that ends badly still gets credit — and clears the\ntimeout-postponing progress flag — for the good nodes ahead of it, matching what\n`InboundLedger::receiveNode()` already does.\n\n### Context of Change\n\n`TransactionAcquire::takeNodes()` accumulates one `SHAMapAddNode` across the batch and hands it back, so\na packet ending on one bad node still counts the nodes hooked in ahead of it. A root the set already\nholds counts as a duplicate rather than passing unremarked, which is what tells a batch of nodes we\nalready have from one that was never examined at all.\n\nThe body moves to `takeNodesLocked()` and `takeNodes()` becomes a thin wrapper that takes the lock and\nrecords what the batch achieved on the one exit — several of the inner exits stop the batch early, and\nnothing in the compiler catches one that forgets to record progress. Progress turns on the batch being\nuseful rather than good, so a batch of nothing but duplicates records none: that flag is what keeps the\nnext timer tick from counting a timeout, and a reply carrying nothing new advanced nothing. It costs\nretry budget on the ordinary second responder to a fan-out and nothing else.\n\n`InboundTransactions::gotData()` asks `isGood()` rather than `isUseful()` for the useless-data charge,\nwhich keeps that duplicate free — now that the verdict distinguishes a duplicate from an empty tally,\nthe useful test would charge for it while the batch that was never examined still needs charging.\n\n`testPartialBatchIsCounted` feeds two good nodes followed by one at a position it cannot occupy, and\nchecks the verdict names both halves and that the flag is set; then a batch of nothing but a root\nalready held, checking it is good, not useful, and records nothing; then that root alongside a node the\nset does need, checking the duplicate is reported as one while the other records the progress.\n\n### API Impact\n\nNone of the checkboxes below apply: this is an internal `xrpld` correctness fix with no `libxrpl`,\npublic-API, or peer-protocol surface.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "bthomee/shamap-invalid-11-revive-timer",
+   "head": "XRPLF:bthomee/shamap-invalid-12-batch-progress",
+   "additions": 148,
+   "deletions": 14,
+   "changedFiles": 4,
+   "commits": 1,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-23T22:14:11Z",
+     "body": "## Pull request overview\n\nThis PR improves `TransactionAcquire::takeNodes()` accounting so partial success in a TX-set node batch is preserved (good nodes counted) even when the batch ends with a bad node, and “progress” is recorded based on actual map advancement rather than “overall good.” This aligns TX-set acquisition behavior with how inbound ledger node batches are already handled.\n\n**Changes:**\n- Refactors `TransactionAcquire::takeNodes()` to delegate to `takeNodesLocked()` and record progress on a single exit path based on `SHAMapAddNode::isUseful()`.\n- Accumulates a combined `SHAMapAddNode` verdict across the whole batch, including explicit duplicate counting for an already-held root.\n- Updates `InboundTransactions::gotData()` to charge useless-data fees based on `!san.isGood()` (so duplicate-only replies are not charged) and adds a focused regression test.\n\n### Reviewed changes\n\nCopilot reviewed 4 out of 4 changed files in this pull request and generated no comments.\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/app/ledger/detail/TransactionAcquire.h | Documents batch-level verdict semantics and introduces `takeNodesLocked()` for single-exit progress recording. |\n| src/xrpld/app/ledger/detail/TransactionAcquire.cpp | Implements batch verdict accumulation, early-exit returns that preserve prior counts, and progress recording only when the batch added nodes. |\n| src/xrpld/app/ledger/detail/InboundTransactions.cpp | Adjusts useless-data charging to use `isGood()` so duplicate-only replies aren’t penalized while empty/unprocessed replies still are. |\n| src/test/app/TransactionAcquire_test.cpp | Adds `testPartialBatchIsCounted` to validate partial-batch tallying, duplicate handling, and progress flag behavior. |\n\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/bthomee/shamap-invalid-11-revive-timer?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/en/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-24T14:45:20Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 4 changed files in this pull request and generated no new comments."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-29T00:20:20Z",
+     "body": "This is a well-scoped, carefully tested change: `TransactionAcquire::takeNodesLocked()` now accumulates a combined `SHAMapAddNode` verdict across a batch instead of bailing out with a fresh `invalid()` on the first bad node, so good nodes processed earlier in the packet still count and correctly set `progress_` (gated on `isUseful()` in the thin `takeNodes()` wrapper). The `InboundTransactions.cpp` switch from `isUseful()` to `isGood()` for the useless-data charge correctly avoids penalizing an honest duplicate-only reply from a second responder in a fan-out. I traced the root/non-root branches, the duplicate-increment paths, and the new `testPartialBatchIsCounted` test cases against the implementation and didn't find a correctness bug — the accumulation, early-return-on-bad-node, and duplicate-vs-useful distinction all line up with the stated intent and the test's expected tallies. One minor point worth a quick sanity check below (not a blocker)."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-27T14:43:36Z",
+     "body": "This change refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a batch (splitting the body into takeNodesLocked()), and switches InboundTransactions::gotData() to check isGood() instead of isUseful() so duplicate-only replies aren't charged as useless. The control flow (root-duplicate handling, early-return-on-bad-node while retaining prior accumulated tally, exception path retaining partial progress, and the new progress_ logic based on isUseful()||getDuplicate()>0) is internally consistent and matches the accompanying test (testPartialBatchIsCounted), which exercises the partial-good-then-bad batch, duplicate-root-only batch, and mixed duplicate+useful batch cases. I traced the added/changed lines in TransactionAcquire.cpp/.h, InboundTransactions.cpp, and the new test closely and did not find a clear correctness, security, or resource-management bug in the changed lines; the logic appears deliberate and well-tested. No issues are being raised with high confidence."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-27T15:36:46Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nDuplicate-only replies must not set progress, or timeout accounting can be bypassed.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917) · New\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-27T16:20:13Z",
+     "body": "This is a well-structured refactor of `TransactionAcquire::takeNodes()` to accumulate a combined `SHAMapAddNode` verdict across a batch instead of bailing on the first bad node, mirroring the pattern already used in `InboundLedger::receiveNode()`. The control flow in `takeNodesLocked()` (root-duplicate → continue, root-add-fail → return, non-root-add-fail → return, success → trigger+return) is internally consistent, and the new `testPartialBatchIsCounted` test exercises the partial-batch, duplicate-only, and mixed-duplicate cases with tallies that match the code's logic. The `progress_`/`isUseful() || getDuplicate() > 0` gating in the thin `takeNodes()` wrapper correctly ties the timeout-postponing flag to any useful-or-duplicate outcome rather than requiring full success. The one point worth double-checking (not flagged as a defect, since `SHAMapAddNode`'s `isGood()`/`getDuplicate()` aren't in this diff and are presumably established in an earlier part of this 28-part stack) is that `InboundTransactions::gotData()`'s new `!san.isGood()` check must actually differ from the case already excluded by the preceding `!san.isValid()`/`isInvalid()` branch — i.e. `isGood()` must be false for a truly empty/never-examined tally and true for a duplicate-only tally — otherwise the useless-data charge could become unreachable. No changed lines otherwise show a clear bug, resource leak, or security issue."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-27T16:25:08Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAddress the unresolved duplicate-progress and missing follow-up trigger paths.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917)\n</details>"
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-09-27T16:50:52Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-27T19:25:17Z",
+     "body": "The core batch-accumulation logic in TransactionAcquire.cpp looks correct and well-tested (root/known-node paths correctly accumulate the combined verdict, and the wrapper correctly gates progress_ on usefulness-or-duplicate). However, the companion change in InboundTransactions.cpp that swaps the useless-data charge from isUseful() to isGood() appears to overshoot the stated intent: it stops charging both genuine duplicates (the intended fix) and the 'never examined' empty-tally case (complete_/failed_/early-return paths), which the MR description says should still be charged."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-27T19:27:27Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAn unresolved discrepancy between duplicate progress tracking, tests, and documented timeout semantics requires human review.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917)\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-27T19:55:19Z",
+     "body": "This change refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a batch instead of stopping at the first bad node, mirroring InboundLedger::receiveNode(). The accumulation logic (san += result, incDuplicate/incInvalid, early-return-with-accumulated-tally) is applied consistently for both root and non-root node paths, and the progress_ flag is now set based on isUseful() || duplicate>0 in the new thin wrapper, matching the new unit test's expectations (partial-good-then-bad batch, pure-duplicate-root batch, and mixed duplicate+useful batch). The InboundTransactions.cpp switch from isUseful() to isGood() for the useless-data charge is explained by the MR description as intentional (keeping duplicate-only replies free of a useless-data charge while still charging a batch that was never examined), and this mirrors an established pattern used elsewhere in the codebase. I traced the control flow for missed returns, double-counting, lock/thread-safety around the new takeNodesLocked() split, and move-semantics on the node vector, and did not find a concrete correctness bug introduced by this diff. No high-confidence issues to flag."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-27T23:10:46Z",
+     "body": "This diff refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a whole batch instead of bailing on the first bad node, moving the body into a new takeNodesLocked() helper and updating InboundTransactions::gotData() to charge based on isGood() rather than isUseful() so duplicate-only replies aren't penalized. I traced the accumulation logic (root duplicate handling, non-root addKnownNode handling, the exception path, and the progress_ flag update in the wrapper) against the new testPartialBatchIsCounted test cases and the design rationale in the description (mirroring InboundLedger::receiveNode()), and the implementation is internally consistent: partial-good batches still report isUseful()==true, pure-duplicate batches report isGood()==true/isUseful()==false while still setting progress_ via the explicit getDuplicate()>0 check, and the early-exit paths (complete_/failed_/empty data) are untouched and still produce a non-good tally so they remain chargeable. No correctness, security, or resource issues were found in the changed lines."
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-09-28T13:39:25Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-27T15:36:46Z",
+     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
+     "body": "A duplicate does not advance the acquisition, so including `getDuplicate() > 0` leaves `progress_` set for a packet containing only nodes already held. A peer can replay that root on every timer interval and prevent `TimeoutCounter` from counting timeouts, potentially keeping the acquisition alive indefinitely; progress should depend only on `san.isUseful()`, with the duplicate-only test adjusted to expect no progress.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4115930917"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-09-27T16:50:52Z",
+     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
+     "body": "Confirmed, and this one needs a human decision, so I am leaving it open. `invokeOnTimer` increments `timeouts_` **only** when `!progress_`; otherwise it clears `progress_` and counts nothing. Because a duplicate-only batch from any peer already in `requestedPeers_` sets `progress_`, that set is never cleared, and duplicate replies are free, an asked peer can hold `timeouts_` still at no cost, so `onTimer`'s failure path is never reached.\n\nTwo qualifications in fairness. It is bounded rather than indefinite: `newRound()` erases the entry, so the exposure is one keep-window, not forever. And the widened predicate was a deliberate choice, made to stop a peer that loses a fan-out race from looking like a stall. Your finding argues against that choice rather than against an oversight, which is why it needs the maintainer rather than me.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4116142963"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-09-28T13:39:25Z",
+     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
+     "body": "The mechanism you describe is right: `TimeoutCounter::invokeOnTimer` advances `timeouts_` only when `!progress_`, `requestedPeers_` is never erased, and a duplicate-only batch costs its sender nothing.\n\nIt is bounded rather than reverted, on `bthomee/shamap-invalid-17-duplicate-progress` (#8149), which owns the predicate. A duplicate-only batch from a peer we asked now spends from a budget of `kMaxDuplicateCredits` consecutive intervals with no useful node in between. Any batch that advances the set sets the budget back to full, and `stillNeed()` resets it when a round revives the acquisition. A credit is spent only when nothing else has answered in that interval, so a wide fan-out costs one credit rather than one per loser.\n\n`kMaxDuplicateCredits` is `kNormTimeouts`, which is generous for the case the credit exists for: a peer that loses a fan-out race is settled in one or two intervals.\n\nReverting to `san.isUseful()` alone would be stricter than the base rather than equal to it. On `develop` the success path of `takeNodes` returns `SHAMapAddNode::useful()` unconditionally, so a duplicate-only batch from any sender, asked or not, sets `progress_` there.\n\nA new case, `testDuplicateCreditRunsOut`, feeds one more duplicate-only batch than the budget holds and asserts that the last one records no progress. Removing the bound turns that case red, with one failure at the bound assertion. None of the seven existing cases that touch this predicate changed its expectation, and the suite ran green at the same count as before the change.\n\n_The change is on the local branch and appears here on the next push of this stack._",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4122805279"
+    }
+   ]
+  },
+  {
    "number": 8281,
    "title": "test: Cover LastLedgerSequence on Batch inner transactions",
    "url": "https://github.com/XRPLF/rippled/pull/8281",
@@ -1521,91 +2141,6 @@
     }
    ],
    "reviewCommentsList": []
-  },
-  {
-   "number": 8164,
-   "title": "feat: Record Batch inner results for validated ledgers and return them from tx",
-   "url": "https://github.com/XRPLF/rippled/pull/8164",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-09-02T19:29:12Z",
-   "updatedAt": "2026-09-03T22:21:49Z",
-   "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-02T19:31:26Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `95.00000%` with `4 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/rdb/backend/detail/Node.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9yZGIvYmFja2VuZC9kZXRhaWwvTm9kZS5jcHA=) | 94.4% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...rc/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9yZGIvYmFja2VuZC9kZXRhaWwvU1FMaXRlRGF0YWJhc2UuY3Bw) | 77.8% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-5515195579"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-02T19:43:15Z",
-     "body": "⚠️ This PR contains unsigned commits. To get your PR merged, please sign them. ⚠️\n\nIf only the most recent commit is unsigned, you can run:\n1. Amend the commit: `git commit --amend --no-edit -n -S`\n2. Overwrite the commit: `git push --force-with-lease`\n\nIf multiple commits are unsigned, you can run:\n1. Go into interactive rebase mode: `git rebase --interactive HEAD~<NUM_OF_COMMITS>`, where `NUM_OF_COMMITS` is the number of most recent commits that will be available to edit.\n2. Change \"pick\" to \"edit\" for the commits you need to sign, and then save and exit.\n3. For each commit, run: `git commit --amend --no-edit -n -S`\n4. Continue the rebase: `git rebase --continue`\n5. Overwrite the commit(s): `git push --force-with-lease`\n\nIf you're new to commit signing, there are different ways to set it up:\n\n<details>\n<summary><b>Sign commits with <code>gpg</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `gpg`:\n1. [Generate a GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)\n2. [Add the GPG key to your GitHub account](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)\n3. [Configure `git` to use your GPG key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-gpg-key)\n</details>\n\n<details>\n<summary><b>Sign commits with <code>ssh-agent</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `ssh-agent`:\n1. [Generate an SSH key and add it to `ssh-agent`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)\n2. [Add the SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)\n3. [Configure `git` to use your SSH key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)\n</details>\n\n<details>\n<summary><b>Sign commits with 1Password</b></summary>\n<p></p>\n\nYou can also sign commits using 1Password, which lets you sign commits with biometrics without the signing key leaving the local 1Password process.\nSee [use 1Password to sign your commits](https://developer.1password.com/docs/ssh/git-commit-signing/).\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-5515341844"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-03T19:17:22Z",
-     "body": "How does this handle transactions that occur during downtime?",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-5530876400"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-03T22:21:49Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-5532901360"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nA validated `Batch` can have inner transactions that did nothing. An inner transaction that fails with a `ter`, `tem` or `tef` code is never applied, so it has no metadata and is not in the ledger at all. Under `tfAllOrNothing` the rollback also discards the inner transaction that had succeeded. The only record of either case today is the `BatchTrace` debug log line in `apply.cpp`, which is a log line, not something a client can query.\n\nThis PR records each inner transaction's outcome while the node builds a validated ledger and returns it from `tx`:\n\n```json\n\"inner_results\": [\n  { \"hash\": \"F137AEA3…\", \"result\": \"tesSUCCESS\", \"applied\": false },\n  { \"hash\": \"A056A319…\", \"result\": \"terPRE_SEQ\", \"applied\": false }\n]\n```\n\nThe array is in `RawTransactions` order. `applied` is whether the inner transaction's changes ended up in the ledger, so `tesSUCCESS` with `applied: false` is the rolled-back case.\n\n### Context of Change\n\n`applyBatchTransactions` gets an optional collector and pushes a `BatchInnerResult` (`parentBatchId`, `innerTxId`, `index`, `ter`, `applied`) per inner transaction it runs. When a `tfAllOrNothing` batch rolls back it marks everything it recorded as not applied. Only `BuildLedger` (consensus build and replay) passes a collector; the open ledger never does, so trial applies are not recorded. The results ride on the built `Ledger` as side data that is not part of the hash, and `saveValidatedLedger` writes them to a new `BatchInnerResults` table in `transaction.db`, in the same SQLite transaction as `Transactions` and `AccountTransactions`. The table is gated by `use_tx_tables` and pruned with the other tx tables by `online_delete`.\n\nRecording at validated-ledger save rather than on the apply path is deliberate. An earlier version of this wrote rows from inside `applyBatchTransactions` on every pass, so an open-ledger trial apply and the consensus apply of the same inner transaction overwrote each other, and every inner transaction cost a synchronous SQLite commit in the apply path. Here the apply path only appends to a vector.\n\nOne limitation: a node that acquired a ledger from the network instead of building it has no rows for that ledger, and `tx` omits the field. Rows are keyed by `LedgerSeq`, so the gap is visible rather than silently wrong.\n\n### API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n`tx` gains `inner_results` (API-CHANGELOG updated in this PR). In `libxrpl`, `applyTransaction` takes an optional trailing `std::vector<BatchInnerResult>*`, and `Ledger` gains `setBatchInnerResults` / `batchInnerResults`. Existing callers are unchanged.\n\n## Test Plan\n\n`Batch_test` gains `inner results`: a `tfAllOrNothing` batch with a future-sequence inner returns two entries, `tesSUCCESS` and `terPRE_SEQ`, both `applied: false`, and the rolled-back inner is `txnNotFound`; a `tfIndependent` batch returns both `applied: true` in order; inner transactions and non-Batch transactions have no field. The full `Batch` suite and the ledger, tx and rpc suites pass; levelization results are unchanged.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:dangell7/batch-db",
-   "additions": 353,
-   "deletions": 13,
-   "changedFiles": 15,
-   "commits": 1,
-   "reviewComments": 1,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-02T19:32:49Z",
-     "body": "This PR wires up recording of Batch inner-transaction outcomes end-to-end (apply → Ledger side-data → SQLite → tx RPC) and is well scoped: the collector is optional and only threaded through BuildLedger's consensus/replay paths, existing callers of applyTransaction/applyBatchTransactions are unaffected, and the tfAllOrNothing rollback correctly retro-marks all entries recorded during that batch as not applied. The new BatchInnerResults table is deleted-and-reinserted per LedgerSeq on save and pruned alongside the other tx tables, consistent with existing patterns for Transactions/AccountTransactions. I could not find a correctness, security, or resource-leak bug with confidence in the changed lines — the main soft spot is that getBatchInnerResults() in Node.cpp silently drops a row on a parseHex failure with no logging, which would hide a data problem rather than surface it, but this is a defensive/edge-case path rather than a functional bug."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-02T19:50:32Z",
-     "body": "### 🟢 Approval recommended\n\nThe implementation and tests align with the stated behavior, with only a minor changelog wording tweak suggested.\n\n<details>\n<summary>Pull request overview</summary>\n\nAdds node-local persistence and RPC surfacing of per-inner-transaction outcomes for validated `Batch` transactions, so clients can query inner failures and `tfAllOrNothing` rollbacks that otherwise leave no on-ledger metadata.\n\n**Changes:**\n- Plumbs an optional `std::vector<BatchInnerResult>*` collector through `applyTransaction`/`applyBatchTransactions` and uses it during validated ledger build/replay.\n- Persists collected results to a new `BatchInnerResults` table in `transaction.db` (gated by tx tables) and prunes it alongside other tx tables.\n- Extends `tx` RPC with `inner_results`, updates changelog, and adds a `Batch_test` coverage case.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/rpc/handlers/transaction/Tx.cpp | Fetches and returns `inner_results` for validated `Batch` transactions. |\n| src/xrpld/app/rdb/backend/SQLiteDatabase.h | Adds `getBatchInnerResults` API to the SQLite relational DB implementation. |\n| src/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp | Implements `getBatchInnerResults` and prunes `BatchInnerResults` during online delete. |\n| src/xrpld/app/rdb/backend/detail/Node.h | Extends `TableType` and declares the DB helper to read batch inner results. |\n| src/xrpld/app/rdb/backend/detail/Node.cpp | Implements read/query logic and persists batch inner results in `saveValidatedLedger`. |\n| src/xrpld/app/ledger/detail/BuildLedger.cpp | Collects batch inner results during ledger build and attaches them to the built `Ledger`. |\n| src/test/app/Batch_test.cpp | Adds tests validating `tx.inner_results` behavior for rollback vs independent batches. |\n| src/libxrpl/tx/apply.cpp | Records per-inner outcomes during batch apply and marks them not-applied on all-or-nothing rollback. |\n| include/xrpl/tx/apply.h | Extends `applyTransaction` signature with optional collector parameter. |\n| include/xrpl/rdb/RelationalDatabase.h | Adds `getBatchInnerResults` to the relational DB interface. |\n| include/xrpl/rdb/DBInit.h | Creates the new `BatchInnerResults` table and index in tx DB initialization. |\n| include/xrpl/protocol/jss.h | Adds `inner_results` JSON field name. |\n| include/xrpl/protocol/BatchInnerResult.h | Introduces `BatchInnerResult` struct definition. |\n| include/xrpl/ledger/Ledger.h | Stores `BatchInnerResult` side-data on `Ledger` and exposes setters/getters. |\n| API-CHANGELOG.md | Documents the new `tx.inner_results` field. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 15/15 changed files\n- **Comments generated:** 1\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-02T19:52:14Z",
-     "body": "The change is well-scoped and the design deliberately avoids the write-amplification and overwrite bugs called out in the PR description (collecting BatchInnerResult in a vector on the apply path, writing only once at saveValidatedLedger, gating by useTxTables_, and using the same SQLite transaction as Transactions/AccountTransactions). The apply.cpp rollback logic correctly marks all entries recorded since the start of the current batch's inner loop as not-applied on a tfAllOrNothing failure, and the SQL binding/order in Node.cpp's getBatchInnerResults matches the SELECT column order. Two smaller items are worth a look: a new pure-virtual method added to the RelationalDatabase interface (verify no other backend implementation is left unimplemented), and a documentation line in jss.h that now reads as if it describes the wrong field."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-02T20:05:29Z",
-     "body": "Overall the design is sound: apply-path only appends to a vector, and the DB write happens once at validated-ledger save time inside the existing transaction. Two things worth checking before merge: whether a Batch can legally contain two inner transactions with the same hash (which would silently collide on the new BatchInnerResults primary key), and a silent data-drop path in the new read helper."
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-09-02T19:50:31Z",
-     "path": "API-CHANGELOG.md",
-     "body": "The changelog text says the array has \"one entry per inner transaction the node applied\", but `inner_results` includes failures and rolled-back inner transactions as well. This wording is likely to confuse API consumers about whether unsuccessful/rolled-back inner transactions are included.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r3918036648"
-    }
-   ]
   }
  ],
  "issues": [
