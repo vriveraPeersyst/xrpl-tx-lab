@@ -1,6 +1,6 @@
 {
  "name": "MPTokensV2",
- "fetchedAt": "2026-10-01T08:05:11.758Z",
+ "fetchedAt": "2026-10-02T08:04:39.060Z",
  "summary": {
   "status": "in development",
   "prs": 2,
@@ -9,8 +9,8 @@
   "issues": 1,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-09-29T18:22:58Z",
-  "totalComments": 12
+  "lastActivity": "2026-10-01T12:48:34Z",
+  "totalComments": 13
  },
  "release": {},
  "prs": [
@@ -21,7 +21,7 @@
    "state": "open",
    "author": "gregtatcam",
    "createdAt": "2026-09-29T17:53:10Z",
-   "updatedAt": "2026-09-29T18:22:58Z",
+   "updatedAt": "2026-10-01T12:48:34Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -55,6 +55,12 @@
      "state": "COMMENTED",
      "date": "2026-09-29T18:03:49Z",
      "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nMPTokensV2-specific IOU test branches become unreachable, and the activation-order guarantee lacks direct guard coverage.\n\n**Review effort:** Balanced  \n**Findings:** 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (3)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Retain MPTokensV2 fill-mode coverage](#discussion_r4136710065) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Preserve MPTokensV2-enabled regression coverage](#discussion_r4136710123) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Update mantissa-selection documentation for MPTokensV2](#discussion_r4136710166) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nEnables large `Number` mantissas under MPTokensV2 and updates affected AMM and escrow tests.\n\n**Changes:**\n- Adds MPTokensV2 to large-mantissa rule selection.\n- Updates MPT AMM expected rounding results.\n- Adjusts test feature configurations and clawback expectations.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​protocol/​Rules.cpp` | Enables large mantissas and rule guards for MPTokensV2. |\n| `src/​test/​jtx/​impl/​AMMTest.cpp` | Selects MPTokensV2 based on pool assets. |\n| `src/​test/​app/​EscrowToken_test.cpp` | Updates mantissa-aware escrow expectations. |\n| `src/​test/​app/​AMMMPT_test.cpp` | Updates MPT AMM rounding results. |\n| `src/​test/​app/​AMMExtendedMPT_test.cpp` | Updates an MPT path-payment result. |\n| `src/​test/​app/​AMMExtended_test.cpp` | Removes MPTokensV2 from the default IOU feature set. |\n| `src/​test/​app/​AMMClawbackMPT_test.cpp` | Treats MPTokensV2 as enabling large mantissas. |\n| `src/​test/​app/​AMMClawback_test.cpp` | Keeps IOU clawback tests on small mantissas. |\n| `src/​test/​app/​AMM_test.cpp` | Keeps IOU AMM tests on small mantissas. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-10-01T12:48:34Z",
+     "body": "LGTM"
     }
    ],
    "reviewCommentsList": [

@@ -1,6 +1,6 @@
 {
  "name": "AMM",
- "fetchedAt": "2026-10-01T08:01:06.301Z",
+ "fetchedAt": "2026-10-02T08:01:01.266Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -18,10 +18,10 @@
    "mvadari/rearch/amm-verifyAndAdjustLPTokenBalance",
    "mvadari/rearch/mptoken-deleteAMMMPToken"
   ],
-  "lastActivity": "2026-10-01T07:20:19Z",
+  "lastActivity": "2026-10-01T08:17:07Z",
   "lastMerged": "2026-08-24T13:50:52Z",
   "release": "1.12.0",
-  "totalComments": 423
+  "totalComments": 425
  },
  "release": {
   "version": "1.12.0",
@@ -37,11 +37,10 @@
    "state": "open",
    "author": "Tapanito",
    "createdAt": "2026-04-29T09:47:27Z",
-   "updatedAt": "2026-10-01T07:20:19Z",
+   "updatedAt": "2026-10-01T08:17:07Z",
    "closedAt": null,
    "labels": [
-    "Trivial",
-    "PR: has conflicts"
+    "Trivial"
    ],
    "comments": [
     {
@@ -103,6 +102,12 @@
      "date": "2026-06-27T02:11:40Z",
      "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
      "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-4814687953"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-01T08:15:40Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-5927515869"
     }
    ],
    "body": "## High Level Overview of Change\n\nTest-only. Adds coverage for two behaviours that had none:\n\n- `AMMMPT_test::testAMMWithVaultShares`: `AMMCreate` returns `tecWRONG_ASSET` when vault shares are the first asset, and when shares of two different vaults are paired, confirming the rejection does not depend on argument position or on the other asset's type.\n- `VaultValidation_test::testCreateFailMPT`: `VaultCreate` on an MPT issuance without `lsfMPTCanTransfer` fails with `tecNO_AUTH` for the issuer as well as for a holder, and succeeds once the issuer enables the flag through `MPTokenIssuanceSet`.\n\n### Context of Change\n\nThe original version of this PR tested positive-path AMM pools holding vault shares. Since then `AMMCreate` rejects vault shares (#7666) and MPT mutable flags became enable-only, so those scenarios no longer exist. The PR was trimmed to the cases that remain novel.\n\n### Type of Change\n\n- [x] Tests (you added tests for code that already exists, or your new feature included in this PR)\n\n### API Impact\n\nNone.",
@@ -114,7 +119,7 @@
    "additions": 58,
    "deletions": 6,
    "changedFiles": 2,
-   "commits": 12,
+   "commits": 13,
    "reviewComments": 1,
    "reviews": [
     {
@@ -194,6 +199,12 @@
      "state": "COMMENTED",
      "date": "2026-10-01T07:20:19Z",
      "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nThe reviewed test-only changes add the intended regression coverage with no unresolved issues.\n\n**Review effort:** Lite  \n**Findings:** None"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-01T08:17:07Z",
+     "body": "Test-only change adding AMM/vault-share rejection coverage (AMMMPT_test) and MPT CanTransfer VaultCreate coverage (VaultValidation_test). Both additions follow existing patterns in the file (scoped AMM construction blocks with Ter(tecWRONG_ASSET)/ammExists checks, and the testCase lambda plumbing of a new MPTTester& parameter). Logic reads correctly: the swapped-argument and dual-vault-shares AMM cases both expect tecWRONG_ASSET, and the new VaultCreate case correctly checks the issuer is not exempted from tecNO_AUTH before enabling tfMPTSetCanTransfer and confirming success. No correctness, security, or resource issues found in the added lines."
     }
    ],
    "reviewCommentsList": [
