@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-10-02T08:01:49.389Z",
+ "fetchedAt": "2026-10-03T08:01:48.218Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-10-01T16:20:28Z",
+  "lastActivity": "2026-10-02T23:38:08Z",
   "lastMerged": "2026-09-03T19:42:39Z",
   "release": "0.90.0",
-  "totalComments": 500
+  "totalComments": 506
  },
  "release": {
   "version": "0.90.0",
@@ -31,9 +31,11 @@
    "state": "open",
    "author": "a1q123456",
    "createdAt": "2026-03-10T15:56:03Z",
-   "updatedAt": "2026-10-01T16:20:28Z",
+   "updatedAt": "2026-10-02T23:38:08Z",
    "closedAt": null,
-   "labels": [],
+   "labels": [
+    "PR: has conflicts"
+   ],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -64,6 +66,12 @@
      "date": "2026-09-25T10:53:28Z",
      "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
      "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-5831210349"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-02T23:38:08Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#issuecomment-5963163373"
     }
    ],
    "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\nhttps://github.com/XRPLF/XRPL-Standards/pull/484\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [x] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [x] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
@@ -958,6 +966,209 @@
    ]
   },
   {
+   "number": 6141,
+   "title": "Added conservative checks to objects being used without checking.",
+   "url": "https://github.com/XRPLF/rippled/pull/6141",
+   "state": "open",
+   "author": "pratikmankawde",
+   "createdAt": "2025-12-11T16:30:46Z",
+   "updatedAt": "2026-10-02T16:43:19Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "oleks-rip",
+     "date": "2026-02-24T15:28:40Z",
+     "body": "What you need to do is just get rid of 4 functions \n```\nexistsLedger()\nexistsTransaction()\ncheckoutLedger()\ncheckoutTransaction()\n```\nand replace them with their 1 line bodies.  Then logic that bothers you just stop existing, and every access to the pointers will be explicitly guarded",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-3952935238"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-02-24T15:54:55Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `16.66667%` with `10 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/rdb/backend/SQLiteDatabase.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9yZGIvYmFja2VuZC9TUUxpdGVEYXRhYmFzZS5o) | 25.0% | [6 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/xrpld/overlay/detail/PeerReservationTable.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL292ZXJsYXkvZGV0YWlsL1BlZXJSZXNlcnZhdGlvblRhYmxlLmNwcA==) | 0.0% | [4 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-3953094676"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-04-01T16:14:43Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4171210133"
+    },
+    {
+     "author": "godexsoft",
+     "date": "2026-05-04T14:26:20Z",
+     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -v   # should show 'upstream' among others; if not:\n# git remote set-url upstream git@github.com:XRPLF/rippled.git\ngit fetch upstream\ngit checkout upstream/develop -- .clang-tidy\n```\n\n**2. Reconfigure conan/cmake so `compile_commands.json` is fresh.**\n\n**3. Apply renames for the files modified in your PR:**\n\n```bash\ngit diff --name-only $(git merge-base HEAD upstream/develop) HEAD \\\n  | grep -E '\\.(cpp|h|hpp|ipp)$' \\\n  | xargs run-clang-tidy -p build -fix -allow-no-checks\n# or -p .build, or whatever your build dir is called\n```\n\n**4. Build + test, then commit as a single dedicated commit:**\n\n```bash\ncmake --build build -j8\ngit commit -am \"refactor: Align identifier naming with develop\"\n```\n\n**5. Now merge develop:**\n\n```bash\ngit merge upstream/develop\n```\n\n## Extra\n\nRun clang-tidy once more after the merge to catch any stragglers introduced from develop's side:\n\n```bash\nrun-clang-tidy -p build -fix -allow-no-checks src tests\n# or -p .build, or whatever your build dir is called\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4371848999"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-06-01T17:22:56Z",
+     "body": "@pratikmankawde what's the status of this PR?",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4594906249"
+    },
+    {
+     "author": "pratikmankawde",
+     "date": "2026-06-01T17:24:16Z",
+     "body": "> @pratikmankawde what's the status of this PR?\nThis one was on back burner for now. I'll pick it up again soon.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4594917055"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-02T16:15:58Z",
+     "body": "⚠️ This PR contains unsigned commits. To get your PR merged, please sign them. ⚠️\n\nIf only the most recent commit is unsigned, you can run:\n1. Amend the commit: `git commit --amend --no-edit -n -S`\n2. Overwrite the commit: `git push --force-with-lease`\n\nIf multiple commits are unsigned, you can run:\n1. Go into interactive rebase mode: `git rebase --interactive HEAD~<NUM_OF_COMMITS>`, where `NUM_OF_COMMITS` is the number of most recent commits that will be available to edit.\n2. Change \"pick\" to \"edit\" for the commits you need to sign, and then save and exit.\n3. For each commit, run: `git commit --amend --no-edit -n -S`\n4. Continue the rebase: `git rebase --continue`\n5. Overwrite the commit(s): `git push --force-with-lease`\n\nIf you're new to commit signing, there are different ways to set it up:\n\n<details>\n<summary><b>Sign commits with <code>gpg</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `gpg`:\n1. [Generate a GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)\n2. [Add the GPG key to your GitHub account](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)\n3. [Configure `git` to use your GPG key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-gpg-key)\n</details>\n\n<details>\n<summary><b>Sign commits with <code>ssh-agent</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `ssh-agent`:\n1. [Generate an SSH key and add it to `ssh-agent`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)\n2. [Add the SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)\n3. [Configure `git` to use your SSH key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)\n</details>\n\n<details>\n<summary><b>Sign commits with 1Password</b></summary>\n<p></p>\n\nYou can also sign commits using 1Password, which lets you sign commits with biometrics without the signing key leaving the local 1Password process.\nSee [use 1Password to sign your commits](https://developer.1password.com/docs/ssh/git-commit-signing/).\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-5956464295"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-02T16:43:19Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-5956945308"
+    }
+   ],
+   "body": "## Context of the change: \n\nhttps://github.com/XRPLF/rippled/pull/6029# \n\nIn this PR, @oleks-rip made a fix to test the validity of txnDB (transaction database connection object) pointer before dereferencing it. In this case, the config suggested that txn tables are not being used and hence the txn DB connection object should be null. But it was still being dereferenced without confirming its validity. Config:\n\n[ledger_tx_tables]\nuse_tx_tables = 0\n\nThe pattern followed in this PR was to check the config, if the config suggests that db connection should be created, it must have been created and is valid. So, no explicit check on the actual db connection object is required. As per code review feedback an additional check on the txnDB object was added, failing this would throw a runtime error.\n\nApparently, this pattern (of relying on the config settings and not on validity of actual objects) is being followed at multiple places. We only check the config to assume the validity of the corresponding objects. As shared in the PR comments, at many places we don’t explicitly check the validity of the connection or other objects before using it. Moreover, if the object is invalid, there seem to be no guidelines around how to handle it? Should the program just throw a runtime error and exit? Should the program retry (how many times?) to create a valid txn db connection object? Should the code throw and log an exception and cancel the transaction that’s supposed to be written to the db? Should we initiate a re-sync since this write failed? Should the app be relaunched and so that it can re-initialise?\nWe need set proper guidelines on this and document the behaviour.\n\nPlease check PR for more details on the change and the related discussion.\n\nThe objective of this ticket is to start a discussion around this and finalize the behavior we want going forward. This will require updating code to follow agreed upon guidelines and fix any potential bugs.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:pratik/Add_checks_db_objects",
+   "additions": 55,
+   "deletions": 22,
+   "changedFiles": 5,
+   "commits": 8,
+   "reviewComments": 13,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-02-13T16:24:31Z",
+     "body": "## Pull request overview\n\nAdds defensive runtime checks to the SQLite relational database backend so that attempts to check out a DB session fail fast with a clear log + exception when the underlying DB handle is unavailable.\n\n**Changes:**\n- Documented that `checkoutLedger()` / `checkoutTransaction()` may throw when the DB is unavailable.\n- Added null checks for `lgrdb_` and `txdb_` before calling `checkoutDb()`, logging at `fatal` and throwing `std::runtime_error` on failure.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-02-24T15:24:36Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-04-29T19:20:26Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:03:17Z",
+     "body": "State divergence bugs: validation checks run after in-memory mutations. Move both checks before mutations to prevent DB/memory inconsistency—see inline."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:05:34Z",
+     "body": "### 🟡 Changes recommended\n\nThe new null-check throwing paths can leave in-memory and persistent reservation state out of sync, and the new inline header logic relies on missing direct includes (transitive include dependency).\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (2)\n\n**src/xrpld/overlay/detail/PeerReservationTable.cpp:119**\n* `erase` removes the reservation from `table_` before verifying `connection_` is set; if the new runtime check throws, in-memory state and DB state diverge. Validate (and `checkoutDb()`) before erasing so the method fails without side effects when the connection is unavailable.\n```\n        table_.erase(it);\n        // Validate connection_ before dereferencing — see comment in\n        // insert_or_assign above.\n        if (!connection_)\n        {\n```\n**src/xrpld/overlay/detail/PeerReservationTable.cpp:96**\n* `insert_or_assign` updates `table_` before the new `connection_` null-check; if this throws, the in-memory table will have been modified but the DB will not, leaving them out of sync. Either validate earlier, or roll back the in-memory change before throwing.\n```\n    if (!connection_)\n    {\n        Throw<std::runtime_error>(\n            \"PeerReservationTable::insert_or_assign: database connection is \"\n            \"not available\");\n```\n\n- **Files reviewed:** 5/5 changed files\n- **Comments generated:** 3\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-02T16:19:45Z",
+     "body": "Data consistency bugs flagged: null checks must precede table mutations to prevent desync if exceptions are caught."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-02-13T16:24:30Z",
+     "path": "src/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp",
+     "body": "The error message string is duplicated in both the log statement and the exception. Consider defining it once (e.g., as a `constexpr std::string_view`) and using that for both to avoid accidental drift between the logged and thrown messages.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2805030450"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-02-13T16:24:31Z",
+     "path": "src/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp",
+     "body": "The error message string is duplicated in both the log statement and the exception. Consider defining it once (e.g., as a `constexpr std::string_view`) and using that for both to avoid accidental drift between the logged and thrown messages.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2805030503"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-02-13T16:24:31Z",
+     "path": "src/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp",
+     "body": "The Doxygen @brief for `checkoutLedger()` still says `checkoutTransaction`, which is misleading (it describes the wrong function name). Please update the @brief line to match the actual function (`checkoutLedger`).",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2805030532"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-02-24T15:24:36Z",
+     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
+     "body": "Changes to `checkoutLedger / checkoutTransaction` are changing logic of the program.  As you can see every call to `checkoutLedger / checkoutTransaction` are guarded by `if (existsTransaction()) /  if (existsLedger())`. So in case that connection to db is not established  the program will continue. You change lead it to crash. Why?",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2847839255"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-04-29T19:17:02Z",
+     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
+     "body": "Nit: Now you're making changes here, perhaps you can also rename `txdb_` to `txDb_`, to match the `ledgerDb` variable name.l",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3163569271"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-04-29T19:20:09Z",
+     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
+     "body": "In which scenarios will `ledgerDb_` (or `txDb_`) be invalid?\n\nCan we check them only once on startup, allowing us to assume the databases are available, rather than having to check if they are available each time this function is called?",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3163587236"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-01T22:03:17Z",
+     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
+     "body": "Validation check runs after in-memory mutation risks state divergence. Move null check before `table_.insert()`:\n\n```suggestion\n    if (!connection_)\n    {\n        Throw<std::runtime_error>(\n            \"PeerReservationTable::insert_or_assign: database connection is not available\");\n    }\n    table_.insert(hint, reservation);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908830723"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-01T22:03:17Z",
+     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
+     "body": "Validation check runs after in-memory mutation risks state divergence. Move null check before `table_.erase()`:\n\n```suggestion\n        if (!connection_)\n        {\n            Throw<std::runtime_error>(\n                \"PeerReservationTable::erase: database connection is not available\");\n        }\n        table_.erase(it);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908830749"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:05:33Z",
+     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
+     "body": "`checkoutLedger()`/`checkoutTransaction()` now use `JLOG` and `Throw<std::runtime_error>` in this header, but `SQLiteDatabase.h` does not directly include the headers that define these (`<xrpl/basics/Log.h>`, `<xrpl/basics/contract.h>`, and `<stdexcept>` for `std::runtime_error`). This makes the header rely on transitive includes and can break compilation if include order changes.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908844943"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:05:34Z",
+     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
+     "body": "This file now throws `std::runtime_error` but does not include `<stdexcept>`, relying on transitive includes. Add the standard header explicitly to make the translation unit self-contained.\n\nThis issue also appears in the following locations of the same file:\n- line 92\n- line 115",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908844984"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:05:34Z",
+     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
+     "body": "These new `Throw<std::runtime_error>` paths change the public exception behavior of `PeerReservationTable::insert_or_assign`/`erase`, but the API documentation in `include/xrpl/core/PeerReservationTable.h` only mentions `soci::soci_error` (and `erase` documents no throws). Please update the header docs to reflect the new `std::runtime_error` throws.",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908845019"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-02T16:19:46Z",
+     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
+     "body": "Null check after insert risks DB/memory inconsistency. Move before insert:\n\n```suggestion:-5+5\n    // connection_ is set by load() during two-phase init. Validate\n    // before dereferencing to guard against use-before-load or a reset\n    // connection. See PR #6029 for the general pattern discussion.\n    if (connection_ == nullptr)\n    {\n        Throw<std::runtime_error>(\n            \"PeerReservationTable::insertOrAssign: database connection is \"\n            \"not available\");\n    }\n    table_.insert(hint, reservation);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r4167628934"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-02T16:19:46Z",
+     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
+     "body": "Null check after erase risks DB/memory inconsistency. Move before erase:\n\n```suggestion:-3+4\n        // Validate connection_ before dereferencing — see comment in\n        // insertOrAssign above.\n        if (connection_ == nullptr)\n        {\n            Throw<std::runtime_error>(\n                \"PeerReservationTable::erase: database connection is not \"\n                \"available\");\n        }\n        table_.erase(it);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r4167628945"
+    }
+   ]
+  },
+  {
    "number": 8424,
    "title": "refactor: Use RippleStateEntry checks in nft trust line helpers",
    "url": "https://github.com/XRPLF/rippled/pull/8424",
@@ -1785,179 +1996,6 @@
      "path": "src/test/app/SHAMapStore_test.cpp",
      "body": "Intentional. Sharing this means moving `syncStore()` into `src/test/jtx/` as well\n(~30 call sites), which is its own PR rather than part of a test-only flake fix. Both\ncopies carry the same comment, so they change or disappear together.",
      "url": "https://github.com/XRPLF/rippled/pull/8137#discussion_r3926365141"
-    }
-   ]
-  },
-  {
-   "number": 6141,
-   "title": "Added conservative checks to objects being used without checking.",
-   "url": "https://github.com/XRPLF/rippled/pull/6141",
-   "state": "open",
-   "author": "pratikmankawde",
-   "createdAt": "2025-12-11T16:30:46Z",
-   "updatedAt": "2026-09-01T22:05:34Z",
-   "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "oleks-rip",
-     "date": "2026-02-24T15:28:40Z",
-     "body": "What you need to do is just get rid of 4 functions \n```\nexistsLedger()\nexistsTransaction()\ncheckoutLedger()\ncheckoutTransaction()\n```\nand replace them with their 1 line bodies.  Then logic that bothers you just stop existing, and every access to the pointers will be explicitly guarded",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-3952935238"
-    },
-    {
-     "author": "codecov[bot]",
-     "date": "2026-02-24T15:54:55Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `16.66667%` with `10 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/rdb/backend/SQLiteDatabase.h](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9yZGIvYmFja2VuZC9TUUxpdGVEYXRhYmFzZS5o) | 25.0% | [6 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/xrpld/overlay/detail/PeerReservationTable.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL292ZXJsYXkvZGV0YWlsL1BlZXJSZXNlcnZhdGlvblRhYmxlLmNwcA==) | 0.0% | [4 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6141?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-3953094676"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-04-01T16:14:43Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4171210133"
-    },
-    {
-     "author": "godexsoft",
-     "date": "2026-05-04T14:26:20Z",
-     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -v   # should show 'upstream' among others; if not:\n# git remote set-url upstream git@github.com:XRPLF/rippled.git\ngit fetch upstream\ngit checkout upstream/develop -- .clang-tidy\n```\n\n**2. Reconfigure conan/cmake so `compile_commands.json` is fresh.**\n\n**3. Apply renames for the files modified in your PR:**\n\n```bash\ngit diff --name-only $(git merge-base HEAD upstream/develop) HEAD \\\n  | grep -E '\\.(cpp|h|hpp|ipp)$' \\\n  | xargs run-clang-tidy -p build -fix -allow-no-checks\n# or -p .build, or whatever your build dir is called\n```\n\n**4. Build + test, then commit as a single dedicated commit:**\n\n```bash\ncmake --build build -j8\ngit commit -am \"refactor: Align identifier naming with develop\"\n```\n\n**5. Now merge develop:**\n\n```bash\ngit merge upstream/develop\n```\n\n## Extra\n\nRun clang-tidy once more after the merge to catch any stragglers introduced from develop's side:\n\n```bash\nrun-clang-tidy -p build -fix -allow-no-checks src tests\n# or -p .build, or whatever your build dir is called\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4371848999"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-06-01T17:22:56Z",
-     "body": "@pratikmankawde what's the status of this PR?",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4594906249"
-    },
-    {
-     "author": "pratikmankawde",
-     "date": "2026-06-01T17:24:16Z",
-     "body": "> @pratikmankawde what's the status of this PR?\nThis one was on back burner for now. I'll pick it up again soon.",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#issuecomment-4594917055"
-    }
-   ],
-   "body": "## Context of the change: \n\nhttps://github.com/XRPLF/rippled/pull/6029# \n\nIn this PR, @oleks-rip made a fix to test the validity of txnDB (transaction database connection object) pointer before dereferencing it. In this case, the config suggested that txn tables are not being used and hence the txn DB connection object should be null. But it was still being dereferenced without confirming its validity. Config:\n\n[ledger_tx_tables]\nuse_tx_tables = 0\n\nThe pattern followed in this PR was to check the config, if the config suggests that db connection should be created, it must have been created and is valid. So, no explicit check on the actual db connection object is required. As per code review feedback an additional check on the txnDB object was added, failing this would throw a runtime error.\n\nApparently, this pattern (of relying on the config settings and not on validity of actual objects) is being followed at multiple places. We only check the config to assume the validity of the corresponding objects. As shared in the PR comments, at many places we don’t explicitly check the validity of the connection or other objects before using it. Moreover, if the object is invalid, there seem to be no guidelines around how to handle it? Should the program just throw a runtime error and exit? Should the program retry (how many times?) to create a valid txn db connection object? Should the code throw and log an exception and cancel the transaction that’s supposed to be written to the db? Should we initiate a re-sync since this write failed? Should the app be relaunched and so that it can re-initialise?\nWe need set proper guidelines on this and document the behaviour.\n\nPlease check PR for more details on the change and the related discussion.\n\nThe objective of this ticket is to start a discussion around this and finalize the behavior we want going forward. This will require updating code to follow agreed upon guidelines and fix any potential bugs.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:pratik/Add_checks_db_objects",
-   "additions": 52,
-   "deletions": 23,
-   "changedFiles": 5,
-   "commits": 6,
-   "reviewComments": 11,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-02-13T16:24:31Z",
-     "body": "## Pull request overview\n\nAdds defensive runtime checks to the SQLite relational database backend so that attempts to check out a DB session fail fast with a clear log + exception when the underlying DB handle is unavailable.\n\n**Changes:**\n- Documented that `checkoutLedger()` / `checkoutTransaction()` may throw when the DB is unavailable.\n- Added null checks for `lgrdb_` and `txdb_` before calling `checkoutDb()`, logging at `fatal` and throwing `std::runtime_error` on failure.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "oleks-rip",
-     "state": "COMMENTED",
-     "date": "2026-02-24T15:24:36Z",
-     "body": ""
-    },
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2026-04-29T19:20:26Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-01T22:03:17Z",
-     "body": "State divergence bugs: validation checks run after in-memory mutations. Move both checks before mutations to prevent DB/memory inconsistency—see inline."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-01T22:05:34Z",
-     "body": "### 🟡 Changes recommended\n\nThe new null-check throwing paths can leave in-memory and persistent reservation state out of sync, and the new inline header logic relies on missing direct includes (transitive include dependency).\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (2)\n\n**src/xrpld/overlay/detail/PeerReservationTable.cpp:119**\n* `erase` removes the reservation from `table_` before verifying `connection_` is set; if the new runtime check throws, in-memory state and DB state diverge. Validate (and `checkoutDb()`) before erasing so the method fails without side effects when the connection is unavailable.\n```\n        table_.erase(it);\n        // Validate connection_ before dereferencing — see comment in\n        // insert_or_assign above.\n        if (!connection_)\n        {\n```\n**src/xrpld/overlay/detail/PeerReservationTable.cpp:96**\n* `insert_or_assign` updates `table_` before the new `connection_` null-check; if this throws, the in-memory table will have been modified but the DB will not, leaving them out of sync. Either validate earlier, or roll back the in-memory change before throwing.\n```\n    if (!connection_)\n    {\n        Throw<std::runtime_error>(\n            \"PeerReservationTable::insert_or_assign: database connection is \"\n            \"not available\");\n```\n\n- **Files reviewed:** 5/5 changed files\n- **Comments generated:** 3\n- **Review effort level:** Lite\n</details>"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-02-13T16:24:30Z",
-     "path": "src/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp",
-     "body": "The error message string is duplicated in both the log statement and the exception. Consider defining it once (e.g., as a `constexpr std::string_view`) and using that for both to avoid accidental drift between the logged and thrown messages.",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2805030450"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-02-13T16:24:31Z",
-     "path": "src/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp",
-     "body": "The error message string is duplicated in both the log statement and the exception. Consider defining it once (e.g., as a `constexpr std::string_view`) and using that for both to avoid accidental drift between the logged and thrown messages.",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2805030503"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-02-13T16:24:31Z",
-     "path": "src/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp",
-     "body": "The Doxygen @brief for `checkoutLedger()` still says `checkoutTransaction`, which is misleading (it describes the wrong function name). Please update the @brief line to match the actual function (`checkoutLedger`).",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2805030532"
-    },
-    {
-     "author": "oleks-rip",
-     "date": "2026-02-24T15:24:36Z",
-     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
-     "body": "Changes to `checkoutLedger / checkoutTransaction` are changing logic of the program.  As you can see every call to `checkoutLedger / checkoutTransaction` are guarded by `if (existsTransaction()) /  if (existsLedger())`. So in case that connection to db is not established  the program will continue. You change lead it to crash. Why?",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r2847839255"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-04-29T19:17:02Z",
-     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
-     "body": "Nit: Now you're making changes here, perhaps you can also rename `txdb_` to `txDb_`, to match the `ledgerDb` variable name.l",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3163569271"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-04-29T19:20:09Z",
-     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
-     "body": "In which scenarios will `ledgerDb_` (or `txDb_`) be invalid?\n\nCan we check them only once on startup, allowing us to assume the databases are available, rather than having to check if they are available each time this function is called?",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3163587236"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-09-01T22:03:17Z",
-     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
-     "body": "Validation check runs after in-memory mutation risks state divergence. Move null check before `table_.insert()`:\n\n```suggestion\n    if (!connection_)\n    {\n        Throw<std::runtime_error>(\n            \"PeerReservationTable::insert_or_assign: database connection is not available\");\n    }\n    table_.insert(hint, reservation);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908830723"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-09-01T22:03:17Z",
-     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
-     "body": "Validation check runs after in-memory mutation risks state divergence. Move null check before `table_.erase()`:\n\n```suggestion\n        if (!connection_)\n        {\n            Throw<std::runtime_error>(\n                \"PeerReservationTable::erase: database connection is not available\");\n        }\n        table_.erase(it);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908830749"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T22:05:33Z",
-     "path": "src/xrpld/app/rdb/backend/SQLiteDatabase.h",
-     "body": "`checkoutLedger()`/`checkoutTransaction()` now use `JLOG` and `Throw<std::runtime_error>` in this header, but `SQLiteDatabase.h` does not directly include the headers that define these (`<xrpl/basics/Log.h>`, `<xrpl/basics/contract.h>`, and `<stdexcept>` for `std::runtime_error`). This makes the header rely on transitive includes and can break compilation if include order changes.",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908844943"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T22:05:34Z",
-     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
-     "body": "This file now throws `std::runtime_error` but does not include `<stdexcept>`, relying on transitive includes. Add the standard header explicitly to make the translation unit self-contained.\n\nThis issue also appears in the following locations of the same file:\n- line 92\n- line 115",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908844984"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T22:05:34Z",
-     "path": "src/xrpld/overlay/detail/PeerReservationTable.cpp",
-     "body": "These new `Throw<std::runtime_error>` paths change the public exception behavior of `PeerReservationTable::insert_or_assign`/`erase`, but the API documentation in `include/xrpl/core/PeerReservationTable.h` only mentions `soci::soci_error` (and `erase` documents no throws). Please update the header docs to reflect the new `std::runtime_error` throws.",
-     "url": "https://github.com/XRPLF/rippled/pull/6141#discussion_r3908845019"
     }
    ]
   },

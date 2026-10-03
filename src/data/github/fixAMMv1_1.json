@@ -1,6 +1,6 @@
 {
  "name": "fixAMMv1_1",
- "fetchedAt": "2026-10-02T08:08:54.136Z",
+ "fetchedAt": "2026-10-03T08:09:10.189Z",
  "summary": {
   "status": "in development",
   "prs": 2,
@@ -11,10 +11,10 @@
   "branches": [
    "gregtatcam/retire/fixAMMv1_1"
   ],
-  "lastActivity": "2026-09-30T17:23:10Z",
+  "lastActivity": "2026-10-02T22:41:22Z",
   "lastMerged": "2024-05-14T19:28:38Z",
   "release": "2.2.0",
-  "totalComments": 168
+  "totalComments": 173
  },
  "release": {
   "version": "2.2.0",
@@ -30,7 +30,7 @@
    "state": "open",
    "author": "gregtatcam",
    "createdAt": "2026-09-14T18:44:55Z",
-   "updatedAt": "2026-09-30T17:23:10Z",
+   "updatedAt": "2026-10-02T22:41:22Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -51,6 +51,18 @@
      "date": "2026-09-30T17:09:54Z",
      "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
      "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-5916041720"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-02T22:19:06Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-5962362725"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-02T22:28:26Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-5962470660"
     }
    ],
    "body": "## High Level Overview of Change\n\nfixAMMv1_1 has been enabled on mainnet long enough to retire, so move\nits macro to the retired list and delete the conditional code it\nguarded, keeping the enabled behavior.\n\nRemoved gates: changeSpotPriceQuality, swapAssetIn and swapAssetOut in\nAMMHelpers.h; adjustAmountsByLPTokens in AMMHelpers.cpp; accountSendIOU\nin TokenHelpers.cpp; the LP token balance checks in AMMWithdraw.cpp;\nand adjustQualityWithFees plus the two qualityThreshold lambdas in\nBookStep.cpp.\n\nThree parameters became dead and are dropped with their call sites: the\nRules argument of changeSpotPriceQuality, and the Rules argument of\nboth adjustQualityWithFees overloads. BookStep.cpp no longer needs\nRules.h.\n\nOne behavior change is worth noting. swapAssetIn and swapAssetOut read\nthe amendment through getCurrentTransactionRules(), which is only\nseated during transaction application. Path finding reaches them\nthrough RippleCalc::rippleCalculate from Pathfinder and PathRequest,\nwhere it is unseated, so ripple_path_find and path_find have been using\nthe pre-fix swap math while the transactors used the post-fix math.\nRetiring the amendment makes both paths agree. This is RPC-visible but\nnot consensus-relevant, since path finding only proposes paths and the\nPayment transactor executes them.\n\nadjustAmountsByLPTokens is unaffected: its only callers are\nAMMDeposit::deposit and AMMWithdraw::withdraw, both reached solely\nthrough doApply, where Transactor::operator() seats the rules\nunconditionally.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n## Test Plan\n\nUpdated AMM_test.cpp, AMMExtended_test.cpp, AMMMPT_test.cpp, and AMMCalc_test.cpp",
@@ -59,11 +71,11 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:gregtatcam/retire/fixAMMv1_1",
-   "additions": 656,
+   "additions": 659,
    "deletions": 1597,
    "changedFiles": 11,
-   "commits": 7,
-   "reviewComments": 13,
+   "commits": 8,
+   "reviewComments": 15,
    "reviews": [
     {
      "author": "xrplf-ai-reviewer[bot]",
@@ -178,6 +190,12 @@
      "state": "APPROVED",
      "date": "2026-09-30T17:23:10Z",
      "body": "This diff is a mechanical, test-only continuation of the fixAMMv1_1 amendment retirement: for each `if (!fixAMMv1_1) {...} else {...}` block, the `else` (post-fix/enabled) branch is kept and the pre-fix branch is deleted, and amendment-flag sets used in test invocations drop `fixAMMv1_1` from the subtraction list. I spot-checked every collapsed branch (AMMExtended_test.cpp and AMMMPT_test.cpp) against the removed code and confirmed the retained numeric expectations consistently match the previously-`else`/enabled-amendment values, so the behavior-preserving intent described in the MR holds. No logic errors, security issues, or resource-leak patterns were introduced; this is straightforward dead-code removal in test files."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-02T22:41:21Z",
+     "body": "Two test cases lose coverage due to narrowed conditions — assertions no longer fire for a now-reachable feature combination. See inline comments."
     }
    ],
    "reviewCommentsList": [
@@ -271,6 +289,20 @@
      "path": "src/test/app/AMMMPT_test.cpp",
      "body": "Yes, I understand. I found it amusing that inside the if/else blocks `{}`, the BEAST_EXPECT assertion values are identical irrespective of whether the fixAMMv1_3 amendment is enabled or not.\n\nThis remark is not specific to this PR, it was a pre-existing code",
      "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4027854910"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-02T22:41:22Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "Test coverage lost: `fixAMMv1_1`-on/`fixAMMv1_3`-off silently skips all assertions. Add `else` branch to verify expected balances/offers:",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4170419744"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-02T22:41:22Z",
+     "path": "src/test/app/AMMMPT_test.cpp",
+     "body": "Test coverage lost (XRP variant): `fixAMMv1_1`-on/`fixAMMv1_3`-off executes setup but zero assertions. Add matching `else` branch:",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#discussion_r4170419749"
     }
    ]
   },

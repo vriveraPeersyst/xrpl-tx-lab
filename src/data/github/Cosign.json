@@ -1,6 +1,6 @@
 {
  "name": "Cosign",
- "fetchedAt": "2026-10-02T08:02:11.717Z",
+ "fetchedAt": "2026-10-03T08:02:16.524Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -11,9 +11,9 @@
   "branches": [
    "ripple/cosign"
   ],
-  "lastActivity": "2026-09-28T20:55:18Z",
+  "lastActivity": "2026-10-02T18:17:21Z",
   "lastMerged": "2026-09-28T19:44:40Z",
-  "totalComments": 242
+  "totalComments": 244
  },
  "release": {},
  "prs": [
@@ -24,7 +24,7 @@
    "state": "open",
    "author": "ckeshava",
    "createdAt": "2026-08-26T23:42:46Z",
-   "updatedAt": "2026-09-28T20:55:18Z",
+   "updatedAt": "2026-10-02T18:17:21Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -53,11 +53,11 @@
    "draft": false,
    "base": "ripple/cosign",
    "head": "ckeshava:cosign-invariants-v1",
-   "additions": 664,
-   "deletions": 1,
-   "changedFiles": 6,
-   "commits": 3,
-   "reviewComments": 12,
+   "additions": 663,
+   "deletions": 0,
+   "changedFiles": 5,
+   "commits": 4,
+   "reviewComments": 13,
    "reviews": [
     {
      "author": "shawnxie999",
@@ -81,6 +81,12 @@
      "author": "Kassaking7",
      "state": "COMMENTED",
      "date": "2026-09-28T20:55:18Z",
+     "body": ""
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-02T18:17:20Z",
      "body": ""
     }
    ],
@@ -168,6 +174,273 @@
      "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
      "body": "Building on this: I think there's an actual bug in this branch, not just a gap in coverage. It only adjusts `expectedOwnerCountDelta_`. When a sponsored Ticket is consumed, `ticketDelete` → `decreaseOwnerCountForObject` also decrements the owner's `SponsoredOwnerCount` and the sponsor's `SponsoringOwnerCount`.\n\nMeanwhile, `recordReserveState` always inserts the owner into `expectedSponsoredOwnerCountDelta_` (+0 if the proposal is unsponsored, +5 if sponsored). So the actual delta is -1 / +4 against an expected 0 / +5, and a valid `TransactionProposalCreate` submitted with a sponsored ticket fails with `tecINVARIANT_FAILED`. The same applies to a `SponsorshipTransfer` on a proposal that uses a sponsored ticket. If the ticket's sponsor also sponsors the proposal, the `SponsoringOwnerCount` check fails too.\n\nA plain-ticket test would pass and miss this, so it'd be good to also add a case where the ticket itself is sponsored. Suggested fix, in the `ltTICKET` branch:\n\n```cpp\nif (ticket->isFieldPresent(sfSponsor))\n{\n    expectedSponsoredOwnerCountDelta_[owner] += delta;\n    expectedSponsoringOwnerCountDelta_[ticket->getAccountID(sfSponsor)] += delta;\n}",
      "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4126943266"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-10-02T18:17:20Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "🟡 **Severity: MEDIUM**\n\nThe reserve delta check only ensures all expected keys match and ignores unexpected entries in the actual deltas map. This allows unauthorized OwnerCount/SponsoredOwnerCount/SponsoringOwnerCount changes to other accounts to pass unnoticed when a proposal is touched, weakening the invariant’s integrity guarantees and enabling stealthy misaccounting.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Tighten deltasMatch so it also asserts there are no unexpected non‑zero entries in the actual map. Keep the existing check that all expected entries match, and add a second pass over actual that allows zero entries but requires any non‑zero delta to have a corresponding equal expected entry. This prevents stealthy extra OwnerCount/SponsoredOwnerCount/SponsoringOwnerCount changes from passing the invariant when a proposal is touched.\n\n> **⚠️ Experimental Feature**: This code suggestion is automatically generated. Please review carefully.\n\n```suggestion\n    return std::ranges::all_of(expected, [&actual](auto const& item) {\n        auto const& [account, expectedDelta] = item;\n        auto const iter = actual.find(account);\n        auto const actualDelta = iter == actual.end() ? 0 : iter->second;\n        return actualDelta == expectedDelta;\n    }) &&\n        std::ranges::all_of(actual, [&expected](auto const& item) {\n            auto const& [account, actualDelta] = item;\n            if (actualDelta == 0)\n                return true;\n            auto const iter = expected.find(account);\n            auto const expectedDelta = iter == expected.end() ? 0 : iter->second;\n            return actualDelta == expectedDelta;\n        });\n```\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4168537672"
+    }
+   ]
+  },
+  {
+   "number": 8205,
+   "title": "feat: Introduce Cosign v1 amendment with TransactionProposalCreate",
+   "url": "https://github.com/XRPLF/rippled/pull/8205",
+   "state": "closed",
+   "author": "Kassaking7",
+   "createdAt": "2026-09-09T15:54:05Z",
+   "updatedAt": "2026-10-02T15:57:45Z",
+   "closedAt": "2026-09-28T17:00:41Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-09T15:57:53Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.22064%` with `5 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [...transactors/proposal/TransactionProposalCreate.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvcHJvcG9zYWwvVHJhbnNhY3Rpb25Qcm9wb3NhbENyZWF0ZS5jcHA=) | 97.8% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...ude/xrpl/ledger/entries/TransactionProposalEntry.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL2xlZGdlci9lbnRyaWVzL1RyYW5zYWN0aW9uUHJvcG9zYWxFbnRyeS5o) | 0.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#issuecomment-5604820179"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-09T20:46:37Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#issuecomment-5608513641"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-23T19:56:32Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#issuecomment-5801942691"
+    }
+   ],
+   "body": "Implementation of https://github.com/XRPLF/XRPL-Standards/pull/613\n\n\n\n## High Level Overview of Change\n\nIntroduces the `Cosign` amendment (v1), enabling on-ledger transaction\ncosigning. This PR delivers the *create* step of the proposal lifecycle:\n- New ledger object `TransactionProposal` (`ltTRANSACTION_PROPOSAL`, `0x0091`)\n  that stores an unsigned proposed transaction pending multi-signature\n  collection.\n- New transaction `TransactionProposalCreate` (tx type `93`, fields\n  `sfProposedTransaction` + `sfExpiration`) that posts such a proposal\n  on-ledger.\n- RPC surface: proposals are returned by `account_objects` and looked up\n  via `ledger_entry.transaction_proposal`.\nThe amendment is `Supported::No, VoteBehavior::DefaultNo` — not enabled on\nany network yet. Follow-up PRs will add `TransactionProposalSign` /\n`Execute` / `Cancel`.\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": true,
+   "mergedAt": "2026-09-28T17:00:41Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:ripple/cosign-v1",
+   "additions": 4035,
+   "deletions": 6,
+   "changedFiles": 32,
+   "commits": 23,
+   "reviewComments": 14,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-09T16:00:25Z",
+     "body": "This diff consists solely of a new, extremely thorough unit test file (TransactionProposalCreate_test.cpp) covering preflight/preclaim/apply behavior, reserve accounting, and sponsorship for the new TransactionProposalCreate transaction; the second listed file (src/test/jtx/impl/proposal.cpp) has no diff content shown, so there is nothing to review there. The test file is well-commented and internally consistent — ticket/owner-count bookkeeping, TER expectations, and scoping of each Env instance all check out on inspection, and no resource leaks, missing cleanup, or logic errors that would produce false test passes were found within the visible diff. Note that the actual production code (new ledger object, new Transactor, RPC wiring) referenced in the MR description is not part of this diff, so correctness of the underlying implementation could not be assessed here — that should be reviewed separately if not already covered elsewhere in the MR."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-09T16:06:53Z",
+     "body": "### 🔵 Needs a closer look\n\nIt introduces a new amendment-gated transaction/ledger object and modifies core preflight semantics (via new apply flags) across multiple transactors, warranting final human review.\n\n<details>\n<summary>Pull request overview</summary>\n\nImplements the first step of the proposed on-ledger cosigning lifecycle (“create”) behind the new `Cosign` amendment, introducing an on-ledger `TransactionProposal` object and the `TransactionProposalCreate` transaction to post unsigned, ticket-based proposed transactions for later signature collection.\n\n**Changes:**\n- Adds `ltTRANSACTION_PROPOSAL` (keyed by `target + TicketSequence`) and `ttTRANSACTION_PROPOSAL_CREATE`, plus supporting protocol fields/feature flagging.\n- Introduces `TapProposal` apply/preflight semantics to allow proposal-time “unsigned storage” by deferring signature-presence requirements (notably Batch signer matching and auxiliary co-signatures).\n- Expands RPC/test support: `ledger_entry.transaction_proposal`, `account_objects` filtering/deletion-blockers handling, plus extensive unit tests and new jtx helpers.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/rpc/handlers/ledger/LedgerEntry.cpp | Adds parsing support for `ledger_entry.transaction_proposal` lookup (account + ticket sequence or by key). |\n| src/xrpld/rpc/handlers/account/AccountObjects.cpp | Includes `TransactionProposal` in `deletion_blockers_only` filtering/types. |\n| src/tests/libxrpl/protocol_autogen/transactions/TransactionProposalCreateTests.cpp | Auto-generated wrapper/builder round-trip tests for `TransactionProposalCreate`. |\n| src/tests/libxrpl/protocol_autogen/ledger_entries/TransactionProposalTests.cpp | Auto-generated wrapper/builder tests for the `TransactionProposal` ledger entry. |\n| src/test/rpc/AccountObjects_test.cpp | Adds regression coverage ensuring proposals appear in deletion blockers and can be type-filtered there. |\n| src/test/jtx/proposal.h | Introduces jtx helpers for proposal creation, unsigned payload shaping, and validation hooks. |\n| src/test/jtx/impl/proposal.cpp | Implements proposal jtx helpers and a detailed `verify::Create` ledger-effects checker. |\n| src/test/app/TransactionProposalCreate_test.cpp | Comprehensive behavioral tests for proposal creation (preflight/preclaim/apply, sponsorship, delegation, Batch interactions). |\n| src/libxrpl/tx/transactors/system/Batch.cpp | For proposed payloads, forwards `TapProposal|TapDryRun` into inner preflights and skips signer-presence checks in `preflightSigValidated`. |\n| src/libxrpl/tx/transactors/sponsor/SponsorshipTransfer.cpp | Allows missing `sfSponsorSignature` for proposed (TapProposal) account-reserve sponsorship transfers. |\n| src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp | Implements the `TransactionProposalCreate` transactor (preflight/preclaim/apply scaffolding). |\n| src/libxrpl/tx/transactors/lending/LoanSet.cpp | Allows missing `sfCounterpartySignature` for proposed (TapProposal) LoanSet payloads. |\n| src/libxrpl/tx/applySteps.cpp | Enforces `TapProposal` ⇒ `TapDryRun` invariant in release builds and adds type-erased `invokeCheckPermission`. |\n| src/libxrpl/protocol/Indexes.cpp | Adds `keylet::txProposal` and a new ledger namespace discriminator for proposals. |\n| src/libxrpl/ledger/helpers/SponsorHelpers.cpp | Adds sponsorship support/owner-count sizing for `ltTRANSACTION_PROPOSAL`. |\n| src/libxrpl/ledger/helpers/ProposalHelpers.cpp | Implements `proposal::isValidProposal` (rejects nested proposals/pseudo-txs/inner-batch misuse). |\n| include/xrpl/tx/transactors/proposal/TransactionProposalCreate.h | Declares the new transactor. |\n| include/xrpl/tx/Transactor.h | Adds debug-time assertion that proposal preflight implies dry-run. |\n| include/xrpl/tx/applySteps.h | Declares `invokeCheckPermission(ReadView, STTx)` API used for delegation checks. |\n| include/xrpl/protocol/Indexes.h | Declares `keylet::txProposal` in the public protocol header. |\n| include/xrpl/protocol/detail/transactions.macro | Registers `ttTRANSACTION_PROPOSAL_CREATE` (92) under `featureCosign`. |\n| include/xrpl/protocol/detail/sfields.macro | Adds new SFields used by cosign/proposals (e.g., `sfProposedTransaction`, `sfProposalID`, `sfSigningFor`). |\n| include/xrpl/protocol/detail/ledger_entries.macro | Registers `ltTRANSACTION_PROPOSAL` (0x0091) and its required fields. |\n| include/xrpl/protocol/detail/features.macro | Adds the `Cosign` amendment flag (`Supported::No`, `DefaultNo`). |\n| include/xrpl/protocol_autogen/transactions/TransactionProposalCreate.h | Auto-generated typed wrapper/builder for the transaction. |\n| include/xrpl/protocol_autogen/ledger_entries/TransactionProposal.h | Auto-generated typed wrapper/builder for the ledger entry. |\n| include/xrpl/ledger/helpers/ProposalHelpers.h | Defines proposal reserve sizing and shared signature/validity checks. |\n| include/xrpl/ledger/ApplyView.h | Introduces `TapProposal` apply flag to model proposal-payload preflight behavior. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 28/28 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-22T22:04:31Z",
+     "body": "Proposal nesting can exhaust stack — see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-23T19:01:20Z",
+     "body": "Null pointer dereference risk in CTID block — see inline."
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-23T20:00:19Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-23T20:02:32Z",
+     "body": "This diff adds the RPC-surface plumbing for the new TransactionProposal ledger object (account_objects filter, ledger_entry.transaction_proposal parser) plus auto-generated builder/wrapper tests and a new unit test file for a ProposalHelpers::isValidProposal guard. The changes are small, mechanical, and internally consistent with existing sibling code (parseSponsorship, parseTicket patterns). I didn't find any correctness, security, or resource-management bugs in the lines actually added. The one thing worth a quick sanity check with the author is the RPC lookup design for transaction_proposal, noted below as informational."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-23T20:04:05Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nUnresolved validation, ticket reservation, protocol type, and API documentation issues remain.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (4)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject empty signature containers in Batch inner transactions](#discussion_r4086766341) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Run local checks on proposed transaction payloads](#discussion_r4086766407) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Resolve conflicting TransactionProposalCreate transaction type assignment](#discussion_r4086766468) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document new transaction proposal API behavior](#discussion_r4086766536) · New\n</details>"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-23T20:28:22Z",
+     "body": "LGTM, each commit in this PR has been reviewed separately"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-23T20:39:11Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-23T20:49:38Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-25T19:19:37Z",
+     "body": "Diff is mostly test scaffolding (autogenerated STTx builder tests, gtest coverage for a new ProposalHelpers::isValidProposal guard) plus a small addition to AccountObjects.cpp's type filter table and a new parseTransactionProposal() lookup function in LedgerEntry.cpp. The new production code (parseTransactionProposal) is small, follows the existing parseTicket/parseSponsorship pattern in the file, and I don't see a clear correctness or security defect in the visible diff. One item worth a quick author confirmation below; otherwise no high-confidence issues found."
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-25T20:32:18Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-25T20:32:50Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-25T20:33:49Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "APPROVED",
+     "date": "2026-09-25T20:33:56Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-25T21:45:38Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-25T22:03:28Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nTicket use is not reserved or blocked after proposal creation, allowing live proposals to become permanently unexecutable.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Ticket can be consumed while referenced by a live proposal](#discussion_r4108996604) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (4)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Run local checks on proposed transaction payloads](#discussion_r4086766407)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject empty signature containers in Batch inner transactions](#discussion_r4086766341)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document new transaction proposal API behavior](#discussion_r4086766536)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Resolve conflicting TransactionProposalCreate transaction type assignment](#discussion_r4086766468)\n</details>"
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-09-28T14:42:42Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-28T15:50:06Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-22T22:04:31Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "Stack exhaustion risk from nested proposal recursion. Move validation before preflight:\n\n```suggestion\n    if (proposal::isProposalTx(proposedTx))\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCreate: nested proposals not allowed.\";\n        return temINVALID;\n    }\n\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4076992839"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-23T20:00:18Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "```\nSTObject::STObject(SerialIter& sit, SField const& name, int depth) noexcept(false) : STBase(name)\n{\n    if (depth > 10)\n        Throw<std::runtime_error>(\"Maximum nesting depth of STObject exceeded\");\n    set(sit, depth);\n```\nFrom here we know once the depth > 10, we throw the error.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086735015"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-23T20:04:04Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "`isValidProposal` only checks nested proposal/pseudo types, so a proposed Batch can still contain an inner `CounterpartySignature` or `SponsorSignature` object. `Batch::preflight` accepts these when the object has no actual signature bytes, and the top-level `hasSignatureField(proposedTx)` never sees fields inside `RawTransactions`; this lets a non-canonical signature container be persisted even though this transaction requires no signature fields at creation. Include the signature-field check for each inner (and add a regression test for an empty nested signature object).",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766341"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-23T20:04:04Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "This validates the payload only through the transactor preflight path; it never runs `passesLocalChecks` on the constructed `STTx`. The outer transaction's local checks do not recurse into `sfProposedTransaction`, so payloads with an invalid/oversized memo, a default account field, or an unsupported MPT amount can be stored even though the same transaction can never be submitted later. Run the payload's local checks here and reject/map failures before creating the proposal.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766407"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-23T20:04:05Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "The PR description says `TransactionProposalCreate` uses transaction type 92, but this table assigns it type 93; type 92 is already assigned to `ConfidentialMPTMirrorUpdate` immediately above. Resolve the spec/code assignment before merging, since this numeric type is part of the serialized transaction wire format.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766468"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-23T20:04:05Z",
+     "path": "src/xrpld/rpc/handlers/account/AccountObjects.cpp",
+     "body": "This adds new public `ledger_entry.transaction_proposal` and `account_objects` behavior, but `API-CHANGELOG.md` has no corresponding addition. The PR template requires documenting public API additions, so add the API entry (and update the PR metadata) before merging.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766536"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-23T20:39:11Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Not applicable since inner txns are allowed to have empty signature fields.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4087075074"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-23T20:49:38Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "updated PR description",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4087162284"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-25T20:32:18Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "^ This has been fixed in a recent commit.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108395034"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-25T20:32:50Z",
+     "path": "src/xrpld/rpc/handlers/account/AccountObjects.cpp",
+     "body": "@Kassaking7  this appears to be a valid suggestion ^",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108398483"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-25T20:33:49Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "[d902f17](https://github.com/XRPLF/rippled/pull/8205/commits/d902f17790f1d2c54f1092ccc9e68449260d6a50)",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108405128"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-25T21:45:38Z",
+     "path": "src/xrpld/rpc/handlers/account/AccountObjects.cpp",
+     "body": "I believe we need this once when we release it. For now we shouldn't add. cc @shawnxie999",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108899807"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-25T22:03:27Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "Checking that the Ticket exists here does not reserve it for the proposal. After this transaction succeeds, the target can submit any ticket-based transaction using the same `TicketSequence` (or AccountDelete can remove the ticket), and the normal ticket-consumption path has no `txProposal` check, leaving this proposal permanently unable to execute while still occupying the proposer's reserve. The ticket-consumption/deletion paths need to reject or otherwise resolve use of a ticket referenced by a live proposal, and this case should be covered by a regression test.\n\nThis issue also appears on line 324 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108996604"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-28T15:50:05Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
+     "body": "This existence check is only Create-time validation (spec §5.3.2 #7): a proposal cannot be opened against a ticket that is not on ledger. It does not lock the Ticket SLE, and that is intentional.\n\nA live proposal must not block other transactions from consuming the same TicketSequence. The object is a bulletin board, not an execution gate: cancel does not revoke already-collected signatures, so the target’s way to actually prevent execution is to spend that ticket with another transaction (spec §13.4). Rejecting ticket consumption (including via AccountDelete) would break that revocation path.\n\nThe remaining follow-up is the other side of §4.5 / §11: when a ticket is consumed, look up txProposal(account, ticketSeq) and delete a matching proposal so the owner’s reserve is not stranded. That belongs in the ticket-deletion path, not here. Same for line 324 — doApply only uses the ticket as the proposal key; there is no second reservation check.  cc @shawnxie999",
+     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4124223889"
     }
    ]
   },
@@ -1179,266 +1452,6 @@
     }
    ],
    "reviewCommentsList": []
-  },
-  {
-   "number": 8205,
-   "title": "feat: Introduce Cosign v1 amendment with TransactionProposalCreate",
-   "url": "https://github.com/XRPLF/rippled/pull/8205",
-   "state": "closed",
-   "author": "Kassaking7",
-   "createdAt": "2026-09-09T15:54:05Z",
-   "updatedAt": "2026-09-28T17:00:44Z",
-   "closedAt": "2026-09-28T17:00:41Z",
-   "labels": [
-    "Ready to merge"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-09T15:57:53Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.22064%` with `5 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [...transactors/proposal/TransactionProposalCreate.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvcHJvcG9zYWwvVHJhbnNhY3Rpb25Qcm9wb3NhbENyZWF0ZS5jcHA=) | 97.8% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...ude/xrpl/ledger/entries/TransactionProposalEntry.h](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL2xlZGdlci9lbnRyaWVzL1RyYW5zYWN0aW9uUHJvcG9zYWxFbnRyeS5o) | 0.0% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8205?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#issuecomment-5604820179"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-09T20:46:37Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#issuecomment-5608513641"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-23T19:56:32Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#issuecomment-5801942691"
-    }
-   ],
-   "body": "Implementation of https://github.com/XRPLF/XRPL-Standards/pull/613\n\n\n\n## High Level Overview of Change\n\nIntroduces the `Cosign` amendment (v1), enabling on-ledger transaction\ncosigning. This PR delivers the *create* step of the proposal lifecycle:\n- New ledger object `TransactionProposal` (`ltTRANSACTION_PROPOSAL`, `0x0091`)\n  that stores an unsigned proposed transaction pending multi-signature\n  collection.\n- New transaction `TransactionProposalCreate` (tx type `93`, fields\n  `sfProposedTransaction` + `sfExpiration`) that posts such a proposal\n  on-ledger.\n- RPC surface: proposals are returned by `account_objects` and looked up\n  via `ledger_entry.transaction_proposal`.\nThe amendment is `Supported::No, VoteBehavior::DefaultNo` — not enabled on\nany network yet. Follow-up PRs will add `TransactionProposalSign` /\n`Execute` / `Cancel`.\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": true,
-   "mergedAt": "2026-09-28T17:00:41Z",
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:ripple/cosign-v1",
-   "additions": 4035,
-   "deletions": 6,
-   "changedFiles": 32,
-   "commits": 23,
-   "reviewComments": 14,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-09T16:00:25Z",
-     "body": "This diff consists solely of a new, extremely thorough unit test file (TransactionProposalCreate_test.cpp) covering preflight/preclaim/apply behavior, reserve accounting, and sponsorship for the new TransactionProposalCreate transaction; the second listed file (src/test/jtx/impl/proposal.cpp) has no diff content shown, so there is nothing to review there. The test file is well-commented and internally consistent — ticket/owner-count bookkeeping, TER expectations, and scoping of each Env instance all check out on inspection, and no resource leaks, missing cleanup, or logic errors that would produce false test passes were found within the visible diff. Note that the actual production code (new ledger object, new Transactor, RPC wiring) referenced in the MR description is not part of this diff, so correctness of the underlying implementation could not be assessed here — that should be reviewed separately if not already covered elsewhere in the MR."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-09T16:06:53Z",
-     "body": "### 🔵 Needs a closer look\n\nIt introduces a new amendment-gated transaction/ledger object and modifies core preflight semantics (via new apply flags) across multiple transactors, warranting final human review.\n\n<details>\n<summary>Pull request overview</summary>\n\nImplements the first step of the proposed on-ledger cosigning lifecycle (“create”) behind the new `Cosign` amendment, introducing an on-ledger `TransactionProposal` object and the `TransactionProposalCreate` transaction to post unsigned, ticket-based proposed transactions for later signature collection.\n\n**Changes:**\n- Adds `ltTRANSACTION_PROPOSAL` (keyed by `target + TicketSequence`) and `ttTRANSACTION_PROPOSAL_CREATE`, plus supporting protocol fields/feature flagging.\n- Introduces `TapProposal` apply/preflight semantics to allow proposal-time “unsigned storage” by deferring signature-presence requirements (notably Batch signer matching and auxiliary co-signatures).\n- Expands RPC/test support: `ledger_entry.transaction_proposal`, `account_objects` filtering/deletion-blockers handling, plus extensive unit tests and new jtx helpers.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/rpc/handlers/ledger/LedgerEntry.cpp | Adds parsing support for `ledger_entry.transaction_proposal` lookup (account + ticket sequence or by key). |\n| src/xrpld/rpc/handlers/account/AccountObjects.cpp | Includes `TransactionProposal` in `deletion_blockers_only` filtering/types. |\n| src/tests/libxrpl/protocol_autogen/transactions/TransactionProposalCreateTests.cpp | Auto-generated wrapper/builder round-trip tests for `TransactionProposalCreate`. |\n| src/tests/libxrpl/protocol_autogen/ledger_entries/TransactionProposalTests.cpp | Auto-generated wrapper/builder tests for the `TransactionProposal` ledger entry. |\n| src/test/rpc/AccountObjects_test.cpp | Adds regression coverage ensuring proposals appear in deletion blockers and can be type-filtered there. |\n| src/test/jtx/proposal.h | Introduces jtx helpers for proposal creation, unsigned payload shaping, and validation hooks. |\n| src/test/jtx/impl/proposal.cpp | Implements proposal jtx helpers and a detailed `verify::Create` ledger-effects checker. |\n| src/test/app/TransactionProposalCreate_test.cpp | Comprehensive behavioral tests for proposal creation (preflight/preclaim/apply, sponsorship, delegation, Batch interactions). |\n| src/libxrpl/tx/transactors/system/Batch.cpp | For proposed payloads, forwards `TapProposal|TapDryRun` into inner preflights and skips signer-presence checks in `preflightSigValidated`. |\n| src/libxrpl/tx/transactors/sponsor/SponsorshipTransfer.cpp | Allows missing `sfSponsorSignature` for proposed (TapProposal) account-reserve sponsorship transfers. |\n| src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp | Implements the `TransactionProposalCreate` transactor (preflight/preclaim/apply scaffolding). |\n| src/libxrpl/tx/transactors/lending/LoanSet.cpp | Allows missing `sfCounterpartySignature` for proposed (TapProposal) LoanSet payloads. |\n| src/libxrpl/tx/applySteps.cpp | Enforces `TapProposal` ⇒ `TapDryRun` invariant in release builds and adds type-erased `invokeCheckPermission`. |\n| src/libxrpl/protocol/Indexes.cpp | Adds `keylet::txProposal` and a new ledger namespace discriminator for proposals. |\n| src/libxrpl/ledger/helpers/SponsorHelpers.cpp | Adds sponsorship support/owner-count sizing for `ltTRANSACTION_PROPOSAL`. |\n| src/libxrpl/ledger/helpers/ProposalHelpers.cpp | Implements `proposal::isValidProposal` (rejects nested proposals/pseudo-txs/inner-batch misuse). |\n| include/xrpl/tx/transactors/proposal/TransactionProposalCreate.h | Declares the new transactor. |\n| include/xrpl/tx/Transactor.h | Adds debug-time assertion that proposal preflight implies dry-run. |\n| include/xrpl/tx/applySteps.h | Declares `invokeCheckPermission(ReadView, STTx)` API used for delegation checks. |\n| include/xrpl/protocol/Indexes.h | Declares `keylet::txProposal` in the public protocol header. |\n| include/xrpl/protocol/detail/transactions.macro | Registers `ttTRANSACTION_PROPOSAL_CREATE` (92) under `featureCosign`. |\n| include/xrpl/protocol/detail/sfields.macro | Adds new SFields used by cosign/proposals (e.g., `sfProposedTransaction`, `sfProposalID`, `sfSigningFor`). |\n| include/xrpl/protocol/detail/ledger_entries.macro | Registers `ltTRANSACTION_PROPOSAL` (0x0091) and its required fields. |\n| include/xrpl/protocol/detail/features.macro | Adds the `Cosign` amendment flag (`Supported::No`, `DefaultNo`). |\n| include/xrpl/protocol_autogen/transactions/TransactionProposalCreate.h | Auto-generated typed wrapper/builder for the transaction. |\n| include/xrpl/protocol_autogen/ledger_entries/TransactionProposal.h | Auto-generated typed wrapper/builder for the ledger entry. |\n| include/xrpl/ledger/helpers/ProposalHelpers.h | Defines proposal reserve sizing and shared signature/validity checks. |\n| include/xrpl/ledger/ApplyView.h | Introduces `TapProposal` apply flag to model proposal-payload preflight behavior. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 28/28 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-09-22T22:04:31Z",
-     "body": "Proposal nesting can exhaust stack — see inline."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-09-23T19:01:20Z",
-     "body": "Null pointer dereference risk in CTID block — see inline."
-    },
-    {
-     "author": "Kassaking7",
-     "state": "COMMENTED",
-     "date": "2026-09-23T20:00:19Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-23T20:02:32Z",
-     "body": "This diff adds the RPC-surface plumbing for the new TransactionProposal ledger object (account_objects filter, ledger_entry.transaction_proposal parser) plus auto-generated builder/wrapper tests and a new unit test file for a ProposalHelpers::isValidProposal guard. The changes are small, mechanical, and internally consistent with existing sibling code (parseSponsorship, parseTicket patterns). I didn't find any correctness, security, or resource-management bugs in the lines actually added. The one thing worth a quick sanity check with the author is the RPC lookup design for transaction_proposal, noted below as informational."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-23T20:04:05Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nUnresolved validation, ticket reservation, protocol type, and API documentation issues remain.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (4)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject empty signature containers in Batch inner transactions](#discussion_r4086766341) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Run local checks on proposed transaction payloads](#discussion_r4086766407) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Resolve conflicting TransactionProposalCreate transaction type assignment](#discussion_r4086766468) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document new transaction proposal API behavior](#discussion_r4086766536) · New\n</details>"
-    },
-    {
-     "author": "shawnxie999",
-     "state": "APPROVED",
-     "date": "2026-09-23T20:28:22Z",
-     "body": "LGTM, each commit in this PR has been reviewed separately"
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-23T20:39:11Z",
-     "body": ""
-    },
-    {
-     "author": "Kassaking7",
-     "state": "COMMENTED",
-     "date": "2026-09-23T20:49:38Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-25T19:19:37Z",
-     "body": "Diff is mostly test scaffolding (autogenerated STTx builder tests, gtest coverage for a new ProposalHelpers::isValidProposal guard) plus a small addition to AccountObjects.cpp's type filter table and a new parseTransactionProposal() lookup function in LedgerEntry.cpp. The new production code (parseTransactionProposal) is small, follows the existing parseTicket/parseSponsorship pattern in the file, and I don't see a clear correctness or security defect in the visible diff. One item worth a quick author confirmation below; otherwise no high-confidence issues found."
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-09-25T20:32:18Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-09-25T20:32:50Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-09-25T20:33:49Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "APPROVED",
-     "date": "2026-09-25T20:33:56Z",
-     "body": ""
-    },
-    {
-     "author": "Kassaking7",
-     "state": "COMMENTED",
-     "date": "2026-09-25T21:45:38Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-25T22:03:28Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nTicket use is not reserved or blocked after proposal creation, allowing live proposals to become permanently unexecutable.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Ticket can be consumed while referenced by a live proposal](#discussion_r4108996604) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (4)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Run local checks on proposed transaction payloads](#discussion_r4086766407)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject empty signature containers in Batch inner transactions](#discussion_r4086766341)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document new transaction proposal API behavior](#discussion_r4086766536)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Resolve conflicting TransactionProposalCreate transaction type assignment](#discussion_r4086766468)\n</details>"
-    },
-    {
-     "author": "shawnxie999",
-     "state": "APPROVED",
-     "date": "2026-09-28T14:42:42Z",
-     "body": ""
-    },
-    {
-     "author": "Kassaking7",
-     "state": "COMMENTED",
-     "date": "2026-09-28T15:50:06Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-09-22T22:04:31Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
-     "body": "Stack exhaustion risk from nested proposal recursion. Move validation before preflight:\n\n```suggestion\n    if (proposal::isProposalTx(proposedTx))\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCreate: nested proposals not allowed.\";\n        return temINVALID;\n    }\n\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4076992839"
-    },
-    {
-     "author": "Kassaking7",
-     "date": "2026-09-23T20:00:18Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
-     "body": "```\nSTObject::STObject(SerialIter& sit, SField const& name, int depth) noexcept(false) : STBase(name)\n{\n    if (depth > 10)\n        Throw<std::runtime_error>(\"Maximum nesting depth of STObject exceeded\");\n    set(sit, depth);\n```\nFrom here we know once the depth > 10, we throw the error.",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086735015"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-23T20:04:04Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "`isValidProposal` only checks nested proposal/pseudo types, so a proposed Batch can still contain an inner `CounterpartySignature` or `SponsorSignature` object. `Batch::preflight` accepts these when the object has no actual signature bytes, and the top-level `hasSignatureField(proposedTx)` never sees fields inside `RawTransactions`; this lets a non-canonical signature container be persisted even though this transaction requires no signature fields at creation. Include the signature-field check for each inner (and add a regression test for an empty nested signature object).",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766341"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-23T20:04:04Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
-     "body": "This validates the payload only through the transactor preflight path; it never runs `passesLocalChecks` on the constructed `STTx`. The outer transaction's local checks do not recurse into `sfProposedTransaction`, so payloads with an invalid/oversized memo, a default account field, or an unsupported MPT amount can be stored even though the same transaction can never be submitted later. Run the payload's local checks here and reject/map failures before creating the proposal.",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766407"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-23T20:04:05Z",
-     "path": "include/xrpl/protocol/detail/transactions.macro",
-     "body": "The PR description says `TransactionProposalCreate` uses transaction type 92, but this table assigns it type 93; type 92 is already assigned to `ConfidentialMPTMirrorUpdate` immediately above. Resolve the spec/code assignment before merging, since this numeric type is part of the serialized transaction wire format.",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766468"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-23T20:04:05Z",
-     "path": "src/xrpld/rpc/handlers/account/AccountObjects.cpp",
-     "body": "This adds new public `ledger_entry.transaction_proposal` and `account_objects` behavior, but `API-CHANGELOG.md` has no corresponding addition. The PR template requires documenting public API additions, so add the API entry (and update the PR metadata) before merging.",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4086766536"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-23T20:39:11Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "Not applicable since inner txns are allowed to have empty signature fields.",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4087075074"
-    },
-    {
-     "author": "Kassaking7",
-     "date": "2026-09-23T20:49:38Z",
-     "path": "include/xrpl/protocol/detail/transactions.macro",
-     "body": "updated PR description",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4087162284"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-25T20:32:18Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
-     "body": "^ This has been fixed in a recent commit.",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108395034"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-25T20:32:50Z",
-     "path": "src/xrpld/rpc/handlers/account/AccountObjects.cpp",
-     "body": "@Kassaking7  this appears to be a valid suggestion ^",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108398483"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-25T20:33:49Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
-     "body": "[d902f17](https://github.com/XRPLF/rippled/pull/8205/commits/d902f17790f1d2c54f1092ccc9e68449260d6a50)",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108405128"
-    },
-    {
-     "author": "Kassaking7",
-     "date": "2026-09-25T21:45:38Z",
-     "path": "src/xrpld/rpc/handlers/account/AccountObjects.cpp",
-     "body": "I believe we need this once when we release it. For now we shouldn't add. cc @shawnxie999",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108899807"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-25T22:03:27Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
-     "body": "Checking that the Ticket exists here does not reserve it for the proposal. After this transaction succeeds, the target can submit any ticket-based transaction using the same `TicketSequence` (or AccountDelete can remove the ticket), and the normal ticket-consumption path has no `txProposal` check, leaving this proposal permanently unable to execute while still occupying the proposer's reserve. The ticket-consumption/deletion paths need to reject or otherwise resolve use of a ticket referenced by a live proposal, and this case should be covered by a regression test.\n\nThis issue also appears on line 324 of the same file.",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4108996604"
-    },
-    {
-     "author": "Kassaking7",
-     "date": "2026-09-28T15:50:05Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCreate.cpp",
-     "body": "This existence check is only Create-time validation (spec §5.3.2 #7): a proposal cannot be opened against a ticket that is not on ledger. It does not lock the Ticket SLE, and that is intentional.\n\nA live proposal must not block other transactions from consuming the same TicketSequence. The object is a bulletin board, not an execution gate: cancel does not revoke already-collected signatures, so the target’s way to actually prevent execution is to spend that ticket with another transaction (spec §13.4). Rejecting ticket consumption (including via AccountDelete) would break that revocation path.\n\nThe remaining follow-up is the other side of §4.5 / §11: when a ticket is consumed, look up txProposal(account, ticketSeq) and delete a matching proposal so the owner’s reserve is not stranded. That belongs in the ticket-deletion path, not here. Same for line 324 — doApply only uses the ticket as the proposal key; there is no second reservation check.  cc @shawnxie999",
-     "url": "https://github.com/XRPLF/rippled/pull/8205#discussion_r4124223889"
-    }
-   ]
   },
   {
    "number": 8278,
