@@ -1,10 +1,10 @@
 {
   "source": {
-    "commit": "97fbea23cc24b5ac0658c0eb6029f0e608dc4a64",
-    "commitDate": "2026-10-01T20:52:53Z",
+    "commit": "c45363fd8b72b33e6eee4e331ff3ddccc65235c8",
+    "commitDate": "2026-10-02T22:54:38Z",
     "branch": "develop",
     "repo": "https://github.com/XRPLF/rippled",
-    "extractedAt": "2026-10-02T08:00:21.369Z"
+    "extractedAt": "2026-10-03T08:00:21.232Z"
   },
   "transactions": [
     {
@@ -14476,8 +14476,189 @@
       }
     },
     {
-      "tag": "ttTRANSACTION_PROPOSAL_CREATE",
+      "tag": "ttCONFIDENTIAL_MPT_HOLDER_KEY_UPDATE",
       "value": 93,
+      "name": "ConfidentialMPTHolderKeyUpdate",
+      "doc": "This transaction rotates or recovers a confidential MPT holder's ElGamal encryption key, or cancels a recovery.",
+      "delegable": false,
+      "amendment": "ConfidentialMPTKeyRotation",
+      "privileges": [],
+      "fields": [
+        {
+          "name": "MPTokenIssuanceID",
+          "optionality": "required",
+          "mptSupported": false
+        },
+        {
+          "name": "HolderEncryptionKey",
+          "optionality": "optional",
+          "mptSupported": false
+        },
+        {
+          "name": "ConfidentialBalanceSpending",
+          "optionality": "optional",
+          "mptSupported": false
+        },
+        {
+          "name": "ConfidentialBalanceInbox",
+          "optionality": "optional",
+          "mptSupported": false
+        },
+        {
+          "name": "ZKProof",
+          "optionality": "optional",
+          "mptSupported": false
+        }
+      ],
+      "pseudo": false,
+      "transactor": {
+        "file": "src/libxrpl/tx/transactors/token/ConfidentialMPTHolderKeyUpdate.cpp",
+        "headerFile": "include/xrpl/tx/transactors/token/ConfidentialMPTHolderKeyUpdate.h",
+        "functions": {
+          "checkExtraFeatures": {
+            "line": 26,
+            "ter": [],
+            "features": [
+              "featureConfidentialTransfer"
+            ],
+            "flags": [],
+            "fields": []
+          },
+          "getFlagsMask": {
+            "line": 33,
+            "ter": [],
+            "features": [],
+            "flags": [
+              "tfConfidentialMPTHolderKeyUpdateMask"
+            ],
+            "fields": []
+          },
+          "preflight": {
+            "line": 39,
+            "ter": [
+              "temBAD_CIPHERTEXT",
+              "temINVALID_FLAG",
+              "temMALFORMED",
+              "tesSUCCESS"
+            ],
+            "features": [],
+            "flags": [
+              "tfCancelRecovery",
+              "tfHolderKeyRecovery",
+              "tfHolderKeyRotation"
+            ],
+            "fields": [
+              "Account",
+              "ConfidentialBalanceInbox",
+              "ConfidentialBalanceSpending",
+              "HolderEncryptionKey",
+              "MPTokenIssuanceID",
+              "ZKProof"
+            ]
+          },
+          "calculateBaseFee": {
+            "line": 101,
+            "ter": [],
+            "features": [],
+            "flags": [],
+            "fields": []
+          },
+          "preclaim": {
+            "line": 107,
+            "ter": [
+              "tecDUPLICATE",
+              "tecNO_PERMISSION",
+              "tecOBJECT_NOT_FOUND",
+              "tesSUCCESS"
+            ],
+            "features": [],
+            "flags": [
+              "lsfMPTCanHoldConfidentialBalance",
+              "tfCancelRecovery",
+              "tfHolderKeyRecovery"
+            ],
+            "fields": [
+              "Account",
+              "ConfidentialBalanceInbox",
+              "ConfidentialBalanceSpending",
+              "HolderEncryptionKey",
+              "MPTokenIssuanceID",
+              "RecoveryKey"
+            ]
+          },
+          "doApply": {
+            "line": 150,
+            "ter": [
+              "tecINTERNAL",
+              "tesSUCCESS"
+            ],
+            "features": [],
+            "flags": [
+              "tfCancelRecovery",
+              "tfHolderKeyRecovery",
+              "tfHolderKeyRotation"
+            ],
+            "fields": [
+              "ConfidentialBalanceInbox",
+              "ConfidentialBalanceSpending",
+              "HolderEncryptionKey",
+              "MPTokenIssuanceID",
+              "RecoveryKey"
+            ]
+          },
+          "visitInvariantEntry": {
+            "line": 205,
+            "ter": [],
+            "features": [],
+            "flags": [],
+            "fields": []
+          },
+          "finalizeInvariants": {
+            "line": 210,
+            "ter": [],
+            "features": [],
+            "flags": [],
+            "fields": []
+          }
+        },
+        "allTer": [
+          "tecDUPLICATE",
+          "tecINTERNAL",
+          "tecNO_PERMISSION",
+          "tecOBJECT_NOT_FOUND",
+          "temBAD_CIPHERTEXT",
+          "temINVALID_FLAG",
+          "temMALFORMED",
+          "tesSUCCESS"
+        ],
+        "allFeatures": [
+          "featureConfidentialTransfer"
+        ],
+        "allFlags": [
+          "lsfMPTCanHoldConfidentialBalance",
+          "tfCancelRecovery",
+          "tfConfidentialMPTHolderKeyUpdateMask",
+          "tfHolderKeyRecovery",
+          "tfHolderKeyRotation"
+        ],
+        "allFields": [
+          "Account",
+          "ConfidentialBalanceInbox",
+          "ConfidentialBalanceSpending",
+          "HolderEncryptionKey",
+          "MPTokenIssuanceID",
+          "RecoveryKey",
+          "ZKProof"
+        ],
+        "lines": 221,
+        "ownerReserveFee": false,
+        "customBaseFee": true,
+        "ownerCountCalls": []
+      }
+    },
+    {
+      "tag": "ttTRANSACTION_PROPOSAL_CREATE",
+      "value": 95,
       "name": "TransactionProposalCreate",
       "doc": "This transaction posts an unsigned transaction on-ledger as a TransactionProposal, pending multi-signature collection.",
       "delegable": false,
@@ -15785,6 +15966,26 @@
           },
           {
             "name": "tfSponsorshipReassign",
+            "value": 262144,
+            "hex": "0x00040000"
+          }
+        ],
+        "maskAdj": []
+      },
+      "ConfidentialMPTHolderKeyUpdate": {
+        "flags": [
+          {
+            "name": "tfHolderKeyRotation",
+            "value": 65536,
+            "hex": "0x00010000"
+          },
+          {
+            "name": "tfHolderKeyRecovery",
+            "value": 131072,
+            "hex": "0x00020000"
+          },
+          {
+            "name": "tfCancelRecovery",
             "value": 262144,
             "hex": "0x00040000"
           }
@@ -17628,6 +17829,11 @@
         },
         {
           "name": "HolderEncryptionKey",
+          "optionality": "optional",
+          "mptSupported": false
+        },
+        {
+          "name": "RecoveryKey",
           "optionality": "optional",
           "mptSupported": false
         }
@@ -22257,6 +22463,12 @@
       "name": "Bytecode",
       "type": "VL",
       "nth": 47,
+      "untyped": false
+    },
+    {
+      "name": "RecoveryKey",
+      "type": "VL",
+      "nth": 48,
       "untyped": false
     },
     {

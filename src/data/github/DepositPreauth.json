@@ -1,6 +1,6 @@
 {
  "name": "DepositPreauth",
- "fetchedAt": "2026-10-02T08:02:55.933Z",
+ "fetchedAt": "2026-10-03T08:03:03.612Z",
  "summary": {
   "status": "in development",
   "prs": 3,
@@ -12,9 +12,9 @@
    "mvadari/rearch/depositpreauth-entry",
    "pratik/depositpreauth-self-and-credential-hardening"
   ],
-  "lastActivity": "2026-09-05T00:57:16Z",
+  "lastActivity": "2026-10-02T16:45:33Z",
   "lastMerged": "2025-11-11T15:21:08Z",
-  "totalComments": 55
+  "totalComments": 57
  },
  "release": {},
  "prs": [
@@ -25,11 +25,9 @@
    "state": "open",
    "author": "pratikmankawde",
    "createdAt": "2026-09-04T11:59:14Z",
-   "updatedAt": "2026-09-05T00:57:16Z",
+   "updatedAt": "2026-10-02T16:45:33Z",
    "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
+   "labels": [],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -42,6 +40,12 @@
      "date": "2026-09-05T00:57:16Z",
      "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
      "url": "https://github.com/XRPLF/rippled/pull/8175#issuecomment-5548236932"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-02T16:45:33Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8175#issuecomment-5956984491"
     }
    ],
    "body": "## High Level Overview of Change\n\n| Term | Meaning |\n| - | - |\n| DepositPreauth entry | A ledger entry letting one account accept payments from a named sender, or any holder of a named credential set. |\n| `Authorize` / `Unauthorize` | The fields that create and remove a sender-based grant. Exactly one of the four grant fields may be present. |\n| `fixDepositPreauthSelf` | The amendment added here. Gates both behavioural changes. |\n| `credentials::makeSorted` | Canonicalises a credential array. It reports duplicates by returning an **empty** set, not an error. |\n| `tem` / `tec` / `tef` | `tem` rejects locally: never relayed, no fee. `tec` applies it and claims the fee. `tef` is a node-local fault. |\n\nThree changes to the DepositPreauth transactor:\n\n1. `Unauthorize` naming the sender is rejected in preflight rather than in preclaim.\n2. The duplicate-credential sentinel from `makeSorted` is tested before use on the `UnauthorizeCredentials` path.\n3. The transactor's two invariant hooks are implemented.\n\nTests are in the second commit, so the code and its coverage land together.\n\n## Context of Change\n\n**Item 1 is a policy change, not a conformance fix.** XLS-0070 §7.2 enumerates this transaction's failure conditions, and self-targeting is not among them. xrpl.org documents `temCANNOT_PREAUTH_SELF` as applying to the `Authorize` field specifically, and `tecNO_ENTRY` as \"tried to revoke a preauthorization that does not exist in the ledger\" — which a self-unauthorize always is, because the matching entry can never be created: `Authorize` naming the sender has been rejected since the DepositPreauth amendment shipped in 2018. The current code is therefore conformant and returns the accurate code. What this change buys is that a transaction which cannot succeed is refused before relay and before a fee is claimed. If that is not judged worth an amendment, items 2 and 3 do not depend on it.\n\nThe spec backs the other two. §7.2 lists duplicate and empty credential arrays as failure conditions without naming codes, so the choice of code is the implementation's, and `temMALFORMED` fits bad input better than the `tefINTERNAL` it replaces. §7.3 states the entry \"will store a sorted list of credentials\", the authority for item 3's sortedness assertion.\n\n**Three claims that prompted this work did not survive checking; recorded so they are not re-raised.** The self-target asymmetry was called a defect — per §7.2 it is not, hence item 1 as policy. The duplicate-credential path was called reachable node corruption — it is neither, since `credentials::checkArray` rejects duplicates before preclaim runs, so `tefINTERNAL` was mis-classified rather than live. An invariant asserting the owner-count delta matches the object delta was proposed and is **wrong**: `increaseOwnerCount` resolves a sponsor and routes the delta to it, so it would misfire on every reserve-sponsored grant. It is deliberately absent, and a sponsored-create test here pins that down.\n\n**The invariant hooks are live.** [`Transactor::operator()()` calls `checkInvariants(result, fee, InvariantScope::Full)`](https://github.com/XRPLF/rippled/blob/d5bfe94f15ece0ba1b6c00004ee5b3f90383f2ab/src/libxrpl/tx/Transactor.cpp#L1640), which routes through `TxInvariantCheck` to this transactor's hooks, so a false return produces `tecINVARIANT_FAILED` on a transaction that would otherwise succeed. That is why item 3 is amendment-gated as well.\n\n**Why it is safe.** Both behavioural changes are gated on `fixDepositPreauthSelf`: item 1's pre-amendment half is the unchanged `Authorize` test, and `finalizeInvariants` returns true immediately when the amendment is off. On a ledger without it every input produces today's result, and item 2 is unreachable per the `checkArray` ordering above. No consensus divergence.\n\n## API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n`DepositPreauth` gains four private members that accumulate invariant state, changing its layout.\n\n## Before / After\n\n| Input | Before | After, amendment off | After, amendment on |\n| - | - | - | - |\n| `Authorize` == sender | `temCANNOT_PREAUTH_SELF` | unchanged | unchanged |\n| `Unauthorize` == sender | `tecNO_ENTRY` | unchanged | `temCANNOT_PREAUTH_SELF` |\n\nThe hooks assert three properties of a touched grant: its `sfAccount` is the submitting account, at most one grant changes per transaction, and a created entry's `sfAuthorizeCredentials` is canonically sorted and so duplicate-free. Coverage exclusion covers only the violation branches, which cannot fire unless a write path above is broken.\n\n## Test Plan\n\nCases added to `xrpl.app.DepositPreauth` cover self-target in both directions, duplicate and empty credential arrays, a created array's sort order, the hooks on a normal create and remove, and a sponsored create. Each amendment-sensitive case runs under both rule sets, so dropping the gate fails here rather than on a network.\n\n```\n./xrpld --unittest=xrpl.app.DepositPreauth\n```\n\n## Future Tasks\n\n- xrpl.org's `temCANNOT_PREAUTH_SELF` wording goes stale when the amendment activates; needs an `XRPLF/xrpl-dev-portal` PR.\n- The amendment name suits item 1 but not items 2 and 3. Happy to rename before merge.",
@@ -53,7 +57,7 @@
    "additions": 244,
    "deletions": 12,
    "changedFiles": 4,
-   "commits": 2,
+   "commits": 3,
    "reviewComments": 1,
    "reviews": [
     {
@@ -67,6 +71,12 @@
      "state": "COMMENTED",
      "date": "2026-09-04T12:21:46Z",
      "body": "### 🔵 Needs a closer look\n\nIt changes consensus-critical transaction processing behavior and introduces invariant enforcement behind a new amendment, which warrants final human review despite the added tests.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR hardens the `DepositPreauth` transactor by adding an amendment-gated policy change for self-targeted unauthorize, improving defensive handling around credential canonicalization, and implementing transaction-specific invariant hooks to catch unexpected write-path regressions.\n\n**Changes:**\n- Amendment-gated: reject `Unauthorize == sfAccount` in **preflight** (avoid relay + fee burn for a transaction that cannot succeed).\n- Defensive checks around credential canonicalization for `UnauthorizeCredentials` (handle the `makeSorted()` “empty means duplicates” sentinel before building a keylet).\n- Implement `DepositPreauth` transactor invariant hooks and add unit tests covering the new behaviors (including sponsorship).\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/app/DepositAuth_test.cpp | Adds unit tests for self-unauthorize fee behavior (amendment on/off), duplicate unauthorize-credentials rejection, and invariant hook coverage (including sponsored reserve). |\n| src/libxrpl/tx/transactors/payment/DepositPreauth.cpp | Implements amendment-gated preflight behavior, defensive credential sorting checks in preclaim, and transactor invariant entry/finalize logic. |\n| include/xrpl/tx/transactors/payment/DepositPreauth.h | Adds per-transaction private members to accumulate invariant state (counts + flags). |\n| include/xrpl/protocol/detail/features.macro | Introduces the new `DepositPreauthSelf` fix amendment definition. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 4/4 changed files\n- **Comments generated:** 1\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-02T16:19:17Z",
+     "body": "The core logic changes (self-target gating in preflight, duplicate/empty-set checks in preclaim, and the new invariant hooks) look correct and are consistent with the stated amendment-gating strategy — the dead branches are properly marked LCOV_EXCL and match the described unreachability rationale. The one real nit is a comment in the new `visitInvariantEntry` that describes `before`/`after` semantics backwards from how the rest of the codebase's invariant hooks use them (e.g. `AccountRootsNotDeleted`/`ValidNewAccountRoot` treat `before` as the pre-image, `after` as the post-image, null on delete) — the actual code (`sle = after ? after : before`) still resolves correctly despite the mislabeled comment, but the inaccurate explanation could mislead a future edit into dereferencing `after` on a delete path."
     }
    ],
    "reviewCommentsList": [

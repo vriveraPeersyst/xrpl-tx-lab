@@ -1,10 +1,10 @@
 {
  "name": "Escrow",
- "fetchedAt": "2026-10-02T08:03:23.589Z",
+ "fetchedAt": "2026-10-03T08:03:37.967Z",
  "summary": {
   "status": "in development",
   "prs": 12,
-  "open": 4,
+  "open": 5,
   "merged": 5,
   "issues": 0,
   "proposals": 8,
@@ -23,10 +23,10 @@
    "smart-escrow/versioning",
    "timothybanks/smart-escrow-deletion"
   ],
-  "lastActivity": "2026-09-30T17:01:58Z",
+  "lastActivity": "2026-10-02T18:44:44Z",
   "lastMerged": "2026-09-29T18:07:35Z",
   "release": "0.60.0",
-  "totalComments": 396
+  "totalComments": 358
  },
  "release": {
   "version": "0.60.0",
@@ -35,6 +35,316 @@
   "excerpt": "Escrow**"
  },
  "prs": [
+  {
+   "number": 7882,
+   "title": "refactor: Extract escrow lock helpers and paychan test helpers",
+   "url": "https://github.com/XRPLF/rippled/pull/7882",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-07-28T00:05:30Z",
+   "updatedAt": "2026-10-02T18:44:44Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-28T00:50:06Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7882?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5098573546"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-07T16:00:58Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5219273225"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-31T16:06:07Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5481021980"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-15T18:19:59Z",
+     "body": "@dangell7 ready to merge?",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5685679631"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-09-30T15:46:09Z",
+     "body": "@mvadari yes, ready once CI is green. clang-tidy is fixed in 40a6ebe713 and develop is merged in.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5914699723"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-30T15:58:57Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5914916136"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-02T18:44:44Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5959048697"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nPulls the refactoring out of #5448 (XLS-93d Token-Enabled Payment Channels) into its own PR so it can merge ahead of the feature. Code motion only, no functional change.\n\n- Moves the escrow lock/unlock helpers from the Escrow transactors into `EscrowHelpers.h`.\n- Moves the jtx `paychan` helpers from `TestHelpers.h` into their own `test/jtx/paychan.h`, and hoists the file-local helpers from `PayChan_test.cpp` into them.\n- Moves the escrowed balance test helpers from `EscrowToken_test.cpp` into the shared jtx `TestHelpers.h`.\n\n### Context of Change\n\nSplit out of #5448 per review feedback. The token paychan transactors reuse the escrow lock/unlock helpers, so the extraction lands here first and the feature PR becomes mostly additive.\n\n### API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nNo new tests, the moved code is covered by the existing suites. Ran Escrow, EscrowToken, Sponsor, PayChan, MPToken, AMM.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "Transia-RnD:dangell7/escrow-paychan-refactor",
+   "additions": 592,
+   "deletions": 573,
+   "changedFiles": 13,
+   "commits": 8,
+   "reviewComments": 4,
+   "reviews": [
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-29T14:08:58Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-29T14:12:44Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-02T19:56:46Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-08-02T19:56:48Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "APPROVED",
+     "date": "2026-08-04T13:50:39Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:19:05Z",
+     "body": "### 🟢 Approval recommended\n\nThe changes are mechanical extractions with updated call sites/includes and no detected behavioral deltas in the moved logic.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR performs a pure refactor (code motion) to centralize token-escrow lock/unlock logic and payment-channel JTx test helpers, enabling reuse by upcoming token-enabled payment channel work while keeping transactor behavior unchanged.\n\n**Changes:**\n- Extracts escrow token lock/unlock preclaim/apply helper templates into `EscrowHelpers.h` and updates Escrow transactors to use them.\n- Splits payment channel JTx helpers out of `TestHelpers.h` into `test/jtx/paychan.h` (+ implementation) and updates relevant tests/includes.\n- Moves EscrowToken-specific issuer/escrowed-balance test helpers into shared `TestHelpers.{h,cpp}`.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/jtx/TestHelpers.h | Adds shared token escrow/balance helper declarations; removes embedded paychan helper API. |\n| src/test/jtx/paychan.h | New header providing payment-channel JTx helper API. |\n| src/test/jtx/impl/TestHelpers.cpp | Implements the newly-shared token escrow/balance helpers. |\n| src/test/jtx/impl/paychan.cpp | New implementation unit for the extracted paychan JTx helpers. |\n| src/test/app/Sponsor_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/test/app/PayChan_test.cpp | Includes new paychan helper header; removes now-hoisted file-local helpers. |\n| src/test/app/EscrowToken_test.cpp | Switches to shared TestHelpers for escrowed/issuer balance helpers. |\n| src/test/app/AMMMPT_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/test/app/AMM_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp | Replaces local preclaim helper with shared `escrowUnlockPreclaimHelper`. |\n| src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp | Replaces local lock preclaim/apply helpers with shared `escrowLock*Helper` templates. |\n| src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp | Replaces local preclaim helper with shared `escrowUnlockPreclaimHelper` (freeze check disabled to preserve behavior). |\n| include/xrpl/ledger/helpers/EscrowHelpers.h | Adds shared escrow lock/unlock helper templates used by escrow-related transactors. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 13/13 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2026-09-15T17:51:39Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-30T15:39:01Z",
+     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nNo unresolved review issues were identified.\n\n**Review effort:** Lite  \n**Findings:** None"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-29T14:08:58Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "just a nit, but it might be worthwhile to considering moving these explicit template instantiations into a source file.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675042241"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-29T14:12:44Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "super nit and a problem not for this PR, but we don't need to construct most of these variables until after line 355.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675074494"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-02T19:56:46Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "The inline specialization pattern is inherited from develop's EscrowHelpers.h, the unlock helpers already live there. Happy to move the whole family into an EscrowHelpers.cpp as a follow up, kept this PR to code motion.",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156269"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-08-02T19:56:48Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/82ede27f1020f380e44beade2f19bef75490b98b",
+     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156299"
+    }
+   ]
+  },
+  {
+   "number": 7121,
+   "title": "feat: Token Escrow - Allow Blackholed Accounts",
+   "url": "https://github.com/XRPLF/rippled/pull/7121",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-05-12T05:30:22Z",
+   "updatedAt": "2026-10-02T18:05:28Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-13T21:09:48Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4445231309"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-13T21:22:16Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4445308731"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-18T20:50:12Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4482059921"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-20T09:23:55Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4496692703"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-20T09:59:36Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7121?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4497090261"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-27T19:13:57Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4557863224"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-02T17:46:30Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-5958027550"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR adds functionality for Blackholed accounts and AMM's to use Token Escrow\n\n### Context of Change\n\n#### 1. AMM & Blackholed Issuer Support (Extension)\n\nExtended token escrow to support special issuer types that cannot set `lsfAllowTrustLineLocking`:\n\n**AMM Pseudo Accounts:**\n- AMM accounts are pseudo-accounts with `lsfDisableMaster` set - they cannot submit transactions\n- Cannot set the `lsfAllowTrustLineLocking` flag required for token escrows\n- Solution: Automatically grant flag to AMM issuers, enabling escrows of LP tokens\n\n**Blackholed Issuers:**\n- Accounts with master disabled, no usable regular key, and no signer list\n- Cannot modify account settings including setting escrow flag\n- Solution: Allow escrows from blackholed issuers by lazy-adding the flag\n\n**Implementation:**\n- Added `isBlackholed()` utility to detect blackholed accounts\n- Extended `createPseudoAccount()` to accept additional flags parameter\n- New AMM accounts automatically get `lsfAllowTrustLineLocking` under amendment\n- Lazy-add flag to existing AMM/blackholed issuers when first escrow is created\n- Skip flag check in `escrowCreatePreclaimHelper` for AMM/blackholed issuers\n- Updated `ValidNewAccountRoot` invariant to allow additional flags on pseudo accounts\n- Added safety checks in `escrowUnlockApplyHelper` for null/wrong type SLEs\n\n### Type of Change\n\n- [x] Bug fix (fixes EscrowCancel runtime exception)\n- [x] New feature (enables AMM and blackholed issuer escrows)\n- [x] Breaking change (consolidated under fixTokenEscrowV1_1 amendment)\n- [x] Tests (comprehensive test coverage for all changes)\n\n### API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change\n- [x] `libxrpl` change (added `isBlackholed()` utility, extended `createPseudoAccount()`)\n- [ ] Peer protocol change\n\n## Before / After\n\n### Before\n1. **AMM tokens**: Cannot create escrows with LP tokens → `tecNO_PERMISSION`\n2. **Blackholed issuers**: Cannot create escrows if issuer blackholed → `tecNO_PERMISSION`\n\n### After (with `fixTokenEscrowV1_1`)\n1. **AMM tokens**: Can create escrows with LP tokens → `tesSUCCESS` (flag lazy-added to AMM account)\n2. **Blackholed issuers**: Can create escrows from blackholed issuers → `tesSUCCESS` (flag lazy-added)\n3. **New AMMs**: Automatically include `lsfAllowTrustLineLocking` at creation time",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:dangell7/fix-token-escrow-v2",
+   "additions": 260,
+   "deletions": 18,
+   "changedFiles": 8,
+   "commits": 6,
+   "reviewComments": 4,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-12T05:32:54Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-12T05:36:05Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-13T21:24:27Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T09:26:01Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T09:42:16Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T10:07:21Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T21:48:35Z",
+     "body": "### 🟡 Changes recommended\n\nThe new `isBlackholed()` logic relies on undocumented hard-coded `AccountID` sentinel values, which needs clarification/cleanup to keep consensus-critical behavior auditable.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR extends Token Escrow so escrow creation can succeed for AMM pseudo-accounts and “blackholed” issuers under the `fixTokenEscrowV1_1` amendment, including lazily adding `lsfAllowTrustLineLocking` when eligible.\n\n**Changes:**\n- Adds `fixTokenEscrowV1_1` gating to allow AMM/blackholed issuers to bypass the `lsfAllowTrustLineLocking` preclaim failure and lazily sets the flag during apply.\n- Extends pseudo-account creation to accept additional account-root flags, and updates invariants to allow the new AMM pseudo-account flag set under the amendment.\n- Adds/updates unit tests for AMM and blackholed issuer escrow behavior and AMM account flags.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/app/EscrowToken_test.cpp | Adds regression tests covering AMM LP token escrows and blackholed-issuer escrows under `fixTokenEscrowV1_1`. |\n| src/test/app/AMM_test.cpp | Updates AMM flag assertions to account for optional `lsfAllowTrustLineLocking` under `fixTokenEscrowV1_1`. |\n| src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp | Allows AMM/blackholed issuers to create token escrows without pre-set locking flag and lazily sets the flag during apply under the fix. |\n| src/libxrpl/tx/transactors/dex/AMMCreate.cpp | Adds `lsfAllowTrustLineLocking` to newly created AMM pseudo-accounts under `fixTokenEscrowV1_1`. |\n| src/libxrpl/tx/invariants/InvariantCheck.cpp | Permits AMM pseudo-accounts to have the additional locking flag under `fixTokenEscrowV1_1`. |\n| src/libxrpl/ledger/helpers/AccountRootHelpers.cpp | Adds `isBlackholed()` and extends `createPseudoAccount()` to support additional flags. |\n| include/xrpl/ledger/helpers/AccountRootHelpers.h | Exposes `isBlackholed()` and the new `createPseudoAccount()` signature/default parameter. |\n| include/xrpl/protocol/detail/features.macro | Registers the new `TokenEscrowV1_1` fix amendment. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**src/test/app/EscrowToken_test.cpp:421**\n* The comment refers to `asfAllowTrustLineLocking`, but the flag being tested is `lsfAllowTrustLineLocking` (ledger entry flag), which can be confusing when reading the test.\n```\n        // Blackholed issuer without asfAllowTrustLineLocking\n```\n\n- **Files reviewed:** 8/8 changed files\n- **Comments generated:** 2\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-10-02T17:46:17Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-10-02T17:46:19Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-02T17:49:15Z",
+     "body": "Overall the amendment-gating and lazy-flag-add logic for AMM/blackholed issuers in EscrowCreate.cpp looks consistent between preclaim and apply, and the new isBlackholed() helper matches the test cases added for it. The one notable concern is that the ValidNewAccountRoot invariant relaxation is not scoped to AMM pseudo-accounts specifically, which weakens a safety-net check for all pseudo-account types."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-02T18:05:27Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nResolve the amendment-gating issue and add coverage for blackholed accounts without regular keys.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (2)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [The comment refers to `asfAllowTrustLineLocking`, but the flag being tested is…](#discussion_r3908732107)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [`isBlackholed()` uses hard-coded `AccountID(0/1/2)` values to detect an &quot;unusable&quot; RegularKey. `0`…](#discussion_r3908732056)\n</details>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:48:34Z",
+     "path": "src/libxrpl/ledger/helpers/AccountRootHelpers.cpp",
+     "body": "`isBlackholed()` uses hard-coded `AccountID(0/1/2)` values to detect an \"unusable\" RegularKey. `0` and `1` already have named meanings in-protocol (`xrpAccount()` and `noAccount()`), while `2` has no documented semantics, which makes the detection logic hard to audit/maintain.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r3908732056"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:48:34Z",
+     "path": "src/test/app/EscrowToken_test.cpp",
+     "body": "The comment refers to `asfAllowTrustLineLocking`, but the flag being tested is `lsfAllowTrustLineLocking` (ledger entry flag), which can be confusing when reading the test.\n\nThis issue also appears on line 421 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r3908732107"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-10-02T17:46:17Z",
+     "path": "src/libxrpl/ledger/helpers/AccountRootHelpers.cpp",
+     "body": "Done, 9d96c2c0857b. AccountID(0) and AccountID(1) are xrpAccount() and noAccount() now, the two helpers AccountID.h already declares for exactly these sentinels (AccountID.cpp defines xrpAccount() as AccountID(beast::kZero) and noAccount() as AccountID(1)). AccountID(2) has no named helper anywhere in the codebase, so it stays a local kAccountTwo static.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r4168296442"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-10-02T17:46:19Z",
+     "path": "src/test/app/EscrowToken_test.cpp",
+     "body": "Done, 9d96c2c0857b. Both comments now read lsfAllowTrustLineLocking. asfAllowTrustLineLocking (TxFlags.h) is the AccountSet input flag; lsfAllowTrustLineLocking (LedgerFormats.h) is the AccountRoot ledger flag EscrowCreate actually reads, which is the one the test exercises.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r4168296697"
+    }
+   ]
+  },
   {
    "number": 6329,
    "title": "feat: Smart Escrows (XLS-100)",
@@ -1080,148 +1390,6 @@
      "path": "include/xrpl/protocol/jss.h",
      "body": "Alphabetical ordering: move `bytecode_size_limit` to `b` section, `gas_limit`/`gas_price` to `g` section.",
      "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4147196829"
-    }
-   ]
-  },
-  {
-   "number": 7882,
-   "title": "refactor: Extract escrow lock helpers and paychan test helpers",
-   "url": "https://github.com/XRPLF/rippled/pull/7882",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-07-28T00:05:30Z",
-   "updatedAt": "2026-09-30T15:58:57Z",
-   "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-07-28T00:50:06Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7882?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5098573546"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-07T16:00:58Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5219273225"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-31T16:06:07Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5481021980"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-15T18:19:59Z",
-     "body": "@dangell7 ready to merge?",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5685679631"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-09-30T15:46:09Z",
-     "body": "@mvadari yes, ready once CI is green. clang-tidy is fixed in 40a6ebe713 and develop is merged in.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5914699723"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-30T15:58:57Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#issuecomment-5914916136"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nPulls the refactoring out of #5448 (XLS-93d Token-Enabled Payment Channels) into its own PR so it can merge ahead of the feature. Code motion only, no functional change.\n\n- Moves the escrow lock/unlock helpers from the Escrow transactors into `EscrowHelpers.h`.\n- Moves the jtx `paychan` helpers from `TestHelpers.h` into their own `test/jtx/paychan.h`, and hoists the file-local helpers from `PayChan_test.cpp` into them.\n- Moves the escrowed balance test helpers from `EscrowToken_test.cpp` into the shared jtx `TestHelpers.h`.\n\n### Context of Change\n\nSplit out of #5448 per review feedback. The token paychan transactors reuse the escrow lock/unlock helpers, so the extraction lands here first and the feature PR becomes mostly additive.\n\n### API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nNo new tests, the moved code is covered by the existing suites. Ran Escrow, EscrowToken, Sponsor, PayChan, MPToken, AMM.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "Transia-RnD:dangell7/escrow-paychan-refactor",
-   "additions": 592,
-   "deletions": 573,
-   "changedFiles": 13,
-   "commits": 7,
-   "reviewComments": 4,
-   "reviews": [
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-07-29T14:08:58Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-07-29T14:12:44Z",
-     "body": ""
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-08-02T19:56:46Z",
-     "body": ""
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-08-02T19:56:48Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "APPROVED",
-     "date": "2026-08-04T13:50:39Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-01T22:19:05Z",
-     "body": "### 🟢 Approval recommended\n\nThe changes are mechanical extractions with updated call sites/includes and no detected behavioral deltas in the moved logic.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR performs a pure refactor (code motion) to centralize token-escrow lock/unlock logic and payment-channel JTx test helpers, enabling reuse by upcoming token-enabled payment channel work while keeping transactor behavior unchanged.\n\n**Changes:**\n- Extracts escrow token lock/unlock preclaim/apply helper templates into `EscrowHelpers.h` and updates Escrow transactors to use them.\n- Splits payment channel JTx helpers out of `TestHelpers.h` into `test/jtx/paychan.h` (+ implementation) and updates relevant tests/includes.\n- Moves EscrowToken-specific issuer/escrowed-balance test helpers into shared `TestHelpers.{h,cpp}`.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/jtx/TestHelpers.h | Adds shared token escrow/balance helper declarations; removes embedded paychan helper API. |\n| src/test/jtx/paychan.h | New header providing payment-channel JTx helper API. |\n| src/test/jtx/impl/TestHelpers.cpp | Implements the newly-shared token escrow/balance helpers. |\n| src/test/jtx/impl/paychan.cpp | New implementation unit for the extracted paychan JTx helpers. |\n| src/test/app/Sponsor_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/test/app/PayChan_test.cpp | Includes new paychan helper header; removes now-hoisted file-local helpers. |\n| src/test/app/EscrowToken_test.cpp | Switches to shared TestHelpers for escrowed/issuer balance helpers. |\n| src/test/app/AMMMPT_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/test/app/AMM_test.cpp | Includes new paychan helper header to match extracted API location. |\n| src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp | Replaces local preclaim helper with shared `escrowUnlockPreclaimHelper`. |\n| src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp | Replaces local lock preclaim/apply helpers with shared `escrowLock*Helper` templates. |\n| src/libxrpl/tx/transactors/escrow/EscrowCancel.cpp | Replaces local preclaim helper with shared `escrowUnlockPreclaimHelper` (freeze check disabled to preserve behavior). |\n| include/xrpl/ledger/helpers/EscrowHelpers.h | Adds shared escrow lock/unlock helper templates used by escrow-related transactors. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 13/13 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "pwang200",
-     "state": "APPROVED",
-     "date": "2026-09-15T17:51:39Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-30T15:39:01Z",
-     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nNo unresolved review issues were identified.\n\n**Review effort:** Lite  \n**Findings:** None"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "TimothyBanks",
-     "date": "2026-07-29T14:08:58Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "just a nit, but it might be worthwhile to considering moving these explicit template instantiations into a source file.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675042241"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-07-29T14:12:44Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "super nit and a problem not for this PR, but we don't need to construct most of these variables until after line 355.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3675074494"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-08-02T19:56:46Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "The inline specialization pattern is inherited from develop's EscrowHelpers.h, the unlock helpers already live there. Happy to move the whole family into an EscrowHelpers.cpp as a follow up, kept this PR to code motion.",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156269"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-08-02T19:56:48Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/82ede27f1020f380e44beade2f19bef75490b98b",
-     "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156299"
     }
    ]
   },
@@ -2484,418 +2652,6 @@
      "path": "src/libxrpl/tx/transactors/system/Change.cpp",
      "body": "`temTEMP_DISABLED` is not to be used here, it's to be used elsewhere. `temDISABLED` is correct here.",
      "url": "https://github.com/XRPLF/rippled/pull/8157#discussion_r3961082269"
-    }
-   ]
-  },
-  {
-   "number": 5999,
-   "title": "feat: Add WASMI dependency (Smart Escrows)",
-   "url": "https://github.com/XRPLF/rippled/pull/5999",
-   "state": "closed",
-   "author": "mvadari",
-   "createdAt": "2025-11-04T20:58:59Z",
-   "updatedAt": "2026-09-09T18:53:41Z",
-   "closedAt": "2026-09-09T18:53:41Z",
-   "labels": [],
-   "comments": [
-    {
-     "author": "Bronek",
-     "date": "2025-11-07T16:08:16Z",
-     "body": "@mvadari we would normally upload our custom recipes to https://github.com/XRPLF/conan-center-index",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-3503422931"
-    },
-    {
-     "author": "codecov[bot]",
-     "date": "2025-11-24T21:51:58Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/5999?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-3572865102"
-    },
-    {
-     "author": "vvysokikh1",
-     "date": "2026-01-07T11:17:09Z",
-     "body": "Could you please resolve the conflict?",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-3718404848"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-01-07T19:35:24Z",
-     "body": "> Could you please resolve the conflict?\n\n@vvysokikh1 done",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-3720450207"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-03-26T00:43:53Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4130767335"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-04-02T21:54:39Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4180694255"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-05-06T15:27:22Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4389591331"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-05-15T15:37:10Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4461152899"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-06-01T15:59:47Z",
-     "body": "@mvadari what's the status of this PR? Is it still needed and by when?",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4594293304"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-06-23T21:16:04Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4783534450"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-07-08T13:44:16Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4915427257"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-07-08T14:04:50Z",
-     "body": "CI is currently failing because new nixos based docker images don't have rust so wasmi fails to compile. This will be fixed after #7571  is merged.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-4915628038"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-07-23T18:19:56Z",
-     "body": "> @mvadari what's the status of this PR? Is it still needed and by when?\n\nThis is part of the Smart Escrow stack of PRs. Updated the PR title to make that clear.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#issuecomment-5061871429"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nThis PR adds Wasmi as a dependency to rippled, in preparation for Smart Escrows.\n\n### Context of Change\n\nSplitting up #5600 into more managably reviewable chunks\n\nStack of PRs (from `develop` outwards):\n* This PR\n* https://github.com/XRPLF/rippled/pull/6075\n* https://github.com/XRPLF/rippled/pull/5810\n* https://github.com/XRPLF/rippled/pull/6329\n* https://github.com/XRPLF/rippled/pull/5811\n\n### Type of Change\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [x] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [ ] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\nN/A\n\n\n## Test Plan\nCI passes and everything compiles in properly without error.\n\n\n## Future Tasks\nAdditional PRs for the rest of the Smart Escrow functionality",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:ripple/wasmi",
-   "additions": 5,
-   "deletions": 0,
-   "changedFiles": 4,
-   "commits": 66,
-   "reviewComments": 18,
-   "reviews": [
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2025-11-24T22:47:00Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2025-12-02T23:44:54Z",
-     "body": "## Pull request overview\n\nThis PR adds WASMI (WebAssembly interpreter) version 0.42.1 as a dependency to rippled in preparation for the Smart Escrows feature (XLS-102). The integration includes custom patches to the upstream WASMI library, Conan package configuration, and updates to the build system and CI/CD pipelines.\n\n### Key Changes\n- Added WASMI 0.42.1 dependency with custom patches for C API modifications and build system integration\n- Integrated WASMI into the Conan build system with local recipe export workflow\n- Updated CI/CD Docker images (SHA: `ca4517d`) and build scripts to support WASMI compilation\n\n### Reviewed changes\n\nCopilot reviewed 11 out of 12 changed files in this pull request and generated 7 comments.\n\n<details>\n<summary>Show a summary per file</summary>\n\n| File | Description |\n| ---- | ----------- |\n| external/wasmi/patches/0001-xrplf-0.42.1.patch | Custom patch for WASMI 0.42.1 adding fuel management APIs and build system modifications for static linking |\n| external/wasmi/conanfile.py | Conan recipe for building WASMI from source with CMake integration |\n| external/wasmi/conandata.yml | Conan data file specifying WASMI source URL, SHA256, and patch metadata |\n| conanfile.py | Added wasmi/0.42.1 to project dependencies and package info |\n| conan.lock | Removed lockfile (will be regenerated during build) |\n| cmake/XrplCore.cmake | Added wasmi::wasmi to xrpl.imports.main link libraries |\n| CMakeLists.txt | Added find_package(wasmi REQUIRED) to locate WASMI during configuration |\n| BUILD.md | Added instructions for exporting WASMI Conan recipe locally |\n| .github/workflows/upload-conan-deps.yml | Updated prepare-runner action reference to newer SHA |\n| .github/workflows/reusable-build-test-config.yml | Updated prepare-runner action reference to newer SHA |\n| .github/scripts/strategy-matrix/linux.json | Updated all Docker image SHAs to `ca4517d` for Linux build matrix |\n| .github/actions/build-deps/action.yml | Added local wasmi export step before conan install |\n</details>\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2025-12-05T19:51:42Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2025-12-08T18:02:04Z",
-     "body": "Copilot encountered an error and was unable to review this pull request. You can try again by re-requesting a review."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2025-12-08T19:47:56Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 6 out of 7 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-01-07T19:38:36Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 5 out of 6 changed files in this pull request and generated 2 comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-01-07T21:55:20Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 3 out of 4 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2026-01-08T22:44:11Z",
-     "body": "This looks good. I'll hold off with approving until the Conan recipe has been updated to use the newly created wasmi fork."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-01-12T17:30:45Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-01-12T18:36:06Z",
-     "body": "Copilot encountered an error and was unable to review this pull request. You can try again by re-requesting a review."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-01-21T18:00:06Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-01-27T18:29:49Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-01-29T18:56:21Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-02-04T23:09:44Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 299 out of 802 changed files in this pull request and generated 4 comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-02-04T23:14:08Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-02-18T17:39:28Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop/.github/instructions?filename=*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-02-27T21:48:53Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated 3 comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-03-03T15:22:29Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 5 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-04-22T21:23:02Z",
-     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-04-22T21:24:48Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 3 out of 4 changed files in this pull request and generated no new comments.\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-05-15T15:37:45Z",
-     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-05-18T22:25:50Z",
-     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-07-08T13:45:49Z",
-     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-07-21T11:40:56Z",
-     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-07-23T15:31:04Z",
-     "body": "Looks good."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-04T14:24:37Z",
-     "body": "This MR wires up Wasmi as a new dependency (CMake find_package/link, conan.lock pin, conanfile.py requirement and package_info) in preparation for Smart Escrows. The changes are purely dependency plumbing and are mechanically consistent with how other third-party libs (secp256k1, xxHash, sqlite3, soci) are already wired into the same files, so there's little to flag from a correctness standpoint. No actual usage code is introduced yet."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-09T19:52:42Z",
-     "body": "Straightforward dependency-wiring change adding wasmi (Conan package + CMake find_package + link) in preparation for Smart Escrows. Changes are consistent across all four files (CMakeLists.txt, cmake/XrplCore.cmake, conan.lock, conanfile.py) and follow the existing patterns used for other dependencies (secp256k1, sqlite3, etc.). No logic, security, or correctness issues found in this diff."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-19T16:50:38Z",
-     "body": "This MR is a purely mechanical dependency-wiring change that adds the `wasmi` conan package (a WebAssembly interpreter, presumably used later for Smart Escrows) to the build system. It touches only `CMakeLists.txt`, `cmake/XrplCore.cmake`, `conan.lock`, and `conanfile.py`. The version (`1.0.9`) is consistent between `conanfile.py` and `conan.lock`, the `find_package`/`target_link_libraries` insertions follow the existing alphabetical ordering conventions in each file, and no application logic is introduced yet. No bugs, security issues, or inconsistencies were found in the diff itself."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-20T14:10:56Z",
-     "body": "This is a small, mechanical dependency-wiring change that adds WASMI (a WASM interpreter) as a required Conan dependency ahead of the Smart Escrows work. Changes are limited to CMakeLists.txt, cmake/XrplCore.cmake, conan.lock, and conanfile.py, and are internally consistent (package name, version, and lock hash all match across files; placement follows existing alphabetical/ordering conventions in each file). No application logic is introduced yet, so there isn't meaningful correctness or security surface to review in this diff."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-26T15:59:02Z",
-     "body": "This MR adds wasmi as a new build dependency (CMake find_package, target_link_libraries, conan.lock, conanfile.py) in preparation for Smart Escrows. The changes are minimal and mechanical — just dependency wiring, no logic. No obvious correctness, security, or infrastructure issues found in the diff itself."
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "bthomee",
-     "date": "2025-11-24T22:46:03Z",
-     "path": ".github/workflows/reusable-build-test-config.yml",
-     "body": "Is this change here and in the other CI file still required? I suspect this is an older hash than what is currently used by the `develop` branch.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2557949628"
-    },
-    {
-     "author": "Copilot",
-     "date": "2025-12-02T23:44:51Z",
-     "path": "external/wasmi/patches/0001-xrplf-0.42.1.patch",
-     "body": "Trailing whitespace on empty line. This should be removed to maintain code cleanliness.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140601"
-    },
-    {
-     "author": "Copilot",
-     "date": "2025-12-02T23:44:52Z",
-     "path": "external/wasmi/patches/0001-xrplf-0.42.1.patch",
-     "body": "Commented-out code should be removed rather than left in the codebase. If these functions are needed in the future, they can be retrieved from version control. If they're not intended to be used yet, consider removing them from the patch entirely.\n```suggestion\n\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140609"
-    },
-    {
-     "author": "Copilot",
-     "date": "2025-12-02T23:44:52Z",
-     "path": "external/wasmi/patches/0001-xrplf-0.42.1.patch",
-     "body": "[nitpick] Excessive visual separator comment lines (4 lines of forward slashes). This adds clutter without providing value. Consider reducing to a single line separator or using a more conventional Rust doc comment style.\n```suggestion\n\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140621"
-    },
-    {
-     "author": "Copilot",
-     "date": "2025-12-02T23:44:53Z",
-     "path": ".github/actions/build-deps/action.yml",
-     "body": "[nitpick] The TODO comment suggests this is a temporary workaround. Consider creating a GitHub issue to track the work needed to switch to a conan package instead of relying on local export, and reference it in the comment (e.g., `#TODO: Switch to conan package (issue #XXXX)`).\n```suggestion\n        conan export --version 0.42.1 external/wasmi  #TODO: Switch to conan package (issue #1234)\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140633"
-    },
-    {
-     "author": "Copilot",
-     "date": "2025-12-02T23:44:53Z",
-     "path": "external/wasmi/conanfile.py",
-     "body": "Unused import: `tools` is imported from `conan` but never used in this file. This should be removed to keep the imports clean.\n```suggestion\nfrom conan import ConanFile\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140642"
-    },
-    {
-     "author": "Copilot",
-     "date": "2025-12-02T23:44:53Z",
-     "path": "external/wasmi/conanfile.py",
-     "body": "The `cpp_info.names` attributes (`cmake_find_package` and `cmake_find_package_multi`) are deprecated in Conan 2.0 and should not be used. These attributes were for Conan 1.x compatibility. Since this recipe specifies `required_conan_version = \">=2.0.0\"`, these lines should be removed. Conan 2.0 uses the package name directly.\n```suggestion\n\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140651"
-    },
-    {
-     "author": "Copilot",
-     "date": "2025-12-02T23:44:53Z",
-     "path": "BUILD.md",
-     "body": "Incorrect path for conan export. The instruction should be `conan export --version 0.42.1 external/wasmi` but it's located in a section where other exports use paths like `recipes/ed25519/all`. This instruction appears in the wrong location - it's shown after checking out recipes from the conan-center-index repository, but `external/wasmi` is part of the rippled repository itself, not the conan-center-index. This line should be moved outside the git sparse-checkout section, or the section should be clarified to indicate when to run this command.\n```suggestion\nrm -rf .git\n```\n\n### Exporting the local wasmi recipe\n\nThe `wasmi` recipe is part of the rippled repository itself, not the conan-center-index. To export it, run:\n\n```bash\nconan export --version 0.42.1 external/wasmi\n```\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2583140658"
-    },
-    {
-     "author": "mvadari",
-     "date": "2025-12-05T19:51:41Z",
-     "path": ".github/workflows/reusable-build-test-config.yml",
-     "body": "@oleks-rip",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2593811602"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-01-07T19:38:36Z",
-     "path": ".github/workflows/upload-conan-deps.yml",
-     "body": "The action reference has been updated to use a different path format and commit SHA, but other actions in this file still use the old format and commit SHA. For consistency, consider updating all XRPLF/actions references in this file to use the same commit SHA and path format.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2669835345"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-01-07T19:38:36Z",
-     "path": ".github/workflows/reusable-build-test-config.yml",
-     "body": "The action reference has been updated to use a different path format and commit SHA, but other actions in this file still use the old format and commit SHA. For consistency, consider updating all XRPLF/actions references in this file to use the same commit SHA and path format.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2669835363"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-02-04T23:09:43Z",
-     "path": "include/xrpl/protocol/detail/transactions.macro",
-     "body": "Inconsistent spacing: the line uses 11 spaces after 'sfData' while line 58 uses only 1 space after 'sfFinishFunction'.\n```suggestion\n    {sfData, soeOPTIONAL},\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2766353370"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-02-04T23:09:44Z",
-     "path": "include/xrpl/protocol/jss.h",
-     "body": "The macro parameter was changed from variadic `...` to named `fields`, but the parameter is not used in the macro body. Consider either using the parameter or keeping it as `...` to indicate it's intentionally unused.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2766353390"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-02-04T23:09:44Z",
-     "path": "include/xrpl/protocol/jss.h",
-     "body": "The macro parameter was changed from variadic `...` to named `fields`, but the parameter is not used in the macro body. Consider either using the parameter or keeping it as `...` to indicate it's intentionally unused.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2766353401"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-02-04T23:09:45Z",
-     "path": "include/xrpl/protocol/Protocol.h",
-     "body": "Grammatical error: should be 'parameters passed' not 'a parameters passed'.\n```suggestion\n/** The maximum length of parameters passed from Wasm code*/\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2766353425"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-02-27T21:48:52Z",
-     "path": "CMakeLists.txt",
-     "body": "`wasmi` is now a REQUIRED package at configure time, but the codebase currently has no references to `wasmi` (no includes/usages found under `src/` or `include/`). This makes configuring/building rippled depend on an extra third-party package even though nothing uses it yet. Consider making this `find_package(wasmi)` conditional behind a feature option (e.g., Smart Escrows) or deferring it until the first actual usage is introduced.\n```suggestion\noption(wasmi \"Enable wasmi support\" OFF)\nif (wasmi)\n    find_package(wasmi REQUIRED)\nendif ()\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2866339612"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-02-27T21:48:53Z",
-     "path": "cmake/XrplCore.cmake",
-     "body": "`wasmi::wasmi` is linked into `xrpl.imports.main`, which is installed/exported. Since there are currently no `wasmi` references in the source tree, this needlessly introduces a new transitive link/runtime dependency for all builds and downstream consumers. Consider not linking `wasmi` until the first call site exists, or gate it behind a build option so consumers that don't need Smart Escrows aren't forced to pull it in.",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2866339626"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-02-27T21:48:53Z",
-     "path": "conanfile.py",
-     "body": "Adding `wasmi::wasmi` to `libxrpl`'s exported Conan component requirements makes `wasmi` a transitive requirement for consumers of the `xrpl` package. Given there are currently no `wasmi` references in the repo, consider leaving it out of `package_info()` until it is actually needed (or make it conditional), to avoid forcing downstream projects to resolve an unused dependency.\n```suggestion\n\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/5999#discussion_r2866339635"
     }
    ]
   }
