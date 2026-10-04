@@ -1,23 +1,24 @@
 {
  "name": "Clawback",
- "fetchedAt": "2026-10-03T08:01:53.900Z",
+ "fetchedAt": "2026-10-04T08:01:50.947Z",
  "summary": {
-  "status": "merged",
-  "prs": 9,
-  "open": 0,
+  "status": "in development",
+  "prs": 10,
+  "open": 1,
   "merged": 8,
-  "issues": 3,
+  "issues": 2,
   "proposals": 7,
   "branches": [
    "dangell7/token-paychan-clawback",
+   "gregtatcam/clawback-invariant-rounding",
    "mvadari/rearch/vault-clawbackAmount",
    "tapanito/vault-clawback-invariants",
    "tialymov/FN-30-vault_clawback_holder_existence"
   ],
-  "lastActivity": "2026-09-10T22:00:58Z",
+  "lastActivity": "2026-10-03T21:01:10Z",
   "lastMerged": "2026-08-26T18:06:55Z",
   "release": "1.12.0",
-  "totalComments": 274
+  "totalComments": 278
  },
  "release": {
   "version": "1.12.0",
@@ -26,6 +27,59 @@
   "excerpt": "`Clawback`"
  },
  "prs": [
+  {
+   "number": 8475,
+   "title": "fix: Allow IOU rounding in Clawback invariant balance check",
+   "url": "https://github.com/XRPLF/rippled/pull/8475",
+   "state": "open",
+   "author": "gregtatcam",
+   "createdAt": "2026-10-03T20:39:20Z",
+   "updatedAt": "2026-10-03T21:01:10Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-03T20:41:11Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8475?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8475#issuecomment-5973288483"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nValidClawback required a trust line clawback to reduce the holder's balance by exactly min(balance, amount). IOU balances keep 16 significant digits, so a clawback much smaller than the balance changes it by a rounded amount: possibly zero, or slightly less or more than requested. The check then failed for a correctly applied clawback. It logs a fatal invariant failure today and would fail the transaction with tecINVARIANT_FAILED once MPTokensV2 is enabled.\n\nCompare the after balance with before - min(before, amount), the same rounded subtraction the balance update performs.\n\nThe check only affects transaction results under MPTokensV2, which is not enabled, so no new amendment is needed.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n## Test Plan\n\nUpdate Clawback_test.cpp",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:gregtatcam/clawback-invariant-rounding",
+   "additions": 101,
+   "deletions": 1,
+   "changedFiles": 2,
+   "commits": 1,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-03T20:40:30Z",
+     "body": "This is a narrow, well-targeted fix to the ValidClawback invariant check: it now compares the resulting balance against the same rounded subtraction (`before - min(before, amount)`) that the actual balance update performs, instead of comparing the raw delta against the requested clawback amount. This correctly accounts for IOU's 16-significant-digit rounding, which could previously cause a correctly-applied clawback to trip the invariant. The accompanying test cases (exact-cancel, round-down, round-up) are well chosen and verify both the amendment-enabled (hard failure) and amendment-disabled (log-only) paths without asserting an 'Invariant failed' log line. I did not find any correctness issues introduced by this diff — the logic change is a straightforward refactor of the comparison that matches the stated rationale, and the first disjunct (`*afterBalance > *beforeBalance`) is unchanged from before."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-03T21:01:10Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nThe new log assertion executes before captured logs are written, leaving part of the regression behavior untested.\n\n**Review effort:** Balanced  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Check captured logs after Env destruction](#discussion_r4174841117) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nUpdates the Clawback invariant to account for IOU precision rounding.\n\n**Changes:**\n- Compares balances using the same rounded subtraction as Clawback execution.\n- Adds sub-resolution IOU Clawback tests.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​invariants/​InvariantCheck.cpp` | Allows valid rounded IOU balance changes. |\n| `src/​test/​app/​Clawback_test.cpp` | Tests several IOU rounding cases. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-03T21:01:10Z",
+     "path": "src/test/app/Clawback_test.cpp",
+     "body": "This assertion always sees an empty string: `CaptureLogs` copies its stream into `logs` only in its destructor (`src/test/jtx/CaptureLogs.h:59-62`), but `env` is still alive here. Consequently, the feature-disabled cases do not detect the invariant failure this test is intended to prevent. Enclose the `Env` setup and balance check in an inner scope, then inspect `logs` after that scope.",
+     "url": "https://github.com/XRPLF/rippled/pull/8475#discussion_r4174841117"
+    }
+   ]
+  },
   {
    "number": 8057,
    "title": "fix: Clamp Vault Deposit, Withdraw, and Clawback to assetsTotal grid",
@@ -2075,22 +2129,6 @@
    ],
    "comments": 0,
    "body": "**Severity**: LOW\n\n**Feature**: AMM\n\n##### AMMClawback doesn't revoke auction slot on LP token clawback\n\n**Severity**: LOW\n\nWhen an issuer claws back LP tokens from a holder who owns the AMM auction slot, the auction slot is not revoked. The clawed-back holder retains the discounted trading fee privilege (and auth accounts list) for up to 24 hours after their LP tokens are clawed back. This means a user whose tokens have been clawed back still receives preferential treatment on the AMM.\n\n**Root cause**: AMMClawback::applyGuts (lines 100-223) calls AMMWithdraw functions to withdraw and burn LP tokens, but never checks or updates the auction slot. The auction slot's sfAccount field continues to reference the clawed-back holder.\n\nsrc/libxrpl/tx/transactors/dex/AMMClawback.cpp:100-223\n\nTER AMMClawback::applyGuts(Sandbox& sb) \\{ ... /\\* no auction slot update \\*/ ... \\}\n\nsrc/libxrpl/tx/transactors/dex/AMMUtils.cpp:152-180\n\nstd::uint16\\_t getTradingFee(ReadView const& view, SLE const& ammSle, AccountID const& account) \\{\n\n```\nif (ammSle.isFieldPresent(sfAuctionSlot)) {\n\n auto const& auctionSlot = ...;\n\n if (auctionSlot[~sfAccount] == account)\n\n return auctionSlot[sfDiscountedFee];\n\n}\n```\n\n\\}\n\n**Exploit scenario**: 1. Issuer creates AMM with USD/EUR, both issued by them\n\n2. Bob deposits and wins the auction slot (paying LP tokens, gets discounted fee)\n3. Issuer decides to claw back Bob's LP tokens\n4. AMMClawback burns Bob's LP tokens and withdraws assets\n5. Bob still holds the auction slot with discounted fee for up to 24 hours\n6. Bob can trade through the AMM (using regular assets, not LP tokens) with the discounted fee\n7. Bob's auth accounts also still benefit from the discounted fee\n\n**Financial impact**: Limited: the clawed-back holder gets discounted fees (tradingFee/10) on trades for up to 24h. For a 1% fee pool, this is 0.1% fee instead of 1%. If Bob trades $1M volume, the savings would be \\~$9,000.\n\n**Invariant gap**: No invariant checks auction slot validity against LP token holdings.\n\n**Suggested fix**: In AMMClawback::applyGuts, after withdrawing tokens, check if the holder was the auction slot owner. If so, clear the auction slot (or set it to expired/empty).\n\n---\n\n### Additional Context\n\n# : AMMClawback doesn't revoke auction slot on LP token clawback\n\n## Verdict: Confirmed \\| Confidence: 95%\n\n---\n\n## Root Cause\n\nFile: src/xrpld/app/tx/detail/AMMClawback.cpp, lines 135-248\n\nAMMClawback::applyGuts performs LP token withdrawal and credit back to issuer, but never inspects or modifies the AMM's sfAuctionSlot field. The AMMWithdraw functions it delegates to also never touch the auction slot.\n\nMeanwhile, getTradingFee (AMMUtils.cpp:179-208) unconditionally checks the auction slot's sfAccount and returns sfDiscountedFee if the caller matches — regardless of whether the account still holds LP tokens.\n\n## Impact\n\nAfter clawback, the affected account continues trading at 1/10th the normal fee for up to 24 hours (auction slot expiration). Authorized accounts (sfAuthAccounts) also retain the discount.\n\nExample: On a pool with 1% fee, the clawed-back account pays 0.1% instead. On $1M daily volume, that's \\~$9,000 in fee savings.\n\nAmendment: featureAMMClawback — mainnet exposed.\n\n## Reproduction\n\nTest testAuctionSlotPersistsAfterClawback added to src/test/app/AMMClawback\\_test.cpp:\n\n1. Creates AMM pool with 1% trading fee (1000 basis points)\n2. Alice (creator) gets auction slot with discounted fee = 100\n3. Bob deposits so Alice isn't the only LP\n4. Issuer claws back ALL of Alice's LP tokens\n5. Alice has 0 LP tokens (verified)\n6. Alice still owns the auction slot (bug confirmed)\n7. getTradingFee returns 100 (discounted) instead of 1000 (full) (bug confirmed)\n\nBuild: cmake --build build/build/Debug — SUCCESS Test: rippled --unittest=AMMClawback — 0 failures, all bug-demonstrating assertions pass across 3 feature combinations\n\n## Suggested Fix\n\nIn AMMClawback::applyGuts, after LP token withdrawal, check if the holder is the auction slot owner. If so, clear sfAccount from the auction slot (or reset it entirely). Also remove the holder from sfAuthAccounts if present.\n\n## Key Files\n\n## Reproduction Unit Test\n\nAdded to src/test/app/AMMClawback\\_test.cpp:\n\n```cpp\ntestAuctionSlotPersistsAfterClawback(FeatureBitset features)\n{\n testcase(\"test auction slot persists after LP token clawback\");\n using namespace jtx;\n\n {\n Env env(*this, features);\n Account gw{\"gateway\"};\n Account alice{\"alice\"};\n Account bob{\"bob\"};\n env.fund(XRP(1000000), gw, alice, bob);\n env.close;\n\n env(fset(gw, asfAllowTrustLineClawback));\n env.close;\n\n auto const USD = gw[\"USD\"];\n env.trust(USD(100000), alice);\n env.trust(USD(100000), bob);\n env(pay(gw, alice, USD(10000)));\n env(pay(gw, bob, USD(10000)));\n env.close;\n\n // Alice creates AMM with 1% trading fee. Creator gets auction slot.\n AMM amm(env, alice, XRP(10000), USD(10000), false, 1000);\n env.close;\n\n BEAST_EXPECT(amm.expectAuctionSlot(100, 0, IOUAmount{0}));\n\n // Bob deposits so alice is not the only LP\n amm.deposit(bob, USD(5000), XRP(5000));\n env.close;\n\n // Issuer claws back ALL of alice's LP tokens\n env(amm::ammClawback(gw, alice, USD, XRP, std::nullopt));\n env.close;\n\n // Alice has 0 LP tokens\n BEAST_EXPECT(amm.expectLPTokens(alice, IOUAmount{0}));\n\n // BUG: Auction slot STILL references alice\n auto const ammSle = env.current->read(\n keylet::amm(USD.issue, xrpIssue));\n BEAST_EXPECT(ammSle);\n if (ammSle && ammSle->isFieldPresent(sfAuctionSlot))\n {\n auto const& auctionSlot =\n static_cast<STObject const&>(\n ammSle->peekAtField(sfAuctionSlot));\n auto const slotAccount = auctionSlot[~sfAccount];\n // BUG: alice still owns auction slot with 0 LP tokens\n BEAST_EXPECT(slotAccount && *slotAccount == alice.id);\n }\n\n // getTradingFee returns discounted fee (100) instead of full (1000)\n auto const tradingFee =\n getTradingFee(*env.current, *ammSle, alice.id);\n BEAST_EXPECT(tradingFee == 100); // BUG: should be 1000\n }\n}\n```"
-  },
-  {
-   "number": 6882,
-   "title": "[XLS-0096] OA Underflow Without Guard in Clawback doApply",
-   "url": "https://github.com/XRPLF/rippled/issues/6882",
-   "state": "closed",
-   "author": "hgandhi-rx",
-   "createdAt": "2026-04-12T14:59:29Z",
-   "updatedAt": "2026-04-30T20:21:43Z",
-   "closedAt": "2026-04-30T20:21:43Z",
-   "labels": [
-    "Bug",
-    "AI Triage"
-   ],
-   "comments": 2,
-   "body": "## Summary\n\n[XLS-0096] OA Underflow Without Guard in Clawback doApply.\n\n## Details\n\n**Title:** OA underflow without guard in Clawback doApply — direct `oldOA - clawAmount` with no explicit underflow check; transitively safe via `COA <= OA` invariant but asymmetric with Convert's explicit overflow guard  \n\n**Description:**  \nOA underflow without guard in Clawback doApply — direct `oldOA - clawAmount` with no explicit underflow check; transitively safe via `COA <= OA` invariant but asymmetric with Convert's explicit overflow guard.\n\n**Fix:** Add explicit guard: `if (oldOA < clawAmount) return tecINTERNAL`.\n\n## Impact\n\nBranch: [`ripple/attackathon-april-2026`](https://github.com/XRPLF/rippled/tree/ripple/attackathon-april-2026)"
   }
  ],
  "proposals": [
@@ -2181,6 +2219,7 @@
  ],
  "branches": [
   "dangell7/token-paychan-clawback",
+  "gregtatcam/clawback-invariant-rounding",
   "mvadari/rearch/vault-clawbackAmount",
   "tapanito/vault-clawback-invariants",
   "tialymov/FN-30-vault_clawback_holder_existence"

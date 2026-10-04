@@ -1,6 +1,6 @@
 {
  "name": "Escrow",
- "fetchedAt": "2026-10-03T08:03:37.967Z",
+ "fetchedAt": "2026-10-04T08:03:21.201Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -23,10 +23,10 @@
    "smart-escrow/versioning",
    "timothybanks/smart-escrow-deletion"
   ],
-  "lastActivity": "2026-10-02T18:44:44Z",
+  "lastActivity": "2026-10-03T12:50:18Z",
   "lastMerged": "2026-09-29T18:07:35Z",
   "release": "0.60.0",
-  "totalComments": 358
+  "totalComments": 361
  },
  "release": {
   "version": "0.60.0",
@@ -35,6 +35,189 @@
   "excerpt": "Escrow**"
  },
  "prs": [
+  {
+   "number": 7121,
+   "title": "feat: Token Escrow - Allow Blackholed Accounts",
+   "url": "https://github.com/XRPLF/rippled/pull/7121",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-05-12T05:30:22Z",
+   "updatedAt": "2026-10-03T12:50:18Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-13T21:09:48Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4445231309"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-13T21:22:16Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4445308731"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-18T20:50:12Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4482059921"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-20T09:23:55Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4496692703"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-05-20T09:59:36Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7121?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4497090261"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-05-27T19:13:57Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4557863224"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-02T17:46:30Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-5958027550"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nThis PR adds functionality for Blackholed accounts and AMM's to use Token Escrow\n\n### Context of Change\n\n#### 1. AMM & Blackholed Issuer Support (Extension)\n\nExtended token escrow to support special issuer types that cannot set `lsfAllowTrustLineLocking`:\n\n**AMM Pseudo Accounts:**\n- AMM accounts are pseudo-accounts with `lsfDisableMaster` set - they cannot submit transactions\n- Cannot set the `lsfAllowTrustLineLocking` flag required for token escrows\n- Solution: Automatically grant flag to AMM issuers, enabling escrows of LP tokens\n\n**Blackholed Issuers:**\n- Accounts with master disabled, no usable regular key, and no signer list\n- Cannot modify account settings including setting escrow flag\n- Solution: Allow escrows from blackholed issuers by lazy-adding the flag\n\n**Implementation:**\n- Added `isBlackholed()` utility to detect blackholed accounts\n- Extended `createPseudoAccount()` to accept additional flags parameter\n- New AMM accounts automatically get `lsfAllowTrustLineLocking` under amendment\n- Lazy-add flag to existing AMM/blackholed issuers when first escrow is created\n- Skip flag check in `escrowCreatePreclaimHelper` for AMM/blackholed issuers\n- Updated `ValidNewAccountRoot` invariant to allow additional flags on pseudo accounts\n- Added safety checks in `escrowUnlockApplyHelper` for null/wrong type SLEs\n\n### Type of Change\n\n- [x] Bug fix (fixes EscrowCancel runtime exception)\n- [x] New feature (enables AMM and blackholed issuer escrows)\n- [x] Breaking change (consolidated under fixTokenEscrowV1_1 amendment)\n- [x] Tests (comprehensive test coverage for all changes)\n\n### API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change\n- [x] `libxrpl` change (added `isBlackholed()` utility, extended `createPseudoAccount()`)\n- [ ] Peer protocol change\n\n## Before / After\n\n### Before\n1. **AMM tokens**: Cannot create escrows with LP tokens → `tecNO_PERMISSION`\n2. **Blackholed issuers**: Cannot create escrows if issuer blackholed → `tecNO_PERMISSION`\n\n### After (with `fixTokenEscrowV1_1`)\n1. **AMM tokens**: Can create escrows with LP tokens → `tesSUCCESS` (flag lazy-added to AMM account)\n2. **Blackholed issuers**: Can create escrows from blackholed issuers → `tesSUCCESS` (flag lazy-added)\n3. **New AMMs**: Automatically include `lsfAllowTrustLineLocking` at creation time",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:dangell7/fix-token-escrow-v2",
+   "additions": 260,
+   "deletions": 18,
+   "changedFiles": 8,
+   "commits": 7,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-12T05:32:54Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-12T05:36:05Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-13T21:24:27Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T09:26:01Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T09:42:16Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-05-20T10:07:21Z",
+     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T21:48:35Z",
+     "body": "### 🟡 Changes recommended\n\nThe new `isBlackholed()` logic relies on undocumented hard-coded `AccountID` sentinel values, which needs clarification/cleanup to keep consensus-critical behavior auditable.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR extends Token Escrow so escrow creation can succeed for AMM pseudo-accounts and “blackholed” issuers under the `fixTokenEscrowV1_1` amendment, including lazily adding `lsfAllowTrustLineLocking` when eligible.\n\n**Changes:**\n- Adds `fixTokenEscrowV1_1` gating to allow AMM/blackholed issuers to bypass the `lsfAllowTrustLineLocking` preclaim failure and lazily sets the flag during apply.\n- Extends pseudo-account creation to accept additional account-root flags, and updates invariants to allow the new AMM pseudo-account flag set under the amendment.\n- Adds/updates unit tests for AMM and blackholed issuer escrow behavior and AMM account flags.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/app/EscrowToken_test.cpp | Adds regression tests covering AMM LP token escrows and blackholed-issuer escrows under `fixTokenEscrowV1_1`. |\n| src/test/app/AMM_test.cpp | Updates AMM flag assertions to account for optional `lsfAllowTrustLineLocking` under `fixTokenEscrowV1_1`. |\n| src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp | Allows AMM/blackholed issuers to create token escrows without pre-set locking flag and lazily sets the flag during apply under the fix. |\n| src/libxrpl/tx/transactors/dex/AMMCreate.cpp | Adds `lsfAllowTrustLineLocking` to newly created AMM pseudo-accounts under `fixTokenEscrowV1_1`. |\n| src/libxrpl/tx/invariants/InvariantCheck.cpp | Permits AMM pseudo-accounts to have the additional locking flag under `fixTokenEscrowV1_1`. |\n| src/libxrpl/ledger/helpers/AccountRootHelpers.cpp | Adds `isBlackholed()` and extends `createPseudoAccount()` to support additional flags. |\n| include/xrpl/ledger/helpers/AccountRootHelpers.h | Exposes `isBlackholed()` and the new `createPseudoAccount()` signature/default parameter. |\n| include/xrpl/protocol/detail/features.macro | Registers the new `TokenEscrowV1_1` fix amendment. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**src/test/app/EscrowToken_test.cpp:421**\n* The comment refers to `asfAllowTrustLineLocking`, but the flag being tested is `lsfAllowTrustLineLocking` (ledger entry flag), which can be confusing when reading the test.\n```\n        // Blackholed issuer without asfAllowTrustLineLocking\n```\n\n- **Files reviewed:** 8/8 changed files\n- **Comments generated:** 2\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-10-02T17:46:17Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-10-02T17:46:19Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-02T17:49:15Z",
+     "body": "Overall the amendment-gating and lazy-flag-add logic for AMM/blackholed issuers in EscrowCreate.cpp looks consistent between preclaim and apply, and the new isBlackholed() helper matches the test cases added for it. The one notable concern is that the ValidNewAccountRoot invariant relaxation is not scoped to AMM pseudo-accounts specifically, which weakens a safety-net check for all pseudo-account types."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-02T18:05:27Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nResolve the amendment-gating issue and add coverage for blackholed accounts without regular keys.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (2)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [The comment refers to `asfAllowTrustLineLocking`, but the flag being tested is…](#discussion_r3908732107)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [`isBlackholed()` uses hard-coded `AccountID(0/1/2)` values to detect an &quot;unusable&quot; RegularKey. `0`…](#discussion_r3908732056)\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-03T12:37:58Z",
+     "body": "Core logic change (lazy-adding lsfAllowTrustLineLocking for AMM/blackholed issuers, extending createPseudoAccount, and tightening the pseudo-account invariant) looks internally consistent and well-covered by new tests. One thing worth clarifying before merge: isBlackholed() treats AccountID(2) as an additional 'unsigned/blackhole' regular-key value alongside the well-known xrpAccount()/noAccount() constants, but this isn't explained anywhere and isn't exercised by any of the new tests."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-03T12:50:17Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:48:34Z",
+     "path": "src/libxrpl/ledger/helpers/AccountRootHelpers.cpp",
+     "body": "`isBlackholed()` uses hard-coded `AccountID(0/1/2)` values to detect an \"unusable\" RegularKey. `0` and `1` already have named meanings in-protocol (`xrpAccount()` and `noAccount()`), while `2` has no documented semantics, which makes the detection logic hard to audit/maintain.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r3908732056"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:48:34Z",
+     "path": "src/test/app/EscrowToken_test.cpp",
+     "body": "The comment refers to `asfAllowTrustLineLocking`, but the flag being tested is `lsfAllowTrustLineLocking` (ledger entry flag), which can be confusing when reading the test.\n\nThis issue also appears on line 421 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r3908732107"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-10-02T17:46:17Z",
+     "path": "src/libxrpl/ledger/helpers/AccountRootHelpers.cpp",
+     "body": "Done, 9d96c2c0857b. AccountID(0) and AccountID(1) are xrpAccount() and noAccount() now, the two helpers AccountID.h already declares for exactly these sentinels (AccountID.cpp defines xrpAccount() as AccountID(beast::kZero) and noAccount() as AccountID(1)). AccountID(2) has no named helper anywhere in the codebase, so it stays a local kAccountTwo static.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r4168296442"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-10-02T17:46:19Z",
+     "path": "src/test/app/EscrowToken_test.cpp",
+     "body": "Done, 9d96c2c0857b. Both comments now read lsfAllowTrustLineLocking. asfAllowTrustLineLocking (TxFlags.h) is the AccountSet input flag; lsfAllowTrustLineLocking (LedgerFormats.h) is the AccountRoot ledger flag EscrowCreate actually reads, which is the one the test exercises.",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r4168296697"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-10-03T12:50:17Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "🟡 **Severity: MEDIUM**\n\nThe lazy `lsfAllowTrustLineLocking` flag-setting block runs for **all** non-XRP amounts (both IOUs and MPTs), but the preclaim AMM/blackhole bypass only exists in `escrowCreatePreclaimHelper<Issue>`. An MPT escrow from a blackholed issuer will set `lsfAllowTrustLineLocking` (an IOU-specific flag) on the issuer's account as an unintended cross-asset side effect, permanently enabling IOU trust-line locking.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add a guard on line 518 to ensure the `lsfAllowTrustLineLocking` lazy-setting block only executes for IOU amounts, not MPT amounts. The flag `lsfAllowTrustLineLocking` is IOU-specific and should not be set as a side effect of MPT escrow creation. Add `!amount.holds<MPTIssue>()` to the existing condition, consistent with the similar guard already used at line 562 for the issuer directory insertion.\n\n> **⚠️ Experimental Feature**: This code suggestion is automatically generated. Please review carefully.\n\n```suggestion\n        if (ctx_.view().rules().enabled(fixTokenEscrowV1_1) && !amount.holds<MPTIssue>())\n```\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r4173235415"
+    }
+   ]
+  },
   {
    "number": 7882,
    "title": "refactor: Extract escrow lock helpers and paychan test helpers",
@@ -178,170 +361,6 @@
      "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
      "body": "Done. resolved: https://github.com/XRPLF/rippled/commit/82ede27f1020f380e44beade2f19bef75490b98b",
      "url": "https://github.com/XRPLF/rippled/pull/7882#discussion_r3700156299"
-    }
-   ]
-  },
-  {
-   "number": 7121,
-   "title": "feat: Token Escrow - Allow Blackholed Accounts",
-   "url": "https://github.com/XRPLF/rippled/pull/7121",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-05-12T05:30:22Z",
-   "updatedAt": "2026-10-02T18:05:28Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-05-13T21:09:48Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4445231309"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-05-13T21:22:16Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4445308731"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-05-18T20:50:12Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4482059921"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-05-20T09:23:55Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4496692703"
-    },
-    {
-     "author": "codecov[bot]",
-     "date": "2026-05-20T09:59:36Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7121?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4497090261"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-05-27T19:13:57Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-4557863224"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-02T17:46:30Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/7121#issuecomment-5958027550"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nThis PR adds functionality for Blackholed accounts and AMM's to use Token Escrow\n\n### Context of Change\n\n#### 1. AMM & Blackholed Issuer Support (Extension)\n\nExtended token escrow to support special issuer types that cannot set `lsfAllowTrustLineLocking`:\n\n**AMM Pseudo Accounts:**\n- AMM accounts are pseudo-accounts with `lsfDisableMaster` set - they cannot submit transactions\n- Cannot set the `lsfAllowTrustLineLocking` flag required for token escrows\n- Solution: Automatically grant flag to AMM issuers, enabling escrows of LP tokens\n\n**Blackholed Issuers:**\n- Accounts with master disabled, no usable regular key, and no signer list\n- Cannot modify account settings including setting escrow flag\n- Solution: Allow escrows from blackholed issuers by lazy-adding the flag\n\n**Implementation:**\n- Added `isBlackholed()` utility to detect blackholed accounts\n- Extended `createPseudoAccount()` to accept additional flags parameter\n- New AMM accounts automatically get `lsfAllowTrustLineLocking` under amendment\n- Lazy-add flag to existing AMM/blackholed issuers when first escrow is created\n- Skip flag check in `escrowCreatePreclaimHelper` for AMM/blackholed issuers\n- Updated `ValidNewAccountRoot` invariant to allow additional flags on pseudo accounts\n- Added safety checks in `escrowUnlockApplyHelper` for null/wrong type SLEs\n\n### Type of Change\n\n- [x] Bug fix (fixes EscrowCancel runtime exception)\n- [x] New feature (enables AMM and blackholed issuer escrows)\n- [x] Breaking change (consolidated under fixTokenEscrowV1_1 amendment)\n- [x] Tests (comprehensive test coverage for all changes)\n\n### API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change\n- [x] `libxrpl` change (added `isBlackholed()` utility, extended `createPseudoAccount()`)\n- [ ] Peer protocol change\n\n## Before / After\n\n### Before\n1. **AMM tokens**: Cannot create escrows with LP tokens → `tecNO_PERMISSION`\n2. **Blackholed issuers**: Cannot create escrows if issuer blackholed → `tecNO_PERMISSION`\n\n### After (with `fixTokenEscrowV1_1`)\n1. **AMM tokens**: Can create escrows with LP tokens → `tesSUCCESS` (flag lazy-added to AMM account)\n2. **Blackholed issuers**: Can create escrows from blackholed issuers → `tesSUCCESS` (flag lazy-added)\n3. **New AMMs**: Automatically include `lsfAllowTrustLineLocking` at creation time",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:dangell7/fix-token-escrow-v2",
-   "additions": 260,
-   "deletions": 18,
-   "changedFiles": 8,
-   "commits": 6,
-   "reviewComments": 4,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-05-12T05:32:54Z",
-     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-05-12T05:36:05Z",
-     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-05-13T21:24:27Z",
-     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-05-20T09:26:01Z",
-     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-05-20T09:42:16Z",
-     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-05-20T10:07:21Z",
-     "body": "No issues.\n\n*Review by Claude Opus 4.6* · Prompt: V15"
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-01T21:48:35Z",
-     "body": "### 🟡 Changes recommended\n\nThe new `isBlackholed()` logic relies on undocumented hard-coded `AccountID` sentinel values, which needs clarification/cleanup to keep consensus-critical behavior auditable.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR extends Token Escrow so escrow creation can succeed for AMM pseudo-accounts and “blackholed” issuers under the `fixTokenEscrowV1_1` amendment, including lazily adding `lsfAllowTrustLineLocking` when eligible.\n\n**Changes:**\n- Adds `fixTokenEscrowV1_1` gating to allow AMM/blackholed issuers to bypass the `lsfAllowTrustLineLocking` preclaim failure and lazily sets the flag during apply.\n- Extends pseudo-account creation to accept additional account-root flags, and updates invariants to allow the new AMM pseudo-account flag set under the amendment.\n- Adds/updates unit tests for AMM and blackholed issuer escrow behavior and AMM account flags.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/app/EscrowToken_test.cpp | Adds regression tests covering AMM LP token escrows and blackholed-issuer escrows under `fixTokenEscrowV1_1`. |\n| src/test/app/AMM_test.cpp | Updates AMM flag assertions to account for optional `lsfAllowTrustLineLocking` under `fixTokenEscrowV1_1`. |\n| src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp | Allows AMM/blackholed issuers to create token escrows without pre-set locking flag and lazily sets the flag during apply under the fix. |\n| src/libxrpl/tx/transactors/dex/AMMCreate.cpp | Adds `lsfAllowTrustLineLocking` to newly created AMM pseudo-accounts under `fixTokenEscrowV1_1`. |\n| src/libxrpl/tx/invariants/InvariantCheck.cpp | Permits AMM pseudo-accounts to have the additional locking flag under `fixTokenEscrowV1_1`. |\n| src/libxrpl/ledger/helpers/AccountRootHelpers.cpp | Adds `isBlackholed()` and extends `createPseudoAccount()` to support additional flags. |\n| include/xrpl/ledger/helpers/AccountRootHelpers.h | Exposes `isBlackholed()` and the new `createPseudoAccount()` signature/default parameter. |\n| include/xrpl/protocol/detail/features.macro | Registers the new `TokenEscrowV1_1` fix amendment. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**src/test/app/EscrowToken_test.cpp:421**\n* The comment refers to `asfAllowTrustLineLocking`, but the flag being tested is `lsfAllowTrustLineLocking` (ledger entry flag), which can be confusing when reading the test.\n```\n        // Blackholed issuer without asfAllowTrustLineLocking\n```\n\n- **Files reviewed:** 8/8 changed files\n- **Comments generated:** 2\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-10-02T17:46:17Z",
-     "body": ""
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-10-02T17:46:19Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-02T17:49:15Z",
-     "body": "Overall the amendment-gating and lazy-flag-add logic for AMM/blackholed issuers in EscrowCreate.cpp looks consistent between preclaim and apply, and the new isBlackholed() helper matches the test cases added for it. The one notable concern is that the ValidNewAccountRoot invariant relaxation is not scoped to AMM pseudo-accounts specifically, which weakens a safety-net check for all pseudo-account types."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-02T18:05:27Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nResolve the amendment-gating issue and add coverage for blackholed accounts without regular keys.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (2)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [The comment refers to `asfAllowTrustLineLocking`, but the flag being tested is…](#discussion_r3908732107)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [`isBlackholed()` uses hard-coded `AccountID(0/1/2)` values to detect an &quot;unusable&quot; RegularKey. `0`…](#discussion_r3908732056)\n</details>"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T21:48:34Z",
-     "path": "src/libxrpl/ledger/helpers/AccountRootHelpers.cpp",
-     "body": "`isBlackholed()` uses hard-coded `AccountID(0/1/2)` values to detect an \"unusable\" RegularKey. `0` and `1` already have named meanings in-protocol (`xrpAccount()` and `noAccount()`), while `2` has no documented semantics, which makes the detection logic hard to audit/maintain.",
-     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r3908732056"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T21:48:34Z",
-     "path": "src/test/app/EscrowToken_test.cpp",
-     "body": "The comment refers to `asfAllowTrustLineLocking`, but the flag being tested is `lsfAllowTrustLineLocking` (ledger entry flag), which can be confusing when reading the test.\n\nThis issue also appears on line 421 of the same file.",
-     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r3908732107"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-02T17:46:17Z",
-     "path": "src/libxrpl/ledger/helpers/AccountRootHelpers.cpp",
-     "body": "Done, 9d96c2c0857b. AccountID(0) and AccountID(1) are xrpAccount() and noAccount() now, the two helpers AccountID.h already declares for exactly these sentinels (AccountID.cpp defines xrpAccount() as AccountID(beast::kZero) and noAccount() as AccountID(1)). AccountID(2) has no named helper anywhere in the codebase, so it stays a local kAccountTwo static.",
-     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r4168296442"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-02T17:46:19Z",
-     "path": "src/test/app/EscrowToken_test.cpp",
-     "body": "Done, 9d96c2c0857b. Both comments now read lsfAllowTrustLineLocking. asfAllowTrustLineLocking (TxFlags.h) is the AccountSet input flag; lsfAllowTrustLineLocking (LedgerFormats.h) is the AccountRoot ledger flag EscrowCreate actually reads, which is the one the test exercises.",
-     "url": "https://github.com/XRPLF/rippled/pull/7121#discussion_r4168296697"
     }
    ]
   },
