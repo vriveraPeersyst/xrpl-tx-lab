@@ -1,6 +1,6 @@
 {
  "name": "Clawback",
- "fetchedAt": "2026-10-04T08:01:50.947Z",
+ "fetchedAt": "2026-10-05T08:01:44.113Z",
  "summary": {
   "status": "in development",
   "prs": 10,
@@ -15,10 +15,10 @@
    "tapanito/vault-clawback-invariants",
    "tialymov/FN-30-vault_clawback_holder_existence"
   ],
-  "lastActivity": "2026-10-03T21:01:10Z",
+  "lastActivity": "2026-10-04T17:19:34Z",
   "lastMerged": "2026-08-26T18:06:55Z",
   "release": "1.12.0",
-  "totalComments": 278
+  "totalComments": 282
  },
  "release": {
   "version": "1.12.0",
@@ -34,7 +34,7 @@
    "state": "open",
    "author": "gregtatcam",
    "createdAt": "2026-10-03T20:39:20Z",
-   "updatedAt": "2026-10-03T21:01:10Z",
+   "updatedAt": "2026-10-04T17:19:34Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -51,11 +51,11 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:gregtatcam/clawback-invariant-rounding",
-   "additions": 101,
+   "additions": 104,
    "deletions": 1,
    "changedFiles": 2,
-   "commits": 1,
-   "reviewComments": 1,
+   "commits": 2,
+   "reviewComments": 2,
    "reviews": [
     {
      "author": "xrplf-ai-reviewer[bot]",
@@ -68,6 +68,24 @@
      "state": "COMMENTED",
      "date": "2026-10-03T21:01:10Z",
      "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nThe new log assertion executes before captured logs are written, leaving part of the regression behavior untested.\n\n**Review effort:** Balanced  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Check captured logs after Env destruction](#discussion_r4174841117) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nUpdates the Clawback invariant to account for IOU precision rounding.\n\n**Changes:**\n- Compares balances using the same rounded subtraction as Clawback execution.\n- Adds sub-resolution IOU Clawback tests.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​invariants/​InvariantCheck.cpp` | Allows valid rounded IOU balance changes. |\n| `src/​test/​app/​Clawback_test.cpp` | Tests several IOU rounding cases. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-04T17:11:01Z",
+     "body": "The core fix in InvariantCheck.cpp correctly addresses the rounding mismatch by recomputing the expected after-balance using the same rounded subtraction (`before - min(before, claw)`) that the actual balance update performs, rather than comparing a separately-computed delta against `min(before, claw)`. This is the right fix and is well explained by the added comment. The accompanying test in Clawback_test.cpp exercises both the amendment-enabled and amendment-disabled paths across several sub-resolution rounding cases and asserts both the resulting balance and the absence of a logged invariant failure, which directly validates the fix. I did not find correctness, security, or resource-management issues in the added lines."
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-10-04T17:14:31Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-04T17:19:34Z",
+     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nThe invariant now mirrors the balance-update arithmetic and the regression cases are adequately covered.\n\n**Review effort:** Balanced  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Check captured logs after Env destruction](#discussion_r4174841117)\n</details>"
     }
    ],
    "reviewCommentsList": [
@@ -77,6 +95,13 @@
      "path": "src/test/app/Clawback_test.cpp",
      "body": "This assertion always sees an empty string: `CaptureLogs` copies its stream into `logs` only in its destructor (`src/test/jtx/CaptureLogs.h:59-62`), but `env` is still alive here. Consequently, the feature-disabled cases do not detect the invariant failure this test is intended to prevent. Enclose the `Env` setup and balance check in an inner scope, then inspect `logs` after that scope.",
      "url": "https://github.com/XRPLF/rippled/pull/8475#discussion_r4174841117"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-10-04T17:14:31Z",
+     "path": "src/test/app/Clawback_test.cpp",
+     "body": "You're right, logs is only filled when CaptureLogs is destroyed, so the non-MPTokensV2 cases weren't checking anything. Moved the Env into an inner scope and check logs after it. Verified by reverting the invariant fix: the non-V2 cases now fail on the log check.",
+     "url": "https://github.com/XRPLF/rippled/pull/8475#discussion_r4178573740"
     }
    ]
   },
