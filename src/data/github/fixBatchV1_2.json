@@ -1,6 +1,6 @@
 {
  "name": "fixBatchV1_2",
- "fetchedAt": "2026-10-04T08:09:32.510Z",
+ "fetchedAt": "2026-10-05T08:09:22.013Z",
  "summary": {
   "status": "in development",
   "prs": 8,
@@ -17,11 +17,276 @@
    "ripple/custody-old-batch-cmpt",
    "tialymov/FN-6-lending_batch_support"
   ],
-  "lastActivity": "2026-10-04T02:15:49Z",
-  "totalComments": 349
+  "lastActivity": "2026-10-04T11:12:40Z",
+  "totalComments": 350
  },
  "release": {},
  "prs": [
+  {
+   "number": 8091,
+   "title": "fix: Count partial batch progress in a TX-set reply",
+   "url": "https://github.com/XRPLF/rippled/pull/8091",
+   "state": "open",
+   "author": "bthomee",
+   "createdAt": "2026-08-23T22:10:04Z",
+   "updatedAt": "2026-10-04T11:12:40Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T19:36:28Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415709461"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T19:36:35Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415710850"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T19:48:27Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415850563"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T19:48:33Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415851731"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-25T19:48:33Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415851746"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-26T00:23:04Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `91.30435%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/ledger/detail/TransactionAcquire.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9sZWRnZXIvZGV0YWlsL1RyYW5zYWN0aW9uQWNxdWlyZS5jcHA=) | 90.9% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5418838721"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-03T20:51:11Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5973365451"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-03T20:52:21Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5973374279"
+    }
+   ],
+   "body": "Part 15/28 of a stack. Base: part 14 (`bthomee/shamap-invalid-11-revive-timer`).\n\n## High Level Overview of Change\n\n`TransactionAcquire::takeNodes()` now accumulates one combined verdict across a whole batch instead of\nstopping at the first bad node, so a packet that ends badly still gets credit (and clears the\ntimeout-postponing progress flag) for the good nodes ahead of it, matching what\n`InboundLedger::receiveNode()` already does.\n\n### Context of Change\n\n`TransactionAcquire::takeNodes()` accumulates one `SHAMapAddNode` across the batch and hands it back, so\na packet ending on one bad node still counts the nodes hooked in ahead of it. A root the set already\nholds counts as a duplicate rather than passing unremarked, which is what tells a batch of nodes we\nalready have from one that was never examined at all.\n\nThe body moves to `takeNodesLocked()` and `takeNodes()` becomes a thin wrapper that takes the lock and\nrecords what the batch achieved on the one exit, since several of the inner exits stop the batch\nearly and\nnothing in the compiler catches one that forgets to record progress. Progress turns on the batch being\nuseful rather than good, so a batch of nothing but duplicates records none: that flag is what keeps the\nnext timer tick from counting a timeout, and a reply carrying nothing new advanced nothing. It costs\nretry budget on the ordinary second responder to a fan-out and nothing else.\n\n`InboundTransactions::gotData()` asks `isGood()` rather than `isUseful()` for the useless-data charge,\nwhich keeps that duplicate free. Now that the verdict distinguishes a duplicate from an empty tally,\nthe useful test would charge for it while the batch that was never examined still needs charging.\n\n`testPartialBatchIsCounted` feeds two good nodes followed by one at a position it cannot occupy, and\nchecks the verdict names both halves and that the flag is set; then a batch of nothing but a root\nalready held, checking it is good, not useful, and records nothing; then that root alongside a node the\nset does need, checking the duplicate is reported as one while the other records the progress.\n\n### API Impact\n\nNone of the checkboxes below apply: this is an internal `xrpld` correctness fix with no `libxrpl`,\npublic-API, or peer-protocol surface.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "bthomee/shamap-invalid-11-revive-timer",
+   "head": "XRPLF:bthomee/shamap-invalid-12-batch-progress",
+   "additions": 147,
+   "deletions": 14,
+   "changedFiles": 4,
+   "commits": 1,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-23T22:14:11Z",
+     "body": "## Pull request overview\n\nThis PR improves `TransactionAcquire::takeNodes()` accounting so partial success in a TX-set node batch is preserved (good nodes counted) even when the batch ends with a bad node, and “progress” is recorded based on actual map advancement rather than “overall good.” This aligns TX-set acquisition behavior with how inbound ledger node batches are already handled.\n\n**Changes:**\n- Refactors `TransactionAcquire::takeNodes()` to delegate to `takeNodesLocked()` and record progress on a single exit path based on `SHAMapAddNode::isUseful()`.\n- Accumulates a combined `SHAMapAddNode` verdict across the whole batch, including explicit duplicate counting for an already-held root.\n- Updates `InboundTransactions::gotData()` to charge useless-data fees based on `!san.isGood()` (so duplicate-only replies are not charged) and adds a focused regression test.\n\n### Reviewed changes\n\nCopilot reviewed 4 out of 4 changed files in this pull request and generated no comments.\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/app/ledger/detail/TransactionAcquire.h | Documents batch-level verdict semantics and introduces `takeNodesLocked()` for single-exit progress recording. |\n| src/xrpld/app/ledger/detail/TransactionAcquire.cpp | Implements batch verdict accumulation, early-exit returns that preserve prior counts, and progress recording only when the batch added nodes. |\n| src/xrpld/app/ledger/detail/InboundTransactions.cpp | Adjusts useless-data charging to use `isGood()` so duplicate-only replies aren’t penalized while empty/unprocessed replies still are. |\n| src/test/app/TransactionAcquire_test.cpp | Adds `testPartialBatchIsCounted` to validate partial-batch tallying, duplicate handling, and progress flag behavior. |\n\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/bthomee/shamap-invalid-11-revive-timer?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/en/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-24T14:45:20Z",
+     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 4 changed files in this pull request and generated no new comments."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-08-29T00:20:20Z",
+     "body": "This is a well-scoped, carefully tested change: `TransactionAcquire::takeNodesLocked()` now accumulates a combined `SHAMapAddNode` verdict across a batch instead of bailing out with a fresh `invalid()` on the first bad node, so good nodes processed earlier in the packet still count and correctly set `progress_` (gated on `isUseful()` in the thin `takeNodes()` wrapper). The `InboundTransactions.cpp` switch from `isUseful()` to `isGood()` for the useless-data charge correctly avoids penalizing an honest duplicate-only reply from a second responder in a fan-out. I traced the root/non-root branches, the duplicate-increment paths, and the new `testPartialBatchIsCounted` test cases against the implementation and didn't find a correctness bug — the accumulation, early-return-on-bad-node, and duplicate-vs-useful distinction all line up with the stated intent and the test's expected tallies. One minor point worth a quick sanity check below (not a blocker)."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-27T14:43:36Z",
+     "body": "This change refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a batch (splitting the body into takeNodesLocked()), and switches InboundTransactions::gotData() to check isGood() instead of isUseful() so duplicate-only replies aren't charged as useless. The control flow (root-duplicate handling, early-return-on-bad-node while retaining prior accumulated tally, exception path retaining partial progress, and the new progress_ logic based on isUseful()||getDuplicate()>0) is internally consistent and matches the accompanying test (testPartialBatchIsCounted), which exercises the partial-good-then-bad batch, duplicate-root-only batch, and mixed duplicate+useful batch cases. I traced the added/changed lines in TransactionAcquire.cpp/.h, InboundTransactions.cpp, and the new test closely and did not find a clear correctness, security, or resource-management bug in the changed lines; the logic appears deliberate and well-tested. No issues are being raised with high confidence."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-27T15:36:46Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nDuplicate-only replies must not set progress, or timeout accounting can be bypassed.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917) · New\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-27T16:20:13Z",
+     "body": "This is a well-structured refactor of `TransactionAcquire::takeNodes()` to accumulate a combined `SHAMapAddNode` verdict across a batch instead of bailing on the first bad node, mirroring the pattern already used in `InboundLedger::receiveNode()`. The control flow in `takeNodesLocked()` (root-duplicate → continue, root-add-fail → return, non-root-add-fail → return, success → trigger+return) is internally consistent, and the new `testPartialBatchIsCounted` test exercises the partial-batch, duplicate-only, and mixed-duplicate cases with tallies that match the code's logic. The `progress_`/`isUseful() || getDuplicate() > 0` gating in the thin `takeNodes()` wrapper correctly ties the timeout-postponing flag to any useful-or-duplicate outcome rather than requiring full success. The one point worth double-checking (not flagged as a defect, since `SHAMapAddNode`'s `isGood()`/`getDuplicate()` aren't in this diff and are presumably established in an earlier part of this 28-part stack) is that `InboundTransactions::gotData()`'s new `!san.isGood()` check must actually differ from the case already excluded by the preceding `!san.isValid()`/`isInvalid()` branch — i.e. `isGood()` must be false for a truly empty/never-examined tally and true for a duplicate-only tally — otherwise the useless-data charge could become unreachable. No changed lines otherwise show a clear bug, resource leak, or security issue."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-27T16:25:08Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAddress the unresolved duplicate-progress and missing follow-up trigger paths.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917)\n</details>"
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-09-27T16:50:52Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-27T19:25:17Z",
+     "body": "The core batch-accumulation logic in TransactionAcquire.cpp looks correct and well-tested (root/known-node paths correctly accumulate the combined verdict, and the wrapper correctly gates progress_ on usefulness-or-duplicate). However, the companion change in InboundTransactions.cpp that swaps the useless-data charge from isUseful() to isGood() appears to overshoot the stated intent: it stops charging both genuine duplicates (the intended fix) and the 'never examined' empty-tally case (complete_/failed_/early-return paths), which the MR description says should still be charged."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-27T19:27:27Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAn unresolved discrepancy between duplicate progress tracking, tests, and documented timeout semantics requires human review.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917)\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-27T19:55:19Z",
+     "body": "This change refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a batch instead of stopping at the first bad node, mirroring InboundLedger::receiveNode(). The accumulation logic (san += result, incDuplicate/incInvalid, early-return-with-accumulated-tally) is applied consistently for both root and non-root node paths, and the progress_ flag is now set based on isUseful() || duplicate>0 in the new thin wrapper, matching the new unit test's expectations (partial-good-then-bad batch, pure-duplicate-root batch, and mixed duplicate+useful batch). The InboundTransactions.cpp switch from isUseful() to isGood() for the useless-data charge is explained by the MR description as intentional (keeping duplicate-only replies free of a useless-data charge while still charging a batch that was never examined), and this mirrors an established pattern used elsewhere in the codebase. I traced the control flow for missed returns, double-counting, lock/thread-safety around the new takeNodesLocked() split, and move-semantics on the node vector, and did not find a concrete correctness bug introduced by this diff. No high-confidence issues to flag."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-27T23:10:46Z",
+     "body": "This diff refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a whole batch instead of bailing on the first bad node, moving the body into a new takeNodesLocked() helper and updating InboundTransactions::gotData() to charge based on isGood() rather than isUseful() so duplicate-only replies aren't penalized. I traced the accumulation logic (root duplicate handling, non-root addKnownNode handling, the exception path, and the progress_ flag update in the wrapper) against the new testPartialBatchIsCounted test cases and the design rationale in the description (mirroring InboundLedger::receiveNode()), and the implementation is internally consistent: partial-good batches still report isUseful()==true, pure-duplicate batches report isGood()==true/isUseful()==false while still setting progress_ via the explicit getDuplicate()>0 check, and the early-exit paths (complete_/failed_/empty data) are untouched and still produce a non-good tally so they remain chargeable. No correctness, security, or resource issues were found in the changed lines."
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-09-28T13:39:25Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-01T13:33:41Z",
+     "body": "This change refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a whole batch (via new takeNodesLocked()), so a batch that ends on a bad node still gets credit for earlier good/duplicate nodes, and updates InboundTransactions::gotData() to charge based on isGood() instead of isUseful() to avoid penalizing honest duplicate-only replies. I traced the accumulation logic (root duplicate -> incDuplicate+continue, root/non-root add -> san += result then early-return on failure, trigger()+return san on full success, exception -> incInvalid+return san) and the progress_ update in the wrapper (isUseful() || getDuplicate() > 0). The logic is internally consistent with the stated intent and matches InboundLedger::receiveNode()'s pattern; the accompanying test (testPartialBatchIsCounted) exercises the partial-batch, pure-duplicate, and mixed-duplicate-plus-useful cases with tallies that match the implementation. I did not find a clear, high-confidence correctness bug introduced by this diff — no missing continue/break, no double-counting, no lock/exception-safety issue, and no resource leak in the new test code. The InboundTransactions.cpp isGood()-vs-isUseful() change is a deliberate, well-reasoned fix (previously a pure-duplicate reply was marked useful by the old code, now it's correctly distinguished, which required switching the useless-data charge condition to avoid penalizing legitimate duplicate replies)."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-01T13:50:38Z",
+     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nNo blocking issues were identified; the remaining comment is a minor test-comment nit.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917)\n</details>"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-01T16:14:31Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nThe transaction-processing changes warrant final human review despite the focused scope and added tests.\n\n**Review effort:** Lite  \n**Findings:** None"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-02T15:56:06Z",
+     "body": "This is a well-structured refactor that accumulates a combined SHAMapAddNode verdict across a batch in TransactionAcquire::takeNodes() (via a new takeNodesLocked() helper) instead of bailing out on the first bad node, mirroring InboundLedger::receiveNode(). The control flow (guard-clause style with explicit `continue`s to avoid falling through to the non-root handling after a root is processed) is correct, the progress_ flag is set under the same lock as before, and the InboundTransactions.cpp charge logic change (isUseful() -> isGood()) is consistent with the new duplicate-vs-empty-tally distinction and is backed by the new testPartialBatchIsCounted test cases (duplicate-only batch is isGood()/!isUseful() and isn't charged, mirroring the stated intent). I traced the loop accumulation, the exception path (incInvalid() preserving prior useful/duplicate counts), and the lock-passing refactor and found no correctness defects in the changed lines. I don't have enough confidence to flag anything else without seeing the SHAMapAddNode definition itself (changed in an earlier part of this 28-part stack, not in this diff), but the test assertions are consistent with the semantics the production code relies on."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-02T16:02:41Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nEarly exits after useful progress can bypass completion handling and delay delivery.\n\n**Review effort:** Lite  \n**Findings:** None"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-02T19:27:47Z",
+     "body": "This is a well-executed and thoroughly-tested fix. TransactionAcquire::takeNodes() now accumulates a combined SHAMapAddNode verdict across the whole batch (via the new takeNodesLocked()), so good nodes ahead of a bad one still count, and progress_ is set from a single exit point based on usefulness or duplicate count rather than being set unconditionally after any successful loop completion. The InboundTransactions.cpp change from isUseful() to isGood() correctly stops honest duplicate-only replies from being charged as useless data, matching the stated rationale. I traced the control flow (root-duplicate/continue, root-add/continue, known-node-add, exception path) and the accumulation and early-return semantics are consistent with the new three-way (useful/duplicate/invalid) tally, and the added unit test (testPartialBatchIsCounted) directly exercises the partial-batch, duplicate-root, and mixed-batch scenarios with assertions that line up with this logic. I did not find any instance of this diff touching lines outside the stated scope, and no correctness, security, resource-leak, or thread-safety issues in the changed lines."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-02T19:39:33Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAdd follow-up triggering after useful invalid-prefix batches and align duplicate-only progress behavior with the intended policy.\n\n**Review effort:** Lite  \n**Findings:** None"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-03T16:12:15Z",
+     "body": "The refactor correctly threads a single SHAMapAddNode tally through the batch loop (now split into takeNodesLocked), replacing the old all-or-nothing invalid()/useful() returns. Each branch of the root/non-root handling in TransactionAcquire.cpp properly terminates with continue or return (no fallthrough gaps), the progress_ flag is set in the still-locked wrapper based on isUseful() || duplicate>0 (matching the new test's expectations for both the partial-bad-batch and duplicate-root-batch cases), and the InboundTransactions.cpp switch from isUseful() to isGood() for the useless-data charge is consistent with the stated intent of not penalizing honest duplicate responses. The accompanying test (testPartialBatchIsCounted) exercises the batch-ends-on-bad-node, duplicate-root, and mixed-duplicate-plus-useful cases and the assertions line up with the implementation. I did not find correctness, security, or resource-management issues in the changed lines."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-03T17:00:45Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nA reviewer flagged the change as too complex or risky for automated approval, and a test-explanation nit remains.\n\n**Review effort:** Lite  \n**Findings:** None"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-03T20:54:16Z",
+     "body": "This is a well-scoped, well-tested refactor: TransactionAcquire::takeNodes() now accumulates a combined SHAMapAddNode verdict across the whole batch (via a new takeNodesLocked() helper) instead of discarding progress on the first bad node, and InboundTransactions::gotData() switches to isGood() so duplicate-only replies aren't charged as useless. I traced the accumulation logic (root duplicate -> incDuplicate()+continue, root/non-root failures -> san+=result then return san, success -> trigger(peer)+return san, exception -> san.incInvalid()) against the new testPartialBatchIsCounted test cases and the tallies line up correctly in every branch (2 useful/1 invalid for the partial batch, 1 duplicate for the repeated root, 1 useful/1 duplicate for the mixed batch). The progress_ update in the new wrapper (triggered by isUseful() || getDuplicate() > 0) is consistent with the in-code comment and with the test's expectation that a pure-duplicate batch still sets madeProgress(). I did not find a correctness, security, or resource-safety issue in the changed lines that I'm confident about; the only oddity is that the MR description prose ('a batch of nothing but duplicates records none') seems to contradict the actual code/tests (duplicates do count toward progress), but that's a description wording issue, not a code bug, so I'm not flagging it as an issue."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-03T21:10:10Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nValid prefixes are discarded when later packet data is malformed, and duplicate-progress behavior must be reconciled with the stated intent.\n\n**Review effort:** Lite  \n**Findings:** None"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-03T21:39:50Z",
+     "body": "Core change (accumulating SHAMapAddNode across the batch in TransactionAcquire::takeNodes/takeNodesLocked, and setting progress_ based on isUseful()||getDuplicate()>0) is correct and matches the new test testPartialBatchIsCounted. One behavioral edge case worth confirming: switching InboundTransactions.cpp's charge check from isUseful() to isGood() changes what happens when the acquire is already complete_/failed_."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-04T01:37:05Z",
+     "body": "This is a well-scoped refactor: TransactionAcquire::takeNodes() now accumulates a combined SHAMapAddNode verdict across the batch (via the new takeNodesLocked()) instead of short-circuiting on the first bad node, and InboundTransactions::gotData() switches its useless-data charge from isUseful() to isGood() so duplicate-only replies aren't penalized. I traced the accumulation loop (root duplicate -> incDuplicate/continue, root/known node failures -> san += result then early return, success path -> trigger(peer) then return san) and the wrapper's progress_ = san.isUseful() || san.getDuplicate() > 0 logic against the new testPartialBatchIsCounted test cases (2-good+1-bad batch, duplicate-root-only batch, duplicate-root+needed-node batch) and they are internally consistent and match the stated intent. The lock-passing split between takeNodes()/takeNodesLocked() is a reasonable 'single exit records progress' pattern and doesn't introduce double-counting or skipped progress recording in the complete_/failed_ early-return paths (those still return default-constructed SHAMapAddNode(), so progress_ is correctly left untouched). I could not find a concrete, high-confidence bug in the added/changed lines; the one area I'd want more context on (the untouched `if` condition immediately preceding the `else if (!san.isGood())` block in InboundTransactions.cpp, which I can't see in this diff) is not something I can confidently flag as wrong without seeing it."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-04T01:40:00Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nThe transaction-acquisition change alters batch verdict and progress accounting, warranting final human review.\n\n**Review effort:** Lite  \n**Findings:** None"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-04T10:38:20Z",
+     "body": "This is a well-structured refactor that mirrors InboundLedger::receiveNode()'s pattern of accumulating a batch verdict instead of short-circuiting on the first bad node. I traced the accumulation logic in takeNodesLocked() (root duplicate -> incDuplicate+continue, root add, non-root add, early-return-on-bad-node, exception path), the progress_ update condition in takeNodes(), and the isGood()-vs-isUseful() switch in InboundTransactions::gotData(), and didn't find a case where the tally or progress flag would be computed incorrectly against the stated intent. The new unit test (testPartialBatchIsCounted) exercises the partial-batch, duplicate-root, and mixed-duplicate-plus-useful scenarios and its expectations line up with the implementation. No move-after-use, double-counting, or lock-scope issues were found in the diff."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-27T15:36:46Z",
+     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
+     "body": "A duplicate does not advance the acquisition, so including `getDuplicate() > 0` leaves `progress_` set for a packet containing only nodes already held. A peer can replay that root on every timer interval and prevent `TimeoutCounter` from counting timeouts, potentially keeping the acquisition alive indefinitely; progress should depend only on `san.isUseful()`, with the duplicate-only test adjusted to expect no progress.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4115930917"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-09-27T16:50:52Z",
+     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
+     "body": "Confirmed, and this one needs a human decision, so I am leaving it open. `invokeOnTimer` increments `timeouts_` **only** when `!progress_`; otherwise it clears `progress_` and counts nothing. Because a duplicate-only batch from any peer already in `requestedPeers_` sets `progress_`, that set is never cleared, and duplicate replies are free, an asked peer can hold `timeouts_` still at no cost, so `onTimer`'s failure path is never reached.\n\nTwo qualifications in fairness. It is bounded rather than indefinite: `newRound()` erases the entry, so the exposure is one keep-window, not forever. And the widened predicate was a deliberate choice, made to stop a peer that loses a fan-out race from looking like a stall. Your finding argues against that choice rather than against an oversight, which is why it needs the maintainer rather than me.",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4116142963"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-09-28T13:39:25Z",
+     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
+     "body": "The mechanism you describe is right: `TimeoutCounter::invokeOnTimer` advances `timeouts_` only when `!progress_`, `requestedPeers_` is never erased, and a duplicate-only batch costs its sender nothing.\n\nIt is bounded rather than reverted, on `bthomee/shamap-invalid-17-duplicate-progress` (#8149), which owns the predicate. A duplicate-only batch from a peer we asked now spends from a budget of `kMaxDuplicateCredits` consecutive intervals with no useful node in between. Any batch that advances the set sets the budget back to full, and `stillNeed()` resets it when a round revives the acquisition. A credit is spent only when nothing else has answered in that interval, so a wide fan-out costs one credit rather than one per loser.\n\n`kMaxDuplicateCredits` is `kNormTimeouts`, which is generous for the case the credit exists for: a peer that loses a fan-out race is settled in one or two intervals.\n\nReverting to `san.isUseful()` alone would be stricter than the base rather than equal to it. On `develop` the success path of `takeNodes` returns `SHAMapAddNode::useful()` unconditionally, so a duplicate-only batch from any sender, asked or not, sets `progress_` there.\n\nA new case, `testDuplicateCreditRunsOut`, feeds one more duplicate-only batch than the budget holds and asserts that the last one records no progress. Removing the bound turns that case red, with one failure at the bound assertion. None of the seven existing cases that touch this predicate changed its expectation, and the suite ran green at the same count as before the change.\n\n_The change is on the local branch and appears here on the next push of this stack._",
+     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4122805279"
+    }
+   ]
+  },
   {
    "number": 8164,
    "title": "feat: Record Batch inner results for validated ledgers and return them from tx",
@@ -268,265 +533,6 @@
      "path": "src/xrpld/app/rdb/backend/detail/Node.cpp",
      "body": "This delete runs before the loop below writes the ledger's own rows, so saving the same sequence again from a Ledger object this node did not build (ledger_cleaner with fix_txns, or the missing-metadata recovery in getAccountTxs and the account_tx pagers, which all hand pendSaveValidated a fresh object loaded from the node store once the built one has left the LedgerHistory cache) deletes the rows the first save recorded and writes nothing back. Transactions and AccountTransactions are intact after that path because they are rebuilt from the ledger right after, but nothing can rebuild these, and tx then stops returning inner_results for every Batch in that ledger. I'd skip the delete when batchInnerResults() is empty, or scope it to the ParentBatchIDs this save is about to write. A test that saves the closed ledger again through loadByIndex shows the rows go from two to zero.",
      "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4175803621"
-    }
-   ]
-  },
-  {
-   "number": 8091,
-   "title": "fix: Count partial batch progress in a TX-set reply",
-   "url": "https://github.com/XRPLF/rippled/pull/8091",
-   "state": "open",
-   "author": "bthomee",
-   "createdAt": "2026-08-23T22:10:04Z",
-   "updatedAt": "2026-10-04T02:15:30Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-25T19:36:28Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415709461"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-25T19:36:35Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415710850"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-25T19:48:27Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415850563"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-25T19:48:33Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415851731"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-25T19:48:33Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5415851746"
-    },
-    {
-     "author": "codecov[bot]",
-     "date": "2026-08-26T00:23:04Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `91.30435%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/ledger/detail/TransactionAcquire.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9sZWRnZXIvZGV0YWlsL1RyYW5zYWN0aW9uQWNxdWlyZS5jcHA=) | 90.9% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8091?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5418838721"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-03T20:51:11Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5973365451"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-03T20:52:21Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#issuecomment-5973374279"
-    }
-   ],
-   "body": "Part 15/28 of a stack. Base: part 14 (`bthomee/shamap-invalid-11-revive-timer`).\n\n## High Level Overview of Change\n\n`TransactionAcquire::takeNodes()` now accumulates one combined verdict across a whole batch instead of\nstopping at the first bad node, so a packet that ends badly still gets credit (and clears the\ntimeout-postponing progress flag) for the good nodes ahead of it, matching what\n`InboundLedger::receiveNode()` already does.\n\n### Context of Change\n\n`TransactionAcquire::takeNodes()` accumulates one `SHAMapAddNode` across the batch and hands it back, so\na packet ending on one bad node still counts the nodes hooked in ahead of it. A root the set already\nholds counts as a duplicate rather than passing unremarked, which is what tells a batch of nodes we\nalready have from one that was never examined at all.\n\nThe body moves to `takeNodesLocked()` and `takeNodes()` becomes a thin wrapper that takes the lock and\nrecords what the batch achieved on the one exit, since several of the inner exits stop the batch\nearly and\nnothing in the compiler catches one that forgets to record progress. Progress turns on the batch being\nuseful rather than good, so a batch of nothing but duplicates records none: that flag is what keeps the\nnext timer tick from counting a timeout, and a reply carrying nothing new advanced nothing. It costs\nretry budget on the ordinary second responder to a fan-out and nothing else.\n\n`InboundTransactions::gotData()` asks `isGood()` rather than `isUseful()` for the useless-data charge,\nwhich keeps that duplicate free. Now that the verdict distinguishes a duplicate from an empty tally,\nthe useful test would charge for it while the batch that was never examined still needs charging.\n\n`testPartialBatchIsCounted` feeds two good nodes followed by one at a position it cannot occupy, and\nchecks the verdict names both halves and that the flag is set; then a batch of nothing but a root\nalready held, checking it is good, not useful, and records nothing; then that root alongside a node the\nset does need, checking the duplicate is reported as one while the other records the progress.\n\n### API Impact\n\nNone of the checkboxes below apply: this is an internal `xrpld` correctness fix with no `libxrpl`,\npublic-API, or peer-protocol surface.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "bthomee/shamap-invalid-11-revive-timer",
-   "head": "XRPLF:bthomee/shamap-invalid-12-batch-progress",
-   "additions": 147,
-   "deletions": 14,
-   "changedFiles": 4,
-   "commits": 1,
-   "reviewComments": 3,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-08-23T22:14:11Z",
-     "body": "## Pull request overview\n\nThis PR improves `TransactionAcquire::takeNodes()` accounting so partial success in a TX-set node batch is preserved (good nodes counted) even when the batch ends with a bad node, and “progress” is recorded based on actual map advancement rather than “overall good.” This aligns TX-set acquisition behavior with how inbound ledger node batches are already handled.\n\n**Changes:**\n- Refactors `TransactionAcquire::takeNodes()` to delegate to `takeNodesLocked()` and record progress on a single exit path based on `SHAMapAddNode::isUseful()`.\n- Accumulates a combined `SHAMapAddNode` verdict across the whole batch, including explicit duplicate counting for an already-held root.\n- Updates `InboundTransactions::gotData()` to charge useless-data fees based on `!san.isGood()` (so duplicate-only replies are not charged) and adds a focused regression test.\n\n### Reviewed changes\n\nCopilot reviewed 4 out of 4 changed files in this pull request and generated no comments.\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/app/ledger/detail/TransactionAcquire.h | Documents batch-level verdict semantics and introduces `takeNodesLocked()` for single-exit progress recording. |\n| src/xrpld/app/ledger/detail/TransactionAcquire.cpp | Implements batch verdict accumulation, early-exit returns that preserve prior counts, and progress recording only when the batch added nodes. |\n| src/xrpld/app/ledger/detail/InboundTransactions.cpp | Adjusts useless-data charging to use `isGood()` so duplicate-only replies aren’t penalized while empty/unprocessed replies still are. |\n| src/test/app/TransactionAcquire_test.cpp | Adds `testPartialBatchIsCounted` to validate partial-batch tallying, duplicate handling, and progress flag behavior. |\n\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/bthomee/shamap-invalid-11-revive-timer?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/en/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-08-24T14:45:20Z",
-     "body": "## Pull request overview\n\nCopilot reviewed 4 out of 4 changed files in this pull request and generated no new comments."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-29T00:20:20Z",
-     "body": "This is a well-scoped, carefully tested change: `TransactionAcquire::takeNodesLocked()` now accumulates a combined `SHAMapAddNode` verdict across a batch instead of bailing out with a fresh `invalid()` on the first bad node, so good nodes processed earlier in the packet still count and correctly set `progress_` (gated on `isUseful()` in the thin `takeNodes()` wrapper). The `InboundTransactions.cpp` switch from `isUseful()` to `isGood()` for the useless-data charge correctly avoids penalizing an honest duplicate-only reply from a second responder in a fan-out. I traced the root/non-root branches, the duplicate-increment paths, and the new `testPartialBatchIsCounted` test cases against the implementation and didn't find a correctness bug — the accumulation, early-return-on-bad-node, and duplicate-vs-useful distinction all line up with the stated intent and the test's expected tallies. One minor point worth a quick sanity check below (not a blocker)."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-27T14:43:36Z",
-     "body": "This change refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a batch (splitting the body into takeNodesLocked()), and switches InboundTransactions::gotData() to check isGood() instead of isUseful() so duplicate-only replies aren't charged as useless. The control flow (root-duplicate handling, early-return-on-bad-node while retaining prior accumulated tally, exception path retaining partial progress, and the new progress_ logic based on isUseful()||getDuplicate()>0) is internally consistent and matches the accompanying test (testPartialBatchIsCounted), which exercises the partial-good-then-bad batch, duplicate-root-only batch, and mixed duplicate+useful batch cases. I traced the added/changed lines in TransactionAcquire.cpp/.h, InboundTransactions.cpp, and the new test closely and did not find a clear correctness, security, or resource-management bug in the changed lines; the logic appears deliberate and well-tested. No issues are being raised with high confidence."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-27T15:36:46Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nDuplicate-only replies must not set progress, or timeout accounting can be bypassed.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917) · New\n</details>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-27T16:20:13Z",
-     "body": "This is a well-structured refactor of `TransactionAcquire::takeNodes()` to accumulate a combined `SHAMapAddNode` verdict across a batch instead of bailing on the first bad node, mirroring the pattern already used in `InboundLedger::receiveNode()`. The control flow in `takeNodesLocked()` (root-duplicate → continue, root-add-fail → return, non-root-add-fail → return, success → trigger+return) is internally consistent, and the new `testPartialBatchIsCounted` test exercises the partial-batch, duplicate-only, and mixed-duplicate cases with tallies that match the code's logic. The `progress_`/`isUseful() || getDuplicate() > 0` gating in the thin `takeNodes()` wrapper correctly ties the timeout-postponing flag to any useful-or-duplicate outcome rather than requiring full success. The one point worth double-checking (not flagged as a defect, since `SHAMapAddNode`'s `isGood()`/`getDuplicate()` aren't in this diff and are presumably established in an earlier part of this 28-part stack) is that `InboundTransactions::gotData()`'s new `!san.isGood()` check must actually differ from the case already excluded by the preceding `!san.isValid()`/`isInvalid()` branch — i.e. `isGood()` must be false for a truly empty/never-examined tally and true for a duplicate-only tally — otherwise the useless-data charge could become unreachable. No changed lines otherwise show a clear bug, resource leak, or security issue."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-27T16:25:08Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAddress the unresolved duplicate-progress and missing follow-up trigger paths.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917)\n</details>"
-    },
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2026-09-27T16:50:52Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-27T19:25:17Z",
-     "body": "The core batch-accumulation logic in TransactionAcquire.cpp looks correct and well-tested (root/known-node paths correctly accumulate the combined verdict, and the wrapper correctly gates progress_ on usefulness-or-duplicate). However, the companion change in InboundTransactions.cpp that swaps the useless-data charge from isUseful() to isGood() appears to overshoot the stated intent: it stops charging both genuine duplicates (the intended fix) and the 'never examined' empty-tally case (complete_/failed_/early-return paths), which the MR description says should still be charged."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-27T19:27:27Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAn unresolved discrepancy between duplicate progress tracking, tests, and documented timeout semantics requires human review.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917)\n</details>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-27T19:55:19Z",
-     "body": "This change refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a batch instead of stopping at the first bad node, mirroring InboundLedger::receiveNode(). The accumulation logic (san += result, incDuplicate/incInvalid, early-return-with-accumulated-tally) is applied consistently for both root and non-root node paths, and the progress_ flag is now set based on isUseful() || duplicate>0 in the new thin wrapper, matching the new unit test's expectations (partial-good-then-bad batch, pure-duplicate-root batch, and mixed duplicate+useful batch). The InboundTransactions.cpp switch from isUseful() to isGood() for the useless-data charge is explained by the MR description as intentional (keeping duplicate-only replies free of a useless-data charge while still charging a batch that was never examined), and this mirrors an established pattern used elsewhere in the codebase. I traced the control flow for missed returns, double-counting, lock/thread-safety around the new takeNodesLocked() split, and move-semantics on the node vector, and did not find a concrete correctness bug introduced by this diff. No high-confidence issues to flag."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-27T23:10:46Z",
-     "body": "This diff refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a whole batch instead of bailing on the first bad node, moving the body into a new takeNodesLocked() helper and updating InboundTransactions::gotData() to charge based on isGood() rather than isUseful() so duplicate-only replies aren't penalized. I traced the accumulation logic (root duplicate handling, non-root addKnownNode handling, the exception path, and the progress_ flag update in the wrapper) against the new testPartialBatchIsCounted test cases and the design rationale in the description (mirroring InboundLedger::receiveNode()), and the implementation is internally consistent: partial-good batches still report isUseful()==true, pure-duplicate batches report isGood()==true/isUseful()==false while still setting progress_ via the explicit getDuplicate()>0 check, and the early-exit paths (complete_/failed_/empty data) are untouched and still produce a non-good tally so they remain chargeable. No correctness, security, or resource issues were found in the changed lines."
-    },
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2026-09-28T13:39:25Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-01T13:33:41Z",
-     "body": "This change refactors TransactionAcquire::takeNodes() to accumulate a combined SHAMapAddNode verdict across a whole batch (via new takeNodesLocked()), so a batch that ends on a bad node still gets credit for earlier good/duplicate nodes, and updates InboundTransactions::gotData() to charge based on isGood() instead of isUseful() to avoid penalizing honest duplicate-only replies. I traced the accumulation logic (root duplicate -> incDuplicate+continue, root/non-root add -> san += result then early-return on failure, trigger()+return san on full success, exception -> incInvalid+return san) and the progress_ update in the wrapper (isUseful() || getDuplicate() > 0). The logic is internally consistent with the stated intent and matches InboundLedger::receiveNode()'s pattern; the accompanying test (testPartialBatchIsCounted) exercises the partial-batch, pure-duplicate, and mixed-duplicate-plus-useful cases with tallies that match the implementation. I did not find a clear, high-confidence correctness bug introduced by this diff — no missing continue/break, no double-counting, no lock/exception-safety issue, and no resource leak in the new test code. The InboundTransactions.cpp isGood()-vs-isUseful() change is a deliberate, well-reasoned fix (previously a pure-duplicate reply was marked useful by the old code, now it's correctly distinguished, which required switching the useless-data charge condition to avoid penalizing legitimate duplicate replies)."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-01T13:50:38Z",
-     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nNo blocking issues were identified; the remaining comment is a minor test-comment nit.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Duplicate-only packets incorrectly reset acquisition progress](#discussion_r4115930917)\n</details>"
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-01T16:14:31Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nThe transaction-processing changes warrant final human review despite the focused scope and added tests.\n\n**Review effort:** Lite  \n**Findings:** None"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-02T15:56:06Z",
-     "body": "This is a well-structured refactor that accumulates a combined SHAMapAddNode verdict across a batch in TransactionAcquire::takeNodes() (via a new takeNodesLocked() helper) instead of bailing out on the first bad node, mirroring InboundLedger::receiveNode(). The control flow (guard-clause style with explicit `continue`s to avoid falling through to the non-root handling after a root is processed) is correct, the progress_ flag is set under the same lock as before, and the InboundTransactions.cpp charge logic change (isUseful() -> isGood()) is consistent with the new duplicate-vs-empty-tally distinction and is backed by the new testPartialBatchIsCounted test cases (duplicate-only batch is isGood()/!isUseful() and isn't charged, mirroring the stated intent). I traced the loop accumulation, the exception path (incInvalid() preserving prior useful/duplicate counts), and the lock-passing refactor and found no correctness defects in the changed lines. I don't have enough confidence to flag anything else without seeing the SHAMapAddNode definition itself (changed in an earlier part of this 28-part stack, not in this diff), but the test assertions are consistent with the semantics the production code relies on."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-02T16:02:41Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nEarly exits after useful progress can bypass completion handling and delay delivery.\n\n**Review effort:** Lite  \n**Findings:** None"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-02T19:27:47Z",
-     "body": "This is a well-executed and thoroughly-tested fix. TransactionAcquire::takeNodes() now accumulates a combined SHAMapAddNode verdict across the whole batch (via the new takeNodesLocked()), so good nodes ahead of a bad one still count, and progress_ is set from a single exit point based on usefulness or duplicate count rather than being set unconditionally after any successful loop completion. The InboundTransactions.cpp change from isUseful() to isGood() correctly stops honest duplicate-only replies from being charged as useless data, matching the stated rationale. I traced the control flow (root-duplicate/continue, root-add/continue, known-node-add, exception path) and the accumulation and early-return semantics are consistent with the new three-way (useful/duplicate/invalid) tally, and the added unit test (testPartialBatchIsCounted) directly exercises the partial-batch, duplicate-root, and mixed-batch scenarios with assertions that line up with this logic. I did not find any instance of this diff touching lines outside the stated scope, and no correctness, security, resource-leak, or thread-safety issues in the changed lines."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-02T19:39:33Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAdd follow-up triggering after useful invalid-prefix batches and align duplicate-only progress behavior with the intended policy.\n\n**Review effort:** Lite  \n**Findings:** None"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-03T16:12:15Z",
-     "body": "The refactor correctly threads a single SHAMapAddNode tally through the batch loop (now split into takeNodesLocked), replacing the old all-or-nothing invalid()/useful() returns. Each branch of the root/non-root handling in TransactionAcquire.cpp properly terminates with continue or return (no fallthrough gaps), the progress_ flag is set in the still-locked wrapper based on isUseful() || duplicate>0 (matching the new test's expectations for both the partial-bad-batch and duplicate-root-batch cases), and the InboundTransactions.cpp switch from isUseful() to isGood() for the useless-data charge is consistent with the stated intent of not penalizing honest duplicate responses. The accompanying test (testPartialBatchIsCounted) exercises the batch-ends-on-bad-node, duplicate-root, and mixed-duplicate-plus-useful cases and the assertions line up with the implementation. I did not find correctness, security, or resource-management issues in the changed lines."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-03T17:00:45Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nA reviewer flagged the change as too complex or risky for automated approval, and a test-explanation nit remains.\n\n**Review effort:** Lite  \n**Findings:** None"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-03T20:54:16Z",
-     "body": "This is a well-scoped, well-tested refactor: TransactionAcquire::takeNodes() now accumulates a combined SHAMapAddNode verdict across the whole batch (via a new takeNodesLocked() helper) instead of discarding progress on the first bad node, and InboundTransactions::gotData() switches to isGood() so duplicate-only replies aren't charged as useless. I traced the accumulation logic (root duplicate -> incDuplicate()+continue, root/non-root failures -> san+=result then return san, success -> trigger(peer)+return san, exception -> san.incInvalid()) against the new testPartialBatchIsCounted test cases and the tallies line up correctly in every branch (2 useful/1 invalid for the partial batch, 1 duplicate for the repeated root, 1 useful/1 duplicate for the mixed batch). The progress_ update in the new wrapper (triggered by isUseful() || getDuplicate() > 0) is consistent with the in-code comment and with the test's expectation that a pure-duplicate batch still sets madeProgress(). I did not find a correctness, security, or resource-safety issue in the changed lines that I'm confident about; the only oddity is that the MR description prose ('a batch of nothing but duplicates records none') seems to contradict the actual code/tests (duplicates do count toward progress), but that's a description wording issue, not a code bug, so I'm not flagging it as an issue."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-03T21:10:10Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nValid prefixes are discarded when later packet data is malformed, and duplicate-progress behavior must be reconciled with the stated intent.\n\n**Review effort:** Lite  \n**Findings:** None"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-03T21:39:50Z",
-     "body": "Core change (accumulating SHAMapAddNode across the batch in TransactionAcquire::takeNodes/takeNodesLocked, and setting progress_ based on isUseful()||getDuplicate()>0) is correct and matches the new test testPartialBatchIsCounted. One behavioral edge case worth confirming: switching InboundTransactions.cpp's charge check from isUseful() to isGood() changes what happens when the acquire is already complete_/failed_."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-04T01:37:05Z",
-     "body": "This is a well-scoped refactor: TransactionAcquire::takeNodes() now accumulates a combined SHAMapAddNode verdict across the batch (via the new takeNodesLocked()) instead of short-circuiting on the first bad node, and InboundTransactions::gotData() switches its useless-data charge from isUseful() to isGood() so duplicate-only replies aren't penalized. I traced the accumulation loop (root duplicate -> incDuplicate/continue, root/known node failures -> san += result then early return, success path -> trigger(peer) then return san) and the wrapper's progress_ = san.isUseful() || san.getDuplicate() > 0 logic against the new testPartialBatchIsCounted test cases (2-good+1-bad batch, duplicate-root-only batch, duplicate-root+needed-node batch) and they are internally consistent and match the stated intent. The lock-passing split between takeNodes()/takeNodesLocked() is a reasonable 'single exit records progress' pattern and doesn't introduce double-counting or skipped progress recording in the complete_/failed_ early-return paths (those still return default-constructed SHAMapAddNode(), so progress_ is correctly left untouched). I could not find a concrete, high-confidence bug in the added/changed lines; the one area I'd want more context on (the untouched `if` condition immediately preceding the `else if (!san.isGood())` block in InboundTransactions.cpp, which I can't see in this diff) is not something I can confidently flag as wrong without seeing it."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-04T01:40:00Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nThe transaction-acquisition change alters batch verdict and progress accounting, warranting final human review.\n\n**Review effort:** Lite  \n**Findings:** None"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-09-27T15:36:46Z",
-     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
-     "body": "A duplicate does not advance the acquisition, so including `getDuplicate() > 0` leaves `progress_` set for a packet containing only nodes already held. A peer can replay that root on every timer interval and prevent `TimeoutCounter` from counting timeouts, potentially keeping the acquisition alive indefinitely; progress should depend only on `san.isUseful()`, with the duplicate-only test adjusted to expect no progress.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4115930917"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-09-27T16:50:52Z",
-     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
-     "body": "Confirmed, and this one needs a human decision, so I am leaving it open. `invokeOnTimer` increments `timeouts_` **only** when `!progress_`; otherwise it clears `progress_` and counts nothing. Because a duplicate-only batch from any peer already in `requestedPeers_` sets `progress_`, that set is never cleared, and duplicate replies are free, an asked peer can hold `timeouts_` still at no cost, so `onTimer`'s failure path is never reached.\n\nTwo qualifications in fairness. It is bounded rather than indefinite: `newRound()` erases the entry, so the exposure is one keep-window, not forever. And the widened predicate was a deliberate choice, made to stop a peer that loses a fan-out race from looking like a stall. Your finding argues against that choice rather than against an oversight, which is why it needs the maintainer rather than me.",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4116142963"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-09-28T13:39:25Z",
-     "path": "src/xrpld/app/ledger/detail/TransactionAcquire.cpp",
-     "body": "The mechanism you describe is right: `TimeoutCounter::invokeOnTimer` advances `timeouts_` only when `!progress_`, `requestedPeers_` is never erased, and a duplicate-only batch costs its sender nothing.\n\nIt is bounded rather than reverted, on `bthomee/shamap-invalid-17-duplicate-progress` (#8149), which owns the predicate. A duplicate-only batch from a peer we asked now spends from a budget of `kMaxDuplicateCredits` consecutive intervals with no useful node in between. Any batch that advances the set sets the budget back to full, and `stillNeed()` resets it when a round revives the acquisition. A credit is spent only when nothing else has answered in that interval, so a wide fan-out costs one credit rather than one per loser.\n\n`kMaxDuplicateCredits` is `kNormTimeouts`, which is generous for the case the credit exists for: a peer that loses a fan-out race is settled in one or two intervals.\n\nReverting to `san.isUseful()` alone would be stricter than the base rather than equal to it. On `develop` the success path of `takeNodes` returns `SHAMapAddNode::useful()` unconditionally, so a duplicate-only batch from any sender, asked or not, sets `progress_` there.\n\nA new case, `testDuplicateCreditRunsOut`, feeds one more duplicate-only batch than the budget holds and asserts that the last one records no progress. Removing the bound turns that case red, with one failure at the bound assertion. None of the seven existing cases that touch this predicate changed its expectation, and the suite ran green at the same count as before the change.\n\n_The change is on the local branch and appears here on the next push of this stack._",
-     "url": "https://github.com/XRPLF/rippled/pull/8091#discussion_r4122805279"
     }
    ]
   },
