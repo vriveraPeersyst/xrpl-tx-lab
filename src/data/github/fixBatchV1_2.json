@@ -1,27 +1,494 @@
 {
  "name": "fixBatchV1_2",
- "fetchedAt": "2026-10-05T08:09:22.013Z",
+ "fetchedAt": "2026-10-06T08:10:16.634Z",
  "summary": {
   "status": "in development",
   "prs": 8,
-  "open": 7,
-  "merged": 0,
+  "open": 6,
+  "merged": 1,
   "issues": 0,
   "proposals": 3,
   "branches": [
    "a1q123456/support-lending-in-batch",
+   "bthomee/rpc-12-batch-identity",
+   "bthomee/rpc-21-batch",
    "bthomee/shamap-invalid-12-batch-progress",
    "dangell7/batch-db",
    "dangell7/batch-inner-last-ledger-sequence",
    "mvadari/batch-multisign-prefix",
-   "ripple/custody-old-batch-cmpt",
-   "tialymov/FN-6-lending_batch_support"
+   "ripple/custody-old-batch-cmpt"
   ],
-  "lastActivity": "2026-10-04T11:12:40Z",
-  "totalComments": 350
+  "lastActivity": "2026-10-06T00:50:28Z",
+  "lastMerged": "2026-10-06T00:32:15Z",
+  "totalComments": 295
  },
  "release": {},
  "prs": [
+  {
+   "number": 8505,
+   "title": "feat: Accept a JSON-RPC 2.0 batch from API version 3",
+   "url": "https://github.com/XRPLF/rippled/pull/8505",
+   "state": "open",
+   "author": "bthomee",
+   "createdAt": "2026-10-06T00:38:42Z",
+   "updatedAt": "2026-10-06T00:50:28Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-06T00:45:26Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8505?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#issuecomment-6006790878"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nA top-level JSON array is the batch form the specification defines, accepted from API version 3. Each entry is a request in its own right, nesting its parameters as a lone request does and correlating by its own `id`. The answer is an array of one reply per entry at HTTP 200, as the `method: \"batch\"` form answers. All entries of one body must name the same `api_version`, or name none and inherit the body's, and a body whose entries disagree is refused whole. One body then has one version, which is what makes a 100-entry cap answerable: a cap that read a version off one entry could be side-stepped by reordering the entries, or by naming the version where the cap did not look, so the cap reads the body's one version, found wherever dispatch would find it.\n\n## Context of Change\n\nRefusing a mixed body is a break a version 1 or 2 client can see, recorded as such in `API-CHANGELOG.md`. A `method: \"batch\"` body whose entries name different versions is served today, each entry at its own version, and is refused from now on; one whose entries agree keeps working, and below version 3 that form stays uncapped.\n\nFive conditions reject a whole array: empty, over the cap, holding nothing that could be a request, naming a version below 3 or one the server cannot serve, and naming two different versions across its entries. Four answer one specification error object with a null `id`, an array naming none; an array holding nothing that could be a request answers one such object per entry, as the specification shows. Each reaches every API version, since no earlier version accepts an array.\n\n## API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "bthomee/rpc-20-websocket-envelope",
+   "head": "XRPLF:bthomee/rpc-21-batch",
+   "additions": 1073,
+   "deletions": 114,
+   "changedFiles": 5,
+   "commits": 1,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-06T00:45:04Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nVersion selection is order-dependent, and invalid batch-level versions can be silently treated as version 1.\n\n**Review effort:** Balanced  \n**Findings:** 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (3)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Array version detection is order-dependent](#discussion_r4190379027) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Unsupported batch api_version is silently ignored](#discussion_r4190379085) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Error count and unchanged-response claim are inaccurate](#discussion_r4190379113) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds JSON-RPC 2.0 array batches for API version 3.\n\n**Changes:**\n- Supports array batches with version consistency checks.\n- Caps version 3 batches at 100 entries.\n- Adds extensive batch tests and API changelog entries.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​xrpld/​rpc/​detail/​Tuning.h` | Defines the batch-entry cap. |\n| `src/​xrpld/​rpc/​detail/​ServerHandler.cpp` | Implements batch validation and dispatch. |\n| `src/​test/​server/​ServerStatus_test.cpp` | Tests batch behavior and resource charging. |\n| `src/​test/​rpc/​Version_test.cpp` | Updates batch version tests. |\n| `API-CHANGELOG.md` | Documents API and compatibility changes. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/bthomee/rpc-20-websocket-envelope?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-06T00:49:54Z",
+     "body": "This is a large, carefully constructed change implementing JSON-RPC 2.0 top-level array batches for API version 3+, with an extensive matching test suite in ServerStatus_test.cpp and Version_test.cpp. I traced the core logic in ServerHandler.cpp (screenArrayBatch, firstObjectEntry, batchEntry, the body-version-agreement scan, rejectWholeBody, and the per-entry reject/dispatch paths) against the new tests and the stated design in API-CHANGELOG.md. The charging, secret-masking, and version-selection paths are internally consistent with the tests added (e.g. unsupported-version entries never echo secrets, the cap reads the body's single version rather than any one entry, mismatched entries are refused whole). I did not find a clear, diff-confirmable correctness or security bug in the changed lines. One subtlety worth double-checking in review/CI rather than asserting as a bug: for the top-level array form, `firstObjectEntry` + `apiVersionOf` derive the batch's governing version strictly from the *first object entry*, defaulting to the unspecified version (not spec-version) if that first entry doesn't itself name `api_version` — even if a later entry explicitly names version 3. That matches the doc comment on `firstObjectEntry` ('the first entry that can carry one decides'), but it isn't exercised by any test where entry 0 names no version and a later entry names 3, so it's worth a quick manual check that this is the intended behavior rather than an oversight."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-06T00:45:03Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "The array's version is taken from the first object even when that entry names no version, so `[bareRequest, version3Request]` is rejected as “below API version 3.” Reversing those entries succeeds and the bare request inherits version 3. This contradicts the one-version rule described for entries that name no version and makes acceptance order-dependent. Find the first explicitly named valid body version (while still handling an all-unspecified array as unsupported) before screening the array.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4190379027"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-06T00:45:04Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "An explicitly present but unsupported `api_version` on the `method: \"batch\"` body is silently ignored. With unversioned entries, `{method:\"batch\", api_version:99, ...}` is dispatched as version 1 (and can remain uncapped) instead of reporting `invalid_API_version`. Reject the body when `getAPIVersionNumber` returns `kApiInvalidVersion`; only absence should leave `bodyVersion` unset.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4190379085"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-06T00:45:04Z",
+     "path": "API-CHANGELOG.md",
+     "body": "This count and the claim that every answer is unchanged conflict with the implementation and the note on line 57. The old generic “not a JSON object” array case has been replaced by five specific array cases, not added alongside them, and those arrays now receive JSON-RPC error bodies instead of the old plain-text response. Rewrite this entry to count the final rejection paths and explicitly exclude the array response changes described below.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4190379113"
+    }
+   ]
+  },
+  {
+   "number": 8496,
+   "title": "fix: Keep the connection's identity for every entry of a batch",
+   "url": "https://github.com/XRPLF/rippled/pull/8496",
+   "state": "open",
+   "author": "bthomee",
+   "createdAt": "2026-10-06T00:38:22Z",
+   "updatedAt": "2026-10-06T00:50:10Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-06T00:42:53Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8496?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8496#issuecomment-6006743798"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n`X-User` and the forwarded-for address are assigned by the connection's header, so they belong to the connection rather than to one entry of a `method: \"batch\"` body. The loop clears them in place for an entry whose own role is neither identified nor proxied, and a `std::string_view` shortened in place stays shortened, so the first such entry decides them for every entry after it. A later entry's role is read from that same value, so it is demoted along with the username.\n\n## Context of Change\n\nRead them into two entry-scoped views instead and hand those to the handler's context, so the clearing reaches only the entry it belongs to. A lone request is unaffected, there being no entry after it.\n\nWhat a client can observe: a body whose first entry presents admin credentials made the second report no username, where the same entry sent alone reports the connection's. Every entry of one body now reports the role and username it would report alone.\n\n## API Impact\n\nNone. No public API method, `libxrpl` interface or peer protocol message changes in this PR.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "bthomee/rpc-11-unread-body-reasons",
+   "head": "XRPLF:bthomee/rpc-12-batch-identity",
+   "additions": 77,
+   "deletions": 11,
+   "changedFiles": 3,
+   "commits": 1,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-06T00:38:59Z",
+     "body": "The core fix in ServerHandler.cpp correctly addresses the described bug: instead of mutating the shared `user`/`forwardedFor` string_views in place (which permanently truncated them for all subsequent batch entries once one entry failed identification), it now computes per-entry scoped views (`entryUser`/`entryForwardedFor`) and leaves the originals untouched across loop iterations. This matches the PR's stated intent and is validated by the new `testBatchIdentity` test, which exercises exactly the admin-then-anonymous-entry scenario described. The accompanying test-harness fix (`name()` → `name_string()`) is a necessary correctness fix to let the test insert a custom `X-User` header without asserting. No new issues were introduced in the changed lines."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-06T00:43:40Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nThe forwarded-for preservation path lacks direct regression coverage.\n\n**Review effort:** Balanced  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Regression test omits forwarded-for coverage for second ping](#discussion_r4190371039) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nFixes batch RPC identity leakage between entries by preserving connection-level headers.\n\n**Changes:**\n- Uses entry-scoped identity views.\n- Adds a batch identity regression test.\n- Documents the behavior change.\n\n| File | Description |\n| ---- | ----------- |\n| `ServerHandler.cpp` | Preserves connection identity across batch entries. |\n| `ServerStatus_test.cpp` | Tests `X-User` preservation. |\n| `API-CHANGELOG.md` | Records the fix. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/bthomee/rpc-11-unread-body-reasons?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-06T00:43:39Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "The regression test exercises only `entryUser`; it never sends or asserts a forwarded-for value, even though this independent view is part of the fix and the changelog promise. Please add `X-Forwarded-For` to the batch request and verify the second `ping` result retains its `ip`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8496#discussion_r4190371039"
+    }
+   ]
+  },
+  {
+   "number": 8244,
+   "title": "feat: Allow lending transactions in Batch",
+   "url": "https://github.com/XRPLF/rippled/pull/8244",
+   "state": "closed",
+   "author": "tyalymov",
+   "createdAt": "2026-09-17T20:52:54Z",
+   "updatedAt": "2026-10-06T00:32:17Z",
+   "closedAt": "2026-10-06T00:32:15Z",
+   "labels": [
+    "Ready to merge",
+    "feature: LP1.2"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-17T20:55:24Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8244?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#issuecomment-5721100366"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-29T10:14:45Z",
+     "body": "https://github.com/XRPLF/rippled/blob/14f27e66bfd6f0db3812102867a7e89a11ea0ac5/src/libxrpl/tx/transactors/system/Batch.cpp#L360-L365\n\nWith `featureLendingProtocolV1_2`, `LoanSet` can be a Batch inner, so this comment no longer holds. An inner `LoanSet` in a proposed Batch now gets `TapProposal`. It still needs `sfCounterparty` and the signer check is deferred to submission, so I don't see a bypass, but can we update the comment and add a test for a proposed Batch with a `LoanSet` inner?",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#issuecomment-5888167374"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAllows Single Asset Vault and Lending Protocol transactions to run as Batch inner transactions\nwhen `featureLendingProtocolV1_2` is enabled. Before the amendment, these transaction types remain\ninvalid inside a Batch.\n\n## Context of Change\n\nBatch already applies inner transactions through the normal transaction pipeline, but explicitly\nrejects all Vault and Lending transaction types.\n\nThis change gates that restriction on `featureLendingProtocolV1_2`. It also verifies the special\nauthorization flow for `LoanSet`, where both parties sign the outer Batch instead of using an\ninner `CounterpartySignature`.\n\n## API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\n`Batch_test`:\n\n- rejection of Vault and Lending inner transactions before the amendment;\n- successful Vault creation and deposit after the amendment;\n- required `LoanSet` counterparty and Batch signer validation;\n- successful `LoanSet` and cover deposit in one Batch;\n- rollback of a `LoanSet` when a later inner transaction fails.\n\nNew `LendingBatch` suite, each case run with `LendingProtocolV1_1` on and off:\n\n- vault lifecycle in one Batch: `VaultCreate`, `VaultDeposit`, `VaultWithdraw`, `VaultDelete`,\n  on an open-ended vault and on a closed-ended vault in the Subscription phase;\n- loan lifecycle: `VaultCreate`, `VaultDeposit`, `LoanBrokerSet`, `LoanSet`, `LoanPay`. One Batch\n  on an open-ended vault with V1_1 off. Two Batches on a closed-ended vault with V1_1 on, split\n  at the Subscription to Investment boundary, because `VaultDeposit` and `LoanSet` are only\n  valid in different phases;\n- arbitrage under `tfAllOrNothing`: `LoanSet`, DEX buy, DEX sell, `LoanPay`. One run that\n  profits and one where the sell offer cannot fill and nothing persists;\n- `LoanManage` default and `LoanBrokerCoverWithdraw` in one Batch, once the grace period of a\n  loan created earlier has passed;\n- `tfIndependent` chains where a failing inner (`VaultWithdraw`, `VaultDelete`, `LoanPay`) does\n  not stop the inners after it.",
+   "merged": true,
+   "mergedAt": "2026-10-06T00:32:15Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:tialymov/FN-6-lending_batch_support",
+   "additions": 988,
+   "deletions": 30,
+   "changedFiles": 7,
+   "commits": 10,
+   "reviewComments": 20,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-17T20:53:54Z",
+     "body": "This is a small, well-scoped change that gates Batch's existing Vault/Lending inner-transaction rejection behind featureLendingProtocolV1_1. The logic in Batch.cpp is correct: pre-amendment it preserves the original any_of check against kDisabledTxTypes, post-amendment it bypasses that check entirely, matching the stated intent of allowing these transaction types as Batch inners once the amendment is enabled. The accompanying test updates (Batch_test.cpp, LoanLifecycle_test.cpp) consistently replace the old kDisabledTxTypes-based enablement checks with direct featureLendingProtocolV1_1 flag checks, and the new testLendingAmendment case exercises both the pre- and post-amendment paths for Vault create/deposit. No correctness, security, or resource-management issues were found in the changed lines; the removed includes (<algorithm>, LedgerFormats.h, TxFormats.h, Batch.h) line up with the removed std::ranges::any_of/kDisabledTxTypes usage in the test files."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-17T20:59:59Z",
+     "body": "### 🟢 Approval recommended\n\nThe amendment gate and representative Vault/Loan Batch paths are covered without identified correctness issues.\n\n<details>\n<summary>Pull request overview</summary>\n\nAllows Vault and Lending Protocol transactions inside Batch once `featureLendingProtocolV1_1` is enabled, while preserving legacy rejection behavior.\n\n**Changes:**\n- Gates Batch’s disabled transaction list on the lending amendment.\n- Adds pre/post-amendment Vault Batch coverage.\n- Updates LoanSet Batch tests to use the amendment feature flag.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| `src/libxrpl/tx/transactors/system/Batch.cpp` | Applies amendment-gated inner transaction validation. |\n| `src/test/app/Batch_test.cpp` | Tests Vault and Lending Batch behavior. |\n| `src/test/app/lending/LoanLifecycle_test.cpp` | Updates LoanSet counterparty bypass coverage. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 3/3 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-19T19:07:41Z",
+     "body": "The change cleanly gates the previously-hardcoded Batch inner-transaction rejection list (kDisabledTxTypes) behind featureLendingProtocolV1_2, correctly inverting the amendment check (isDisabledTxType is now false whenever the amendment is enabled, regardless of tx type). Test refactors consistently replace the old kDisabledTxTypes-based enablement checks with a direct features[featureLendingProtocolV1_2] flag, and the new testLendingAmendment test exercises both pre- and post-amendment Vault-in-Batch behavior. No correctness, security, or resource-leak issues were found in the added lines."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-19T19:20:34Z",
+     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nNo unresolved review comments remain.\n\n**Review effort:** Lite  \n**Findings:** None"
+    },
+    {
+     "author": "Tapanito",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-23T12:25:43Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-24T13:00:43Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-09-25T09:35:00Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-25T16:44:08Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-25T16:45:08Z",
+     "body": "The core production change in Batch.cpp is a small, well-contained amendment gate: the pre-existing rejection of Vault/Lending inner transaction types is now skipped when featureLendingProtocolV1_2 is enabled. The logic is correct (short-circuiting `&&` avoids the any_of scan once the amendment is live, and the early return is preserved). The remainder of the diff is test code (Batch_test.cpp simplification, new LendingBatch_test.cpp suite, LoanLifecycle_test.cpp cleanup) that exercises the new behavior thoroughly — vault lifecycle, loan lifecycle, arbitrage, independent-batch chains, and rollback scenarios all look internally consistent (sequence numbers, signer sets, and TER expectations line up with the described scenarios). I did not find any correctness, security, or resource-leak issues in the changed lines that meet the bar for flagging; the special LoanSet counterparty-via-outer-Batch-signature authorization logic mentioned in the MR description isn't present in this diff (it must live in code not shown/unchanged here), so there's nothing to verify there."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-25T17:01:14Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nThe arbitrage test must calculate fees for both Batch signers to avoid preflight rejection.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Calculate batch fee for both signers](#discussion_r4106802684) · New\n</details>"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2026-09-25T19:02:32Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-09-29T09:12:59Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-29T09:14:47Z",
+     "body": "The core production change is a small, well-scoped amendment gate in Batch.cpp: the existing kDisabledTxTypes rejection for Vault/Lending inner transactions is now skipped when featureLendingProtocolV1_2 is enabled. The logic reads correctly (temINVALID_INNER_BATCH is only returned when the amendment is inactive AND the tx type is disabled), matching the described behavior and the pre-existing pattern of amendment-gating in preflight. The rest of the diff is test-only: Batch_test.cpp simplifies two ad-hoc checks to read the amendment flag directly (consistent with the removed kDisabledTxTypes-based checks and the now-unneeded algorithm/LedgerFormats includes), and a large new LendingBatch_test.cpp adds thorough coverage of vault/loan lifecycles, arbitrage, defaults, and tfIndependent chains as batch inners. I did not find correctness, security, or resource-management issues in the changed lines; the test logic (fee/balance math, keylet sequencing, signer sets) is internally consistent with the scenarios it documents."
+    },
+    {
+     "author": "Tapanito",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-29T10:13:02Z",
+     "body": "I checked that the counterparty still has to sign the Batch for an inner `LoanSet` (`LoanSet::preflight` requires `sfCounterparty` on inners, and `Batch::preflightSigValidated` adds it to the required signers). The gate itself looks correct. The comments are mostly about test precision. The main question is why the impair inner in `testLoan` was dropped."
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:21Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:22Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:23Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:24Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:25Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:26Z",
+     "body": ""
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:39:28Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-30T17:40:53Z",
+     "body": "The core change is a small, well-contained amendment gate in Batch::preflight: the pre-existing kDisabledTxTypes rejection is now skipped when featureLendingProtocolV1_2 is enabled, with downstream transactors still enforcing their own feature requirements (e.g. Vault/Lending amendments) via their normal preflight/preclaim checks. The logic is equivalent to the old behavior when the amendment is disabled and correctly permissive when enabled. The bulk of the diff is new/refactored test code (LendingBatch_test.cpp, Batch_test.cpp, batch.h/cpp helper), which looks internally consistent with the stated test plan. I didn't find correctness, security, or resource-leak issues in the changed lines."
+    },
+    {
+     "author": "tyalymov",
+     "state": "COMMENTED",
+     "date": "2026-09-30T17:59:51Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-30T18:24:11Z",
+     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nThe broad protocol and lending transaction changes require final human review.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Calculate batch fee for both signers](#discussion_r4106802684)\n</details>"
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-10-01T10:08:34Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-05T15:58:03Z",
+     "body": "The core production change is small and correct: Batch::preflight now only rejects Vault/Lending inner transaction types when featureLendingProtocolV1_2 is NOT enabled, which matches the stated intent of allowing these transactions once the amendment activates while preserving old behavior for replay of pre-amendment ledgers. The gating logic (`rejectedPreV12`) is logically sound and doesn't change behavior for non-lending transaction types. The rest of the diff is almost entirely test code: a new `LendingBatch_test.cpp` suite, refactors of existing `Batch_test.cpp`/`LoanLifecycle_test.cpp` checks to use `features[featureLendingProtocolV1_2]` instead of inspecting `Batch::kDisabledTxTypes` directly, and a new shared `batch::validateInnerTxn` helper. I did not find correctness bugs (no resource leaks, no broken lifecycle/cleanup, no logic errors) in either the production code or the test helpers that would meet the bar for flagging per the review guidelines. The LoanSet dual-signature authorization flow mentioned in the description isn't visible in this diff (likely implemented in a Transactor/preclaim file not included here), so I can't verify that logic one way or the other from what's shown."
+    },
+    {
+     "author": "gregtatcam",
+     "state": "APPROVED",
+     "date": "2026-10-05T17:30:11Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Tapanito",
+     "date": "2026-09-23T12:25:38Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "Let's add more tests:\n\n- Full lifecycle, VaultCreate,Deposit,Withdraw,Delete\n- VaulCreate, Deposit, LoanBrokerCreate, LoanSet, LoanPay",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4082375206"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-09-24T13:00:43Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "@Tapanito Looks like we read the test scope differently, so here is what I propose to cover.\nAll with LendingProtocolV1_2 on, tfAllOrNothing unless noted:\n\n1. VaultCreate → VaultDeposit → VaultWithdraw → VaultDelete\n2. VaultCreate → VaultDeposit → LoanBrokerCreate → LoanSet → LoanPay\n   (borrower co-signs the batch, LoanPay is an early full payment)\n3. Risk-free arbitrage from the original request: borrow → DEX buy → DEX sell → LoanPay.\n   One run succeeds, one where the sell offer does not fill and the whole batch rolls back.\n4. LoanSet → LoanManage (default) → LoanBrokerCoverWithdraw\n5. The same chains with tfIndependent, where one failing inner must not block the rest.\n\nThe existing pre-amendment check stays as is: a batch with a Vault inner is rejected with\ntemINVALID_INNER_BATCH. I don't plan to repeat it per transaction type.\n\nDoes this cover what you had in mind, or should I add or drop anything?",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4093878165"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-25T09:35:00Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "Yeah, the aim is to do a full integration test of vault/lending transactions and batch. Your plan sounds good!",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4103155157"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-09-25T16:44:08Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "Done",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4106661628"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-25T17:01:14Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "`batch::Sig(borrower, mm2)` adds two entries to `sfBatchSigners`, but this fee is calculated for only one signer. `Batch::preflight` therefore rejects the batch with an insufficient fee before any of the arbitrage inners run; calculate it with two signers.",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4106802684"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-29T10:13:01Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "The inner `LoanManage(tfLoanImpair)` was replaced with `LoanBrokerCoverDeposit`, and the `lsfLoanImpaired` check was removed. Why? Batch_test no longer runs impairment inside a Batch, and `LendingBatch` only covers the default path. If impair still works as an inner, can we keep it, or add it to `LendingBatch`?",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216611"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-29T10:13:01Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "This only checks that the loan exists. Can we also check that the cover deposit inner applied, e.g. that `sfCoverAvailable` on the broker went up by 100 when `lendingBatchEnabled` is set?",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216621"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-29T10:13:01Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "The comments above describe specific inner failures (`VaultWithdraw` fails, `VaultDelete` returns `tecHAS_OBLIGATIONS`), but the test only checks the final state. Nothing shows that the withdraw inner actually failed. Could we assert each inner's result? `Batch_test` has `validateInnerTxn` for this. It could move into `test/jtx/batch.h` so both suites can use it.",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216629"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-29T10:13:01Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "Same as the vault chain: can we assert that the `LoanPay` inner returned `tecINSUFFICIENT_FUNDS` and the cover deposit returned `tesSUCCESS`, instead of inferring it from the final state?",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216641"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-29T10:13:01Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "Nit: the borrower holds the 1,000 principal by the time `LoanPay` runs. It fails because 2,000 is more than that balance, not because the balance is zero.",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216651"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-29T10:13:01Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "This suite relies on `all_` containing `featureLendingProtocolV1_2`, which is only true because `testableAmendments()` includes `Supported::No` amendments. Could we make it explicit (`all_ | featureLendingProtocolV1_2`)? Otherwise, if that changes, every case fails with `temINVALID_INNER_BATCH` and it's not obvious why.",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216663"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-09-29T10:13:01Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Nit: once V1_2 is enabled, this list only matters for replaying older ledgers. Maybe rename it to something like `rejectedPreV1_2`, and add a note on `kDisabledTxTypes` in `Batch.h` that it can go away when the amendment is retired.",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216675"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:21Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "That was deliberate. Since `fixCleanup3_4_0`, `LoanManage` rejects `tfLoanImpair` with `tecTOO_SOON` until a payment is late, so a `LoanSet` and an impair can't both succeed in one batch, and `tfAllOrNothing` rolls the whole batch back. The old block never ran on develop anyway: `kDisabledTxTypes` always contained `ttLOAN_BROKER_SET`, so `lendingBatchEnabled` was always false. Impairment is now covered by `testImpairAndCoverDeposit` in LendingBatch. It creates the loan, moves the clock past `NextPaymentDueDate`, then impairs the loan and deposits cover in one batch, and checks `lsfLoanImpaired`, the vault's `LossUnrealized` and the broker's `CoverAvailable`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527054"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:22Z",
+     "path": "src/test/app/Batch_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527275"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:23Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527454"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:24Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527653"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:25Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527811"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:26Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527984"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-09-30T17:39:28Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147528153"
+    },
+    {
+     "author": "tyalymov",
+     "date": "2026-09-30T17:59:51Z",
+     "path": "src/test/app/lending/LendingBatch_test.cpp",
+     "body": "This batch has one batch signer, `batch::Sig(borrower)`, and `calcBatchFee(env, 1, 5)` matches it. The two-signer batch is in `testArbitrage` (`batch::Sig(lender, mm2)`), which uses `calcBatchFee(env, 2, 5)`. Both batches succeed with `tesSUCCESS`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147720397"
+    }
+   ]
+  },
   {
    "number": 8091,
    "title": "fix: Count partial batch progress in a TX-set reply",
@@ -29,7 +496,7 @@
    "state": "open",
    "author": "bthomee",
    "createdAt": "2026-08-23T22:10:04Z",
-   "updatedAt": "2026-10-04T11:12:40Z",
+   "updatedAt": "2026-10-05T12:54:28Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -592,338 +1059,6 @@
     }
    ],
    "reviewCommentsList": []
-  },
-  {
-   "number": 8244,
-   "title": "feat: Allow lending transactions in Batch",
-   "url": "https://github.com/XRPLF/rippled/pull/8244",
-   "state": "open",
-   "author": "tyalymov",
-   "createdAt": "2026-09-17T20:52:54Z",
-   "updatedAt": "2026-10-01T10:08:34Z",
-   "closedAt": null,
-   "labels": [
-    "feature: LP1.2"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-17T20:55:24Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8244?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#issuecomment-5721100366"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-09-29T10:14:45Z",
-     "body": "https://github.com/XRPLF/rippled/blob/14f27e66bfd6f0db3812102867a7e89a11ea0ac5/src/libxrpl/tx/transactors/system/Batch.cpp#L360-L365\n\nWith `featureLendingProtocolV1_2`, `LoanSet` can be a Batch inner, so this comment no longer holds. An inner `LoanSet` in a proposed Batch now gets `TapProposal`. It still needs `sfCounterparty` and the signer check is deferred to submission, so I don't see a bypass, but can we update the comment and add a test for a proposed Batch with a `LoanSet` inner?",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#issuecomment-5888167374"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nAllows Single Asset Vault and Lending Protocol transactions to run as Batch inner transactions\nwhen `featureLendingProtocolV1_2` is enabled. Before the amendment, these transaction types remain\ninvalid inside a Batch.\n\n## Context of Change\n\nBatch already applies inner transactions through the normal transaction pipeline, but explicitly\nrejects all Vault and Lending transaction types.\n\nThis change gates that restriction on `featureLendingProtocolV1_2`. It also verifies the special\nauthorization flow for `LoanSet`, where both parties sign the outer Batch instead of using an\ninner `CounterpartySignature`.\n\n## API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\n`Batch_test`:\n\n- rejection of Vault and Lending inner transactions before the amendment;\n- successful Vault creation and deposit after the amendment;\n- required `LoanSet` counterparty and Batch signer validation;\n- successful `LoanSet` and cover deposit in one Batch;\n- rollback of a `LoanSet` when a later inner transaction fails.\n\nNew `LendingBatch` suite, each case run with `LendingProtocolV1_1` on and off:\n\n- vault lifecycle in one Batch: `VaultCreate`, `VaultDeposit`, `VaultWithdraw`, `VaultDelete`,\n  on an open-ended vault and on a closed-ended vault in the Subscription phase;\n- loan lifecycle: `VaultCreate`, `VaultDeposit`, `LoanBrokerSet`, `LoanSet`, `LoanPay`. One Batch\n  on an open-ended vault with V1_1 off. Two Batches on a closed-ended vault with V1_1 on, split\n  at the Subscription to Investment boundary, because `VaultDeposit` and `LoanSet` are only\n  valid in different phases;\n- arbitrage under `tfAllOrNothing`: `LoanSet`, DEX buy, DEX sell, `LoanPay`. One run that\n  profits and one where the sell offer cannot fill and nothing persists;\n- `LoanManage` default and `LoanBrokerCoverWithdraw` in one Batch, once the grace period of a\n  loan created earlier has passed;\n- `tfIndependent` chains where a failing inner (`VaultWithdraw`, `VaultDelete`, `LoanPay`) does\n  not stop the inners after it.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:tialymov/FN-6-lending_batch_support",
-   "additions": 988,
-   "deletions": 30,
-   "changedFiles": 7,
-   "commits": 9,
-   "reviewComments": 20,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-17T20:53:54Z",
-     "body": "This is a small, well-scoped change that gates Batch's existing Vault/Lending inner-transaction rejection behind featureLendingProtocolV1_1. The logic in Batch.cpp is correct: pre-amendment it preserves the original any_of check against kDisabledTxTypes, post-amendment it bypasses that check entirely, matching the stated intent of allowing these transaction types as Batch inners once the amendment is enabled. The accompanying test updates (Batch_test.cpp, LoanLifecycle_test.cpp) consistently replace the old kDisabledTxTypes-based enablement checks with direct featureLendingProtocolV1_1 flag checks, and the new testLendingAmendment case exercises both the pre- and post-amendment paths for Vault create/deposit. No correctness, security, or resource-management issues were found in the changed lines; the removed includes (<algorithm>, LedgerFormats.h, TxFormats.h, Batch.h) line up with the removed std::ranges::any_of/kDisabledTxTypes usage in the test files."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-17T20:59:59Z",
-     "body": "### 🟢 Approval recommended\n\nThe amendment gate and representative Vault/Loan Batch paths are covered without identified correctness issues.\n\n<details>\n<summary>Pull request overview</summary>\n\nAllows Vault and Lending Protocol transactions inside Batch once `featureLendingProtocolV1_1` is enabled, while preserving legacy rejection behavior.\n\n**Changes:**\n- Gates Batch’s disabled transaction list on the lending amendment.\n- Adds pre/post-amendment Vault Batch coverage.\n- Updates LoanSet Batch tests to use the amendment feature flag.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| `src/libxrpl/tx/transactors/system/Batch.cpp` | Applies amendment-gated inner transaction validation. |\n| `src/test/app/Batch_test.cpp` | Tests Vault and Lending Batch behavior. |\n| `src/test/app/lending/LoanLifecycle_test.cpp` | Updates LoanSet counterparty bypass coverage. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 3/3 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-19T19:07:41Z",
-     "body": "The change cleanly gates the previously-hardcoded Batch inner-transaction rejection list (kDisabledTxTypes) behind featureLendingProtocolV1_2, correctly inverting the amendment check (isDisabledTxType is now false whenever the amendment is enabled, regardless of tx type). Test refactors consistently replace the old kDisabledTxTypes-based enablement checks with a direct features[featureLendingProtocolV1_2] flag, and the new testLendingAmendment test exercises both pre- and post-amendment Vault-in-Batch behavior. No correctness, security, or resource-leak issues were found in the added lines."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-19T19:20:34Z",
-     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nNo unresolved review comments remain.\n\n**Review effort:** Lite  \n**Findings:** None"
-    },
-    {
-     "author": "Tapanito",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-09-23T12:25:43Z",
-     "body": ""
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-09-24T13:00:43Z",
-     "body": ""
-    },
-    {
-     "author": "Tapanito",
-     "state": "COMMENTED",
-     "date": "2026-09-25T09:35:00Z",
-     "body": ""
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-09-25T16:44:08Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-25T16:45:08Z",
-     "body": "The core production change in Batch.cpp is a small, well-contained amendment gate: the pre-existing rejection of Vault/Lending inner transaction types is now skipped when featureLendingProtocolV1_2 is enabled. The logic is correct (short-circuiting `&&` avoids the any_of scan once the amendment is live, and the early return is preserved). The remainder of the diff is test code (Batch_test.cpp simplification, new LendingBatch_test.cpp suite, LoanLifecycle_test.cpp cleanup) that exercises the new behavior thoroughly — vault lifecycle, loan lifecycle, arbitrage, independent-batch chains, and rollback scenarios all look internally consistent (sequence numbers, signer sets, and TER expectations line up with the described scenarios). I did not find any correctness, security, or resource-leak issues in the changed lines that meet the bar for flagging; the special LoanSet counterparty-via-outer-Batch-signature authorization logic mentioned in the MR description isn't present in this diff (it must live in code not shown/unchanged here), so there's nothing to verify there."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-25T17:01:14Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nThe arbitrage test must calculate fees for both Batch signers to avoid preflight rejection.\n\n*Get a fresh assessment by requesting another Copilot review.*\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Calculate batch fee for both signers](#discussion_r4106802684) · New\n</details>"
-    },
-    {
-     "author": "gregtatcam",
-     "state": "APPROVED",
-     "date": "2026-09-25T19:02:32Z",
-     "body": "LGTM"
-    },
-    {
-     "author": "Tapanito",
-     "state": "APPROVED",
-     "date": "2026-09-29T09:12:59Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-29T09:14:47Z",
-     "body": "The core production change is a small, well-scoped amendment gate in Batch.cpp: the existing kDisabledTxTypes rejection for Vault/Lending inner transactions is now skipped when featureLendingProtocolV1_2 is enabled. The logic reads correctly (temINVALID_INNER_BATCH is only returned when the amendment is inactive AND the tx type is disabled), matching the described behavior and the pre-existing pattern of amendment-gating in preflight. The rest of the diff is test-only: Batch_test.cpp simplifies two ad-hoc checks to read the amendment flag directly (consistent with the removed kDisabledTxTypes-based checks and the now-unneeded algorithm/LedgerFormats includes), and a large new LendingBatch_test.cpp adds thorough coverage of vault/loan lifecycles, arbitrage, defaults, and tfIndependent chains as batch inners. I did not find correctness, security, or resource-management issues in the changed lines; the test logic (fee/balance math, keylet sequencing, signer sets) is internally consistent with the scenarios it documents."
-    },
-    {
-     "author": "Tapanito",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-09-29T10:13:02Z",
-     "body": "I checked that the counterparty still has to sign the Batch for an inner `LoanSet` (`LoanSet::preflight` requires `sfCounterparty` on inners, and `Batch::preflightSigValidated` adds it to the required signers). The gate itself looks correct. The comments are mostly about test precision. The main question is why the impair inner in `testLoan` was dropped."
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-09-30T17:39:21Z",
-     "body": ""
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-09-30T17:39:22Z",
-     "body": ""
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-09-30T17:39:23Z",
-     "body": ""
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-09-30T17:39:24Z",
-     "body": ""
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-09-30T17:39:25Z",
-     "body": ""
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-09-30T17:39:26Z",
-     "body": ""
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-09-30T17:39:28Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-30T17:40:53Z",
-     "body": "The core change is a small, well-contained amendment gate in Batch::preflight: the pre-existing kDisabledTxTypes rejection is now skipped when featureLendingProtocolV1_2 is enabled, with downstream transactors still enforcing their own feature requirements (e.g. Vault/Lending amendments) via their normal preflight/preclaim checks. The logic is equivalent to the old behavior when the amendment is disabled and correctly permissive when enabled. The bulk of the diff is new/refactored test code (LendingBatch_test.cpp, Batch_test.cpp, batch.h/cpp helper), which looks internally consistent with the stated test plan. I didn't find correctness, security, or resource-leak issues in the changed lines."
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-09-30T17:59:51Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-30T18:24:11Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nThe broad protocol and lending transaction changes require final human review.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Calculate batch fee for both signers](#discussion_r4106802684)\n</details>"
-    },
-    {
-     "author": "Tapanito",
-     "state": "APPROVED",
-     "date": "2026-10-01T10:08:34Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Tapanito",
-     "date": "2026-09-23T12:25:38Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "Let's add more tests:\n\n- Full lifecycle, VaultCreate,Deposit,Withdraw,Delete\n- VaulCreate, Deposit, LoanBrokerCreate, LoanSet, LoanPay",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4082375206"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-09-24T13:00:43Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "@Tapanito Looks like we read the test scope differently, so here is what I propose to cover.\nAll with LendingProtocolV1_2 on, tfAllOrNothing unless noted:\n\n1. VaultCreate → VaultDeposit → VaultWithdraw → VaultDelete\n2. VaultCreate → VaultDeposit → LoanBrokerCreate → LoanSet → LoanPay\n   (borrower co-signs the batch, LoanPay is an early full payment)\n3. Risk-free arbitrage from the original request: borrow → DEX buy → DEX sell → LoanPay.\n   One run succeeds, one where the sell offer does not fill and the whole batch rolls back.\n4. LoanSet → LoanManage (default) → LoanBrokerCoverWithdraw\n5. The same chains with tfIndependent, where one failing inner must not block the rest.\n\nThe existing pre-amendment check stays as is: a batch with a Vault inner is rejected with\ntemINVALID_INNER_BATCH. I don't plan to repeat it per transaction type.\n\nDoes this cover what you had in mind, or should I add or drop anything?",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4093878165"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-09-25T09:35:00Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "Yeah, the aim is to do a full integration test of vault/lending transactions and batch. Your plan sounds good!",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4103155157"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-09-25T16:44:08Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "Done",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4106661628"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-25T17:01:14Z",
-     "path": "src/test/app/lending/LendingBatch_test.cpp",
-     "body": "`batch::Sig(borrower, mm2)` adds two entries to `sfBatchSigners`, but this fee is calculated for only one signer. `Batch::preflight` therefore rejects the batch with an insufficient fee before any of the arbitrage inners run; calculate it with two signers.",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4106802684"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-09-29T10:13:01Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "The inner `LoanManage(tfLoanImpair)` was replaced with `LoanBrokerCoverDeposit`, and the `lsfLoanImpaired` check was removed. Why? Batch_test no longer runs impairment inside a Batch, and `LendingBatch` only covers the default path. If impair still works as an inner, can we keep it, or add it to `LendingBatch`?",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216611"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-09-29T10:13:01Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "This only checks that the loan exists. Can we also check that the cover deposit inner applied, e.g. that `sfCoverAvailable` on the broker went up by 100 when `lendingBatchEnabled` is set?",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216621"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-09-29T10:13:01Z",
-     "path": "src/test/app/lending/LendingBatch_test.cpp",
-     "body": "The comments above describe specific inner failures (`VaultWithdraw` fails, `VaultDelete` returns `tecHAS_OBLIGATIONS`), but the test only checks the final state. Nothing shows that the withdraw inner actually failed. Could we assert each inner's result? `Batch_test` has `validateInnerTxn` for this. It could move into `test/jtx/batch.h` so both suites can use it.",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216629"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-09-29T10:13:01Z",
-     "path": "src/test/app/lending/LendingBatch_test.cpp",
-     "body": "Same as the vault chain: can we assert that the `LoanPay` inner returned `tecINSUFFICIENT_FUNDS` and the cover deposit returned `tesSUCCESS`, instead of inferring it from the final state?",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216641"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-09-29T10:13:01Z",
-     "path": "src/test/app/lending/LendingBatch_test.cpp",
-     "body": "Nit: the borrower holds the 1,000 principal by the time `LoanPay` runs. It fails because 2,000 is more than that balance, not because the balance is zero.",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216651"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-09-29T10:13:01Z",
-     "path": "src/test/app/lending/LendingBatch_test.cpp",
-     "body": "This suite relies on `all_` containing `featureLendingProtocolV1_2`, which is only true because `testableAmendments()` includes `Supported::No` amendments. Could we make it explicit (`all_ | featureLendingProtocolV1_2`)? Otherwise, if that changes, every case fails with `temINVALID_INNER_BATCH` and it's not obvious why.",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216663"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-09-29T10:13:01Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Nit: once V1_2 is enabled, this list only matters for replaying older ledgers. Maybe rename it to something like `rejectedPreV1_2`, and add a note on `kDisabledTxTypes` in `Batch.h` that it can go away when the amendment is retired.",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4132216675"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-09-30T17:39:21Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "That was deliberate. Since `fixCleanup3_4_0`, `LoanManage` rejects `tfLoanImpair` with `tecTOO_SOON` until a payment is late, so a `LoanSet` and an impair can't both succeed in one batch, and `tfAllOrNothing` rolls the whole batch back. The old block never ran on develop anyway: `kDisabledTxTypes` always contained `ttLOAN_BROKER_SET`, so `lendingBatchEnabled` was always false. Impairment is now covered by `testImpairAndCoverDeposit` in LendingBatch. It creates the loan, moves the clock past `NextPaymentDueDate`, then impairs the loan and deposits cover in one batch, and checks `lsfLoanImpaired`, the vault's `LossUnrealized` and the broker's `CoverAvailable`.",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527054"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-09-30T17:39:22Z",
-     "path": "src/test/app/Batch_test.cpp",
-     "body": "Fixed",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527275"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-09-30T17:39:23Z",
-     "path": "src/test/app/lending/LendingBatch_test.cpp",
-     "body": "Fixed",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527454"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-09-30T17:39:24Z",
-     "path": "src/test/app/lending/LendingBatch_test.cpp",
-     "body": "Fixed",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527653"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-09-30T17:39:25Z",
-     "path": "src/test/app/lending/LendingBatch_test.cpp",
-     "body": "Fixed",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527811"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-09-30T17:39:26Z",
-     "path": "src/test/app/lending/LendingBatch_test.cpp",
-     "body": "Fixed",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147527984"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-09-30T17:39:28Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Fixed",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147528153"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-09-30T17:59:51Z",
-     "path": "src/test/app/lending/LendingBatch_test.cpp",
-     "body": "This batch has one batch signer, `batch::Sig(borrower)`, and `calcBatchFee(env, 1, 5)` matches it. The two-signer batch is in `testArbitrage` (`batch::Sig(lender, mm2)`), which uses `calcBatchFee(env, 2, 5)`. Both batches succeed with `tesSUCCESS`.",
-     "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147720397"
-    }
-   ]
   },
   {
    "number": 8052,
@@ -2013,503 +2148,6 @@
      "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r3908729336"
     }
    ]
-  },
-  {
-   "number": 8127,
-   "title": "Transaction ProposalSign for ordinary and batch",
-   "url": "https://github.com/XRPLF/rippled/pull/8127",
-   "state": "open",
-   "author": "Kassaking7",
-   "createdAt": "2026-08-26T17:04:39Z",
-   "updatedAt": "2026-09-16T19:08:43Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-08-26T17:16:10Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `97.32938%` with `9 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/ledger/helpers/ProposalHelpers.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvbGVkZ2VyL2hlbHBlcnMvUHJvcG9zYWxIZWxwZXJzLmNwcA==) | 97.0% | [5 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/Transactor.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvVHJhbnNhY3Rvci5jcHA=) | 80.0% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...x/transactors/proposal/TransactionProposalSign.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvcHJvcG9zYWwvVHJhbnNhY3Rpb25Qcm9wb3NhbFNpZ24uY3Bw) | 99.1% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5428579353"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-04T13:05:13Z",
-     "body": "I haven't looked at the PR but please increase line coverage. Also be sure to test as many edge case scenarios as possible",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5540845964"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-09T14:54:53Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5603931231"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-09T19:18:02Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5607384005"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "ripple/cosign",
-   "head": "Kassaking7:TransactionProposalSign-ordinary-batch",
-   "additions": 3634,
-   "deletions": 15,
-   "changedFiles": 17,
-   "commits": 17,
-   "reviewComments": 40,
-   "reviews": [
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-08-27T01:36:35Z",
-     "body": ""
-    },
-    {
-     "author": "Kassaking7",
-     "state": "COMMENTED",
-     "date": "2026-09-02T20:07:23Z",
-     "body": ""
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-04T18:31:39Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-08T20:19:13Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-08T21:20:52Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-08T21:21:56Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-09-08T21:37:06Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-09T13:16:25Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-09T14:59:46Z",
-     "body": ""
-    },
-    {
-     "author": "Kassaking7",
-     "state": "COMMENTED",
-     "date": "2026-09-10T20:08:08Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-10T20:43:37Z",
-     "body": "Partial review so far. There are some cosignatures cases not covered"
-    },
-    {
-     "author": "Kassaking7",
-     "state": "COMMENTED",
-     "date": "2026-09-10T20:46:06Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-09-10T22:26:43Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-11T15:30:56Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-14T17:16:02Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-14T17:49:05Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-14T18:15:58Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-14T18:21:32Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-09-14T20:52:28Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "ckeshava",
-     "date": "2026-08-27T01:22:27Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "We can save compute cycles by moving this check to the top of the preclaim method.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3867995057"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-08-27T01:36:22Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "If the proposedTx payload makes a mention of `sfDelegate`, the delegated-account must authorize this transaction. A TransactionProposalSign from the actual account must be rejected with an error code. The order of these two checks need to be flipped.\n\nReference [documentation for Delegated transactions](https://xrpl.org/docs/references/protocol/transactions/common-fields#delegate).\n\n[Other parts of rippled](https://github.com/XRPLF/rippled/blob/b6a899583b2da4dd03aa3fd95599d2f5f16b80ac/src/libxrpl/protocol/STTx.cpp#L662) have switched the order of checks. i.e. we first check if sfDelegate is specified in the payload of the transaction, if not, we default to the sfAccount value. \n\nHere is the test case that demonstrates this issue:\n```\nvoid\ntestDelegatedPayloadRejectsAccountSigningFor(FeatureBitset features)\n{\n    testcase(\"delegated payload rejects SigningFor = Account\");\n\n    using namespace jtx;\n    using namespace std::chrono_literals;\n\n    Env env{*this, features};\n\n    Account const target{\"target\"};\n    Account const dest{\"dest\"};\n    Account const delegateAcct{\"delegateAcct\"};\n    Account const ds1{\"ds1\"};\n    env.fund(XRP(10000), target, dest, delegateAcct, ds1);\n    env.close();\n\n    env(delegate::set(target, delegateAcct, {\"Payment\"}));\n    env(signers(delegateAcct, 1, {{ds1, 1}}));\n    env.close();\n\n    std::uint32_t const ticketSeq = proposal::createTicket(env, target);\n    json::Value tx = pay(target, dest, XRP(1));\n    tx[sfDelegate.jsonName] = delegateAcct.human();\n    env(proposal::create(\n        target,\n        proposal::unsignedPayload(env, tx, ticketSeq, /*extraSigners=*/1),\n        proposal::expiration(env, 100s)));\n    env.close();\n\n    // The Delegate authorizes this payload; the Account does not. Its\n    // contribution must be refused rather than written into the payload's\n    // own signature slot, where it would lock the Delegate out for good.\n    env(proposal::sign(env, target, target, ticketSeq, target, target),\n        Ter(tecNO_PERMISSION));\n    env.close();\n\n    {\n        auto const sle = proposal::entry(env, target, ticketSeq);\n        if (!BEAST_EXPECT(sle))\n            return;\n        auto const stored = sle->getFieldObject(sfProposedTransaction);\n        BEAST_EXPECT(stored.getFieldVL(sfSigningPubKey).empty());\n        BEAST_EXPECT(!stored.isFieldPresent(sfTxnSignature));\n    }\n\n    // The Delegate's signer is still able to contribute and complete it.\n    env(proposal::sign(env, ds1, target, ticketSeq, delegateAcct, ds1));\n    env.close();\n\n    env(proposedJson(env, target, ticketSeq), Sig(kNone));\n    env.close();\n\n    BEAST_EXPECT(!proposal::entry(env, target, ticketSeq));\n    BEAST_EXPECT(env.balance(dest) == XRP(10000) + XRP(1));\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3868047026"
-    },
-    {
-     "author": "Kassaking7",
-     "date": "2026-09-02T20:07:22Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "Note here we introduced a different behavior\n\nbefore: if correct pub key and terminal, then we will destroy with fee\n\nnow: if terminal, then we will destroy with fee. Here it means any random ppl trying to sign even without a valid pub key / signature. \n\nI prefer the now version.  What do you guys think? @shawnxie999",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3918174152"
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "date": "2026-09-04T18:31:39Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "⚪ **Severity: LOW**\n\nFor batch inner transactions with a `sfDelegate`, `isRequiredSigningFor` accepts **both** the inner Account and the Delegate as required signers. When delegation is active only the Delegate should sign; accepting the Account may allow recording a contribution that the batch submit-path verification will ultimately reject.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Mirror the `isOuterSigningFor` logic for batch inner transactions: when `sfDelegate` is present on an inner transaction, only the delegate should be accepted as the required signer — the Account must be excluded. This is consistent with `isOuterSigningFor` (lines 49-55) and `STTx::getInitiator`, which both return only the delegate when `sfDelegate` is present. Replace the OR condition that accepts both Account and Delegate with an if/else that prioritizes `sfDelegate` when present.\n\n> **⚠️ Experimental Feature**: This code suggestion is automatically generated. Please review carefully.\n\n```suggestion\n    return std::ranges::any_of(proposedTx.getFieldArray(sfRawTransactions), [&](auto const& inner) {\n        auto const tx = innerTxn(inner);\n        if (signingFor == outer)\n            return false;\n        // Mirror isOuterSigningFor: when sfDelegate is present, only the\n        // delegate is the required signer, not the Account.\n        if (tx.isFieldPresent(sfDelegate))\n            return tx.getAccountID(sfDelegate) == signingFor;\n        return tx.isFieldPresent(sfAccount) && tx.getAccountID(sfAccount) == signingFor;\n    });\n```\n\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3936903135"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-08T17:37:15Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "can reuse getSigningData",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3960619115"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-08T17:59:16Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "what if a batch has Sponsor field? Then wouldnt that also be signing for the outer?",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3960790629"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-08T18:00:25Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "should add a comment that this is getting the payload for a `BatchSigner`",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3960799805"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-08T21:02:53Z",
-     "path": "src/test/jtx/proposal.h",
-     "body": "Can we rename these methods to `proposal_id`? This communicates the intent better.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962224467"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-08T21:11:48Z",
-     "path": "src/libxrpl/tx/Transactor.cpp",
-     "body": "We need to check if the submitted transaction's payload matches that of the proposal. This check is missing here.\n\nBesides, I have already covered the logic for the auto-deletion of the trust-lines inside the `TransactionProposalCancel` PR.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962291035"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-08T21:20:53Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "should return tec or internal code",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962355831"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-08T21:21:56Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "perhaps with fail with tefBAD_SIGNATURE? this is the error returned from Transactor::checkSign so we might want to be consistent",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962363057"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-08T21:28:14Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "^^ this is a valid suggestion. Please refer to the implementation of `isOuterSigningFor` in this file.\n\nI recommend that we use [`STTx::getInitiator()` method](https://github.com/XRPLF/rippled/blob/3e4bdf2782d7e076bb71c88091b81159c1dbdaec/src/libxrpl/protocol/STTx.cpp#L660) to determine whether a `sfDelegate` (or) `sfAccount` is to be used.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962416294"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-08T21:36:52Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "This design does not allow an inner-batch transaction (say Account-Outer) to fund a new account (say Account-Fresh) AND a subsequent inner-batch transaction to be initiated from Account-fresh. This feature is allowed in the normally submitted batch transactions.\n\n`permitPhantom` must be set to `true`, in case of all the inner-batch-transactions, in the single-sign case also. (this is missing in this implementation)\n\nThe below test captures the expectations of phantom inner accounts in a Batch transaction:\n\n```\nvoid\ntestBatchInnerFromUncreatedAccount(FeatureBitset features)\n{\n    testcase(\"batch inner from an account an earlier inner creates\");\n\n    using namespace jtx;\n    using namespace std::chrono_literals;\n\n    Env env{*this, features};\n\n    Account const outer{\"outer\"};\n    Account const dest{\"dest\"};\n    Account const fresh{\"fresh\"};  // never funded: the batch creates it\n    env.fund(XRP(10000), outer, dest);\n    env.close();\n    BEAST_EXPECT(!env.le(keylet::account(fresh.id())));\n\n    std::uint32_t const ticketSeq = proposal::createTicket(env, outer);\n    json::Value const proposedTx = proposal::unsignedBatch(\n        env,\n        outer,\n        ticketSeq,\n        tfAllOrNothing,\n        {proposal::innerTx(pay(outer, fresh, XRP(1000)), env.seq(outer)),\n         proposal::innerTx(pay(fresh, dest, XRP(1)), env.current()->seq())},\n        /*numSigners=*/1);\n\n    env(proposal::create(outer, proposedTx, proposal::expiration(env, 100s)));\n    env.close();\n\n    // Batch::checkBatchSign authorizes an inner from a not-yet-created\n    // account with that account's own master key\n    // (permitUncreatedAccount=true), so this is a contribution the\n    // completed Batch will accept and it must be recordable here.\n    env(proposal::sign(env, outer, outer, ticketSeq, fresh, fresh));\n    env.close();\n\n    auto const sle = proposal::entry(env, outer, ticketSeq);\n    if (!BEAST_EXPECT(sle))\n        return;\n    auto const stored = sle->getFieldObject(sfProposedTransaction);\n    BEAST_EXPECT(stored.isFieldPresent(sfBatchSigners));\n    auto const& batchSigners = stored.getFieldArray(sfBatchSigners);\n    BEAST_EXPECT(batchSigners.size() == 1);\n    BEAST_EXPECT(batchSigners[0].getAccountID(sfAccount) == fresh.id());\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962479764"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-09T13:16:25Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "NVM, i think changing it to a tec code like tecNO_PERMISSION is possibly more ideal. temBAD_SIGNATURE or tefBAD_SIGNATURE are the codes returned for the actual signature validations of the txn itself (preventing the tx from relayed). But in our case, the signature of txn itself is valid, but instead it is appending a signature to a proposed tx, which so an actual TEC code can actually be used here",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3968849971"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-09T14:59:46Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "this check can be moved to preflight - it requries no ledger fetching",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3969899016"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T15:45:07Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "maybe return an internal errr?",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3980879222"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T16:13:28Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "I think the function can be refactored to reuse checkSingleSign? Example:\n\n ```\n  TER\ncheckSignerKey(\n    ReadView const& view,\n    AccountID const& signerAccount,\n    Slice const& signingPubKey,\n    bool const permitPhantom,\n    beast::Journal j)\n{\n    // Defensive: preclaim already ran verify(), which fails on an unparseable\n    // key, so a caller from that path never reaches this branch.\n    // LCOV_EXCL_START\n    if (!publicKeyType(signingPubKey))\n    {\n        JLOG(j.debug()) << \"TransactionProposalSign: unknown key type.\";\n        return temBAD_SIGNATURE;\n    }\n    // LCOV_EXCL_STOP\n\n    auto const fromKey = calcAccountID(PublicKey(signingPubKey));\n    auto const sleSigner = view.read(keylet::account(signerAccount));\n    if (!sleSigner)\n    {\n        if (permitPhantom && fromKey == signerAccount)\n            return tesSUCCESS;\n        // Single-sign path: signerAccount is SigningFor, which is the\n        // proposed transaction's target and was verified to exist at\n        // TransactionProposalCreate time.\n        if (fromKey == signerAccount)\n            return tecNO_PERMISSION;  // LCOV_EXCL_LINE\n        JLOG(j.debug()) << \"TransactionProposalSign: key does not match \"\n                           \"master or regular key.\";\n        return tecNO_PERMISSION;\n    }\n\n    if (auto const ret =\n            Transactor::checkSingleSign(view, fromKey, signerAccount, sleSigner, j);\n        !isTesSuccess(ret))\n    {\n        if (ret == tefMASTER_DISABLED)\n        {\n            JLOG(j.debug()) << \"TransactionProposalSign: master key disabled.\";\n        }\n        else\n        {\n            JLOG(j.debug()) << \"TransactionProposalSign: key does not match \"\n                               \"master or regular key.\";\n        }\n        return tecNO_PERMISSION;\n    }\n    return tesSUCCESS;\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981152719"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T16:13:38Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "Good point, I believe you are right.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981154876"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T16:36:36Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "you can also use the getInitiator() helper here for verifying Delegate/Account",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981345338"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T17:47:19Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "I believe we need to check for both Counterparty and Sponsor fields here.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981930734"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T18:07:59Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "we should prob have a new helper\n```\nstd::optional<SignatureRole>\nauxiliaryRole(STObject const& proposedTx, AccountID const& signingFor)\n{\n    if (signingFor == getInitiator(proposedTx))\n        return std::nullopt;\n    if (auto const counterparty = proposedTx[~sfCounterparty];\n        counterparty && *counterparty == signingFor)\n        return SignatureRole::Counterparty;\n    if (auto const sponsor = proposedTx[~sfSponsor]; sponsor && *sponsor == signingFor)\n        return SignatureRole::Sponsor;\n    return std::nullopt;\n}\n\n```\n\n`isOuterSigningFor` should be modified to include the cosignatures\n```\nbool\nisOuterSigningFor(STObject const& proposedTx, AccountID const& signingFor)\n{\n    // A contribution for the proposed transaction itself: its initiator\n    // (Account or Delegate), or a Counterparty / Sponsor co-signature.\n    // Not an inner Batch participant — those go in sfBatchSigners.\n    return signingFor == getInitiator(proposedTx) ||\n        auxiliaryRole(proposedTx, signingFor).has_value();\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3982097326"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T18:45:14Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "This is not going to work with Counterparty and Sponsor signatures, which has a different signing payload for:\n1. They don't populate SigningPubKey\n2. Different hashprefix\n\nThe function would need to be updated to something like below (please double check). Also re-using the `auxiliaryRole` I introduced in the other comment\n\n```\nstd::optional<Serializer>\nsigningData(\n    STObject const& proposedTx,\n    AccountID const& signingFor,\n    AccountID const& signerAccount,\n    Slice const& signingPubKey,\n    Rules const& rules)\n{\n    auto const singleSign = signerAccount == signingFor;\n    auto const forOuter = isOuterSigningFor(proposedTx, signingFor);\n    auto const auxRole = auxiliaryRole(proposedTx, signingFor);\n\n    // Hash the same canonical STTx the ordinary submit path will verify, not\n    // the untyped nested object stored on the proposal.\n    try\n    {\n        STTx stx{STObject{proposedTx}};\n\n        if (stx.getTxnType() == ttBATCH && !forOuter)\n        {\n            Serializer msg;\n            serializeBatch(\n                msg,\n                stx.getAccountID(sfAccount),\n                stx.getSeqProxy().value(),\n                stx.getFlags(),\n                stx.getBatchTransactionIDs());\n            if (singleSign)\n            {\n                finishMultiSigningData(signingFor, msg);\n            }\n            else\n            {\n                msg.addBitString(signingFor);\n                finishMultiSigningData(signerAccount, msg);\n            }\n            return msg;\n        }\n\n        auto const role = auxRole.value_or(SignatureRole::Transaction);\n        auto const prefix = signingPrefix(role, !singleSign, rules);\n\n        if (singleSign)\n        {\n            if (role == SignatureRole::Transaction)\n                stx.setFieldVL(sfSigningPubKey, signingPubKey);\n            Serializer s;\n            s.add32(prefix);\n            stx.addWithoutSigningFields(s);\n            return s;\n        }\n\n        return buildMultiSigningData(stx, signerAccount, prefix);\n    }\n    catch (std::exception const&)\n    {\n        // Defensive: proposedTx was validated at TransactionProposalCreate\n        // preflight, so an exception building STTx from it is unexpected\n        // ledger state, not a normal preclaim path.\n        return std::nullopt;  // LCOV_EXCL_LINE\n    }\n}\n\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3982389453"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T18:50:14Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "we can actually just call `isOuterSigningFor` here. The signatures of Counterparty and Sponsor are included in `BatchSigners, which should be checked for.\n\n```\n    return std::ranges::any_of(proposedTx.getFieldArray(sfRawTransactions), [&](auto const& inner) {\n        return signingFor != outer && isOuterSigningFor(innerTxn(inner), signingFor);\n    });\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3982427873"
-    },
-    {
-     "author": "Kassaking7",
-     "date": "2026-09-10T20:08:07Z",
-     "path": "src/test/jtx/proposal.h",
-     "body": "The namespace already specified \"proposal\". For proposal::id vs proposal::proposal_id, I would prefer the first one",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983047054"
-    },
-    {
-     "author": "Kassaking7",
-     "date": "2026-09-10T20:46:06Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "Sponsor and Counterparty aren't \"signing for the outer\", they contribute to their own dedicated slots (`SponsorSignature` / `CounterpartySignature`) alongside the outer's Signers, not into it. That's different from sfDelegat. `isOuterSigningFor` correctly returns false for sponsor.\n\nRouting to those auxiliary slots is out of scope for this PR (ordinary + batch); isRequiredSigningFor currently rejects SigningFor = sponsor with tecNO_PERMISSION.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983343262"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T21:42:34Z",
-     "path": "include/xrpl/ledger/helpers/ProposalHelpers.h",
-     "body": "```suggestion\n * signature from: its Account or Delegate, Sponsor, Counterparty or — for a Batch — an inner\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983756242"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T21:59:26Z",
-     "path": "src/test/app/TransactionProposalSign_test.cpp",
-     "body": "```suggestion\n        STObject const proposedTx = proposedJson(env, target, ticketSeq);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983870800"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T22:04:54Z",
-     "path": "src/test/app/TransactionProposalSign_test.cpp",
-     "body": "Does this file include a test case where the `TransactionProposalSign` transaction is itself multi-signed? In such a case, the `submitter` needs to specify a higher transaction fee.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983909286"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T22:12:32Z",
-     "path": "src/test/app/TransactionProposalSign_test.cpp",
-     "body": "A missing `ProposalSignature.Account` must also throw a `temMALFORMED` error.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983955519"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T22:14:46Z",
-     "path": "src/test/app/TransactionProposalSign_test.cpp",
-     "body": "```suggestion\n            auto const stored = proposedJson(env, target, ticketSeq);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983969107"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T22:23:20Z",
-     "path": "src/test/app/TransactionProposalSign_test.cpp",
-     "body": "this test could use a better description. This set up is not indicative of \"ordinary\" signing :)\n```suggestion\n        testcase(\"Proposed-Transaction uses a Delegate Account, Delegate-Account has configured a SignerList / multi-signing\");\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3984021546"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-11T15:30:57Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "we already have STTx::getInitiator()",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3990724667"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-14T17:16:02Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "We should support sponsored signature here as well. I believe an inner batch requires an empty `SponsorSignature` object during initial proposal creation, which is necessary for sponsored reserve. cc @ckeshava",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4007688698"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-14T17:49:05Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "exlucde cov",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4007958405"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-14T18:15:59Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "we should check similar during proposal creation imo - making it fail if the proposal contains ambiguous/duplicate accounts for Account, Sponsor, Delegate, Counterparty. i realized that we cant really have a single account sign for two roles since they have different hashprefix",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008174002"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-14T18:21:33Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "i'm not sure if this fully works, since a sponsored txn doesn't necesarilly require a `SponsorSignature`, so it would also categorize valid txn as ambiguous?",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008219462"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-14T19:31:07Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "This case indicates that a proposed-transaction which was supposed to be single-signed instead has `sfSigners` entry. This indicates ledger-state corruption.\n\nWe should remove such a corrupted transaction-proposal. I believe `tefBAD_LEDGER` is also an error code used to indicate such corrupted ledger-states in other transactors.\n\nA `tecNO_PERMISSION` is a misleading error code because it implies that the current submitter of `TransactionProposalSign` has committed an error, however the ledger-state is already incorrect.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008796340"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-14T19:32:01Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "Similar to the above remark, this indicates a corrupted ledger state. We should make efforts to actively report such a state and remove corrupted entries.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008803561"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-14T20:47:36Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "^ To avoid this type of oversight, it is beneficial to refactor+re-use the logic in `Batch::preflightSigValidated` method. If you can build and retrieve the `requiredSigners` list from that method, it can be re-used here.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4009448380"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-14T20:50:10Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "Does this comment imply that a proposed-Batch transaction cannot have a `sfSponsor` for an inner transaction?",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4009468325"
-    }
-   ]
-  },
-  {
-   "number": 8219,
-   "title": "fix: Mask secrets in batch RPC errors",
-   "url": "https://github.com/XRPLF/rippled/pull/8219",
-   "state": "open",
-   "author": "joshuahamsa",
-   "createdAt": "2026-09-13T01:47:06Z",
-   "updatedAt": "2026-09-13T20:38:56Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-13T01:47:16Z",
-     "body": "⚠️ This PR contains unsigned commits. To get your PR merged, please sign them. ⚠️\n\nIf only the most recent commit is unsigned, you can run:\n1. Amend the commit: `git commit --amend --no-edit -n -S`\n2. Overwrite the commit: `git push --force-with-lease`\n\nIf multiple commits are unsigned, you can run:\n1. Go into interactive rebase mode: `git rebase --interactive HEAD~<NUM_OF_COMMITS>`, where `NUM_OF_COMMITS` is the number of most recent commits that will be available to edit.\n2. Change \"pick\" to \"edit\" for the commits you need to sign, and then save and exit.\n3. For each commit, run: `git commit --amend --no-edit -n -S`\n4. Continue the rebase: `git rebase --continue`\n5. Overwrite the commit(s): `git push --force-with-lease`\n\nIf you're new to commit signing, there are different ways to set it up:\n\n<details>\n<summary><b>Sign commits with <code>gpg</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `gpg`:\n1. [Generate a GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)\n2. [Add the GPG key to your GitHub account](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)\n3. [Configure `git` to use your GPG key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-gpg-key)\n</details>\n\n<details>\n<summary><b>Sign commits with <code>ssh-agent</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `ssh-agent`:\n1. [Generate an SSH key and add it to `ssh-agent`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)\n2. [Add the SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)\n3. [Configure `git` to use your SSH key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)\n</details>\n\n<details>\n<summary><b>Sign commits with 1Password</b></summary>\n<p></p>\n\nYou can also sign commits using 1Password, which lets you sign commits with biometrics without the signing key leaving the local 1Password process.\nSee [use 1Password to sign your commits](https://developer.1password.com/docs/ssh/git-commit-signing/).\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/8219#issuecomment-5650037499"
-    },
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-13T18:03:35Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8219?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8219#issuecomment-5655069273"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nMask `secret`, `seed`, `seed_hex`, and `passphrase` fields when HTTP batch RPC requests are rejected before handler execution. Masking traverses nested objects and arrays so sensitive values are not echoed in error responses or debug reply logs.\n\nCloses #7461.\n\n## Context of Change\n\nThe normal RPC handler-error path masks sensitive fields before attaching request data to an error response. Eight early-error paths in HTTP batch processing instead copied the request item directly into the response, bypassing that masking.\n\nThis change applies masking only to the copied request data used by those error paths. It leaves the original request available to subsequent processing and does not sanitize successful handler output, which can legitimately contain generated wallet credentials.\n\n## API Impact\n\nThis is a non-breaking public API bug fix. The affected error responses preserve their existing structure, codes, messages, IDs, and non-sensitive request fields; only sensitive field values are replaced with `<masked>`. `API-CHANGELOG.md` documents the change.\n\n## Before / After\n\nBefore, an early failure such as an invalid `api_version`, forbidden method, overload, malformed method, malformed `ripplerpc`, or non-object batch item could echo sensitive request values verbatim.\n\nAfter, sensitive fields in the echoed request copy are masked recursively. Other batch items continue to execute normally unless the client is already over the resource limit.\n\n## Test Plan\n\n- Verified the regression tests fail against the original handler with the sensitive sentinels present.\n- Built the standard `xrpld` target in the repository's Nix CI environment with GCC 15.2.\n- Ran all automatic RPC and server suites: 51 suites, 341 cases, 78,050 assertions, zero failures.\n- Ran explicit `clang-tidy` on the changed C++ files.\n- Ran applicable pre-commit checks, including the pinned formatter, include-style checks, spelling, and Markdown formatting.\n\nDrafted by GPT 6 Astra: Light, Reviewed by GPT 6 Astra: High",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "joshuahamsa:fix/7461-batch-error-masking",
-   "additions": 234,
-   "deletions": 0,
-   "changedFiles": 4,
-   "commits": 2,
-   "reviewComments": 0,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-13T02:03:10Z",
-     "body": "### 🟢 Approval recommended\n\nNo unresolved review comments; all reviewed changes are assessed as ready.\n\n<details>\n<summary>Pull request overview</summary>\n\nFixes secret leakage in HTTP batch RPC errors by recursively masking sensitive fields.\n\n**Changes:**\n- Masks secrets in early batch-error responses.\n- Adds regression tests.\n- Documents the API fix.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n|---|---|\n| `src/xrpld/rpc/detail/ServerHandler.cpp` | Masks sensitive fields in batch errors. |\n| `src/test/server/ServerStatus_test.cpp` | Tests recursive masking and request preservation. |\n| `API-CHANGELOG.md` | Documents the bug fix. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 3/3 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-13T20:38:56Z",
-     "body": "### 🟢 Approval recommended\n\nThe secret-masking fix includes regression coverage and documentation with no unresolved blocking issues.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 4/4 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
-    }
-   ],
-   "reviewCommentsList": []
   }
  ],
  "issues": [],
@@ -2553,11 +2191,12 @@
  ],
  "branches": [
   "a1q123456/support-lending-in-batch",
+  "bthomee/rpc-12-batch-identity",
+  "bthomee/rpc-21-batch",
   "bthomee/shamap-invalid-12-batch-progress",
   "dangell7/batch-db",
   "dangell7/batch-inner-last-ledger-sequence",
   "mvadari/batch-multisign-prefix",
-  "ripple/custody-old-batch-cmpt",
-  "tialymov/FN-6-lending_batch_support"
+  "ripple/custody-old-batch-cmpt"
  ]
 }

@@ -1,6 +1,6 @@
 {
  "name": "XChainBridge",
- "fetchedAt": "2026-10-05T08:06:22.172Z",
+ "fetchedAt": "2026-10-06T08:07:08.290Z",
  "summary": {
   "status": "in development",
   "prs": 4,
@@ -9,10 +9,10 @@
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-09-22T18:36:24Z",
+  "lastActivity": "2026-10-05T14:49:09Z",
   "lastMerged": "2026-06-25T17:25:10Z",
   "release": "2.2.0",
-  "totalComments": 246
+  "totalComments": 264
  },
  "release": {
   "version": "2.2.0",
@@ -28,11 +28,9 @@
    "state": "open",
    "author": "mvadari",
    "createdAt": "2026-09-21T18:02:50Z",
-   "updatedAt": "2026-09-22T18:36:24Z",
+   "updatedAt": "2026-10-05T14:49:09Z",
    "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
+   "labels": [],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -45,6 +43,12 @@
      "date": "2026-09-22T18:36:24Z",
      "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
      "url": "https://github.com/XRPLF/rippled/pull/8255#issuecomment-5781906485"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-05T14:47:12Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8255#issuecomment-5996870932"
     }
    ],
    "body": "## High Level Overview of Change\n\nRemoves the `XChainBridge` feature: the three ledger entries (`Bridge`, `XChainOwnedClaimID`, `XChainOwnedCreateAccountClaimID`), the eight transactors, the `STXChainBridge` and `XChainAttestations` serialized types, the RPC handling for them, and their tests — about 16.8k lines.\n\n`XChainBridge` and `fixXChainRewardRounding` become `VoteBehavior::Obsolete`, so they can no longer be voted for. The `sfield` codes, ledger entry types, transaction types, and inner object formats they used are left marked unused so the numbers are not reassigned. The `temXCHAIN_*` and `tecXCHAIN_*` result codes are kept, since result code values must stay stable.\n\n## Context of Change\n\nNeither amendment was ever enabled on Mainnet, so no ledger contains these objects and no new amendment is needed to remove the code. Keeping the transactors, invariants, and 5k-line test suite alive costs maintenance on every protocol-wide refactor (`PreflightHelpers`, the autogen builders, the Beast-to-GTest migration) for a feature nobody is going to enable.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n`ledger_entry` no longer accepts `bridge`, `xchain_owned_claim_id`, or `xchain_owned_create_account_claim_id`. `account_objects` no longer accepts those values in `type`. `server_definitions` no longer lists the removed ledger entry types, transaction types, fields, and the `XChainBridge` serialized type. `API-CHANGELOG.md` is updated.\n\n`libxrpl` consumers lose the `STXChainBridge` and `XChainAttestations` classes, the `keylet::bridge`, `keylet::xChainClaimID`, and `keylet::xChainCreateAccountClaimID` functions, and the `sfXChain*` fields.\n\n## Test Plan\n\n- `cmake --build .build` — clean.\n- `.build/xrpl_tests` — 881 tests from 188 suites pass.\n- `.build/xrpld --unittest --unittest-jobs 8` — 251 suites, 4857 cases, 0 failures.\n- `cmake --build build/codegen --target code_gen` — no diff, the checked-in autogen headers match the macro files.\n- `pre-commit run --all-files` — all hooks pass.\n\n`Delegate_test`'s `expectedDelegableCount` drops from 56 to 48 for the eight removed delegable transactions.",
@@ -53,11 +57,11 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:mvadari/remove-xcb",
-   "additions": 31,
-   "deletions": 17048,
-   "changedFiles": 67,
-   "commits": 4,
-   "reviewComments": 8,
+   "additions": 107,
+   "deletions": 17052,
+   "changedFiles": 69,
+   "commits": 6,
+   "reviewComments": 16,
    "reviews": [
     {
      "author": "xrplf-ai-reviewer[bot]",
@@ -88,6 +92,60 @@
      "state": "APPROVED",
      "date": "2026-09-22T18:11:18Z",
      "body": "Large, mechanical removal of the XChainBridge feature (ledger entries, transactors, serialized types, RPC handling, and tests). Reviewed the actual added (+) lines across the diff — most of the diff is pure deletion, and the surviving added code (VoteBehavior::Obsolete flags, the simplified doLedgerEntry parse call, the Delegate_test count update, the AccountObjects_test features expression, new includes, and the API-CHANGELOG entry) is internally consistent with the removed code paths. Field/entry/tx-type numbering is correctly left marked 'unused' rather than reassigned, matching the stated goal of keeping values stable. No correctness, security, or consistency issues found in the changed lines."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-05T14:47:26Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-05T14:47:28Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-05T14:47:30Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-05T14:47:32Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-05T14:47:53Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-05T14:48:05Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-05T14:48:06Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-05T14:48:08Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-05T14:49:09Z",
+     "body": "This is a large, mechanical removal of the XChainBridge feature (ledger entries, transactors, serialized types, RPC handling, and tests). The changes are internally consistent: removed sfields/ledger-entry-types/tx-types are correctly re-marked as unused/deprecated at their original numeric values, keylet/parse functions and their call sites are removed together, and the obsolete-amendment convention documented in features.macro is followed correctly. I did not find correctness, security, or resource-management bugs in the added (+) lines. One minor inconsistency worth a sanity check: the MR description states Delegate_test's expectedDelegableCount drops from 56 to 48, but the actual diff changes it from 57 to 49."
     }
    ],
    "reviewCommentsList": [
@@ -146,6 +204,62 @@
      "path": "src/xrpld/rpc/handlers/ledger/LedgerEntry.cpp",
      "body": "This removal is unconditional: the generated parser table no longer recognizes the bridge keys, so API v1/v2 `ledger_entry` requests now return \"No ledger_entry params provided\" instead of the previous lookup behavior. The same unconditional change affects `account_objects` and `server_definitions`, while the API contract says older versions preserve their behavior. Preserve the old paths for prior API versions and expose the removal only in the next API version, or otherwise update the API-version compatibility plan.",
      "url": "https://github.com/XRPLF/rippled/pull/8255#discussion_r4065143860"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-05T14:47:26Z",
+     "path": "include/xrpl/protocol/detail/features.macro",
+     "body": "Moved both under the obsolete comment, matching how `CryptoConditionsSuite` was kept before #6036.",
+     "url": "https://github.com/XRPLF/rippled/pull/8255#discussion_r4185317673"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-05T14:47:28Z",
+     "path": "include/xrpl/protocol/detail/sfields.macro",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/8255#discussion_r4185318057"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-05T14:47:30Z",
+     "path": "include/xrpl/protocol/detail/sfields.macro",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/8255#discussion_r4185318344"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-05T14:47:32Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Done, but I used \"deprecated\" to match `// 6 deprecated`, since these are now `[[deprecated]]` in `TxFormats.h`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8255#discussion_r4185318598"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-05T14:47:53Z",
+     "path": "src/libxrpl/protocol/Indexes.cpp",
+     "body": "Added `Bridge`, `XchainClaimId` and `XchainCreateAccountClaimId` as `[[deprecated]]` next to `Contract`, `Generator` and `Nickname`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8255#discussion_r4185322027"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-05T14:48:05Z",
+     "path": "include/xrpl/protocol/detail/sfields.macro",
+     "body": "These can be reused after a year or two, once no supported release or tool still knows the old meanings. I can add that note when we rename \"unused\" to \"reserved\" in the follow-up.",
+     "url": "https://github.com/XRPLF/rippled/pull/8255#discussion_r4185323917"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-05T14:48:06Z",
+     "path": "include/xrpl/protocol/SField.h",
+     "body": "Same as above.",
+     "url": "https://github.com/XRPLF/rippled/pull/8255#discussion_r4185324215"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-05T14:48:08Z",
+     "path": "src/xrpld/rpc/handlers/ledger/LedgerEntry.cpp",
+     "body": "The amendment was never enabled on Mainnet and this server can't process these objects anymore, so older API versions have nothing to return. API-CHANGELOG lists this as a breaking change.",
+     "url": "https://github.com/XRPLF/rippled/pull/8255#discussion_r4185324471"
     }
    ]
   },
