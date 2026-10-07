@@ -1,6 +1,6 @@
 {
  "name": "Clawback",
- "fetchedAt": "2026-10-06T08:02:09.065Z",
+ "fetchedAt": "2026-10-07T08:02:01.580Z",
  "summary": {
   "status": "in development",
   "prs": 10,
@@ -15,10 +15,10 @@
    "tapanito/vault-clawback-invariants",
    "tialymov/FN-30-vault_clawback_holder_existence"
   ],
-  "lastActivity": "2026-10-05T14:20:25Z",
+  "lastActivity": "2026-10-06T21:05:25Z",
   "lastMerged": "2026-08-26T18:06:55Z",
   "release": "1.12.0",
-  "totalComments": 282
+  "totalComments": 284
  },
  "release": {
   "version": "1.12.0",
@@ -34,7 +34,7 @@
    "state": "open",
    "author": "gregtatcam",
    "createdAt": "2026-10-03T20:39:20Z",
-   "updatedAt": "2026-10-05T14:20:25Z",
+   "updatedAt": "2026-10-06T21:05:25Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -55,7 +55,7 @@
    "deletions": 1,
    "changedFiles": 2,
    "commits": 2,
-   "reviewComments": 2,
+   "reviewComments": 3,
    "reviews": [
     {
      "author": "xrplf-ai-reviewer[bot]",
@@ -86,6 +86,12 @@
      "state": "COMMENTED",
      "date": "2026-10-04T17:19:34Z",
      "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nThe invariant now mirrors the balance-update arithmetic and the regression cases are adequately covered.\n\n**Review effort:** Balanced  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Check captured logs after Env destruction](#discussion_r4174841117)\n</details>"
+    },
+    {
+     "author": "Tapanito",
+     "state": "COMMENTED",
+     "date": "2026-10-06T21:05:24Z",
+     "body": ""
     }
    ],
    "reviewCommentsList": [
@@ -102,6 +108,13 @@
      "path": "src/test/app/Clawback_test.cpp",
      "body": "You're right, logs is only filled when CaptureLogs is destroyed, so the non-MPTokensV2 cases weren't checking anything. Moved the Env into an inner scope and check logs after it. Verified by reverting the invariant fix: the non-V2 cases now fail on the log check.",
      "url": "https://github.com/XRPLF/rippled/pull/8475#discussion_r4178573740"
+    },
+    {
+     "author": "Tapanito",
+     "date": "2026-10-06T21:05:24Z",
+     "path": "src/test/app/Clawback_test.cpp",
+     "body": "Shouldn't we assert the return code `tesSUCCESS` after amendment and `tecINVARIANT_FAILED` before? That way we could drop the logs check later on.",
+     "url": "https://github.com/XRPLF/rippled/pull/8475#discussion_r4200433931"
     }
    ]
   },

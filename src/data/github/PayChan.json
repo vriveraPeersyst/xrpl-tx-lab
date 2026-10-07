@@ -1,11 +1,11 @@
 {
  "name": "PayChan",
- "fetchedAt": "2026-10-06T08:05:46.258Z",
+ "fetchedAt": "2026-10-07T08:05:38.340Z",
  "summary": {
-  "status": "in development",
+  "status": "merged",
   "prs": 5,
-  "open": 1,
-  "merged": 2,
+  "open": 0,
+  "merged": 3,
   "issues": 0,
   "proposals": 1,
   "branches": [
@@ -13,10 +13,10 @@
    "mvadari/rearch/paychannel-entry",
    "token-paychan"
   ],
-  "lastActivity": "2026-10-06T07:51:13Z",
-  "lastMerged": "2025-10-14T19:20:07Z",
+  "lastActivity": "2026-10-07T01:49:14Z",
+  "lastMerged": "2026-10-06T20:35:01Z",
   "release": "0.33.0",
-  "totalComments": 142
+  "totalComments": 143
  },
  "release": {
   "version": "0.33.0",
@@ -29,11 +29,11 @@
    "number": 7882,
    "title": "refactor: Extract escrow lock helpers and paychan test helpers",
    "url": "https://github.com/XRPLF/rippled/pull/7882",
-   "state": "open",
+   "state": "closed",
    "author": "dangell7",
    "createdAt": "2026-07-28T00:05:30Z",
-   "updatedAt": "2026-10-05T16:00:44Z",
-   "closedAt": null,
+   "updatedAt": "2026-10-06T20:35:02Z",
+   "closedAt": "2026-10-06T20:35:02Z",
    "labels": [
     "Ready to merge"
    ],
@@ -94,15 +94,15 @@
     }
    ],
    "body": "## High Level Overview of Change\n\nPulls the refactoring out of #5448 (XLS-93d Token-Enabled Payment Channels) into its own PR so it can merge ahead of the feature. Code motion only, no functional change.\n\n- Moves the escrow lock/unlock helpers from the Escrow transactors into `EscrowHelpers.h`.\n- Moves the jtx `paychan` helpers from `TestHelpers.h` into their own `test/jtx/paychan.h`, and hoists the file-local helpers from `PayChan_test.cpp` into them.\n- Moves the escrowed balance test helpers from `EscrowToken_test.cpp` into the shared jtx `TestHelpers.h`.\n\n### Context of Change\n\nSplit out of #5448 per review feedback. The token paychan transactors reuse the escrow lock/unlock helpers, so the extraction lands here first and the feature PR becomes mostly additive.\n\n### API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nNo new tests, the moved code is covered by the existing suites. Ran Escrow, EscrowToken, Sponsor, PayChan, MPToken, AMM.",
-   "merged": false,
-   "mergedAt": null,
+   "merged": true,
+   "mergedAt": "2026-10-06T20:35:01Z",
    "draft": false,
    "base": "develop",
    "head": "Transia-RnD:dangell7/escrow-paychan-refactor",
    "additions": 592,
    "deletions": 573,
    "changedFiles": 13,
-   "commits": 9,
+   "commits": 10,
    "reviewComments": 4,
    "reviews": [
     {
@@ -152,6 +152,12 @@
      "state": "COMMENTED",
      "date": "2026-09-30T15:39:01Z",
      "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nNo unresolved review issues were identified.\n\n**Review effort:** Lite  \n**Findings:** None"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "APPROVED",
+     "date": "2026-10-06T14:57:54Z",
+     "body": ""
     }
    ],
    "reviewCommentsList": [
@@ -1100,8 +1106,8 @@
    "isPr": true,
    "author": "dangell7",
    "createdAt": "2026-05-10T06:08:57Z",
-   "updatedAt": "2026-10-06T07:51:13Z",
-   "comments": 10,
+   "updatedAt": "2026-10-07T01:49:14Z",
+   "comments": 11,
    "labels": []
   }
  ],
