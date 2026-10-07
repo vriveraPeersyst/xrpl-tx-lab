@@ -1,6 +1,6 @@
 {
  "name": "Batch",
- "fetchedAt": "2026-10-06T08:01:22.081Z",
+ "fetchedAt": "2026-10-07T08:01:23.689Z",
  "summary": {
   "status": "in development",
   "prs": 11,
@@ -18,10 +18,10 @@
    "mvadari/batch-multisign-prefix",
    "ripple/custody-old-batch-cmpt"
   ],
-  "lastActivity": "2026-10-06T00:50:28Z",
+  "lastActivity": "2026-10-06T18:02:40Z",
   "lastMerged": "2026-10-06T00:32:15Z",
   "release": "2.5.0",
-  "totalComments": 366
+  "totalComments": 380
  },
  "release": {
   "version": "2.5.0",
@@ -31,13 +31,467 @@
  },
  "prs": [
   {
+   "number": 8127,
+   "title": "Transaction ProposalSign for ordinary and batch",
+   "url": "https://github.com/XRPLF/rippled/pull/8127",
+   "state": "open",
+   "author": "Kassaking7",
+   "createdAt": "2026-08-26T17:04:39Z",
+   "updatedAt": "2026-10-06T18:02:40Z",
+   "closedAt": null,
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-26T17:16:10Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `97.32938%` with `9 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/ledger/helpers/ProposalHelpers.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvbGVkZ2VyL2hlbHBlcnMvUHJvcG9zYWxIZWxwZXJzLmNwcA==) | 97.0% | [5 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/Transactor.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvVHJhbnNhY3Rvci5jcHA=) | 80.0% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...x/transactors/proposal/TransactionProposalSign.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvcHJvcG9zYWwvVHJhbnNhY3Rpb25Qcm9wb3NhbFNpZ24uY3Bw) | 99.1% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5428579353"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-04T13:05:13Z",
+     "body": "I haven't looked at the PR but please increase line coverage. Also be sure to test as many edge case scenarios as possible",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5540845964"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-09T14:54:53Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5603931231"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-09T19:18:02Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5607384005"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-06T18:02:40Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-6022352974"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "ripple/cosign",
+   "head": "Kassaking7:TransactionProposalSign-ordinary-batch",
+   "additions": 3634,
+   "deletions": 15,
+   "changedFiles": 17,
+   "commits": 17,
+   "reviewComments": 40,
+   "reviews": [
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-27T01:36:35Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-02T20:07:23Z",
+     "body": ""
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-04T18:31:39Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-08T20:19:13Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-08T21:20:52Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-08T21:21:56Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-08T21:37:06Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-09T13:16:25Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-09T14:59:46Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-10T20:08:08Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-10T20:43:37Z",
+     "body": "Partial review so far. There are some cosignatures cases not covered"
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-09-10T20:46:06Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-10T22:26:43Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-11T15:30:56Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-14T17:16:02Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-14T17:49:05Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-14T18:15:58Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-09-14T18:21:32Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-09-14T20:52:28Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ckeshava",
+     "date": "2026-08-27T01:22:27Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
+     "body": "We can save compute cycles by moving this check to the top of the preclaim method.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3867995057"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-27T01:36:22Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "If the proposedTx payload makes a mention of `sfDelegate`, the delegated-account must authorize this transaction. A TransactionProposalSign from the actual account must be rejected with an error code. The order of these two checks need to be flipped.\n\nReference [documentation for Delegated transactions](https://xrpl.org/docs/references/protocol/transactions/common-fields#delegate).\n\n[Other parts of rippled](https://github.com/XRPLF/rippled/blob/b6a899583b2da4dd03aa3fd95599d2f5f16b80ac/src/libxrpl/protocol/STTx.cpp#L662) have switched the order of checks. i.e. we first check if sfDelegate is specified in the payload of the transaction, if not, we default to the sfAccount value. \n\nHere is the test case that demonstrates this issue:\n```\nvoid\ntestDelegatedPayloadRejectsAccountSigningFor(FeatureBitset features)\n{\n    testcase(\"delegated payload rejects SigningFor = Account\");\n\n    using namespace jtx;\n    using namespace std::chrono_literals;\n\n    Env env{*this, features};\n\n    Account const target{\"target\"};\n    Account const dest{\"dest\"};\n    Account const delegateAcct{\"delegateAcct\"};\n    Account const ds1{\"ds1\"};\n    env.fund(XRP(10000), target, dest, delegateAcct, ds1);\n    env.close();\n\n    env(delegate::set(target, delegateAcct, {\"Payment\"}));\n    env(signers(delegateAcct, 1, {{ds1, 1}}));\n    env.close();\n\n    std::uint32_t const ticketSeq = proposal::createTicket(env, target);\n    json::Value tx = pay(target, dest, XRP(1));\n    tx[sfDelegate.jsonName] = delegateAcct.human();\n    env(proposal::create(\n        target,\n        proposal::unsignedPayload(env, tx, ticketSeq, /*extraSigners=*/1),\n        proposal::expiration(env, 100s)));\n    env.close();\n\n    // The Delegate authorizes this payload; the Account does not. Its\n    // contribution must be refused rather than written into the payload's\n    // own signature slot, where it would lock the Delegate out for good.\n    env(proposal::sign(env, target, target, ticketSeq, target, target),\n        Ter(tecNO_PERMISSION));\n    env.close();\n\n    {\n        auto const sle = proposal::entry(env, target, ticketSeq);\n        if (!BEAST_EXPECT(sle))\n            return;\n        auto const stored = sle->getFieldObject(sfProposedTransaction);\n        BEAST_EXPECT(stored.getFieldVL(sfSigningPubKey).empty());\n        BEAST_EXPECT(!stored.isFieldPresent(sfTxnSignature));\n    }\n\n    // The Delegate's signer is still able to contribute and complete it.\n    env(proposal::sign(env, ds1, target, ticketSeq, delegateAcct, ds1));\n    env.close();\n\n    env(proposedJson(env, target, ticketSeq), Sig(kNone));\n    env.close();\n\n    BEAST_EXPECT(!proposal::entry(env, target, ticketSeq));\n    BEAST_EXPECT(env.balance(dest) == XRP(10000) + XRP(1));\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3868047026"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-02T20:07:22Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
+     "body": "Note here we introduced a different behavior\n\nbefore: if correct pub key and terminal, then we will destroy with fee\n\nnow: if terminal, then we will destroy with fee. Here it means any random ppl trying to sign even without a valid pub key / signature. \n\nI prefer the now version.  What do you guys think? @shawnxie999",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3918174152"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-04T18:31:39Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "⚪ **Severity: LOW**\n\nFor batch inner transactions with a `sfDelegate`, `isRequiredSigningFor` accepts **both** the inner Account and the Delegate as required signers. When delegation is active only the Delegate should sign; accepting the Account may allow recording a contribution that the batch submit-path verification will ultimately reject.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Mirror the `isOuterSigningFor` logic for batch inner transactions: when `sfDelegate` is present on an inner transaction, only the delegate should be accepted as the required signer — the Account must be excluded. This is consistent with `isOuterSigningFor` (lines 49-55) and `STTx::getInitiator`, which both return only the delegate when `sfDelegate` is present. Replace the OR condition that accepts both Account and Delegate with an if/else that prioritizes `sfDelegate` when present.\n\n> **⚠️ Experimental Feature**: This code suggestion is automatically generated. Please review carefully.\n\n```suggestion\n    return std::ranges::any_of(proposedTx.getFieldArray(sfRawTransactions), [&](auto const& inner) {\n        auto const tx = innerTxn(inner);\n        if (signingFor == outer)\n            return false;\n        // Mirror isOuterSigningFor: when sfDelegate is present, only the\n        // delegate is the required signer, not the Account.\n        if (tx.isFieldPresent(sfDelegate))\n            return tx.getAccountID(sfDelegate) == signingFor;\n        return tx.isFieldPresent(sfAccount) && tx.getAccountID(sfAccount) == signingFor;\n    });\n```\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3936903135"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-08T17:37:15Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "can reuse getSigningData",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3960619115"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-08T17:59:16Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "what if a batch has Sponsor field? Then wouldnt that also be signing for the outer?",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3960790629"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-08T18:00:25Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "should add a comment that this is getting the payload for a `BatchSigner`",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3960799805"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-08T21:02:53Z",
+     "path": "src/test/jtx/proposal.h",
+     "body": "Can we rename these methods to `proposal_id`? This communicates the intent better.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962224467"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-08T21:11:48Z",
+     "path": "src/libxrpl/tx/Transactor.cpp",
+     "body": "We need to check if the submitted transaction's payload matches that of the proposal. This check is missing here.\n\nBesides, I have already covered the logic for the auto-deletion of the trust-lines inside the `TransactionProposalCancel` PR.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962291035"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-08T21:20:53Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
+     "body": "should return tec or internal code",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962355831"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-08T21:21:56Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
+     "body": "perhaps with fail with tefBAD_SIGNATURE? this is the error returned from Transactor::checkSign so we might want to be consistent",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962363057"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-08T21:28:14Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "^^ this is a valid suggestion. Please refer to the implementation of `isOuterSigningFor` in this file.\n\nI recommend that we use [`STTx::getInitiator()` method](https://github.com/XRPLF/rippled/blob/3e4bdf2782d7e076bb71c88091b81159c1dbdaec/src/libxrpl/protocol/STTx.cpp#L660) to determine whether a `sfDelegate` (or) `sfAccount` is to be used.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962416294"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-08T21:36:52Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
+     "body": "This design does not allow an inner-batch transaction (say Account-Outer) to fund a new account (say Account-Fresh) AND a subsequent inner-batch transaction to be initiated from Account-fresh. This feature is allowed in the normally submitted batch transactions.\n\n`permitPhantom` must be set to `true`, in case of all the inner-batch-transactions, in the single-sign case also. (this is missing in this implementation)\n\nThe below test captures the expectations of phantom inner accounts in a Batch transaction:\n\n```\nvoid\ntestBatchInnerFromUncreatedAccount(FeatureBitset features)\n{\n    testcase(\"batch inner from an account an earlier inner creates\");\n\n    using namespace jtx;\n    using namespace std::chrono_literals;\n\n    Env env{*this, features};\n\n    Account const outer{\"outer\"};\n    Account const dest{\"dest\"};\n    Account const fresh{\"fresh\"};  // never funded: the batch creates it\n    env.fund(XRP(10000), outer, dest);\n    env.close();\n    BEAST_EXPECT(!env.le(keylet::account(fresh.id())));\n\n    std::uint32_t const ticketSeq = proposal::createTicket(env, outer);\n    json::Value const proposedTx = proposal::unsignedBatch(\n        env,\n        outer,\n        ticketSeq,\n        tfAllOrNothing,\n        {proposal::innerTx(pay(outer, fresh, XRP(1000)), env.seq(outer)),\n         proposal::innerTx(pay(fresh, dest, XRP(1)), env.current()->seq())},\n        /*numSigners=*/1);\n\n    env(proposal::create(outer, proposedTx, proposal::expiration(env, 100s)));\n    env.close();\n\n    // Batch::checkBatchSign authorizes an inner from a not-yet-created\n    // account with that account's own master key\n    // (permitUncreatedAccount=true), so this is a contribution the\n    // completed Batch will accept and it must be recordable here.\n    env(proposal::sign(env, outer, outer, ticketSeq, fresh, fresh));\n    env.close();\n\n    auto const sle = proposal::entry(env, outer, ticketSeq);\n    if (!BEAST_EXPECT(sle))\n        return;\n    auto const stored = sle->getFieldObject(sfProposedTransaction);\n    BEAST_EXPECT(stored.isFieldPresent(sfBatchSigners));\n    auto const& batchSigners = stored.getFieldArray(sfBatchSigners);\n    BEAST_EXPECT(batchSigners.size() == 1);\n    BEAST_EXPECT(batchSigners[0].getAccountID(sfAccount) == fresh.id());\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962479764"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-09T13:16:25Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
+     "body": "NVM, i think changing it to a tec code like tecNO_PERMISSION is possibly more ideal. temBAD_SIGNATURE or tefBAD_SIGNATURE are the codes returned for the actual signature validations of the txn itself (preventing the tx from relayed). But in our case, the signature of txn itself is valid, but instead it is appending a signature to a proposed tx, which so an actual TEC code can actually be used here",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3968849971"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-09T14:59:46Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
+     "body": "this check can be moved to preflight - it requries no ledger fetching",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3969899016"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-10T15:45:07Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
+     "body": "maybe return an internal errr?",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3980879222"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-10T16:13:28Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
+     "body": "I think the function can be refactored to reuse checkSingleSign? Example:\n\n ```\n  TER\ncheckSignerKey(\n    ReadView const& view,\n    AccountID const& signerAccount,\n    Slice const& signingPubKey,\n    bool const permitPhantom,\n    beast::Journal j)\n{\n    // Defensive: preclaim already ran verify(), which fails on an unparseable\n    // key, so a caller from that path never reaches this branch.\n    // LCOV_EXCL_START\n    if (!publicKeyType(signingPubKey))\n    {\n        JLOG(j.debug()) << \"TransactionProposalSign: unknown key type.\";\n        return temBAD_SIGNATURE;\n    }\n    // LCOV_EXCL_STOP\n\n    auto const fromKey = calcAccountID(PublicKey(signingPubKey));\n    auto const sleSigner = view.read(keylet::account(signerAccount));\n    if (!sleSigner)\n    {\n        if (permitPhantom && fromKey == signerAccount)\n            return tesSUCCESS;\n        // Single-sign path: signerAccount is SigningFor, which is the\n        // proposed transaction's target and was verified to exist at\n        // TransactionProposalCreate time.\n        if (fromKey == signerAccount)\n            return tecNO_PERMISSION;  // LCOV_EXCL_LINE\n        JLOG(j.debug()) << \"TransactionProposalSign: key does not match \"\n                           \"master or regular key.\";\n        return tecNO_PERMISSION;\n    }\n\n    if (auto const ret =\n            Transactor::checkSingleSign(view, fromKey, signerAccount, sleSigner, j);\n        !isTesSuccess(ret))\n    {\n        if (ret == tefMASTER_DISABLED)\n        {\n            JLOG(j.debug()) << \"TransactionProposalSign: master key disabled.\";\n        }\n        else\n        {\n            JLOG(j.debug()) << \"TransactionProposalSign: key does not match \"\n                               \"master or regular key.\";\n        }\n        return tecNO_PERMISSION;\n    }\n    return tesSUCCESS;\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981152719"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-10T16:13:38Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
+     "body": "Good point, I believe you are right.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981154876"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-10T16:36:36Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "you can also use the getInitiator() helper here for verifying Delegate/Account",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981345338"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-10T17:47:19Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "I believe we need to check for both Counterparty and Sponsor fields here.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981930734"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-10T18:07:59Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "we should prob have a new helper\n```\nstd::optional<SignatureRole>\nauxiliaryRole(STObject const& proposedTx, AccountID const& signingFor)\n{\n    if (signingFor == getInitiator(proposedTx))\n        return std::nullopt;\n    if (auto const counterparty = proposedTx[~sfCounterparty];\n        counterparty && *counterparty == signingFor)\n        return SignatureRole::Counterparty;\n    if (auto const sponsor = proposedTx[~sfSponsor]; sponsor && *sponsor == signingFor)\n        return SignatureRole::Sponsor;\n    return std::nullopt;\n}\n\n```\n\n`isOuterSigningFor` should be modified to include the cosignatures\n```\nbool\nisOuterSigningFor(STObject const& proposedTx, AccountID const& signingFor)\n{\n    // A contribution for the proposed transaction itself: its initiator\n    // (Account or Delegate), or a Counterparty / Sponsor co-signature.\n    // Not an inner Batch participant — those go in sfBatchSigners.\n    return signingFor == getInitiator(proposedTx) ||\n        auxiliaryRole(proposedTx, signingFor).has_value();\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3982097326"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-10T18:45:14Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "This is not going to work with Counterparty and Sponsor signatures, which has a different signing payload for:\n1. They don't populate SigningPubKey\n2. Different hashprefix\n\nThe function would need to be updated to something like below (please double check). Also re-using the `auxiliaryRole` I introduced in the other comment\n\n```\nstd::optional<Serializer>\nsigningData(\n    STObject const& proposedTx,\n    AccountID const& signingFor,\n    AccountID const& signerAccount,\n    Slice const& signingPubKey,\n    Rules const& rules)\n{\n    auto const singleSign = signerAccount == signingFor;\n    auto const forOuter = isOuterSigningFor(proposedTx, signingFor);\n    auto const auxRole = auxiliaryRole(proposedTx, signingFor);\n\n    // Hash the same canonical STTx the ordinary submit path will verify, not\n    // the untyped nested object stored on the proposal.\n    try\n    {\n        STTx stx{STObject{proposedTx}};\n\n        if (stx.getTxnType() == ttBATCH && !forOuter)\n        {\n            Serializer msg;\n            serializeBatch(\n                msg,\n                stx.getAccountID(sfAccount),\n                stx.getSeqProxy().value(),\n                stx.getFlags(),\n                stx.getBatchTransactionIDs());\n            if (singleSign)\n            {\n                finishMultiSigningData(signingFor, msg);\n            }\n            else\n            {\n                msg.addBitString(signingFor);\n                finishMultiSigningData(signerAccount, msg);\n            }\n            return msg;\n        }\n\n        auto const role = auxRole.value_or(SignatureRole::Transaction);\n        auto const prefix = signingPrefix(role, !singleSign, rules);\n\n        if (singleSign)\n        {\n            if (role == SignatureRole::Transaction)\n                stx.setFieldVL(sfSigningPubKey, signingPubKey);\n            Serializer s;\n            s.add32(prefix);\n            stx.addWithoutSigningFields(s);\n            return s;\n        }\n\n        return buildMultiSigningData(stx, signerAccount, prefix);\n    }\n    catch (std::exception const&)\n    {\n        // Defensive: proposedTx was validated at TransactionProposalCreate\n        // preflight, so an exception building STTx from it is unexpected\n        // ledger state, not a normal preclaim path.\n        return std::nullopt;  // LCOV_EXCL_LINE\n    }\n}\n\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3982389453"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-10T18:50:14Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "we can actually just call `isOuterSigningFor` here. The signatures of Counterparty and Sponsor are included in `BatchSigners, which should be checked for.\n\n```\n    return std::ranges::any_of(proposedTx.getFieldArray(sfRawTransactions), [&](auto const& inner) {\n        return signingFor != outer && isOuterSigningFor(innerTxn(inner), signingFor);\n    });\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3982427873"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-10T20:08:07Z",
+     "path": "src/test/jtx/proposal.h",
+     "body": "The namespace already specified \"proposal\". For proposal::id vs proposal::proposal_id, I would prefer the first one",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983047054"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-09-10T20:46:06Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Sponsor and Counterparty aren't \"signing for the outer\", they contribute to their own dedicated slots (`SponsorSignature` / `CounterpartySignature`) alongside the outer's Signers, not into it. That's different from sfDelegat. `isOuterSigningFor` correctly returns false for sponsor.\n\nRouting to those auxiliary slots is out of scope for this PR (ordinary + batch); isRequiredSigningFor currently rejects SigningFor = sponsor with tecNO_PERMISSION.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983343262"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-10T21:42:34Z",
+     "path": "include/xrpl/ledger/helpers/ProposalHelpers.h",
+     "body": "```suggestion\n * signature from: its Account or Delegate, Sponsor, Counterparty or — for a Batch — an inner\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983756242"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-10T21:59:26Z",
+     "path": "src/test/app/TransactionProposalSign_test.cpp",
+     "body": "```suggestion\n        STObject const proposedTx = proposedJson(env, target, ticketSeq);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983870800"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-10T22:04:54Z",
+     "path": "src/test/app/TransactionProposalSign_test.cpp",
+     "body": "Does this file include a test case where the `TransactionProposalSign` transaction is itself multi-signed? In such a case, the `submitter` needs to specify a higher transaction fee.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983909286"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-10T22:12:32Z",
+     "path": "src/test/app/TransactionProposalSign_test.cpp",
+     "body": "A missing `ProposalSignature.Account` must also throw a `temMALFORMED` error.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983955519"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-10T22:14:46Z",
+     "path": "src/test/app/TransactionProposalSign_test.cpp",
+     "body": "```suggestion\n            auto const stored = proposedJson(env, target, ticketSeq);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983969107"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-10T22:23:20Z",
+     "path": "src/test/app/TransactionProposalSign_test.cpp",
+     "body": "this test could use a better description. This set up is not indicative of \"ordinary\" signing :)\n```suggestion\n        testcase(\"Proposed-Transaction uses a Delegate Account, Delegate-Account has configured a SignerList / multi-signing\");\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3984021546"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-11T15:30:57Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "we already have STTx::getInitiator()",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3990724667"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-14T17:16:02Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "We should support sponsored signature here as well. I believe an inner batch requires an empty `SponsorSignature` object during initial proposal creation, which is necessary for sponsored reserve. cc @ckeshava",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4007688698"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-14T17:49:05Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "exlucde cov",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4007958405"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-14T18:15:59Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
+     "body": "we should check similar during proposal creation imo - making it fail if the proposal contains ambiguous/duplicate accounts for Account, Sponsor, Delegate, Counterparty. i realized that we cant really have a single account sign for two roles since they have different hashprefix",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008174002"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-09-14T18:21:33Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "i'm not sure if this fully works, since a sponsored txn doesn't necesarilly require a `SponsorSignature`, so it would also categorize valid txn as ambiguous?",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008219462"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-14T19:31:07Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "This case indicates that a proposed-transaction which was supposed to be single-signed instead has `sfSigners` entry. This indicates ledger-state corruption.\n\nWe should remove such a corrupted transaction-proposal. I believe `tefBAD_LEDGER` is also an error code used to indicate such corrupted ledger-states in other transactors.\n\nA `tecNO_PERMISSION` is a misleading error code because it implies that the current submitter of `TransactionProposalSign` has committed an error, however the ledger-state is already incorrect.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008796340"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-14T19:32:01Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Similar to the above remark, this indicates a corrupted ledger state. We should make efforts to actively report such a state and remove corrupted entries.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008803561"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-14T20:47:36Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "^ To avoid this type of oversight, it is beneficial to refactor+re-use the logic in `Batch::preflightSigValidated` method. If you can build and retrieve the `requiredSigners` list from that method, it can be re-used here.",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4009448380"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-09-14T20:50:10Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Does this comment imply that a proposed-Batch transaction cannot have a `sfSponsor` for an inner transaction?",
+     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4009468325"
+    }
+   ]
+  },
+  {
    "number": 8505,
    "title": "feat: Accept a JSON-RPC 2.0 batch from API version 3",
    "url": "https://github.com/XRPLF/rippled/pull/8505",
    "state": "open",
    "author": "bthomee",
    "createdAt": "2026-10-06T00:38:42Z",
-   "updatedAt": "2026-10-06T00:50:28Z",
+   "updatedAt": "2026-10-06T09:02:52Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -54,11 +508,11 @@
    "draft": false,
    "base": "bthomee/rpc-20-websocket-envelope",
    "head": "XRPLF:bthomee/rpc-21-batch",
-   "additions": 1073,
-   "deletions": 114,
+   "additions": 1130,
+   "deletions": 113,
    "changedFiles": 5,
    "commits": 1,
-   "reviewComments": 3,
+   "reviewComments": 7,
    "reviews": [
     {
      "author": "copilot-pull-request-reviewer[bot]",
@@ -71,6 +525,36 @@
      "state": "APPROVED",
      "date": "2026-10-06T00:49:54Z",
      "body": "This is a large, carefully constructed change implementing JSON-RPC 2.0 top-level array batches for API version 3+, with an extensive matching test suite in ServerStatus_test.cpp and Version_test.cpp. I traced the core logic in ServerHandler.cpp (screenArrayBatch, firstObjectEntry, batchEntry, the body-version-agreement scan, rejectWholeBody, and the per-entry reject/dispatch paths) against the new tests and the stated design in API-CHANGELOG.md. The charging, secret-masking, and version-selection paths are internally consistent with the tests added (e.g. unsupported-version entries never echo secrets, the cap reads the body's single version rather than any one entry, mismatched entries are refused whole). I did not find a clear, diff-confirmable correctness or security bug in the changed lines. One subtlety worth double-checking in review/CI rather than asserting as a bug: for the top-level array form, `firstObjectEntry` + `apiVersionOf` derive the batch's governing version strictly from the *first object entry*, defaulting to the unspecified version (not spec-version) if that first entry doesn't itself name `api_version` — even if a later entry explicitly names version 3. That matches the doc comment on `firstObjectEntry` ('the first entry that can carry one decides'), but it isn't exercised by any test where entry 0 names no version and a later entry names 3, so it's worth a quick manual check that this is the intended behavior rather than an oversight."
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:27:21Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:27:23Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:27:24Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:45:42Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nTwo version-selection paths still produce order-dependent batch behavior.\n\n**Review effort:** Balanced  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Bearer version selection depends on entry order](#discussion_r4193282988) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (3)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Unsupported batch api_version is silently ignored](#discussion_r4190379085)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Array version detection is order-dependent](#discussion_r4190379027)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Error count and unchanged-response claim are inaccurate](#discussion_r4190379113)\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-06T09:02:52Z",
+     "body": "This is an exceptionally well-reasoned and thoroughly tested change implementing JSON-RPC 2.0 top-level array batches for API version 3, plus the one-version-per-batch invariant for the legacy `method: \"batch\"` form. I traced the new helpers (`versionBearer`, `screenArrayBatch`, `batchEntry`, the extended `apiVersionOf`) and the restructured dispatch loop in `ServerHandler.cpp` against the extensive new test matrix in `ServerStatus_test.cpp`, checking entry-count cap boundaries (`>` vs `>=`), version-inheritance/mismatch detection, charge-once-vs-charge-per-entry behavior, and the `reject`/`rejectWholeBody` lambda call-site argument reordering. Everything I checked is internally consistent and matches the pinned test expectations; I did not find a correctness or security defect I'm confident in. The one thing worth a second pair of eyes, called out below, is non-blocking."
     }
    ],
    "reviewCommentsList": [
@@ -94,6 +578,34 @@
      "path": "API-CHANGELOG.md",
      "body": "This count and the claim that every answer is unchanged conflict with the implementation and the note on line 57. The old generic “not a JSON object” array case has been replaced by five specific array cases, not added alongside them, and those arrays now receive JSON-RPC error bodies instead of the old plain-text response. Rewrite this entry to count the final rejection paths and explicitly exclude the array response changes described below.",
      "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4190379113"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-06T08:27:21Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "Right. The array's version is now taken from the first entry that names one, inside its `params` or at its top level, with the first object entry as the fallback when none does, so `[bare, version3]` and `[version3, bare]` are both served at version 3 and an all-unspecified array is still refused as below version 3. A test sends the bare entry first; the two documents describe the rule.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193125828"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-06T08:27:23Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "Right. A `method: \"batch\"` body whose own `api_version` the server does not serve is now refused with `invalid_API_version`, as an array naming one is, rather than served at version 1; only an absent member leaves the body's version unset. A test sends `api_version: 99` and the changelog's one-version bullet records the refusal.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193125990"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-06T08:27:24Z",
+     "path": "API-CHANGELOG.md",
+     "body": "Right. The bullet now counts a body that is neither an object nor an array among the ten, says the answer to the first five is unchanged, and refers the array's changed answers to the entry below.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193126184"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-06T08:45:42Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "The bearer selection makes acceptance depend on entry order when an unsupported version precedes a valid version-3 request. For example, `[api_version:99, api_version:3]` is rejected as a whole here, while the reversed array is accepted and returns a per-entry wrong-version error (the behavior asserted by the new unsupported-entry test). Select a supported version bearer before deciding the array's envelope, or consistently reject an unsupported version anywhere in the array.\n\nThis issue also appears on line 1413 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193282988"
     }
    ]
   },
@@ -104,7 +616,7 @@
    "state": "open",
    "author": "bthomee",
    "createdAt": "2026-10-06T00:38:22Z",
-   "updatedAt": "2026-10-06T00:50:10Z",
+   "updatedAt": "2026-10-06T08:44:06Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -121,11 +633,11 @@
    "draft": false,
    "base": "bthomee/rpc-11-unread-body-reasons",
    "head": "XRPLF:bthomee/rpc-12-batch-identity",
-   "additions": 77,
+   "additions": 79,
    "deletions": 11,
    "changedFiles": 3,
    "commits": 1,
-   "reviewComments": 1,
+   "reviewComments": 2,
    "reviews": [
     {
      "author": "xrplf-ai-reviewer[bot]",
@@ -138,6 +650,24 @@
      "state": "COMMENTED",
      "date": "2026-10-06T00:43:40Z",
      "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nThe forwarded-for preservation path lacks direct regression coverage.\n\n**Review effort:** Balanced  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Regression test omits forwarded-for coverage for second ping](#discussion_r4190371039) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nFixes batch RPC identity leakage between entries by preserving connection-level headers.\n\n**Changes:**\n- Uses entry-scoped identity views.\n- Adds a batch identity regression test.\n- Documents the behavior change.\n\n| File | Description |\n| ---- | ----------- |\n| `ServerHandler.cpp` | Preserves connection identity across batch entries. |\n| `ServerStatus_test.cpp` | Tests `X-User` preservation. |\n| `API-CHANGELOG.md` | Records the fix. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/bthomee/rpc-11-unread-body-reasons?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-06T08:26:39Z",
+     "body": "The diff correctly fixes the described bug: instead of mutating the shared `user`/`forwardedFor` string_views in place (which permanently truncated them for all subsequent batch entries once one entry was unidentified), it now computes entry-scoped `entryUser`/`entryForwardedFor` views per iteration without mutating the originals. This preserves the connection's identity across entries while still stripping it for the specific unidentified entry's own context. The accompanying test (`testBatchIdentity`) exercises exactly this scenario (admin entry followed by a header-identified entry) and the `makeHTTPRequest` fix (`name_string()` instead of `name()`) correctly addresses Beast's assertion on unknown header enumerators like `X-User`. No correctness, security, or style issues found in the changed lines."
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:27:02Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:44:06Z",
+     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nThe focused fix preserves existing single-request behavior and is covered by a representative regression test.\n\n**Review effort:** Balanced  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Regression test omits forwarded-for coverage for second ping](#discussion_r4190371039)\n</details>"
     }
    ],
    "reviewCommentsList": [
@@ -147,6 +677,13 @@
      "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
      "body": "The regression test exercises only `entryUser`; it never sends or asserts a forwarded-for value, even though this independent view is part of the fix and the changelog promise. Please add `X-Forwarded-For` to the batch request and verify the second `ping` result retains its `ip`.",
      "url": "https://github.com/XRPLF/rippled/pull/8496#discussion_r4190371039"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-06T08:27:02Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "Right. The batch now also carries `X-Forwarded-For`, and the second `ping` is asserted to report that address in `ip` beside the kept `X-User`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8496#discussion_r4193123055"
     }
    ]
   },
@@ -2152,452 +2689,6 @@
      "path": "src/test/jtx/vault.h",
      "body": "CreateArgs::sequence uses an unqualified `uint32_t` which may rely on non-portable global typedefs from <cstdint> and is inconsistent with the surrounding `std::uint32_t` usage.",
      "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r3908729336"
-    }
-   ]
-  },
-  {
-   "number": 8127,
-   "title": "Transaction ProposalSign for ordinary and batch",
-   "url": "https://github.com/XRPLF/rippled/pull/8127",
-   "state": "open",
-   "author": "Kassaking7",
-   "createdAt": "2026-08-26T17:04:39Z",
-   "updatedAt": "2026-09-16T19:08:43Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-08-26T17:16:10Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `97.32938%` with `9 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/ledger/helpers/ProposalHelpers.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvbGVkZ2VyL2hlbHBlcnMvUHJvcG9zYWxIZWxwZXJzLmNwcA==) | 97.0% | [5 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/Transactor.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvVHJhbnNhY3Rvci5jcHA=) | 80.0% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...x/transactors/proposal/TransactionProposalSign.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvcHJvcG9zYWwvVHJhbnNhY3Rpb25Qcm9wb3NhbFNpZ24uY3Bw) | 99.1% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8127?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5428579353"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-04T13:05:13Z",
-     "body": "I haven't looked at the PR but please increase line coverage. Also be sure to test as many edge case scenarios as possible",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5540845964"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-09T14:54:53Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5603931231"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-09T19:18:02Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#issuecomment-5607384005"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "ripple/cosign",
-   "head": "Kassaking7:TransactionProposalSign-ordinary-batch",
-   "additions": 3634,
-   "deletions": 15,
-   "changedFiles": 17,
-   "commits": 17,
-   "reviewComments": 40,
-   "reviews": [
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-08-27T01:36:35Z",
-     "body": ""
-    },
-    {
-     "author": "Kassaking7",
-     "state": "COMMENTED",
-     "date": "2026-09-02T20:07:23Z",
-     "body": ""
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-04T18:31:39Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-08T20:19:13Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-08T21:20:52Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-08T21:21:56Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-09-08T21:37:06Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-09T13:16:25Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-09T14:59:46Z",
-     "body": ""
-    },
-    {
-     "author": "Kassaking7",
-     "state": "COMMENTED",
-     "date": "2026-09-10T20:08:08Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-10T20:43:37Z",
-     "body": "Partial review so far. There are some cosignatures cases not covered"
-    },
-    {
-     "author": "Kassaking7",
-     "state": "COMMENTED",
-     "date": "2026-09-10T20:46:06Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-09-10T22:26:43Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-11T15:30:56Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-14T17:16:02Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-14T17:49:05Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-14T18:15:58Z",
-     "body": ""
-    },
-    {
-     "author": "shawnxie999",
-     "state": "COMMENTED",
-     "date": "2026-09-14T18:21:32Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-09-14T20:52:28Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "ckeshava",
-     "date": "2026-08-27T01:22:27Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "We can save compute cycles by moving this check to the top of the preclaim method.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3867995057"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-08-27T01:36:22Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "If the proposedTx payload makes a mention of `sfDelegate`, the delegated-account must authorize this transaction. A TransactionProposalSign from the actual account must be rejected with an error code. The order of these two checks need to be flipped.\n\nReference [documentation for Delegated transactions](https://xrpl.org/docs/references/protocol/transactions/common-fields#delegate).\n\n[Other parts of rippled](https://github.com/XRPLF/rippled/blob/b6a899583b2da4dd03aa3fd95599d2f5f16b80ac/src/libxrpl/protocol/STTx.cpp#L662) have switched the order of checks. i.e. we first check if sfDelegate is specified in the payload of the transaction, if not, we default to the sfAccount value. \n\nHere is the test case that demonstrates this issue:\n```\nvoid\ntestDelegatedPayloadRejectsAccountSigningFor(FeatureBitset features)\n{\n    testcase(\"delegated payload rejects SigningFor = Account\");\n\n    using namespace jtx;\n    using namespace std::chrono_literals;\n\n    Env env{*this, features};\n\n    Account const target{\"target\"};\n    Account const dest{\"dest\"};\n    Account const delegateAcct{\"delegateAcct\"};\n    Account const ds1{\"ds1\"};\n    env.fund(XRP(10000), target, dest, delegateAcct, ds1);\n    env.close();\n\n    env(delegate::set(target, delegateAcct, {\"Payment\"}));\n    env(signers(delegateAcct, 1, {{ds1, 1}}));\n    env.close();\n\n    std::uint32_t const ticketSeq = proposal::createTicket(env, target);\n    json::Value tx = pay(target, dest, XRP(1));\n    tx[sfDelegate.jsonName] = delegateAcct.human();\n    env(proposal::create(\n        target,\n        proposal::unsignedPayload(env, tx, ticketSeq, /*extraSigners=*/1),\n        proposal::expiration(env, 100s)));\n    env.close();\n\n    // The Delegate authorizes this payload; the Account does not. Its\n    // contribution must be refused rather than written into the payload's\n    // own signature slot, where it would lock the Delegate out for good.\n    env(proposal::sign(env, target, target, ticketSeq, target, target),\n        Ter(tecNO_PERMISSION));\n    env.close();\n\n    {\n        auto const sle = proposal::entry(env, target, ticketSeq);\n        if (!BEAST_EXPECT(sle))\n            return;\n        auto const stored = sle->getFieldObject(sfProposedTransaction);\n        BEAST_EXPECT(stored.getFieldVL(sfSigningPubKey).empty());\n        BEAST_EXPECT(!stored.isFieldPresent(sfTxnSignature));\n    }\n\n    // The Delegate's signer is still able to contribute and complete it.\n    env(proposal::sign(env, ds1, target, ticketSeq, delegateAcct, ds1));\n    env.close();\n\n    env(proposedJson(env, target, ticketSeq), Sig(kNone));\n    env.close();\n\n    BEAST_EXPECT(!proposal::entry(env, target, ticketSeq));\n    BEAST_EXPECT(env.balance(dest) == XRP(10000) + XRP(1));\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3868047026"
-    },
-    {
-     "author": "Kassaking7",
-     "date": "2026-09-02T20:07:22Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "Note here we introduced a different behavior\n\nbefore: if correct pub key and terminal, then we will destroy with fee\n\nnow: if terminal, then we will destroy with fee. Here it means any random ppl trying to sign even without a valid pub key / signature. \n\nI prefer the now version.  What do you guys think? @shawnxie999",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3918174152"
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "date": "2026-09-04T18:31:39Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "⚪ **Severity: LOW**\n\nFor batch inner transactions with a `sfDelegate`, `isRequiredSigningFor` accepts **both** the inner Account and the Delegate as required signers. When delegation is active only the Delegate should sign; accepting the Account may allow recording a contribution that the batch submit-path verification will ultimately reject.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Mirror the `isOuterSigningFor` logic for batch inner transactions: when `sfDelegate` is present on an inner transaction, only the delegate should be accepted as the required signer — the Account must be excluded. This is consistent with `isOuterSigningFor` (lines 49-55) and `STTx::getInitiator`, which both return only the delegate when `sfDelegate` is present. Replace the OR condition that accepts both Account and Delegate with an if/else that prioritizes `sfDelegate` when present.\n\n> **⚠️ Experimental Feature**: This code suggestion is automatically generated. Please review carefully.\n\n```suggestion\n    return std::ranges::any_of(proposedTx.getFieldArray(sfRawTransactions), [&](auto const& inner) {\n        auto const tx = innerTxn(inner);\n        if (signingFor == outer)\n            return false;\n        // Mirror isOuterSigningFor: when sfDelegate is present, only the\n        // delegate is the required signer, not the Account.\n        if (tx.isFieldPresent(sfDelegate))\n            return tx.getAccountID(sfDelegate) == signingFor;\n        return tx.isFieldPresent(sfAccount) && tx.getAccountID(sfAccount) == signingFor;\n    });\n```\n\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3936903135"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-08T17:37:15Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "can reuse getSigningData",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3960619115"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-08T17:59:16Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "what if a batch has Sponsor field? Then wouldnt that also be signing for the outer?",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3960790629"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-08T18:00:25Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "should add a comment that this is getting the payload for a `BatchSigner`",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3960799805"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-08T21:02:53Z",
-     "path": "src/test/jtx/proposal.h",
-     "body": "Can we rename these methods to `proposal_id`? This communicates the intent better.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962224467"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-08T21:11:48Z",
-     "path": "src/libxrpl/tx/Transactor.cpp",
-     "body": "We need to check if the submitted transaction's payload matches that of the proposal. This check is missing here.\n\nBesides, I have already covered the logic for the auto-deletion of the trust-lines inside the `TransactionProposalCancel` PR.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962291035"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-08T21:20:53Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "should return tec or internal code",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962355831"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-08T21:21:56Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "perhaps with fail with tefBAD_SIGNATURE? this is the error returned from Transactor::checkSign so we might want to be consistent",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962363057"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-08T21:28:14Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "^^ this is a valid suggestion. Please refer to the implementation of `isOuterSigningFor` in this file.\n\nI recommend that we use [`STTx::getInitiator()` method](https://github.com/XRPLF/rippled/blob/3e4bdf2782d7e076bb71c88091b81159c1dbdaec/src/libxrpl/protocol/STTx.cpp#L660) to determine whether a `sfDelegate` (or) `sfAccount` is to be used.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962416294"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-08T21:36:52Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "This design does not allow an inner-batch transaction (say Account-Outer) to fund a new account (say Account-Fresh) AND a subsequent inner-batch transaction to be initiated from Account-fresh. This feature is allowed in the normally submitted batch transactions.\n\n`permitPhantom` must be set to `true`, in case of all the inner-batch-transactions, in the single-sign case also. (this is missing in this implementation)\n\nThe below test captures the expectations of phantom inner accounts in a Batch transaction:\n\n```\nvoid\ntestBatchInnerFromUncreatedAccount(FeatureBitset features)\n{\n    testcase(\"batch inner from an account an earlier inner creates\");\n\n    using namespace jtx;\n    using namespace std::chrono_literals;\n\n    Env env{*this, features};\n\n    Account const outer{\"outer\"};\n    Account const dest{\"dest\"};\n    Account const fresh{\"fresh\"};  // never funded: the batch creates it\n    env.fund(XRP(10000), outer, dest);\n    env.close();\n    BEAST_EXPECT(!env.le(keylet::account(fresh.id())));\n\n    std::uint32_t const ticketSeq = proposal::createTicket(env, outer);\n    json::Value const proposedTx = proposal::unsignedBatch(\n        env,\n        outer,\n        ticketSeq,\n        tfAllOrNothing,\n        {proposal::innerTx(pay(outer, fresh, XRP(1000)), env.seq(outer)),\n         proposal::innerTx(pay(fresh, dest, XRP(1)), env.current()->seq())},\n        /*numSigners=*/1);\n\n    env(proposal::create(outer, proposedTx, proposal::expiration(env, 100s)));\n    env.close();\n\n    // Batch::checkBatchSign authorizes an inner from a not-yet-created\n    // account with that account's own master key\n    // (permitUncreatedAccount=true), so this is a contribution the\n    // completed Batch will accept and it must be recordable here.\n    env(proposal::sign(env, outer, outer, ticketSeq, fresh, fresh));\n    env.close();\n\n    auto const sle = proposal::entry(env, outer, ticketSeq);\n    if (!BEAST_EXPECT(sle))\n        return;\n    auto const stored = sle->getFieldObject(sfProposedTransaction);\n    BEAST_EXPECT(stored.isFieldPresent(sfBatchSigners));\n    auto const& batchSigners = stored.getFieldArray(sfBatchSigners);\n    BEAST_EXPECT(batchSigners.size() == 1);\n    BEAST_EXPECT(batchSigners[0].getAccountID(sfAccount) == fresh.id());\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3962479764"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-09T13:16:25Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "NVM, i think changing it to a tec code like tecNO_PERMISSION is possibly more ideal. temBAD_SIGNATURE or tefBAD_SIGNATURE are the codes returned for the actual signature validations of the txn itself (preventing the tx from relayed). But in our case, the signature of txn itself is valid, but instead it is appending a signature to a proposed tx, which so an actual TEC code can actually be used here",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3968849971"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-09T14:59:46Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "this check can be moved to preflight - it requries no ledger fetching",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3969899016"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T15:45:07Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "maybe return an internal errr?",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3980879222"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T16:13:28Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "I think the function can be refactored to reuse checkSingleSign? Example:\n\n ```\n  TER\ncheckSignerKey(\n    ReadView const& view,\n    AccountID const& signerAccount,\n    Slice const& signingPubKey,\n    bool const permitPhantom,\n    beast::Journal j)\n{\n    // Defensive: preclaim already ran verify(), which fails on an unparseable\n    // key, so a caller from that path never reaches this branch.\n    // LCOV_EXCL_START\n    if (!publicKeyType(signingPubKey))\n    {\n        JLOG(j.debug()) << \"TransactionProposalSign: unknown key type.\";\n        return temBAD_SIGNATURE;\n    }\n    // LCOV_EXCL_STOP\n\n    auto const fromKey = calcAccountID(PublicKey(signingPubKey));\n    auto const sleSigner = view.read(keylet::account(signerAccount));\n    if (!sleSigner)\n    {\n        if (permitPhantom && fromKey == signerAccount)\n            return tesSUCCESS;\n        // Single-sign path: signerAccount is SigningFor, which is the\n        // proposed transaction's target and was verified to exist at\n        // TransactionProposalCreate time.\n        if (fromKey == signerAccount)\n            return tecNO_PERMISSION;  // LCOV_EXCL_LINE\n        JLOG(j.debug()) << \"TransactionProposalSign: key does not match \"\n                           \"master or regular key.\";\n        return tecNO_PERMISSION;\n    }\n\n    if (auto const ret =\n            Transactor::checkSingleSign(view, fromKey, signerAccount, sleSigner, j);\n        !isTesSuccess(ret))\n    {\n        if (ret == tefMASTER_DISABLED)\n        {\n            JLOG(j.debug()) << \"TransactionProposalSign: master key disabled.\";\n        }\n        else\n        {\n            JLOG(j.debug()) << \"TransactionProposalSign: key does not match \"\n                               \"master or regular key.\";\n        }\n        return tecNO_PERMISSION;\n    }\n    return tesSUCCESS;\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981152719"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T16:13:38Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "Good point, I believe you are right.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981154876"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T16:36:36Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "you can also use the getInitiator() helper here for verifying Delegate/Account",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981345338"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T17:47:19Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "I believe we need to check for both Counterparty and Sponsor fields here.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3981930734"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T18:07:59Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "we should prob have a new helper\n```\nstd::optional<SignatureRole>\nauxiliaryRole(STObject const& proposedTx, AccountID const& signingFor)\n{\n    if (signingFor == getInitiator(proposedTx))\n        return std::nullopt;\n    if (auto const counterparty = proposedTx[~sfCounterparty];\n        counterparty && *counterparty == signingFor)\n        return SignatureRole::Counterparty;\n    if (auto const sponsor = proposedTx[~sfSponsor]; sponsor && *sponsor == signingFor)\n        return SignatureRole::Sponsor;\n    return std::nullopt;\n}\n\n```\n\n`isOuterSigningFor` should be modified to include the cosignatures\n```\nbool\nisOuterSigningFor(STObject const& proposedTx, AccountID const& signingFor)\n{\n    // A contribution for the proposed transaction itself: its initiator\n    // (Account or Delegate), or a Counterparty / Sponsor co-signature.\n    // Not an inner Batch participant — those go in sfBatchSigners.\n    return signingFor == getInitiator(proposedTx) ||\n        auxiliaryRole(proposedTx, signingFor).has_value();\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3982097326"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T18:45:14Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "This is not going to work with Counterparty and Sponsor signatures, which has a different signing payload for:\n1. They don't populate SigningPubKey\n2. Different hashprefix\n\nThe function would need to be updated to something like below (please double check). Also re-using the `auxiliaryRole` I introduced in the other comment\n\n```\nstd::optional<Serializer>\nsigningData(\n    STObject const& proposedTx,\n    AccountID const& signingFor,\n    AccountID const& signerAccount,\n    Slice const& signingPubKey,\n    Rules const& rules)\n{\n    auto const singleSign = signerAccount == signingFor;\n    auto const forOuter = isOuterSigningFor(proposedTx, signingFor);\n    auto const auxRole = auxiliaryRole(proposedTx, signingFor);\n\n    // Hash the same canonical STTx the ordinary submit path will verify, not\n    // the untyped nested object stored on the proposal.\n    try\n    {\n        STTx stx{STObject{proposedTx}};\n\n        if (stx.getTxnType() == ttBATCH && !forOuter)\n        {\n            Serializer msg;\n            serializeBatch(\n                msg,\n                stx.getAccountID(sfAccount),\n                stx.getSeqProxy().value(),\n                stx.getFlags(),\n                stx.getBatchTransactionIDs());\n            if (singleSign)\n            {\n                finishMultiSigningData(signingFor, msg);\n            }\n            else\n            {\n                msg.addBitString(signingFor);\n                finishMultiSigningData(signerAccount, msg);\n            }\n            return msg;\n        }\n\n        auto const role = auxRole.value_or(SignatureRole::Transaction);\n        auto const prefix = signingPrefix(role, !singleSign, rules);\n\n        if (singleSign)\n        {\n            if (role == SignatureRole::Transaction)\n                stx.setFieldVL(sfSigningPubKey, signingPubKey);\n            Serializer s;\n            s.add32(prefix);\n            stx.addWithoutSigningFields(s);\n            return s;\n        }\n\n        return buildMultiSigningData(stx, signerAccount, prefix);\n    }\n    catch (std::exception const&)\n    {\n        // Defensive: proposedTx was validated at TransactionProposalCreate\n        // preflight, so an exception building STTx from it is unexpected\n        // ledger state, not a normal preclaim path.\n        return std::nullopt;  // LCOV_EXCL_LINE\n    }\n}\n\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3982389453"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-10T18:50:14Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "we can actually just call `isOuterSigningFor` here. The signatures of Counterparty and Sponsor are included in `BatchSigners, which should be checked for.\n\n```\n    return std::ranges::any_of(proposedTx.getFieldArray(sfRawTransactions), [&](auto const& inner) {\n        return signingFor != outer && isOuterSigningFor(innerTxn(inner), signingFor);\n    });\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3982427873"
-    },
-    {
-     "author": "Kassaking7",
-     "date": "2026-09-10T20:08:07Z",
-     "path": "src/test/jtx/proposal.h",
-     "body": "The namespace already specified \"proposal\". For proposal::id vs proposal::proposal_id, I would prefer the first one",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983047054"
-    },
-    {
-     "author": "Kassaking7",
-     "date": "2026-09-10T20:46:06Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "Sponsor and Counterparty aren't \"signing for the outer\", they contribute to their own dedicated slots (`SponsorSignature` / `CounterpartySignature`) alongside the outer's Signers, not into it. That's different from sfDelegat. `isOuterSigningFor` correctly returns false for sponsor.\n\nRouting to those auxiliary slots is out of scope for this PR (ordinary + batch); isRequiredSigningFor currently rejects SigningFor = sponsor with tecNO_PERMISSION.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983343262"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T21:42:34Z",
-     "path": "include/xrpl/ledger/helpers/ProposalHelpers.h",
-     "body": "```suggestion\n * signature from: its Account or Delegate, Sponsor, Counterparty or — for a Batch — an inner\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983756242"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T21:59:26Z",
-     "path": "src/test/app/TransactionProposalSign_test.cpp",
-     "body": "```suggestion\n        STObject const proposedTx = proposedJson(env, target, ticketSeq);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983870800"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T22:04:54Z",
-     "path": "src/test/app/TransactionProposalSign_test.cpp",
-     "body": "Does this file include a test case where the `TransactionProposalSign` transaction is itself multi-signed? In such a case, the `submitter` needs to specify a higher transaction fee.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983909286"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T22:12:32Z",
-     "path": "src/test/app/TransactionProposalSign_test.cpp",
-     "body": "A missing `ProposalSignature.Account` must also throw a `temMALFORMED` error.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983955519"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T22:14:46Z",
-     "path": "src/test/app/TransactionProposalSign_test.cpp",
-     "body": "```suggestion\n            auto const stored = proposedJson(env, target, ticketSeq);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3983969107"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-10T22:23:20Z",
-     "path": "src/test/app/TransactionProposalSign_test.cpp",
-     "body": "this test could use a better description. This set up is not indicative of \"ordinary\" signing :)\n```suggestion\n        testcase(\"Proposed-Transaction uses a Delegate Account, Delegate-Account has configured a SignerList / multi-signing\");\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3984021546"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-11T15:30:57Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "we already have STTx::getInitiator()",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r3990724667"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-14T17:16:02Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "We should support sponsored signature here as well. I believe an inner batch requires an empty `SponsorSignature` object during initial proposal creation, which is necessary for sponsored reserve. cc @ckeshava",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4007688698"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-14T17:49:05Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "exlucde cov",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4007958405"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-14T18:15:59Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalSign.cpp",
-     "body": "we should check similar during proposal creation imo - making it fail if the proposal contains ambiguous/duplicate accounts for Account, Sponsor, Delegate, Counterparty. i realized that we cant really have a single account sign for two roles since they have different hashprefix",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008174002"
-    },
-    {
-     "author": "shawnxie999",
-     "date": "2026-09-14T18:21:33Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "i'm not sure if this fully works, since a sponsored txn doesn't necesarilly require a `SponsorSignature`, so it would also categorize valid txn as ambiguous?",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008219462"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-14T19:31:07Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "This case indicates that a proposed-transaction which was supposed to be single-signed instead has `sfSigners` entry. This indicates ledger-state corruption.\n\nWe should remove such a corrupted transaction-proposal. I believe `tefBAD_LEDGER` is also an error code used to indicate such corrupted ledger-states in other transactors.\n\nA `tecNO_PERMISSION` is a misleading error code because it implies that the current submitter of `TransactionProposalSign` has committed an error, however the ledger-state is already incorrect.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008796340"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-14T19:32:01Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "Similar to the above remark, this indicates a corrupted ledger state. We should make efforts to actively report such a state and remove corrupted entries.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4008803561"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-14T20:47:36Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "^ To avoid this type of oversight, it is beneficial to refactor+re-use the logic in `Batch::preflightSigValidated` method. If you can build and retrieve the `requiredSigners` list from that method, it can be re-used here.",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4009448380"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-09-14T20:50:10Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "Does this comment imply that a proposed-Batch transaction cannot have a `sfSponsor` for an inner transaction?",
-     "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4009468325"
     }
    ]
   },
