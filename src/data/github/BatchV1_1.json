@@ -1,6 +1,6 @@
 {
  "name": "BatchV1_1",
- "fetchedAt": "2026-10-08T08:01:46.080Z",
+ "fetchedAt": "2026-10-09T08:01:45.716Z",
  "summary": {
   "status": "in development",
   "prs": 9,
@@ -19,10 +19,10 @@
    "mvadari/batch-multisign-prefix",
    "ripple/custody-old-batch-cmpt"
   ],
-  "lastActivity": "2026-10-08T05:33:57Z",
+  "lastActivity": "2026-10-09T07:48:30Z",
   "lastMerged": "2026-10-06T00:32:15Z",
   "release": "3.3.0",
-  "totalComments": 246
+  "totalComments": 273
  },
  "release": {
   "version": "3.3.0",
@@ -32,13 +32,251 @@
  },
  "prs": [
   {
+   "number": 8505,
+   "title": "feat: Accept a JSON-RPC 2.0 batch from API version 3",
+   "url": "https://github.com/XRPLF/rippled/pull/8505",
+   "state": "open",
+   "author": "bthomee",
+   "createdAt": "2026-10-06T00:38:42Z",
+   "updatedAt": "2026-10-09T07:48:30Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-06T00:45:26Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8505?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#issuecomment-6006790878"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-08T11:33:43Z",
+     "body": "@xrplf-bot",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#issuecomment-6058944740"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-09T07:35:03Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#issuecomment-6076567308"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-09T07:35:03Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#issuecomment-6076567341"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-09T07:35:18Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#issuecomment-6076570609"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-09T07:35:18Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#issuecomment-6076570666"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nA top-level JSON array is the batch form the specification defines, accepted from API version 3. Each entry is a request in its own right, nesting its parameters as a lone request does and correlating by its own `id`. The answer is an array of one reply per entry at HTTP 200, as the `method: \"batch\"` form answers. All entries of one body must name the same `api_version`, or name none and inherit the body's, and a body whose entries disagree is refused whole. One body then has one version, which is what makes a 100-entry cap answerable: a cap that read a version off one entry could be side-stepped by reordering the entries, or by naming the version where the cap did not look, so the cap reads the body's one version, found wherever dispatch would find it.\n\n## Context of Change\n\nRefusing a mixed body is a break a version 1 or 2 client can see, recorded as such in `API-CHANGELOG.md`. A `method: \"batch\"` body whose entries name different versions is served today, each entry at its own version, and is refused from now on; one whose entries agree keeps working, and below version 3 that form stays uncapped.\n\nFive conditions reject a whole array: empty, over the cap, holding nothing that could be a request, naming a version below 3 or one the server cannot serve, and naming two different versions across its entries. Four answer one specification error object with a null `id`, an array naming none; an array holding nothing that could be a request answers one such object per entry, as the specification shows. Each reaches every API version, since no earlier version accepts an array.\n\n## API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "bthomee/rpc-20-websocket-envelope",
+   "head": "XRPLF:bthomee/rpc-21-batch",
+   "additions": 1206,
+   "deletions": 118,
+   "changedFiles": 5,
+   "commits": 1,
+   "reviewComments": 12,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-06T00:45:04Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nVersion selection is order-dependent, and invalid batch-level versions can be silently treated as version 1.\n\n**Review effort:** Balanced  \n**Findings:** 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (3)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Array version detection is order-dependent](#discussion_r4190379027) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Unsupported batch api_version is silently ignored](#discussion_r4190379085) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Error count and unchanged-response claim are inaccurate](#discussion_r4190379113) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds JSON-RPC 2.0 array batches for API version 3.\n\n**Changes:**\n- Supports array batches with version consistency checks.\n- Caps version 3 batches at 100 entries.\n- Adds extensive batch tests and API changelog entries.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​xrpld/​rpc/​detail/​Tuning.h` | Defines the batch-entry cap. |\n| `src/​xrpld/​rpc/​detail/​ServerHandler.cpp` | Implements batch validation and dispatch. |\n| `src/​test/​server/​ServerStatus_test.cpp` | Tests batch behavior and resource charging. |\n| `src/​test/​rpc/​Version_test.cpp` | Updates batch version tests. |\n| `API-CHANGELOG.md` | Documents API and compatibility changes. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/bthomee/rpc-20-websocket-envelope?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-06T00:49:54Z",
+     "body": "This is a large, carefully constructed change implementing JSON-RPC 2.0 top-level array batches for API version 3+, with an extensive matching test suite in ServerStatus_test.cpp and Version_test.cpp. I traced the core logic in ServerHandler.cpp (screenArrayBatch, firstObjectEntry, batchEntry, the body-version-agreement scan, rejectWholeBody, and the per-entry reject/dispatch paths) against the new tests and the stated design in API-CHANGELOG.md. The charging, secret-masking, and version-selection paths are internally consistent with the tests added (e.g. unsupported-version entries never echo secrets, the cap reads the body's single version rather than any one entry, mismatched entries are refused whole). I did not find a clear, diff-confirmable correctness or security bug in the changed lines. One subtlety worth double-checking in review/CI rather than asserting as a bug: for the top-level array form, `firstObjectEntry` + `apiVersionOf` derive the batch's governing version strictly from the *first object entry*, defaulting to the unspecified version (not spec-version) if that first entry doesn't itself name `api_version` — even if a later entry explicitly names version 3. That matches the doc comment on `firstObjectEntry` ('the first entry that can carry one decides'), but it isn't exercised by any test where entry 0 names no version and a later entry names 3, so it's worth a quick manual check that this is the intended behavior rather than an oversight."
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:27:21Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:27:23Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:27:24Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:45:42Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nTwo version-selection paths still produce order-dependent batch behavior.\n\n**Review effort:** Balanced  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Bearer version selection depends on entry order](#discussion_r4193282988) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (3)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Unsupported batch api_version is silently ignored](#discussion_r4190379085)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Array version detection is order-dependent](#discussion_r4190379027)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Error count and unchanged-response claim are inaccurate](#discussion_r4190379113)\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-06T09:02:52Z",
+     "body": "This is an exceptionally well-reasoned and thoroughly tested change implementing JSON-RPC 2.0 top-level array batches for API version 3, plus the one-version-per-batch invariant for the legacy `method: \"batch\"` form. I traced the new helpers (`versionBearer`, `screenArrayBatch`, `batchEntry`, the extended `apiVersionOf`) and the restructured dispatch loop in `ServerHandler.cpp` against the extensive new test matrix in `ServerStatus_test.cpp`, checking entry-count cap boundaries (`>` vs `>=`), version-inheritance/mismatch detection, charge-once-vs-charge-per-entry behavior, and the `reject`/`rejectWholeBody` lambda call-site argument reordering. Everything I checked is internally consistent and matches the pinned test expectations; I did not find a correctness or security defect I'm confident in. The one thing worth a second pair of eyes, called out below, is non-blocking."
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-10-07T22:48:48Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-07T22:55:44Z",
+     "body": "This is a large, carefully-built feature adding JSON-RPC 2.0 top-level-array batch support alongside the existing `method: \"batch\"` form, plus a per-body API-version consistency rule and a 100-entry cap. I traced the core logic in `ServerHandler.cpp` (`versionBearer`, `screenArrayBatch`, the version-mismatch pre-scan, the cap checks, and the refactored `reject` lambda/`LegacyShape`) against the extensive new test suite in `ServerStatus_test.cpp` for the scenarios that matter most: version resolution order-independence, cap-before-entries-are-read, mixed-version rejection, inheritance of an unnamed version, non-object entries, unsupported-version entries answered individually vs. the whole body, and resource charging per entry/per body. Every call site of the refactored `reject(...)` was checked against its new parameter order (`legacy` before `fee`), and all matched correctly. The `apiVersionOf`/`versionBearer` interactions (including the `kApiInvalidVersion` sentinel used as 'always honor top-level' and the membership guards before calling `apiVersionOf`) are internally consistent and match the behavior the tests assert, including order-independence of which entry 'wins' as the version bearer. I did not find a concrete, high-confidence bug in the added/changed lines; the implementation appears to match its own (unusually thorough) documentation and test coverage. No security, resource-leak, or correctness issues stood out that I'm confident about, so I'm not flagging anything speculative per review guidelines."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-08T11:40:53Z",
+     "body": "### 🟡 Changes recommended\n\nMalformed legacy batch parameters can override the body’s API version when selecting the rejection envelope.\n\n<details open>\n<summary><strong>1 open finding</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Preserve top-level API version when rejecting malformed batch params](#discussion_r4218445834) · New\n</details>\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Bearer version selection depends on entry order](#discussion_r4193282988)\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\nGive feedback about Copilot approvals in [this survey](https://survey.alchemer.com/s3/9011660/CCR-Public-Preview-Autoapprove-feedback-survey) to enter a drawing for a $150 gift card."
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-10-08T22:46:55Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-08T22:52:31Z",
+     "body": "This is a dense, carefully-constructed change implementing JSON-RPC 2.0 top-level array batches alongside the existing `method: \"batch\"` form, with a single-version-per-body rule and a shared 100-entry cap. I traced the new helpers (`versionBearer`, `screenArrayBatch`, `batchEntry`, the reworked `apiVersionOf`/`reject` signatures) against the accompanying test suite line-by-line: version resolution/fallback, mixed-version rejection, the cap applied before vs. after entry parsing, non-object entries, overload interaction, and secret-masking on rejected entries all check out and are already covered by the new tests in Version_test.cpp and ServerStatus_test.cpp. I also specifically checked for the kind of bug this refactor is prone to — reordered lambda default arguments after the `reject(...)` signature change (fee vs. legacy-shape position) — and all call sites match the new parameter order correctly. The one true behavior fix buried in the diff (the previously-unconditional `return;` after `reject()` for unparsable params, which would have silently truncated a batch's reply on a single bad entry) is now correctly gated on `reject()`'s return value and continues the loop. No confident correctness or security issues found in the changed lines."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-08T23:04:11Z",
+     "body": "### 🟢 Approval recommended\n\nThe implementation is consistent with the stated behavior and includes comprehensive coverage of validation, compatibility, and boundary cases.\n\n**0 open findings**\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Preserve top-level API version when rejecting malformed batch params](#discussion_r4218445834)\n</details>\n\n🧠 **Review effort:** Balanced"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-09T07:42:08Z",
+     "body": "### 🟡 Changes recommended\n\nMixed-version error handling remains order-dependent, and the changelog misstates unsupported-entry behavior.\n\n<details open>\n<summary><strong>2 open findings</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Avoid entry-order-dependent mixed-version rejection](#discussion_r4227828423) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Clarify mixed supported and unsupported version handling](#discussion_r4227828498) · New\n</details>\n\n🧠 **Review effort:** Balanced"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-09T07:48:30Z",
+     "body": "This is an extremely thorough, well-tested implementation of JSON-RPC 2.0 top-level array batching. I traced through the core logic in ServerHandler.cpp (versionBearer, screenArrayBatch, batchEntry, the per-entry version-mismatch scan, and the refactored reject()/rejectWholeBody() lambdas) against the extensive new test cases in ServerStatus_test.cpp and Version_test.cpp, including the trickier edge cases (unsupported-version entries placed first vs. last, mixed-version refusal, cap-exactly-at-limit, cap reading a version nested inside params, overload mid-array). Every case I traced matched its corresponding test's expectations, and I did not find a correctness, security, or resource-handling bug in the added code. The CHANGELOG wording also accurately reflects the implemented behavior. No high-confidence issues to flag."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-06T00:45:03Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "The array's version is taken from the first object even when that entry names no version, so `[bareRequest, version3Request]` is rejected as “below API version 3.” Reversing those entries succeeds and the bare request inherits version 3. This contradicts the one-version rule described for entries that name no version and makes acceptance order-dependent. Find the first explicitly named valid body version (while still handling an all-unspecified array as unsupported) before screening the array.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4190379027"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-06T00:45:04Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "An explicitly present but unsupported `api_version` on the `method: \"batch\"` body is silently ignored. With unversioned entries, `{method:\"batch\", api_version:99, ...}` is dispatched as version 1 (and can remain uncapped) instead of reporting `invalid_API_version`. Reject the body when `getAPIVersionNumber` returns `kApiInvalidVersion`; only absence should leave `bodyVersion` unset.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4190379085"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-06T00:45:04Z",
+     "path": "API-CHANGELOG.md",
+     "body": "This count and the claim that every answer is unchanged conflict with the implementation and the note on line 57. The old generic “not a JSON object” array case has been replaced by five specific array cases, not added alongside them, and those arrays now receive JSON-RPC error bodies instead of the old plain-text response. Rewrite this entry to count the final rejection paths and explicitly exclude the array response changes described below.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4190379113"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-06T08:27:21Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "Right. The array's version is now taken from the first entry that names one, inside its `params` or at its top level, with the first object entry as the fallback when none does, so `[bare, version3]` and `[version3, bare]` are both served at version 3 and an all-unspecified array is still refused as below version 3. A test sends the bare entry first; the two documents describe the rule.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193125828"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-06T08:27:23Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "Right. A `method: \"batch\"` body whose own `api_version` the server does not serve is now refused with `invalid_API_version`, as an array naming one is, rather than served at version 1; only an absent member leaves the body's version unset. A test sends `api_version: 99` and the changelog's one-version bullet records the refusal.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193125990"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-06T08:27:24Z",
+     "path": "API-CHANGELOG.md",
+     "body": "Right. The bullet now counts a body that is neither an object nor an array among the ten, says the answer to the first five is unchanged, and refers the array's changed answers to the entry below.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193126184"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-06T08:45:42Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "The bearer selection makes acceptance depend on entry order when an unsupported version precedes a valid version-3 request. For example, `[api_version:99, api_version:3]` is rejected as a whole here, while the reversed array is accepted and returns a per-entry wrong-version error (the behavior asserted by the new unsupported-entry test). Select a supported version bearer before deciding the array's envelope, or consistently reject an unsupported version anywhere in the array.\n\nThis issue also appears on line 1413 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193282988"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-07T22:48:48Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "Fixed. `versionBearer` passes over an entry naming a version the server does not serve, so the first entry naming a served version decides the array's envelope: `[99, 3]` and `[3, 99]` are both served at version 3 with a per-entry error for the entry naming 99, and a new test sends the two entries in the other order and asserts the same per-entry replies. An array in which no entry names a served version falls back to the first entry naming any, so an array whose only version is 99 is still refused whole with `invalid_API_version`, and an array naming none at all still falls back to its first object entry and is refused as below version 3; the two existing tests for those are unchanged. `API-VERSION-3.md` in PR 8508 describes the same rule. Line 1413 reads the `method: \"batch\"` body's own top-level `api_version`, one value rather than a scan over entries, so there is no order for it to depend on.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4212817333"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-08T11:40:52Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "A malformed `method: \"batch\"` body can take its rejection envelope from the malformed `params` object instead of the body's own top-level version. For example, `{method:\"batch\", api_version:3, params:{api_version:1}}` reaches this branch before `bodyVersion` is assigned, so `rejectWholeBody` calls `apiVersionOf`, which prioritizes `params.api_version`, and returns plain text rather than the API v3 JSON-RPC error. Record the body's top-level version before rejecting malformed `params`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4218445834"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-08T22:46:54Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "Fixed. The `method: \"batch\"` branch now reads the body's top-level `api_version` before it checks `params`, so a malformed `params` is refused in the version the body named; a new test pins both directions.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4224910421"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-09T07:42:07Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "A served legacy version is returned immediately, so `[api_version: 2, api_version: 3]` is rejected here as “Batch requires API version 3 or above,” while reversing the entries reaches the consistency scan and reports “Batch entries name different versions.” This makes the documented mixed-version rejection depend on entry order. Prefer a served specification-version bearer and retain the first served legacy bearer only as the fallback when no specification version exists.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4227828423"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-09T07:42:08Z",
+     "path": "API-CHANGELOG.md",
+     "body": "This says any unsupported-version entry rejects the array, but the implementation and the new tests accept `[version 3, version 99]` and return a per-entry wrong-version error for the latter. Clarify that whole-array rejection occurs only when no entry can establish a supported specification version; otherwise clients may incorrectly expect one unsupported entry to cancel valid neighbors.",
+     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4227828498"
+    }
+   ]
+  },
+  {
    "number": 8532,
    "title": "feat: Record Batch inner results in a BatchResult pseudo-transaction (BatchV2)",
    "url": "https://github.com/XRPLF/rippled/pull/8532",
    "state": "open",
    "author": "dangell7",
    "createdAt": "2026-10-07T17:49:45Z",
-   "updatedAt": "2026-10-08T05:33:57Z",
+   "updatedAt": "2026-10-09T07:46:34Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -53,6 +291,18 @@
      "date": "2026-10-08T05:33:57Z",
      "body": "> The alternative was a field in the outer's metadata, but the outer's leaf is inserted before its inner transactions run and OpenView::rawTxInsert does not replace a leaf.\n\nInteresting \n\nYeah, conceptually if the outer transaction's only effect is to add/queue the inners, then backtracking and updating the metadata is a little murky and sets a precedent. \n\nOn the other hand, you have a result attached to the the known outer txn id, which is more easy to consume than having to retrieve and parse the whole ledger's transactions which is the naive consequence barring updating rpc handlers to do the scan, potentially using indexes. \n\nUsing metadata would probably also save some bytes, reusing existing txn/serialization instead of a new key/leaf. \n\nMurky 🤔 \n\nThen again, maybe transactions are just the atoms, and batches, as long as they are comprised of contiguous atoms, can be thought of some bigger unit: transactions / batches / ledgers.",
      "url": "https://github.com/XRPLF/rippled/pull/8532#issuecomment-6053093333"
+    },
+    {
+     "author": "sublimator",
+     "date": "2026-10-09T03:25:20Z",
+     "body": "I'm sure there's some reason, but why isn't the outer txn part of the atomic unit? It seems to lead to strange things like tesSUCCESS instead of a tec when the batch failed and was rolled back? And it makes it awkward conceptually to do things like put the results into the outer's meta? \n\nIt's like the outer queues an atomic unit that unpacks into transactions, vs being the atomic unit (which could also unpack)\n\nAfter reading the discussion to get up to speed, I can see exposing the results in meta looks like an unresolved question raised by @tequdev:\nhttps://github.com/XRPLF/XRPL-Standards/discussions/162#discussioncomment-8673792",
+     "url": "https://github.com/XRPLF/rippled/pull/8532#issuecomment-6073639991"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-09T07:46:34Z",
+     "body": "What are the performance implications of this change?",
+     "url": "https://github.com/XRPLF/rippled/pull/8532#issuecomment-6076736223"
     }
    ],
    "body": "## High Level Overview of Change\n\nAdds the `BatchV2` amendment and a `ttBATCH_RESULT` (`BatchResult`) pseudo-transaction. When a `Batch` applies with `tesSUCCESS` in a closed ledger, `applyTransaction` inserts a `BatchResult` right after the batch's inner transactions. It carries the outer's ID in `sfParentBatchID` and lists every inner transaction the batch attempted, in order, as `sfTransactionHash` and `sfEngineResultCode`.\n\n## Context of Change\n\nAn inner transaction that fails with a `tem`, `tef` or `ter` code leaves nothing in the ledger, and neither does any inner transaction of a rolled-back `tfAllOrNothing` batch. The outer's metadata covers only its own fee and sequence, so the only record of what a batch did is the `BatchTrace` log line on the node that applied it. #8164 keeps those results in a node-local table; this puts them in the ledger, so every node, Clio and explorer reads the same answer.\n\nThe record cannot be agreed in the transaction set like `ttFEE` or `ttAMENDMENT`, because its content exists only after execution. It is generated during the ledger build, as the inner transactions already are, from the outer ID and the inner IDs and results only, so every node produces the same leaf. It is inserted into the view the outer applied to, after the batch view is committed or dropped, so a rollback cannot remove it. The alternative was a field in the outer's metadata, but the outer's leaf is inserted before its inner transactions run and `OpenView::rawTxInsert` does not replace a leaf.\n\nAn entry was applied when its result is `tes` or `tec` and the batch was not rolled back; an inner transaction missing from `sfBatchResults` was never attempted. `sfEngineResultCode` is `INT32` because `tem`, `tef` and `ter` codes are negative.\n\n`isPseudoTx` covers the new type, so it cannot be submitted or relayed, and `Change` preflight rejects it with `temINVALID` on any view, including from a proposed transaction set. Ledger replay skips it, and replaying the outer regenerates it.\n\n## API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n`tx`, `ledger` and the transaction streams return the new `BatchResult` transaction type once `BatchV2` is enabled.\n\n## Future Tasks\n\n- Amend XLS-0056 to specify `BatchResult`.",
@@ -128,13 +378,133 @@
    ]
   },
   {
+   "number": 8496,
+   "title": "fix: Keep the connection's identity for every entry of a batch",
+   "url": "https://github.com/XRPLF/rippled/pull/8496",
+   "state": "open",
+   "author": "bthomee",
+   "createdAt": "2026-10-06T00:38:22Z",
+   "updatedAt": "2026-10-09T07:40:13Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-06T00:42:53Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8496?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8496#issuecomment-6006743798"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-08T11:33:30Z",
+     "body": "@xrplf-bot",
+     "url": "https://github.com/XRPLF/rippled/pull/8496#issuecomment-6058940235"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n`X-User` and the forwarded-for address are assigned by the connection's header, so they belong to the connection rather than to one entry of a `method: \"batch\"` body. The loop clears them in place for an entry whose own role is neither identified nor proxied, and a `std::string_view` shortened in place stays shortened, so the first such entry decides them for every entry after it. A later entry's role is read from that same value, so it is demoted along with the username.\n\n## Context of Change\n\nRead them into two entry-scoped views instead and hand those to the handler's context, so the clearing reaches only the entry it belongs to. A lone request is unaffected, there being no entry after it.\n\nWhat a client can observe: a body whose first entry presents admin credentials made the second report no username, where the same entry sent alone reports the connection's. Every entry of one body now reports the role and username it would report alone.\n\n## API Impact\n\nNone. No public API method, `libxrpl` interface or peer protocol message changes in this PR.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "bthomee/rpc-11-unread-body-reasons",
+   "head": "XRPLF:bthomee/rpc-12-batch-identity",
+   "additions": 79,
+   "deletions": 11,
+   "changedFiles": 3,
+   "commits": 1,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-06T00:38:59Z",
+     "body": "The core fix in ServerHandler.cpp correctly addresses the described bug: instead of mutating the shared `user`/`forwardedFor` string_views in place (which permanently truncated them for all subsequent batch entries once one entry failed identification), it now computes per-entry scoped views (`entryUser`/`entryForwardedFor`) and leaves the originals untouched across loop iterations. This matches the PR's stated intent and is validated by the new `testBatchIdentity` test, which exercises exactly the admin-then-anonymous-entry scenario described. The accompanying test-harness fix (`name()` → `name_string()`) is a necessary correctness fix to let the test insert a custom `X-User` header without asserting. No new issues were introduced in the changed lines."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-06T00:43:40Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nThe forwarded-for preservation path lacks direct regression coverage.\n\n**Review effort:** Balanced  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Regression test omits forwarded-for coverage for second ping](#discussion_r4190371039) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nFixes batch RPC identity leakage between entries by preserving connection-level headers.\n\n**Changes:**\n- Uses entry-scoped identity views.\n- Adds a batch identity regression test.\n- Documents the behavior change.\n\n| File | Description |\n| ---- | ----------- |\n| `ServerHandler.cpp` | Preserves connection identity across batch entries. |\n| `ServerStatus_test.cpp` | Tests `X-User` preservation. |\n| `API-CHANGELOG.md` | Records the fix. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/bthomee/rpc-11-unread-body-reasons?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-06T08:26:39Z",
+     "body": "The diff correctly fixes the described bug: instead of mutating the shared `user`/`forwardedFor` string_views in place (which permanently truncated them for all subsequent batch entries once one entry was unidentified), it now computes entry-scoped `entryUser`/`entryForwardedFor` views per iteration without mutating the originals. This preserves the connection's identity across entries while still stripping it for the specific unidentified entry's own context. The accompanying test (`testBatchIdentity`) exercises exactly this scenario (admin entry followed by a header-identified entry) and the `makeHTTPRequest` fix (`name_string()` instead of `name()`) correctly addresses Beast's assertion on unknown header enumerators like `X-User`. No correctness, security, or style issues found in the changed lines."
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:27:02Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-06T08:44:06Z",
+     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nThe focused fix preserves existing single-request behavior and is covered by a representative regression test.\n\n**Review effort:** Balanced  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Regression test omits forwarded-for coverage for second ping](#discussion_r4190371039)\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-07T22:47:01Z",
+     "body": "The diff correctly fixes the batch-identity bug by introducing entry-scoped `entryForwardedFor`/`entryUser` views instead of mutating the shared `forwardedFor`/`user` string_views in place across loop iterations. This matches the stated intent: a non-identified/non-proxied entry no longer leaks its cleared identity into subsequent entries of the same batch. The accompanying test (`testBatchIdentity`) exercises the exact scenario described (admin-credentialed entry followed by an unauthenticated entry) and the `name_string()` fix in the test helper is a reasonable, narrowly-scoped correction needed to send a custom `X-User` header via Beast. No new correctness, security, or resource issues are introduced by this change."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-08T11:37:59Z",
+     "body": "### 🟢 Approval recommended\n\nThe focused fix preserves per-entry filtering while preventing cross-entry mutation, with coverage for both affected headers.\n\n**0 open findings**\n\n🧠 **Review effort:** Balanced\n\n---\n\nGive feedback about Copilot approvals in [this survey](https://survey.alchemer.com/s3/9011660/CCR-Public-Preview-Autoapprove-feedback-survey) to enter a drawing for a $150 gift card."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-08T22:46:40Z",
+     "body": "The core fix replaces in-place mutation of the connection-scoped `forwardedFor`/`user` string_views with per-entry local views (`entryForwardedFor`/`entryUser`), which correctly addresses the described bug: previously, shortening a `string_view` via `remove_suffix` for one unidentified batch entry permanently truncated it for all subsequent entries in the same batch, since the handler context then held the already-cleared values for later entries. The new code leaves `forwardedFor`/`user` untouched and derives entry-scoped copies based on each entry's own role, so the clearing is now correctly scoped. The accompanying test (`testBatchIdentity`) exercises exactly the described scenario (admin entry followed by an unauthenticated entry) and asserts the second entry still reports the connection's identity. The unrelated test-helper fix (`name_string()` instead of `name()` for header insertion, with an explanatory comment) is a reasonable, well-documented correctness fix to avoid an assert on headers like `X-User` that Beast has no enumerator for. No new correctness, security, or style issues were found in the changed lines."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-08T23:02:30Z",
+     "body": "### 🟢 Approval recommended\n\nThe implementation addresses the mutation bug and includes focused regression coverage for both affected headers.\n\n**0 open findings**\n\n🧠 **Review effort:** Balanced"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-09T07:35:20Z",
+     "body": "The fix correctly addresses the bug: instead of mutating the shared `forwardedFor`/`user` string_views in place (which permanently truncated them for all subsequent batch entries once one entry lacked identification), the new code computes per-entry local copies (`entryForwardedFor`/`entryUser`) and leaves the originals untouched. This matches the described defect and the added regression test (`testBatchIdentity`) exercises exactly the scenario described (admin-first entry followed by an unauthenticated entry that should still see the connection's identity). The accompanying test helper fix (`name()` → `name_string()`) is also correct, since Beast's `name()` asserts for headers without a built-in enumerator like `X-User`. I don't see any correctness, security, or consistency issues introduced by this diff."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-09T07:40:13Z",
+     "body": "### 🟢 Approval recommended\n\nThe scoped fix correctly preserves per-connection identity and includes coverage for role, username, and forwarded address.\n\n**0 open findings**\n\n🧠 **Review effort:** Balanced"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-06T00:43:39Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "The regression test exercises only `entryUser`; it never sends or asserts a forwarded-for value, even though this independent view is part of the fix and the changelog promise. Please add `X-Forwarded-For` to the batch request and verify the second `ping` result retains its `ip`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8496#discussion_r4190371039"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-06T08:27:02Z",
+     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
+     "body": "Right. The batch now also carries `X-Forwarded-For`, and the second `ping` is asserted to report that address in `ip` beside the kept `X-User`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8496#discussion_r4193123055"
+    }
+   ]
+  },
+  {
    "number": 8164,
    "title": "feat: Record Batch inner results for validated ledgers and return them from tx",
    "url": "https://github.com/XRPLF/rippled/pull/8164",
    "state": "open",
    "author": "dangell7",
    "createdAt": "2026-09-02T19:29:12Z",
-   "updatedAt": "2026-10-08T04:38:05Z",
+   "updatedAt": "2026-10-08T09:33:29Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -185,6 +555,30 @@
      "date": "2026-10-08T04:38:04Z",
      "body": "> How does this handle transactions that occur during downtime?\n\nCould these outcomes live in the outer Batch’s metadata, perhaps as an array aligned with `RawTransactions`, with a defined encoding for negative engine results and applied/skipped status?\n\nThis is a useful replacement for scraping logs, but feels weak for a client-facing historical API if a server must replay ledgers it has already acquired to recover those results. Recording the receipts in the outer metadata would let normal ledger sync bring them along and give Clio, explorers, and other indexers a common ledger-backed source for those outcomes.",
      "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6052359644"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-08T09:03:33Z",
+     "body": "> > How does this handle transactions that occur during downtime?\n> \n> Could these outcomes live in the outer Batch’s metadata, perhaps as an array aligned with `RawTransactions`, with a defined encoding for negative engine results and applied/skipped status?\n\nThe outer Batch tx is already processed and validated by the time the inner transactions are processed, so it can't be part of the metadata.",
+     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6056479624"
+    },
+    {
+     "author": "sublimator",
+     "date": "2026-10-08T09:17:25Z",
+     "body": "> The outer Batch tx is already processed and validated by the time the inner transactions are processed, so it can't be part of the metadata.\n\nIs there an actual technical reason here, or it's a conceptual objection to walking back and modifying the metadata of a transaction? It's not actually been released as validated data or any thing, right? It's buffered as part of an apply view?\n\nIt's a perfectly valid objection to a new precedent but if these are supposed to be some kind of atomic unit you could make a case that's it's mentally reckonable\n\nAll else aside, it's the obvious convenient place for it as you get outer txn id lookup",
+     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6056702961"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-08T09:25:51Z",
+     "body": "Yes, this would be setting a new precedent and would require updating the plumbing in a rather sensitive area of the code to support this sort of update. It's also a bigger precedent breaking of later txs can update earlier txs in the closed ledger.",
+     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6056840852"
+    },
+    {
+     "author": "sublimator",
+     "date": "2026-10-08T09:33:29Z",
+     "body": "> Yes, this would be setting a new precedent and would require updating the plumbing in a rather sensitive area of the code to support this sort of update. \n\nFair enough\n\n> It's also a bigger precedent breaking of later txs can update earlier txs in the closed ledger.\n\nYep, you would have to create new definitions/constraints for batching/atomicity and it's possible to get it wrong\n\nUsing a pseudo this way is breaking new ground too, I guess",
+     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6056964363"
     }
    ],
    "body": "## High Level Overview of Change\n\nA validated `Batch` can have inner transactions that did nothing. An inner transaction that fails with a `ter`, `tem` or `tef` code is never applied, so it has no metadata and is not in the ledger at all. Under `tfAllOrNothing` the rollback also discards the inner transaction that had succeeded. The only record of either case today is the `BatchTrace` debug log line in `apply.cpp`, which is a log line, not something a client can query.\n\nThis PR records each inner transaction's outcome while the node builds a validated ledger and returns it from `tx`:\n\n```json\n\"inner_results\": [\n  { \"hash\": \"F137AEA3…\", \"result\": \"tesSUCCESS\", \"applied\": false },\n  { \"hash\": \"A056A319…\", \"result\": \"terPRE_SEQ\", \"applied\": false }\n]\n```\n\nThe array is in `RawTransactions` order. `applied` is whether the inner transaction's changes ended up in the ledger, so `tesSUCCESS` with `applied: false` is the rolled-back case.\n\n### Context of Change\n\n`applyBatchTransactions` gets an optional collector and pushes a `BatchInnerResult` (`parentBatchId`, `innerTxId`, `index`, `ter`, `applied`) per inner transaction it runs. When a `tfAllOrNothing` batch rolls back it marks everything it recorded as not applied. Only `BuildLedger` (consensus build and replay) passes a collector; the open ledger never does, so trial applies are not recorded. The results ride on the built `Ledger` as side data that is not part of the hash, and `saveValidatedLedger` writes them to a new `BatchInnerResults` table in `transaction.db`, in the same SQLite transaction as `Transactions` and `AccountTransactions`. The table is gated by `use_tx_tables` and pruned with the other tx tables by `online_delete`.\n\nRecording at validated-ledger save rather than on the apply path is deliberate. An earlier version of this wrote rows from inside `applyBatchTransactions` on every pass, so an open-ledger trial apply and the consensus apply of the same inner transaction overwrote each other, and every inner transaction cost a synchronous SQLite commit in the apply path. Here the apply path only appends to a vector.\n\nOne limitation: a node that acquired a ledger from the network instead of building it has no rows for that ledger, and `tx` omits the field. Rows are keyed by `LedgerSeq`, so the gap is visible rather than silently wrong.\n\n### API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n`tx` gains `inner_results` (API-CHANGELOG updated in this PR). In `libxrpl`, `applyTransaction` takes an optional trailing `std::vector<BatchInnerResult>*`, and `Ledger` gains `setBatchInnerResults` / `batchInnerResults`. Existing callers are unchanged.\n\n## Test Plan\n\n`Batch_test` gains `inner results`: a `tfAllOrNothing` batch with a future-sequence inner returns two entries, `tesSUCCESS` and `terPRE_SEQ`, both `applied: false`, and the rolled-back inner is `txnNotFound`; a `tfIndependent` batch returns both `applied: true` in order; inner transactions and non-Batch transactions have no field. The full `Batch` suite and the ledger, tx and rpc suites pass; levelization results are unchanged.",
@@ -435,234 +829,6 @@
      "path": "src/libxrpl/tx/apply.cpp",
      "body": "Fixed in 6cb72aa5e07bb550c985343d145e7b5765cb9bee. The catch now trims innerResults back to firstResult and rethrows, so the exception reaches applyTransaction's own catch and the outer Batch comes back as Fail with wholeBatchView never applied, the same path as before the catch existed.",
      "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4214537236"
-    }
-   ]
-  },
-  {
-   "number": 8505,
-   "title": "feat: Accept a JSON-RPC 2.0 batch from API version 3",
-   "url": "https://github.com/XRPLF/rippled/pull/8505",
-   "state": "open",
-   "author": "bthomee",
-   "createdAt": "2026-10-06T00:38:42Z",
-   "updatedAt": "2026-10-07T22:55:44Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-06T00:45:26Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8505?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8505#issuecomment-6006790878"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nA top-level JSON array is the batch form the specification defines, accepted from API version 3. Each entry is a request in its own right, nesting its parameters as a lone request does and correlating by its own `id`. The answer is an array of one reply per entry at HTTP 200, as the `method: \"batch\"` form answers. All entries of one body must name the same `api_version`, or name none and inherit the body's, and a body whose entries disagree is refused whole. One body then has one version, which is what makes a 100-entry cap answerable: a cap that read a version off one entry could be side-stepped by reordering the entries, or by naming the version where the cap did not look, so the cap reads the body's one version, found wherever dispatch would find it.\n\n## Context of Change\n\nRefusing a mixed body is a break a version 1 or 2 client can see, recorded as such in `API-CHANGELOG.md`. A `method: \"batch\"` body whose entries name different versions is served today, each entry at its own version, and is refused from now on; one whose entries agree keeps working, and below version 3 that form stays uncapped.\n\nFive conditions reject a whole array: empty, over the cap, holding nothing that could be a request, naming a version below 3 or one the server cannot serve, and naming two different versions across its entries. Four answer one specification error object with a null `id`, an array naming none; an array holding nothing that could be a request answers one such object per entry, as the specification shows. Each reaches every API version, since no earlier version accepts an array.\n\n## API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "bthomee/rpc-20-websocket-envelope",
-   "head": "XRPLF:bthomee/rpc-21-batch",
-   "additions": 1171,
-   "deletions": 113,
-   "changedFiles": 5,
-   "commits": 1,
-   "reviewComments": 8,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-06T00:45:04Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nVersion selection is order-dependent, and invalid batch-level versions can be silently treated as version 1.\n\n**Review effort:** Balanced  \n**Findings:** 2 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (3)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Array version detection is order-dependent](#discussion_r4190379027) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Unsupported batch api_version is silently ignored](#discussion_r4190379085) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Error count and unchanged-response claim are inaccurate](#discussion_r4190379113) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds JSON-RPC 2.0 array batches for API version 3.\n\n**Changes:**\n- Supports array batches with version consistency checks.\n- Caps version 3 batches at 100 entries.\n- Adds extensive batch tests and API changelog entries.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​xrpld/​rpc/​detail/​Tuning.h` | Defines the batch-entry cap. |\n| `src/​xrpld/​rpc/​detail/​ServerHandler.cpp` | Implements batch validation and dispatch. |\n| `src/​test/​server/​ServerStatus_test.cpp` | Tests batch behavior and resource charging. |\n| `src/​test/​rpc/​Version_test.cpp` | Updates batch version tests. |\n| `API-CHANGELOG.md` | Documents API and compatibility changes. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/bthomee/rpc-20-websocket-envelope?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-06T00:49:54Z",
-     "body": "This is a large, carefully constructed change implementing JSON-RPC 2.0 top-level array batches for API version 3+, with an extensive matching test suite in ServerStatus_test.cpp and Version_test.cpp. I traced the core logic in ServerHandler.cpp (screenArrayBatch, firstObjectEntry, batchEntry, the body-version-agreement scan, rejectWholeBody, and the per-entry reject/dispatch paths) against the new tests and the stated design in API-CHANGELOG.md. The charging, secret-masking, and version-selection paths are internally consistent with the tests added (e.g. unsupported-version entries never echo secrets, the cap reads the body's single version rather than any one entry, mismatched entries are refused whole). I did not find a clear, diff-confirmable correctness or security bug in the changed lines. One subtlety worth double-checking in review/CI rather than asserting as a bug: for the top-level array form, `firstObjectEntry` + `apiVersionOf` derive the batch's governing version strictly from the *first object entry*, defaulting to the unspecified version (not spec-version) if that first entry doesn't itself name `api_version` — even if a later entry explicitly names version 3. That matches the doc comment on `firstObjectEntry` ('the first entry that can carry one decides'), but it isn't exercised by any test where entry 0 names no version and a later entry names 3, so it's worth a quick manual check that this is the intended behavior rather than an oversight."
-    },
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2026-10-06T08:27:21Z",
-     "body": ""
-    },
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2026-10-06T08:27:23Z",
-     "body": ""
-    },
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2026-10-06T08:27:24Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-06T08:45:42Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nTwo version-selection paths still produce order-dependent batch behavior.\n\n**Review effort:** Balanced  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Bearer version selection depends on entry order](#discussion_r4193282988) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (3)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Unsupported batch api_version is silently ignored](#discussion_r4190379085)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Array version detection is order-dependent](#discussion_r4190379027)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Error count and unchanged-response claim are inaccurate](#discussion_r4190379113)\n</details>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-06T09:02:52Z",
-     "body": "This is an exceptionally well-reasoned and thoroughly tested change implementing JSON-RPC 2.0 top-level array batches for API version 3, plus the one-version-per-batch invariant for the legacy `method: \"batch\"` form. I traced the new helpers (`versionBearer`, `screenArrayBatch`, `batchEntry`, the extended `apiVersionOf`) and the restructured dispatch loop in `ServerHandler.cpp` against the extensive new test matrix in `ServerStatus_test.cpp`, checking entry-count cap boundaries (`>` vs `>=`), version-inheritance/mismatch detection, charge-once-vs-charge-per-entry behavior, and the `reject`/`rejectWholeBody` lambda call-site argument reordering. Everything I checked is internally consistent and matches the pinned test expectations; I did not find a correctness or security defect I'm confident in. The one thing worth a second pair of eyes, called out below, is non-blocking."
-    },
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2026-10-07T22:48:48Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-07T22:55:44Z",
-     "body": "This is a large, carefully-built feature adding JSON-RPC 2.0 top-level-array batch support alongside the existing `method: \"batch\"` form, plus a per-body API-version consistency rule and a 100-entry cap. I traced the core logic in `ServerHandler.cpp` (`versionBearer`, `screenArrayBatch`, the version-mismatch pre-scan, the cap checks, and the refactored `reject` lambda/`LegacyShape`) against the extensive new test suite in `ServerStatus_test.cpp` for the scenarios that matter most: version resolution order-independence, cap-before-entries-are-read, mixed-version rejection, inheritance of an unnamed version, non-object entries, unsupported-version entries answered individually vs. the whole body, and resource charging per entry/per body. Every call site of the refactored `reject(...)` was checked against its new parameter order (`legacy` before `fee`), and all matched correctly. The `apiVersionOf`/`versionBearer` interactions (including the `kApiInvalidVersion` sentinel used as 'always honor top-level' and the membership guards before calling `apiVersionOf`) are internally consistent and match the behavior the tests assert, including order-independence of which entry 'wins' as the version bearer. I did not find a concrete, high-confidence bug in the added/changed lines; the implementation appears to match its own (unusually thorough) documentation and test coverage. No security, resource-leak, or correctness issues stood out that I'm confident about, so I'm not flagging anything speculative per review guidelines."
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-10-06T00:45:03Z",
-     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
-     "body": "The array's version is taken from the first object even when that entry names no version, so `[bareRequest, version3Request]` is rejected as “below API version 3.” Reversing those entries succeeds and the bare request inherits version 3. This contradicts the one-version rule described for entries that name no version and makes acceptance order-dependent. Find the first explicitly named valid body version (while still handling an all-unspecified array as unsupported) before screening the array.",
-     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4190379027"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-06T00:45:04Z",
-     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
-     "body": "An explicitly present but unsupported `api_version` on the `method: \"batch\"` body is silently ignored. With unversioned entries, `{method:\"batch\", api_version:99, ...}` is dispatched as version 1 (and can remain uncapped) instead of reporting `invalid_API_version`. Reject the body when `getAPIVersionNumber` returns `kApiInvalidVersion`; only absence should leave `bodyVersion` unset.",
-     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4190379085"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-06T00:45:04Z",
-     "path": "API-CHANGELOG.md",
-     "body": "This count and the claim that every answer is unchanged conflict with the implementation and the note on line 57. The old generic “not a JSON object” array case has been replaced by five specific array cases, not added alongside them, and those arrays now receive JSON-RPC error bodies instead of the old plain-text response. Rewrite this entry to count the final rejection paths and explicitly exclude the array response changes described below.",
-     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4190379113"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-10-06T08:27:21Z",
-     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
-     "body": "Right. The array's version is now taken from the first entry that names one, inside its `params` or at its top level, with the first object entry as the fallback when none does, so `[bare, version3]` and `[version3, bare]` are both served at version 3 and an all-unspecified array is still refused as below version 3. A test sends the bare entry first; the two documents describe the rule.",
-     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193125828"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-10-06T08:27:23Z",
-     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
-     "body": "Right. A `method: \"batch\"` body whose own `api_version` the server does not serve is now refused with `invalid_API_version`, as an array naming one is, rather than served at version 1; only an absent member leaves the body's version unset. A test sends `api_version: 99` and the changelog's one-version bullet records the refusal.",
-     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193125990"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-10-06T08:27:24Z",
-     "path": "API-CHANGELOG.md",
-     "body": "Right. The bullet now counts a body that is neither an object nor an array among the ten, says the answer to the first five is unchanged, and refers the array's changed answers to the entry below.",
-     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193126184"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-06T08:45:42Z",
-     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
-     "body": "The bearer selection makes acceptance depend on entry order when an unsupported version precedes a valid version-3 request. For example, `[api_version:99, api_version:3]` is rejected as a whole here, while the reversed array is accepted and returns a per-entry wrong-version error (the behavior asserted by the new unsupported-entry test). Select a supported version bearer before deciding the array's envelope, or consistently reject an unsupported version anywhere in the array.\n\nThis issue also appears on line 1413 of the same file.",
-     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4193282988"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-10-07T22:48:48Z",
-     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
-     "body": "Fixed. `versionBearer` passes over an entry naming a version the server does not serve, so the first entry naming a served version decides the array's envelope: `[99, 3]` and `[3, 99]` are both served at version 3 with a per-entry error for the entry naming 99, and a new test sends the two entries in the other order and asserts the same per-entry replies. An array in which no entry names a served version falls back to the first entry naming any, so an array whose only version is 99 is still refused whole with `invalid_API_version`, and an array naming none at all still falls back to its first object entry and is refused as below version 3; the two existing tests for those are unchanged. `API-VERSION-3.md` in PR 8508 describes the same rule. Line 1413 reads the `method: \"batch\"` body's own top-level `api_version`, one value rather than a scan over entries, so there is no order for it to depend on.",
-     "url": "https://github.com/XRPLF/rippled/pull/8505#discussion_r4212817333"
-    }
-   ]
-  },
-  {
-   "number": 8496,
-   "title": "fix: Keep the connection's identity for every entry of a batch",
-   "url": "https://github.com/XRPLF/rippled/pull/8496",
-   "state": "open",
-   "author": "bthomee",
-   "createdAt": "2026-10-06T00:38:22Z",
-   "updatedAt": "2026-10-07T22:47:01Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-06T00:42:53Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8496?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8496#issuecomment-6006743798"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\n`X-User` and the forwarded-for address are assigned by the connection's header, so they belong to the connection rather than to one entry of a `method: \"batch\"` body. The loop clears them in place for an entry whose own role is neither identified nor proxied, and a `std::string_view` shortened in place stays shortened, so the first such entry decides them for every entry after it. A later entry's role is read from that same value, so it is demoted along with the username.\n\n## Context of Change\n\nRead them into two entry-scoped views instead and hand those to the handler's context, so the clearing reaches only the entry it belongs to. A lone request is unaffected, there being no entry after it.\n\nWhat a client can observe: a body whose first entry presents admin credentials made the second report no username, where the same entry sent alone reports the connection's. Every entry of one body now reports the role and username it would report alone.\n\n## API Impact\n\nNone. No public API method, `libxrpl` interface or peer protocol message changes in this PR.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "bthomee/rpc-11-unread-body-reasons",
-   "head": "XRPLF:bthomee/rpc-12-batch-identity",
-   "additions": 79,
-   "deletions": 11,
-   "changedFiles": 3,
-   "commits": 1,
-   "reviewComments": 2,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-06T00:38:59Z",
-     "body": "The core fix in ServerHandler.cpp correctly addresses the described bug: instead of mutating the shared `user`/`forwardedFor` string_views in place (which permanently truncated them for all subsequent batch entries once one entry failed identification), it now computes per-entry scoped views (`entryUser`/`entryForwardedFor`) and leaves the originals untouched across loop iterations. This matches the PR's stated intent and is validated by the new `testBatchIdentity` test, which exercises exactly the admin-then-anonymous-entry scenario described. The accompanying test-harness fix (`name()` → `name_string()`) is a necessary correctness fix to let the test insert a custom `X-User` header without asserting. No new issues were introduced in the changed lines."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-06T00:43:40Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nThe forwarded-for preservation path lacks direct regression coverage.\n\n**Review effort:** Balanced  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Regression test omits forwarded-for coverage for second ping](#discussion_r4190371039) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nFixes batch RPC identity leakage between entries by preserving connection-level headers.\n\n**Changes:**\n- Uses entry-scoped identity views.\n- Adds a batch identity regression test.\n- Documents the behavior change.\n\n| File | Description |\n| ---- | ----------- |\n| `ServerHandler.cpp` | Preserves connection identity across batch entries. |\n| `ServerStatus_test.cpp` | Tests `X-User` preservation. |\n| `API-CHANGELOG.md` | Records the fix. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/bthomee/rpc-11-unread-body-reasons?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-06T08:26:39Z",
-     "body": "The diff correctly fixes the described bug: instead of mutating the shared `user`/`forwardedFor` string_views in place (which permanently truncated them for all subsequent batch entries once one entry was unidentified), it now computes entry-scoped `entryUser`/`entryForwardedFor` views per iteration without mutating the originals. This preserves the connection's identity across entries while still stripping it for the specific unidentified entry's own context. The accompanying test (`testBatchIdentity`) exercises exactly this scenario (admin entry followed by a header-identified entry) and the `makeHTTPRequest` fix (`name_string()` instead of `name()`) correctly addresses Beast's assertion on unknown header enumerators like `X-User`. No correctness, security, or style issues found in the changed lines."
-    },
-    {
-     "author": "bthomee",
-     "state": "COMMENTED",
-     "date": "2026-10-06T08:27:02Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-06T08:44:06Z",
-     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nThe focused fix preserves existing single-request behavior and is covered by a representative regression test.\n\n**Review effort:** Balanced  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Regression test omits forwarded-for coverage for second ping](#discussion_r4190371039)\n</details>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-07T22:47:01Z",
-     "body": "The diff correctly fixes the batch-identity bug by introducing entry-scoped `entryForwardedFor`/`entryUser` views instead of mutating the shared `forwardedFor`/`user` string_views in place across loop iterations. This matches the stated intent: a non-identified/non-proxied entry no longer leaks its cleared identity into subsequent entries of the same batch. The accompanying test (`testBatchIdentity`) exercises the exact scenario described (admin-credentialed entry followed by an unauthenticated entry) and the `name_string()` fix in the test helper is a reasonable, narrowly-scoped correction needed to send a custom `X-User` header via Beast. No new correctness, security, or resource issues are introduced by this change."
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-10-06T00:43:39Z",
-     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
-     "body": "The regression test exercises only `entryUser`; it never sends or asserts a forwarded-for value, even though this independent view is part of the fix and the changelog promise. Please add `X-Forwarded-For` to the batch request and verify the second `ping` result retains its `ip`.",
-     "url": "https://github.com/XRPLF/rippled/pull/8496#discussion_r4190371039"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-10-06T08:27:02Z",
-     "path": "src/xrpld/rpc/detail/ServerHandler.cpp",
-     "body": "Right. The batch now also carries `X-Forwarded-For`, and the second `ping` is asserted to report that address in `ip` beside the kept `X-User`.",
-     "url": "https://github.com/XRPLF/rippled/pull/8496#discussion_r4193123055"
     }
    ]
   },
