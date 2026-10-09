@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-10-08T08:02:00.951Z",
+ "fetchedAt": "2026-10-09T08:02:00.691Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-10-07T22:59:34Z",
+  "lastActivity": "2026-10-08T16:24:47Z",
   "lastMerged": "2026-09-03T19:42:39Z",
   "release": "0.90.0",
-  "totalComments": 539
+  "totalComments": 543
  },
  "release": {
   "version": "0.90.0",
@@ -31,7 +31,7 @@
    "state": "open",
    "author": "a1q123456",
    "createdAt": "2026-03-10T15:56:03Z",
-   "updatedAt": "2026-10-07T11:42:15Z",
+   "updatedAt": "2026-10-08T16:24:47Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -84,11 +84,11 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:a1q123456/adding-perimissioned-domain-to-lending",
-   "additions": 1225,
+   "additions": 1258,
    "deletions": 3,
    "changedFiles": 19,
-   "commits": 43,
-   "reviewComments": 98,
+   "commits": 44,
+   "reviewComments": 99,
    "reviews": [
     {
      "author": "Tapanito",
@@ -491,6 +491,24 @@
      "state": "COMMENTED",
      "date": "2026-10-07T11:42:15Z",
      "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nA moderate authorization defect and a missing API changelog update remain unresolved.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (2)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Allow permissioned-domain owners to authorize broker access](#discussion_r4206432935) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document new public transaction and ledger fields in API changelog](#discussion_r4206433005) · New\n</details>"
+    },
+    {
+     "author": "a1q123456",
+     "state": "COMMENTED",
+     "date": "2026-10-08T11:54:57Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-08T16:08:48Z",
+     "body": "This MR adds support for private Loan Brokers gated by Permissioned Domains (sfDomainID + lsfLoanBrokerPrivate / tfLoanBrokerPrivate), amendment-gated behind featureLendingProtocolV1_2. I traced the full lifecycle: preflight correctly rejects DomainID without the amendment (temDISABLED), rejects a zero DomainID on creation (temMALFORMED), rejects DomainID on a public broker (temINVALID), and makes the private flag immutable on modify (temINVALID). preclaim correctly blocks DomainID being set on an already-public broker (tecNO_PERMISSION) before checking domain existence (tecOBJECT_NOT_FOUND), matching the test that documents broker-check-before-domain-check ordering. doApply correctly sets/clears sfDomainID (zero clears the field) and only ever sets it alongside lsfLoanBrokerPrivate. The new LoanSet.cpp check correctly validates the borrower (not the submitter) against the broker's domain via verifyValidDomain, mapping tecNO_PERMISSION to tecNO_AUTH while passing through other codes (e.g. tecEXPIRED). The new invariants (flags immutability gated by the amendment, DomainID/flag consistency, unknown-flag rejection) are sound defense-in-depth and are exercised by new, thorough tests covering domain deletion, credential expiry/revocation, domain-owner-is-not-a-member, and public-vs-private broker paths. I did not find a clear, high-confidence correctness or security bug in the added (`+`) lines — the logic is internally consistent and the ordering of checks matches the new test expectations throughout. I did not flag the new `LEDGER_OBJECT(LoanBroker, ...)` block in LedgerFormats.h as a possible duplicate definition, since I can't see the full file to confirm whether LoanBroker already had a flags entry elsewhere; this is worth a quick manual double-check by the author/CI but isn't something I can assert from the diff alone."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-08T16:24:47Z",
+     "body": "### 🔵 Needs a closer look\n\nAdd the missing API changelog entry and preclaim credential/domain authorization check.\n\n**0 open findings**\n\n<details>\n<summary><strong>2 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Allow permissioned-domain owners to authorize broker access](#discussion_r4206432935)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document new public transaction and ledger fields in API changelog](#discussion_r4206433005)\n</details>\n\n🧠 **Review effort:** Lite\n\n---\n\nGive feedback about Copilot approvals in [this survey](https://survey.alchemer.com/s3/9011660/CCR-Public-Preview-Autoapprove-feedback-survey) to enter a drawing for a $150 gift card."
     }
    ],
    "reviewCommentsList": [
@@ -1179,6 +1197,13 @@
      "path": "include/xrpl/protocol/detail/transactions.macro",
      "body": "This adds a public transaction/ledger format field (and the related public flag), which will appear through `server_definitions` and transaction/ledger RPC data, but the PR does not update `API-CHANGELOG.md` even though its API Impact section marks this as a new public API feature. Add the LoanBrokerSet/LoanBroker additions to the appropriate release entry.",
      "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r4206433005"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-10-08T11:54:57Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanSet.cpp",
+     "body": ">  permissioned-domain semantics treat the domain owner as a member even without a credential\n\nThis is untrue. We do not automatically treat the owner as a credential holder automatically.",
+     "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r4218587963"
     }
    ]
   },
