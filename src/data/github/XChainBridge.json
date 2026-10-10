@@ -1,6 +1,6 @@
 {
  "name": "XChainBridge",
- "fetchedAt": "2026-10-09T08:06:50.703Z",
+ "fetchedAt": "2026-10-10T08:07:00.840Z",
  "summary": {
   "status": "in development",
   "prs": 4,
@@ -9,10 +9,10 @@
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-10-05T14:49:09Z",
+  "lastActivity": "2026-10-09T11:08:57Z",
   "lastMerged": "2026-06-25T17:25:10Z",
   "release": "2.2.0",
-  "totalComments": 264
+  "totalComments": 265
  },
  "release": {
   "version": "2.2.0",
@@ -28,9 +28,11 @@
    "state": "open",
    "author": "mvadari",
    "createdAt": "2026-09-21T18:02:50Z",
-   "updatedAt": "2026-10-05T14:49:09Z",
+   "updatedAt": "2026-10-09T11:08:57Z",
    "closedAt": null,
-   "labels": [],
+   "labels": [
+    "PR: has conflicts"
+   ],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -49,6 +51,12 @@
      "date": "2026-10-05T14:47:12Z",
      "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
      "url": "https://github.com/XRPLF/rippled/pull/8255#issuecomment-5996870932"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-09T11:08:57Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8255#issuecomment-6079678325"
     }
    ],
    "body": "## High Level Overview of Change\n\nRemoves the `XChainBridge` feature: the three ledger entries (`Bridge`, `XChainOwnedClaimID`, `XChainOwnedCreateAccountClaimID`), the eight transactors, the `STXChainBridge` and `XChainAttestations` serialized types, the RPC handling for them, and their tests — about 16.8k lines.\n\n`XChainBridge` and `fixXChainRewardRounding` become `VoteBehavior::Obsolete`, so they can no longer be voted for. The `sfield` codes, ledger entry types, transaction types, and inner object formats they used are left marked unused so the numbers are not reassigned. The `temXCHAIN_*` and `tecXCHAIN_*` result codes are kept, since result code values must stay stable.\n\n## Context of Change\n\nNeither amendment was ever enabled on Mainnet, so no ledger contains these objects and no new amendment is needed to remove the code. Keeping the transactors, invariants, and 5k-line test suite alive costs maintenance on every protocol-wide refactor (`PreflightHelpers`, the autogen builders, the Beast-to-GTest migration) for a feature nobody is going to enable.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n`ledger_entry` no longer accepts `bridge`, `xchain_owned_claim_id`, or `xchain_owned_create_account_claim_id`. `account_objects` no longer accepts those values in `type`. `server_definitions` no longer lists the removed ledger entry types, transaction types, fields, and the `XChainBridge` serialized type. `API-CHANGELOG.md` is updated.\n\n`libxrpl` consumers lose the `STXChainBridge` and `XChainAttestations` classes, the `keylet::bridge`, `keylet::xChainClaimID`, and `keylet::xChainCreateAccountClaimID` functions, and the `sfXChain*` fields.\n\n## Test Plan\n\n- `cmake --build .build` — clean.\n- `.build/xrpl_tests` — 881 tests from 188 suites pass.\n- `.build/xrpld --unittest --unittest-jobs 8` — 251 suites, 4857 cases, 0 failures.\n- `cmake --build build/codegen --target code_gen` — no diff, the checked-in autogen headers match the macro files.\n- `pre-commit run --all-files` — all hooks pass.\n\n`Delegate_test`'s `expectedDelegableCount` drops from 56 to 48 for the eight removed delegable transactions.",
