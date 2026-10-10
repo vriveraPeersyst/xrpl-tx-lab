@@ -1,6 +1,6 @@
 {
  "name": "fixAMMv1_1",
- "fetchedAt": "2026-10-09T08:09:09.067Z",
+ "fetchedAt": "2026-10-10T08:09:20.498Z",
  "summary": {
   "status": "in development",
   "prs": 2,
@@ -11,10 +11,10 @@
   "branches": [
    "gregtatcam/retire/fixAMMv1_1"
   ],
-  "lastActivity": "2026-10-03T13:41:00Z",
+  "lastActivity": "2026-10-09T18:44:35Z",
   "lastMerged": "2024-05-14T19:28:38Z",
   "release": "2.2.0",
-  "totalComments": 186
+  "totalComments": 194
  },
  "release": {
   "version": "2.2.0",
@@ -30,7 +30,7 @@
    "state": "open",
    "author": "gregtatcam",
    "createdAt": "2026-09-14T18:44:55Z",
-   "updatedAt": "2026-10-03T13:41:00Z",
+   "updatedAt": "2026-10-09T18:44:35Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -69,6 +69,30 @@
      "date": "2026-10-03T13:25:08Z",
      "body": "> ## Copilot review overview\n> ### 🔵 Needs a closer look\n> Add regression coverage for unseated path-finding behavior and update the stale test comment.\n> \n> **Review effort:** Lite **Findings:** None\n> \n> **Resolved since last review (1)**\n\nFixed the stale comments. On the unseated rules: outside a transaction (RPC path finding), swapAssetIn/Out used to fall back to pre-fixAMMv1_1 rounding, and now they always use the fixed rounding. That's intended since the amendment is enabled everywhere, so path-finding quotes now match what the payment actually does. It's RPC-only and doesn't affect consensus, so I don't think it needs a dedicated test.",
      "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-5969598864"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-09T11:08:56Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-6079677960"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-09T14:12:05Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-6082643431"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-09T16:59:16Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-6085453097"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-09T17:45:46Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-6086182929"
     }
    ],
    "body": "## High Level Overview of Change\n\nfixAMMv1_1 has been enabled on mainnet long enough to retire, so move\nits macro to the retired list and delete the conditional code it\nguarded, keeping the enabled behavior.\n\nRemoved gates: changeSpotPriceQuality, swapAssetIn and swapAssetOut in\nAMMHelpers.h; adjustAmountsByLPTokens in AMMHelpers.cpp; accountSendIOU\nin TokenHelpers.cpp; the LP token balance checks in AMMWithdraw.cpp;\nand adjustQualityWithFees plus the two qualityThreshold lambdas in\nBookStep.cpp.\n\nThree parameters became dead and are dropped with their call sites: the\nRules argument of changeSpotPriceQuality, and the Rules argument of\nboth adjustQualityWithFees overloads. BookStep.cpp no longer needs\nRules.h.\n\nOne behavior change is worth noting. swapAssetIn and swapAssetOut read\nthe amendment through getCurrentTransactionRules(), which is only\nseated during transaction application. Path finding reaches them\nthrough RippleCalc::rippleCalculate from Pathfinder and PathRequest,\nwhere it is unseated, so ripple_path_find and path_find have been using\nthe pre-fix swap math while the transactors used the post-fix math.\nRetiring the amendment makes both paths agree. This is RPC-visible but\nnot consensus-relevant, since path finding only proposes paths and the\nPayment transactor executes them.\n\nadjustAmountsByLPTokens is unaffected: its only callers are\nAMMDeposit::deposit and AMMWithdraw::withdraw, both reached solely\nthrough doApply, where Transactor::operator() seats the rules\nunconditionally.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n## Test Plan\n\nUpdated AMM_test.cpp, AMMExtended_test.cpp, AMMMPT_test.cpp, and AMMCalc_test.cpp",
@@ -78,9 +102,9 @@
    "base": "develop",
    "head": "XRPLF:gregtatcam/retire/fixAMMv1_1",
    "additions": 693,
-   "deletions": 1669,
+   "deletions": 1667,
    "changedFiles": 11,
-   "commits": 10,
+   "commits": 13,
    "reviewComments": 19,
    "reviews": [
     {
@@ -250,6 +274,30 @@
      "state": "COMMENTED",
      "date": "2026-10-03T13:41:00Z",
      "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAdd focused RPC path-finding regressions covering AMM rounding and liquidity outputs.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>Previously missed (1)</strong></summary>\n\nIn code that hasn't changed since last review\n\n<details>\n<summary><picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> Add path-find regression asserting AMM proposed amounts</summary>\n\n`include/​xrpl/​ledger/​helpers/​AMMHelpers.h:399`\n\nThese swaps now unconditionally use the AMMv1.1 rounding path for unseated callers, which the PR description identifies as changing `ripple_path_find`/`path_find` output. The updated AMM suites exercise transaction/payment crossing, while the AMM path-find coverage only checks that an AMM appears in the path (`src/test/app/Path_test.cpp:1904-1925`) and not the returned source/destination amounts. Please add a regression through the path-finding RPC(s) using an integral-pair case and assert the proposed amounts so this RPC-visible behavior is protected.\n</details>\n</details>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-09T14:16:33Z",
+     "body": "This is a clean, mechanical amendment-retirement refactor for fixAMMv1_1. The pre-amendment branches in AMMHelpers.h/.cpp, TokenHelpers.cpp, AMMWithdraw.cpp, and BookStep.cpp are removed while the previously-gated (post-amendment) behavior is kept, matching the MR description. Dead `Rules` parameters are dropped along with the now-unused includes (contract.h, stdexcept, Rules.h), and call sites (AMMLiquidity.cpp, AMMCalc_test.cpp) are updated consistently. I traced each removed gate and confirmed the retained branch matches the previously-enabled behavior in every case, including the two qualityThreshold lambdas and adjustQualityWithFees overloads in BookStep.cpp, and the LP-token balance check in AMMWithdraw.cpp. The TokenHelpers.cpp accountSendIOU change correctly converts the old debug-only XRPL_ASSERT (pre-amendment, non-enforcing in release) into the unconditional enforcing check that was previously only live when the amendment was enabled, consistent with retiring to the fixed behavior. No correctness, security, or consistency issues stood out as changed-code bugs in this diff."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-09T17:51:27Z",
+     "body": "Clean amendment retirement: pre-fixAMMv1_1 branches are removed from AMMHelpers.h/.cpp, TokenHelpers.cpp, AMMWithdraw.cpp, and BookStep.cpp, consistently keeping the post-amendment behavior as the sole implementation. Call sites (AMMLiquidity.cpp, BookStep.cpp qualityUpperBound/getQualityFunc) were correctly updated to drop the now-unused Rules parameters, and the Rules.h include was dropped from BookStep.cpp since it's no longer needed. The behavior change noted in the description (ripple_path_find/path_find now agreeing with transactors on swap math) is an expected, well-documented consequence of retiring the amendment rather than a bug. I did not find correctness issues in the diff — the deleted conditionals match the amendment-enabled code paths in every case I traced (changeSpotPriceQuality, swapAssetIn/swapAssetOut, adjustAmountsByLPTokens, accountSendIOU, the AMMWithdraw LP-token checks, and the BookStep adjustQualityWithFees/qualityThreshold lambdas)."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-09T18:36:04Z",
+     "body": "Diff only touches test files (AMMExtended_test.cpp, AMMMPT_test.cpp, and an empty AMM_test.cpp diff), removing the fixAMMv1_1 conditional branches and keeping the post-amendment expected values, consistent with retiring the amendment. The AMM_test.cpp diff body is empty in what was provided, so nothing to review there. No production/business logic is in this diff slice; changes are mechanical removal of dead branches and consistent with the MR description."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-09T18:42:13Z",
+     "body": "### 🔵 Needs a closer look\n\nThe changes require final human review because they are too complex or risky for automated approval.\n\n**0 open findings**\n\n🧠 **Review effort:** Lite"
     }
    ],
    "reviewCommentsList": [

@@ -1,10 +1,10 @@
 {
   "source": {
-    "commit": "ede8af8191d2bc9ff5c59b6a26d7b84e79b9ea94",
-    "commitDate": "2026-10-08T12:34:06Z",
+    "commit": "6d6ab2d06740923952ba06f3a38eb96cb0ac6c6f",
+    "commitDate": "2026-10-10T00:20:39+01:00",
     "branch": "develop",
     "repo": "https://github.com/XRPLF/rippled",
-    "extractedAt": "2026-10-09T08:00:23.386Z"
+    "extractedAt": "2026-10-10T08:00:27.371Z"
   },
   "transactions": [
     {
@@ -11005,12 +11005,14 @@
               "temBAD_SIGNER",
               "temINVALID_FLAG",
               "temINVALID_INNER_BATCH",
+              "temMALFORMED",
               "temREDUNDANT",
               "temSEQ_AND_TICKET",
               "tesSUCCESS"
             ],
             "features": [
-              "featureLendingProtocolV1_2"
+              "featureLendingProtocolV1_2",
+              "fixBatchV1_2"
             ],
             "flags": [
               "tfAllOrNothing",
@@ -11024,6 +11026,7 @@
               "BatchSigners",
               "CounterpartySignature",
               "Fee",
+              "RawTransaction",
               "RawTransactions",
               "Sequence",
               "Signers",
@@ -11037,7 +11040,7 @@
             ]
           },
           "preflightSigValidated": {
-            "line": 384,
+            "line": 392,
             "ter": [
               "temBAD_SIGNER",
               "tesSUCCESS"
@@ -11053,7 +11056,7 @@
             ]
           },
           "checkBatchSign": {
-            "line": 487,
+            "line": 495,
             "ter": [
               "tesSUCCESS"
             ],
@@ -11065,7 +11068,7 @@
             ]
           },
           "checkSign": {
-            "line": 513,
+            "line": 521,
             "ter": [
               "tesSUCCESS"
             ],
@@ -11076,7 +11079,7 @@
             ]
           },
           "doApply": {
-            "line": 529,
+            "line": 537,
             "ter": [
               "tesSUCCESS"
             ],
@@ -11085,14 +11088,14 @@
             "fields": []
           },
           "visitInvariantEntry": {
-            "line": 535,
+            "line": 543,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 541,
+            "line": 549,
             "ter": [],
             "features": [],
             "flags": [],
@@ -11109,12 +11112,14 @@
           "temBAD_SIGNER",
           "temINVALID_FLAG",
           "temINVALID_INNER_BATCH",
+          "temMALFORMED",
           "temREDUNDANT",
           "temSEQ_AND_TICKET",
           "tesSUCCESS"
         ],
         "allFeatures": [
-          "featureLendingProtocolV1_2"
+          "featureLendingProtocolV1_2",
+          "fixBatchV1_2"
         ],
         "allFlags": [
           "tfAllOrNothing",
@@ -11130,6 +11135,7 @@
           "Counterparty",
           "CounterpartySignature",
           "Fee",
+          "RawTransaction",
           "RawTransactions",
           "Sequence",
           "Signers",
@@ -11141,7 +11147,7 @@
           "TransactionType",
           "TxnSignature"
         ],
-        "lines": 618,
+        "lines": 627,
         "ownerReserveFee": false,
         "customBaseFee": true,
         "ownerCountCalls": []
@@ -11193,6 +11199,11 @@
           "name": "CoverRateLiquidation",
           "optionality": "optional",
           "mptSupported": false
+        },
+        {
+          "name": "DomainID",
+          "optionality": "optional",
+          "mptSupported": false
         }
       ],
       "pseudo": false,
@@ -11201,32 +11212,40 @@
         "headerFile": "include/xrpl/tx/transactors/lending/LoanBrokerSet.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 31,
+            "line": 34,
             "ter": [],
-            "features": [],
+            "features": [
+              "featureLendingProtocolV1_2"
+            ],
             "flags": [],
-            "fields": []
+            "fields": [
+              "DomainID"
+            ]
           },
           "preflight": {
-            "line": 37,
+            "line": 42,
             "ter": [
               "temINVALID",
+              "temMALFORMED",
               "tesSUCCESS"
             ],
             "features": [],
-            "flags": [],
+            "flags": [
+              "tfLoanBrokerPrivate"
+            ],
             "fields": [
               "CoverRateLiquidation",
               "CoverRateMinimum",
               "Data",
               "DebtMaximum",
+              "DomainID",
               "LoanBrokerID",
               "ManagementFeeRate",
               "VaultID"
             ]
           },
           "getValueFields": {
-            "line": 86,
+            "line": 115,
             "ter": [],
             "features": [],
             "flags": [],
@@ -11234,31 +11253,47 @@
               "DebtMaximum"
             ]
           },
+          "getFlagsMask": {
+            "line": 123,
+            "ter": [],
+            "features": [
+              "featureLendingProtocolV1_2"
+            ],
+            "flags": [
+              "tfLoanBrokerSetMask",
+              "tfUniversalMask"
+            ],
+            "fields": []
+          },
           "preclaim": {
-            "line": 94,
+            "line": 133,
             "ter": [
               "tecLIMIT_EXCEEDED",
               "tecNO_ENTRY",
               "tecNO_PERMISSION",
+              "tecOBJECT_NOT_FOUND",
               "tecPRECISION_LOSS",
               "tesSUCCESS"
             ],
             "features": [
               "featureLendingProtocolV1_1"
             ],
-            "flags": [],
+            "flags": [
+              "lsfLoanBrokerPrivate"
+            ],
             "fields": [
               "Account",
               "Asset",
               "DebtMaximum",
               "DebtTotal",
+              "DomainID",
               "LoanBrokerID",
               "Owner",
               "VaultID"
             ]
           },
           "doApply": {
-            "line": 189,
+            "line": 240,
             "ter": [
               "tecINSUFFICIENT_RESERVE",
               "tecINTERNAL",
@@ -11266,7 +11301,10 @@
               "tesSUCCESS"
             ],
             "features": [],
-            "flags": [],
+            "flags": [
+              "lsfLoanBrokerPrivate",
+              "tfLoanBrokerPrivate"
+            ],
             "fields": [
               "Account",
               "Asset",
@@ -11274,6 +11312,7 @@
               "CoverRateMinimum",
               "Data",
               "DebtMaximum",
+              "DomainID",
               "LoanBrokerID",
               "LoanSequence",
               "ManagementFeeRate",
@@ -11284,14 +11323,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 298,
+            "line": 368,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 304,
+            "line": 374,
             "ter": [],
             "features": [],
             "flags": [],
@@ -11304,15 +11343,23 @@
           "tecLIMIT_EXCEEDED",
           "tecNO_ENTRY",
           "tecNO_PERMISSION",
+          "tecOBJECT_NOT_FOUND",
           "tecPRECISION_LOSS",
           "tefBAD_LEDGER",
           "temINVALID",
+          "temMALFORMED",
           "tesSUCCESS"
         ],
         "allFeatures": [
-          "featureLendingProtocolV1_1"
+          "featureLendingProtocolV1_1",
+          "featureLendingProtocolV1_2"
         ],
-        "allFlags": [],
+        "allFlags": [
+          "lsfLoanBrokerPrivate",
+          "tfLoanBrokerPrivate",
+          "tfLoanBrokerSetMask",
+          "tfUniversalMask"
+        ],
         "allFields": [
           "Account",
           "Asset",
@@ -11321,6 +11368,7 @@
           "Data",
           "DebtMaximum",
           "DebtTotal",
+          "DomainID",
           "LoanBrokerID",
           "LoanSequence",
           "ManagementFeeRate",
@@ -11329,7 +11377,7 @@
           "VaultID",
           "VaultNode"
         ],
-        "lines": 318,
+        "lines": 388,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": [
@@ -12031,14 +12079,14 @@
         "headerFile": "include/xrpl/tx/transactors/lending/LoanSet.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 51,
+            "line": 52,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "getFlagsMask": {
-            "line": 57,
+            "line": 58,
             "ter": [],
             "features": [],
             "flags": [
@@ -12047,7 +12095,7 @@
             "fields": []
           },
           "preflight": {
-            "line": 63,
+            "line": 64,
             "ter": [
               "temBAD_SIGNER",
               "temINVALID",
@@ -12082,7 +12130,7 @@
             ]
           },
           "checkSign": {
-            "line": 160,
+            "line": 161,
             "ter": [
               "temBAD_SIGNER",
               "tesSUCCESS"
@@ -12097,7 +12145,7 @@
             ]
           },
           "calculateBaseFee": {
-            "line": 188,
+            "line": 189,
             "ter": [],
             "features": [],
             "flags": [],
@@ -12108,7 +12156,7 @@
             ]
           },
           "getValueFields": {
-            "line": 215,
+            "line": 216,
             "ter": [],
             "features": [],
             "flags": [],
@@ -12121,7 +12169,7 @@
             ]
           },
           "preclaim": {
-            "line": 236,
+            "line": 237,
             "ter": [
               "tecEXPIRED",
               "tecKILLED",
@@ -12157,7 +12205,7 @@
             ]
           },
           "doApply": {
-            "line": 435,
+            "line": 436,
             "ter": [
               "tecDUPLICATE",
               "tecINSUFFICIENT_FUNDS",
@@ -12165,6 +12213,8 @@
               "tecINTERNAL",
               "tecLIMIT_EXCEEDED",
               "tecMAX_SEQUENCE_REACHED",
+              "tecNO_AUTH",
+              "tecNO_PERMISSION",
               "tecPRECISION_LOSS",
               "tefBAD_LEDGER",
               "tesSUCCESS"
@@ -12173,6 +12223,7 @@
               "fixCleanup3_2_0"
             ],
             "flags": [
+              "lsfLoanBrokerPrivate",
               "lsfLoanOverpayment",
               "tfLoanOverpayment"
             ],
@@ -12191,6 +12242,7 @@
               "CoverRateMinimum",
               "DebtMaximum",
               "DebtTotal",
+              "DomainID",
               "GracePeriod",
               "InterestRate",
               "LateInterestRate",
@@ -12221,14 +12273,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 732,
+            "line": 753,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 738,
+            "line": 759,
             "ter": [],
             "features": [],
             "flags": [],
@@ -12244,6 +12296,7 @@
           "tecKILLED",
           "tecLIMIT_EXCEEDED",
           "tecMAX_SEQUENCE_REACHED",
+          "tecNO_AUTH",
           "tecNO_ENTRY",
           "tecNO_PERMISSION",
           "tecPRECISION_LOSS",
@@ -12262,6 +12315,7 @@
           "fixCleanup3_4_0"
         ],
         "allFlags": [
+          "lsfLoanBrokerPrivate",
           "lsfLoanOverpayment",
           "tfInnerBatchTxn",
           "tfLoanOverpayment",
@@ -12284,6 +12338,7 @@
           "Data",
           "DebtMaximum",
           "DebtTotal",
+          "DomainID",
           "GracePeriod",
           "InterestRate",
           "LateInterestRate",
@@ -12316,7 +12371,7 @@
           "TxnSignature",
           "VaultID"
         ],
-        "lines": 747,
+        "lines": 768,
         "ownerReserveFee": false,
         "customBaseFee": true,
         "ownerCountCalls": [
@@ -15892,6 +15947,16 @@
         ],
         "maskAdj": []
       },
+      "LoanBrokerSet": {
+        "flags": [
+          {
+            "name": "tfLoanBrokerPrivate",
+            "value": 65536,
+            "hex": "0x00010000"
+          }
+        ],
+        "maskAdj": []
+      },
       "SponsorshipSet": {
         "flags": [
           {
@@ -16349,6 +16414,13 @@
         "name": "lsfSponsorshipRequireSignForReserve",
         "value": 131072,
         "hex": "0x00020000"
+      }
+    ],
+    "LoanBroker": [
+      {
+        "name": "lsfLoanBrokerPrivate",
+        "value": 65536,
+        "hex": "0x00010000"
       }
     ]
   },
@@ -18206,6 +18278,11 @@
           "name": "CoverRateLiquidation",
           "optionality": "default",
           "mptSupported": false
+        },
+        {
+          "name": "DomainID",
+          "optionality": "optional",
+          "mptSupported": false
         }
       ]
     },
@@ -18492,12 +18569,20 @@
       "order": 4
     },
     {
+      "name": "fixBatchV1_2",
+      "kind": "fix",
+      "supported": true,
+      "defaultVote": "yes",
+      "retired": false,
+      "order": 5
+    },
+    {
       "name": "fixCleanup3_4_0",
       "kind": "fix",
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 5
+      "order": 6
     },
     {
       "name": "Sponsor",
@@ -18505,7 +18590,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 6
+      "order": 7
     },
     {
       "name": "BatchV1_1",
@@ -18513,7 +18598,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 7
+      "order": 8
     },
     {
       "name": "LendingProtocolV1_1",
@@ -18521,7 +18606,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 8
+      "order": 9
     },
     {
       "name": "ConfidentialTransfer",
@@ -18529,7 +18614,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 9
+      "order": 10
     },
     {
       "name": "fixCleanup3_3_0",
@@ -18537,7 +18622,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 10
+      "order": 11
     },
     {
       "name": "fixCleanup3_2_0",
@@ -18545,7 +18630,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 11
+      "order": 12
     },
     {
       "name": "MPTokensV2",
@@ -18553,7 +18638,7 @@
       "supported": false,
       "defaultVote": "no",
       "retired": false,
-      "order": 12
+      "order": 13
     },
     {
       "name": "fixCleanup3_1_3",
@@ -18561,7 +18646,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": false,
-      "order": 13
+      "order": 14
     },
     {
       "name": "LendingProtocol",
@@ -18569,7 +18654,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 14
+      "order": 15
     },
     {
       "name": "PermissionDelegationV1_1",
@@ -18577,7 +18662,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 15
+      "order": 16
     },
     {
       "name": "fixDirectoryLimit",
@@ -18585,7 +18670,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 16
+      "order": 17
     },
     {
       "name": "fixIncludeKeyletFields",
@@ -18593,7 +18678,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 17
+      "order": 18
     },
     {
       "name": "DynamicMPT",
@@ -18601,7 +18686,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 18
+      "order": 19
     },
     {
       "name": "fixTokenEscrowV1",
@@ -18609,7 +18694,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 19
+      "order": 20
     },
     {
       "name": "fixPriceOracleOrder",
@@ -18617,7 +18702,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 20
+      "order": 21
     },
     {
       "name": "fixMPTDeliveredAmount",
@@ -18625,7 +18710,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 21
+      "order": 22
     },
     {
       "name": "fixAMMClawbackRounding",
@@ -18633,7 +18718,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 22
+      "order": 23
     },
     {
       "name": "TokenEscrow",
@@ -18641,7 +18726,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 23
+      "order": 24
     },
     {
       "name": "fixEnforceNFTokenTrustlineV2",
@@ -18649,7 +18734,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 24
+      "order": 25
     },
     {
       "name": "fixAMMv1_3",
@@ -18657,7 +18742,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 25
+      "order": 26
     },
     {
       "name": "PermissionedDEX",
@@ -18665,7 +18750,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 26
+      "order": 27
     },
     {
       "name": "SingleAssetVault",
@@ -18673,7 +18758,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 27
+      "order": 28
     },
     {
       "name": "fixPayChanCancelAfter",
@@ -18681,7 +18766,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 28
+      "order": 29
     },
     {
       "name": "fixInvalidTxFlags",
@@ -18689,7 +18774,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 29
+      "order": 30
     },
     {
       "name": "fixFrozenLPTokenTransfer",
@@ -18697,7 +18782,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 30
+      "order": 31
     },
     {
       "name": "DeepFreeze",
@@ -18705,7 +18790,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 31
+      "order": 32
     },
     {
       "name": "PermissionedDomains",
@@ -18713,7 +18798,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 32
+      "order": 33
     },
     {
       "name": "DynamicNFT",
@@ -18721,7 +18806,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 33
+      "order": 34
     },
     {
       "name": "Credentials",
@@ -18729,7 +18814,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 34
+      "order": 35
     },
     {
       "name": "AMMClawback",
@@ -18737,7 +18822,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 35
+      "order": 36
     },
     {
       "name": "fixAMMv1_2",
@@ -18745,7 +18830,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 36
+      "order": 37
     },
     {
       "name": "MPTokensV1",
@@ -18753,7 +18838,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 37
+      "order": 38
     },
     {
       "name": "fixNFTokenPageLinks",
@@ -18761,7 +18846,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 38
+      "order": 39
     },
     {
       "name": "fixInnerObjTemplate2",
@@ -18769,7 +18854,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 39
+      "order": 40
     },
     {
       "name": "fixEnforceNFTokenTrustline",
@@ -18777,7 +18862,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 40
+      "order": 41
     },
     {
       "name": "fixReducedOffersV2",
@@ -18785,7 +18870,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 41
+      "order": 42
     },
     {
       "name": "NFTokenMintOffer",
@@ -18793,7 +18878,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 42
+      "order": 43
     },
     {
       "name": "fixAMMv1_1",
@@ -18801,7 +18886,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 43
+      "order": 44
     },
     {
       "name": "fixPreviousTxnID",
@@ -18809,7 +18894,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 44
+      "order": 45
     },
     {
       "name": "fixXChainRewardRounding",
@@ -18817,7 +18902,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 45
+      "order": 46
     },
     {
       "name": "fixEmptyDID",
@@ -18825,7 +18910,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 46
+      "order": 47
     },
     {
       "name": "PriceOracle",
@@ -18833,7 +18918,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 47
+      "order": 48
     },
     {
       "name": "fixFillOrKill",
@@ -18841,7 +18926,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 48
+      "order": 49
     },
     {
       "name": "DID",
@@ -18849,7 +18934,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 49
+      "order": 50
     },
     {
       "name": "XChainBridge",
@@ -18857,7 +18942,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 50
+      "order": 51
     },
     {
       "name": "AMM",
@@ -18865,7 +18950,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 51
+      "order": 52
     },
     {
       "name": "XRPFees",
@@ -18873,7 +18958,7 @@
       "supported": true,
       "defaultVote": "no",
       "retired": false,
-      "order": 52
+      "order": 53
     },
     {
       "name": "fixRemoveNFTokenAutoTrustLine",
@@ -18881,7 +18966,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": false,
-      "order": 53
+      "order": 54
     },
     {
       "name": "fix1201",
@@ -18889,7 +18974,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 54
+      "order": 55
     },
     {
       "name": "fix1368",
@@ -18897,7 +18982,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 55
+      "order": 56
     },
     {
       "name": "fix1373",
@@ -18905,7 +18990,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 56
+      "order": 57
     },
     {
       "name": "fix1512",
@@ -18913,7 +18998,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 57
+      "order": 58
     },
     {
       "name": "fix1513",
@@ -18921,7 +19006,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 58
+      "order": 59
     },
     {
       "name": "fix1515",
@@ -18929,7 +19014,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 59
+      "order": 60
     },
     {
       "name": "fix1523",
@@ -18937,7 +19022,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 60
+      "order": 61
     },
     {
       "name": "fix1528",
@@ -18945,7 +19030,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 61
+      "order": 62
     },
     {
       "name": "fix1543",
@@ -18953,7 +19038,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 62
+      "order": 63
     },
     {
       "name": "fix1571",
@@ -18961,7 +19046,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 63
+      "order": 64
     },
     {
       "name": "fix1578",
@@ -18969,7 +19054,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 64
+      "order": 65
     },
     {
       "name": "fix1623",
@@ -18977,7 +19062,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 65
+      "order": 66
     },
     {
       "name": "fix1781",
@@ -18985,7 +19070,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 66
+      "order": 67
     },
     {
       "name": "fixAmendmentMajorityCalc",
@@ -18993,7 +19078,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 67
+      "order": 68
     },
     {
       "name": "fixAMMOverflowOffer",
@@ -19001,7 +19086,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 68
+      "order": 69
     },
     {
       "name": "fixCheckThreading",
@@ -19009,7 +19094,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 69
+      "order": 70
     },
     {
       "name": "fixDisallowIncomingV1",
@@ -19017,7 +19102,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 70
+      "order": 71
     },
     {
       "name": "fixInnerObjTemplate",
@@ -19025,7 +19110,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 71
+      "order": 72
     },
     {
       "name": "fixMasterKeyAsRegularKey",
@@ -19033,7 +19118,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 72
+      "order": 73
     },
     {
       "name": "fixNonFungibleTokensV1_2",
@@ -19041,7 +19126,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 73
+      "order": 74
     },
     {
       "name": "fixNFTokenRemint",
@@ -19049,7 +19134,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 74
+      "order": 75
     },
     {
       "name": "fixNFTokenReserve",
@@ -19057,7 +19142,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 75
+      "order": 76
     },
     {
       "name": "fixPayChanRecipientOwnerDir",
@@ -19065,7 +19150,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 76
+      "order": 77
     },
     {
       "name": "fixQualityUpperBound",
@@ -19073,7 +19158,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 77
+      "order": 78
     },
     {
       "name": "fixReducedOffersV1",
@@ -19081,7 +19166,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 78
+      "order": 79
     },
     {
       "name": "fixRmSmallIncreasedQOffers",
@@ -19089,7 +19174,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 79
+      "order": 80
     },
     {
       "name": "fixSTAmountCanonicalize",
@@ -19097,7 +19182,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 80
+      "order": 81
     },
     {
       "name": "fixTakerDryOfferRemoval",
@@ -19105,7 +19190,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 81
+      "order": 82
     },
     {
       "name": "fixTrustLinesToSelf",
@@ -19113,7 +19198,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 82
+      "order": 83
     },
     {
       "name": "fixUniversalNumber",
@@ -19121,7 +19206,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 83
+      "order": 84
     },
     {
       "name": "Checks",
@@ -19129,7 +19214,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 84
+      "order": 85
     },
     {
       "name": "CheckCashMakesTrustLine",
@@ -19137,7 +19222,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 85
+      "order": 86
     },
     {
       "name": "Clawback",
@@ -19145,7 +19230,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 86
+      "order": 87
     },
     {
       "name": "CryptoConditions",
@@ -19153,7 +19238,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 87
+      "order": 88
     },
     {
       "name": "CryptoConditionsSuite",
@@ -19161,7 +19246,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 88
+      "order": 89
     },
     {
       "name": "DeletableAccounts",
@@ -19169,7 +19254,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 89
+      "order": 90
     },
     {
       "name": "DepositAuth",
@@ -19177,7 +19262,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 90
+      "order": 91
     },
     {
       "name": "DepositPreauth",
@@ -19185,7 +19270,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 91
+      "order": 92
     },
     {
       "name": "DisallowIncoming",
@@ -19193,7 +19278,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 92
+      "order": 93
     },
     {
       "name": "Escrow",
@@ -19201,7 +19286,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 93
+      "order": 94
     },
     {
       "name": "EnforceInvariants",
@@ -19209,7 +19294,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 94
+      "order": 95
     },
     {
       "name": "ExpandedSignerList",
@@ -19217,7 +19302,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 95
+      "order": 96
     },
     {
       "name": "FeeEscalation",
@@ -19225,7 +19310,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 96
+      "order": 97
     },
     {
       "name": "Flow",
@@ -19233,7 +19318,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 97
+      "order": 98
     },
     {
       "name": "FlowCross",
@@ -19241,7 +19326,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 98
+      "order": 99
     },
     {
       "name": "FlowSortStrands",
@@ -19249,7 +19334,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 99
+      "order": 100
     },
     {
       "name": "HardenedValidations",
@@ -19257,7 +19342,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 100
+      "order": 101
     },
     {
       "name": "ImmediateOfferKilled",
@@ -19265,7 +19350,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 101
+      "order": 102
     },
     {
       "name": "MultiSign",
@@ -19273,7 +19358,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 102
+      "order": 103
     },
     {
       "name": "MultiSignReserve",
@@ -19281,7 +19366,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 103
+      "order": 104
     },
     {
       "name": "NegativeUNL",
@@ -19289,7 +19374,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 104
+      "order": 105
     },
     {
       "name": "NonFungibleTokensV1_1",
@@ -19297,7 +19382,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 105
+      "order": 106
     },
     {
       "name": "PayChan",
@@ -19305,7 +19390,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 106
+      "order": 107
     },
     {
       "name": "RequireFullyCanonicalSig",
@@ -19313,7 +19398,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 107
+      "order": 108
     },
     {
       "name": "SortedDirectories",
@@ -19321,7 +19406,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 108
+      "order": 109
     },
     {
       "name": "TicketBatch",
@@ -19329,7 +19414,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 109
+      "order": 110
     },
     {
       "name": "TickSize",
@@ -19337,7 +19422,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 110
+      "order": 111
     },
     {
       "name": "TrustSetAuth",
@@ -19345,7 +19430,7 @@
       "supported": true,
       "defaultVote": "yes",
       "retired": true,
-      "order": 111
+      "order": 112
     }
   ],
   "results": [
