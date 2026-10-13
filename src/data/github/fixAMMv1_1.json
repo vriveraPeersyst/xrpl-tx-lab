@@ -1,6 +1,6 @@
 {
  "name": "fixAMMv1_1",
- "fetchedAt": "2026-10-12T08:08:42.865Z",
+ "fetchedAt": "2026-10-13T08:09:39.525Z",
  "summary": {
   "status": "in development",
   "prs": 2,
@@ -11,10 +11,10 @@
   "branches": [
    "gregtatcam/retire/fixAMMv1_1"
   ],
-  "lastActivity": "2026-10-12T05:24:07Z",
+  "lastActivity": "2026-10-12T23:40:10Z",
   "lastMerged": "2024-05-14T19:28:38Z",
   "release": "2.2.0",
-  "totalComments": 195
+  "totalComments": 201
  },
  "release": {
   "version": "2.2.0",
@@ -30,7 +30,7 @@
    "state": "open",
    "author": "gregtatcam",
    "createdAt": "2026-09-14T18:44:55Z",
-   "updatedAt": "2026-10-12T05:24:07Z",
+   "updatedAt": "2026-10-12T23:40:10Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -99,6 +99,18 @@
      "date": "2026-10-12T05:24:06Z",
      "body": "@gregtatcam Can we add someone else to review this? Qi is on PTO. Thanks.",
      "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-6118286609"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-12T13:02:12Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-6124803049"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-12T15:05:47Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-6126954719"
     }
    ],
    "body": "## High Level Overview of Change\n\nfixAMMv1_1 has been enabled on mainnet long enough to retire, so move\nits macro to the retired list and delete the conditional code it\nguarded, keeping the enabled behavior.\n\nRemoved gates: changeSpotPriceQuality, swapAssetIn and swapAssetOut in\nAMMHelpers.h; adjustAmountsByLPTokens in AMMHelpers.cpp; accountSendIOU\nin TokenHelpers.cpp; the LP token balance checks in AMMWithdraw.cpp;\nand adjustQualityWithFees plus the two qualityThreshold lambdas in\nBookStep.cpp.\n\nThree parameters became dead and are dropped with their call sites: the\nRules argument of changeSpotPriceQuality, and the Rules argument of\nboth adjustQualityWithFees overloads. BookStep.cpp no longer needs\nRules.h.\n\nOne behavior change is worth noting. swapAssetIn and swapAssetOut read\nthe amendment through getCurrentTransactionRules(), which is only\nseated during transaction application. Path finding reaches them\nthrough RippleCalc::rippleCalculate from Pathfinder and PathRequest,\nwhere it is unseated, so ripple_path_find and path_find have been using\nthe pre-fix swap math while the transactors used the post-fix math.\nRetiring the amendment makes both paths agree. This is RPC-visible but\nnot consensus-relevant, since path finding only proposes paths and the\nPayment transactor executes them.\n\nadjustAmountsByLPTokens is unaffected: its only callers are\nAMMDeposit::deposit and AMMWithdraw::withdraw, both reached solely\nthrough doApply, where Transactor::operator() seats the rules\nunconditionally.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n## Test Plan\n\nUpdated AMM_test.cpp, AMMExtended_test.cpp, AMMMPT_test.cpp, and AMMCalc_test.cpp",
@@ -110,7 +122,7 @@
    "additions": 693,
    "deletions": 1667,
    "changedFiles": 11,
-   "commits": 13,
+   "commits": 16,
    "reviewComments": 19,
    "reviews": [
     {
@@ -304,6 +316,30 @@
      "state": "COMMENTED",
      "date": "2026-10-09T18:42:13Z",
      "body": "### 🔵 Needs a closer look\n\nThe changes require final human review because they are too complex or risky for automated approval.\n\n**0 open findings**\n\n🧠 **Review effort:** Lite"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-12T14:55:28Z",
+     "body": "This is a mechanical amendment-retirement refactor for fixAMMv1_1. I traced each guarded block (changeSpotPriceQuality, swapAssetIn/swapAssetOut, adjustAmountsByLPTokens, accountSendIOU, AMMWithdraw's LP-token checks, and BookStep's adjustQualityWithFees/qualityThreshold) and in every case the surviving code matches the previously-enabled (post-amendment) branch, consistent with the stated goal of 'keeping the enabled behavior.' Signature changes (dropping the now-dead Rules parameters) are propagated correctly to all call sites I can see (AMMLiquidity.cpp, BookStep.cpp, AMMCalc_test.cpp). I did not find correctness, security, or consistency issues in the changed lines."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-12T15:59:35Z",
+     "body": "This is a mechanical amendment-retirement refactor: fixAMMv1_1 is moved to the retired list and the amendment-disabled code paths are deleted, keeping only the post-fix (enabled) behavior. I checked each deleted gate in AMMHelpers.h/.cpp, TokenHelpers.cpp, BookStep.cpp, AMMWithdraw.cpp, and AMMLiquidity.cpp against the retained branch, and in every case the surviving code matches what previously ran under `rules.enabled(fixAMMv1_1) == true`, consistent with the MR description. The dropped `Rules` parameters (changeSpotPriceQuality, both adjustQualityWithFees overloads) are no longer referenced anywhere in the diff, and call sites were updated accordingly. The one documented behavior change (ripple_path_find/path_find now using post-fix swap math) is explicitly called out in the MR description and is RPC-visible only, not consensus-relevant, so it's not a concern. I didn't find any new correctness or security issues introduced by this refactor."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-12T23:18:50Z",
+     "body": "This is a mechanical test-cleanup diff retiring fixAMMv1_1: dead conditional branches (and the pre-fix test fixture combinations referencing fixAMMv1_1) are removed, keeping the previously-enabled-amendment expected values and comments. I verified each merged if/else pair against the diff to confirm the retained branch matches the amendment-enabled numeric expectations and that removed branches were truly duplicates or dead combinations (e.g. all - fixAMMv1_1 - fixAMMv1_3 → all - fixAMMv1_3). No logic errors, mismatched literals, or resource/lifecycle issues were found in the test files shown."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-12T23:40:10Z",
+     "body": "### 🔵 Needs a closer look\n\nAdd path-finding amount regression coverage and preserve or document the breaking public helper API change.\n\n**0 open findings**\n\n🧠 **Review effort:** Lite"
     }
    ],
    "reviewCommentsList": [
