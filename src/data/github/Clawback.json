@@ -1,6 +1,6 @@
 {
  "name": "Clawback",
- "fetchedAt": "2026-10-12T08:01:40.185Z",
+ "fetchedAt": "2026-10-13T08:02:14.205Z",
  "summary": {
   "status": "in development",
   "prs": 10,
@@ -15,10 +15,10 @@
    "tapanito/vault-clawback-invariants",
    "tialymov/FN-30-vault_clawback_holder_existence"
   ],
-  "lastActivity": "2026-10-11T16:12:38Z",
+  "lastActivity": "2026-10-12T13:38:45Z",
   "lastMerged": "2026-08-26T18:06:55Z",
   "release": "1.12.0",
-  "totalComments": 284
+  "totalComments": 287
  },
  "release": {
   "version": "1.12.0",
@@ -34,7 +34,7 @@
    "state": "open",
    "author": "gregtatcam",
    "createdAt": "2026-10-03T20:39:20Z",
-   "updatedAt": "2026-10-11T16:12:38Z",
+   "updatedAt": "2026-10-12T13:38:45Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -51,10 +51,10 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:gregtatcam/clawback-invariant-rounding",
-   "additions": 104,
+   "additions": 109,
    "deletions": 1,
    "changedFiles": 2,
-   "commits": 2,
+   "commits": 3,
    "reviewComments": 3,
    "reviews": [
     {
@@ -92,6 +92,24 @@
      "state": "COMMENTED",
      "date": "2026-10-06T21:05:24Z",
      "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-12T12:55:25Z",
+     "body": "The core fix in InvariantCheck.cpp correctly addresses the rounding issue: instead of comparing the independently-rounded delta (beforeBalance - afterBalance) against the unrounded std::min(beforeBalance, clawAmount), it now compares afterBalance directly against beforeBalance - std::min(beforeBalance, clawAmount), mirroring the same rounded subtraction the balance update performs. This avoids the double-rounding mismatch that caused false invariant failures for sub-resolution IOU clawbacks. The accompanying test (testSubResolutionAmount) exercises both the MPTokensV2-enabled path (asserting tesSUCCESS, i.e. no invariant failure) and the pre-amendment path (asserting no 'Invariant failed' log via CaptureLogs), with well-chosen boundary cases (zero-effective, round-down, round-up). The change is narrowly scoped, well-commented, and consistent with the MR description. I did not find correctness, security, or resource-management issues in the diff."
+    },
+    {
+     "author": "tyalymov",
+     "state": "APPROVED",
+     "date": "2026-10-12T12:59:49Z",
+     "body": "LGTM"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-12T13:38:44Z",
+     "body": "### 🟢 Approval recommended\n\nThe invariant now mirrors the applied balance calculation, with comprehensive regression coverage.\n\n**0 open findings**\n\n🧠 **Review effort:** Balanced"
     }
    ],
    "reviewCommentsList": [

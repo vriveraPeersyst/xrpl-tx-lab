@@ -1,6 +1,6 @@
 {
  "name": "AMM",
- "fetchedAt": "2026-10-12T08:00:59.732Z",
+ "fetchedAt": "2026-10-13T08:01:17.171Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -18,10 +18,10 @@
    "mvadari/rearch/amm-verifyAndAdjustLPTokenBalance",
    "mvadari/rearch/mptoken-deleteAMMMPToken"
   ],
-  "lastActivity": "2026-10-01T08:17:07Z",
+  "lastActivity": "2026-10-12T18:52:06Z",
   "lastMerged": "2026-08-24T13:50:52Z",
   "release": "1.12.0",
-  "totalComments": 425
+  "totalComments": 432
  },
  "release": {
   "version": "1.12.0",
@@ -31,16 +31,270 @@
  },
  "prs": [
   {
+   "number": 7867,
+   "title": "fix: Preventing attacker to suppress AMM trading fees indefinitely and extract value from liquidity providers",
+   "url": "https://github.com/XRPLF/rippled/pull/7867",
+   "state": "open",
+   "author": "Kassaking7",
+   "createdAt": "2026-07-24T18:34:20Z",
+   "updatedAt": "2026-10-12T18:52:06Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-24T19:01:18Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7867?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `96.22642%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/7867?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/ledger/helpers/AMMHelpers.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7867?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvbGVkZ2VyL2hlbHBlcnMvQU1NSGVscGVycy5jcHA=) | 95.9% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/7867?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5073471336"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-11T15:00:22Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5254902669"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-11T18:31:45Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5257255926"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-12T00:02:24Z",
+     "body": "### AMM full-withdrawal can zero out a live pool's trading fee\n\n**What the code does.** `updateAMMVoteSlotsAndFee` recomputes the pool fee as a holdings-weighted average of the surviving voters, then **deletes `sfTradingFee`** whenever that average comes out to 0 — the `den == 0` → `else` branch in `AMMHelpers.cpp` (~918–921).\n\n**The bug.** `den == 0` does **not** mean the pool is empty. It means *no account that currently holds a vote slot still holds LP tokens*. The voter set and the LP set can be disjoint, because a deposit into an already-live pool grants LP tokens but **no vote slot** (`AMMDeposit.cpp:541` — `initializeFeeAuctionVote` only runs when `lptAMMBalance == 0`). The withdraw call site even gates on `newLPTokenBalance != 0` (`AMMWithdraw.cpp:483`), so the code is guaranteed to be looking at a *funded* pool when it deletes the fee.\n\n**Repro.**\n1. Alice creates AMM(XRP/USD) with `TradingFee = 1000` (1%) → she is the sole voter.\n2. Bob deposits into the now-live pool → receives LP tokens, but **no** vote slot. `VoteSlots` is still `{Alice}`.\n3. Alice withdraws everything. Bob still holds LP tokens, so the pool stays alive and `updateAMMVoteSlotsAndFee` runs. Alice's slot is pruned → zero surviving voters → `den == 0` → `fee = 0` → `sfTradingFee` deleted.\n\n**Impact.** Bob's fully-funded pool now trades at **0% forever** (until someone votes or bids again). This is strictly worse than the stale-vote bug being fixed: instead of Alice's vote lingering at 1%, the fee is wiped to 0 and any trader/arbitrageur swaps against Bob's liquidity for free. It's also reachable on **existing** pools — any pool already carrying a stale vote slot (from the very bug this PR fixes) can have its fee zeroed by *anyone's* 1-drop withdrawal once the amendment activates.\n\n**Root cause.** An average over an empty voter set is undefined, but the code treats it as a genuine 0% vote and removes the fee. When no voters survive, it should **leave `sfTradingFee` unchanged** (keep the last governance-set value, let the next `AMMVote` decide) — never delete it while the pool still holds liquidity.\n\n**Related gaps.**\n- The same path writes an **empty `sfVoteSlots` array**, a ledger shape nothing else produces, which makes `amm_info` silently drop `vote_slots` for a live pool (`AMMInfo.cpp:215`).\n- `testFeeVoteWithdraw` never exercises `den == 0` (it always keeps two live voters), so the entire branch is untested.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5260295700"
+    }
+   ],
+   "body": "## High Level Overview of Change\nAn attacker will suppress AMM trading fees indefinitely and extract value from liquidity providers: Failure to invalidate vote slots and recompute the trading fee after a full LP withdrawal will cause persistent fee manipulation losses for liquidity providers as an attacker will perform a flash deposit, vote for a reduced fee, withdraw all liquidity, and leave a stale vote that continues to control the pool fee.\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "Kassaking7:DEFI-716",
+   "additions": 387,
+   "deletions": 0,
+   "changedFiles": 5,
+   "commits": 7,
+   "reviewComments": 12,
+   "reviews": [
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-11T19:30:41Z",
+     "body": ""
+    },
+    {
+     "author": "oleks-rip",
+     "state": "COMMENTED",
+     "date": "2026-08-13T15:10:34Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-08-18T16:25:42Z",
+     "body": ""
+    },
+    {
+     "author": "Kassaking7",
+     "state": "COMMENTED",
+     "date": "2026-08-19T16:25:06Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:03:02Z",
+     "body": "### 🔵 Needs a closer look\n\nIt changes core AMM ledger/transaction behavior in a security-sensitive area and should receive final human review despite strong targeted test coverage.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR addresses a fee-governance vulnerability in AMM pools where vote slots could persist after a liquidity provider fully withdraws (or is clawed back), allowing stale fee votes and auction-slot ownership to linger and suppress trading fees, harming remaining liquidity providers.\n\n**Changes:**\n- Introduces `updateAMMVoteSlotsAndFee` to prune vote slots for accounts that no longer hold LP tokens, recompute the trading fee (and discounted fee), and clear the auction slot holder when appropriate.\n- Invokes this cleanup from `AMMWithdraw` and `AMMClawback` when `fixCleanup3_4_0` is enabled and the AMM remains non-empty.\n- Adds targeted AMM unit tests covering full/partial withdrawals, last-voter withdrawal with non-voting LPs remaining, auction-slot behavior after withdrawal, and clawback parity.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/app/AMM_test.cpp | Adds regression tests for vote-slot pruning, fee recomputation, auction-slot clearing, and clawback behavior under `fixCleanup3_4_0`. |\n| src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp | Calls vote/fee/auction cleanup after successful withdraw when the AMM remains non-empty and the amendment is enabled. |\n| src/libxrpl/tx/transactors/dex/AMMClawback.cpp | Mirrors the same cleanup in clawback paths that bypass `AMMWithdraw::applyGuts`. |\n| src/libxrpl/ledger/helpers/AMMHelpers.cpp | Implements `updateAMMVoteSlotsAndFee` to prune stale vote slots, recompute fees, and clear auction holder on full LP exit. |\n| include/xrpl/ledger/helpers/AMMHelpers.h | Declares and documents the new helper function and its intended semantics. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 5/5 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-12T18:37:56Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-12T18:52:06Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "ckeshava",
+     "date": "2026-08-11T19:04:41Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Can you add another test that demonstrates the expected behavior in the case of partial withdrawal from `carol`? Suppose, carol withdraws 99% of her deposits from the AMM, then what is the expected behavior with respect to the Discounted-Slot and the TradingFees?",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3760906525"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-11T19:11:02Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "We need to test one more circumstance in this case: Suppose that a new account `zelda` outbids `carol`'s existing bid and ends up winning the auction slot. In this case, we need to ensure that:\n\n(1) `zelda`'s bid only needs to exceed the current auction-maximum, not `carol`'s bid because carol has withdrawn all her funds.\n\n(2) `carol` must not be re-compensated (assuming zelda outbids her within 24 hours of `carol`'s bid) due to the loss of her bid within 24 hours.\n\nPlease refer to this portion of the docs: \n\n<img width=\"822\" height=\"314\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/e97f8e0d-68f7-4b38-8408-9fb68022a864\" />",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3760950268"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-11T19:23:55Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "I believe this check is completely skipped in the case of AMMClawback transaction. this is because AMMClawback directly invokes the specific withdraw method like this: https://github.com/XRPLF/rippled/blob/26cc683ec143e8a5fcc6dd09c2c1fe25ac08b94c/src/libxrpl/tx/transactors/dex/AMMClawback.cpp#L226.\n\nIf this circumstance occurs due to the AMMClawback action of the Issuer, then also -- we need to ensure that the Holder does not have the preferred Auction-slot and the discounted fees.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3761036605"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-11T19:24:23Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
+     "body": "If I have misunderstood this case, please add a test that shows that the case of AMMClawback is also handled correctly.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3761039667"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-11T19:30:36Z",
+     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
+     "body": "Instead of re-writing this logic, can we refactor and make use of the existing code in AMMBid transactor? https://github.com/XRPLF/rippled/blob/26cc683ec143e8a5fcc6dd09c2c1fe25ac08b94c/src/libxrpl/tx/transactors/dex/AMMBid.cpp#L214\n\nIn my opinion, the `updateSlots` method needs to be updated to account for the present LPTokenBalance of bidder account.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3761081972"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-08-13T14:57:46Z",
+     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
+     "body": "`    STArray updatedVoteSlots(sfVoteSlots,  ammSle->getFieldArray(sfVoteSlots).size())`",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3776456050"
+    },
+    {
+     "author": "oleks-rip",
+     "date": "2026-08-13T15:00:47Z",
+     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
+     "body": "Number{0} - >kNumZero",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3776480342"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-08-18T16:25:42Z",
+     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
+     "body": "The number of the new vote slots might not be identical to the existing numbers. If this suggestion is accepted, then the array will need to be resized after the processing is completed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3805981676"
+    },
+    {
+     "author": "Kassaking7",
+     "date": "2026-08-19T16:25:05Z",
+     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
+     "body": "`updateAMMVoteSlotsAndFee` mirrors `AMMVote::applyVote (prune voters + weighted fee)`, not `AMMBid`. `updateSlot` is the bid-settlement path (new holder, expiration, burn LP) and isn’t appropriate on withdraw/clawback.\n\nAuction cleanup is narrower: if this withdrawing/clawed account is the current holder and now has 0 LP, we clear sfAccount to the zero account (same vacant path applyBid already takes when validOwner fails). We don’t change validOwner to check LP balance, because bidding burns LP and a holder can legitimately own the slot with 0 tokens.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3814815997"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-12T18:34:32Z",
+     "path": "src/libxrpl/tx/transactors/dex/AMMClawback.cpp",
+     "body": "The fix amendment needs to be updated, `fixCleanup3_4_0` has already been released.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r4251207355"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-12T18:52:06Z",
+     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
+     "body": "This block is a verbatim copy of the tail of `AMMVote::applyVote` (`AMMVote.cpp:203-228`), and the loop above (L884-905) duplicates its loop body minus the own-vote branch. Factor the shared part into one helper that `applyVote` also calls, rather than a second copy to keep in sync.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r4251347427"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-12T18:52:06Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "`sfAccount` is `SoeRequired` on the `AuctionSlot` inner object (`InnerObjectFormats.cpp:60`), so this `isFieldPresent` check can never be false. Drop it and read `slot[sfAccount]` directly.",
+     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r4251347433"
+    }
+   ]
+  },
+  {
+   "number": 8129,
+   "title": "fix: Align CheckCash receive and AMM/Vault deposits with freeze and deep-freeze rules",
+   "url": "https://github.com/XRPLF/rippled/pull/8129",
+   "state": "open",
+   "author": "Kassaking7",
+   "createdAt": "2026-08-26T22:13:19Z",
+   "updatedAt": "2026-10-12T15:05:39Z",
+   "closedAt": null,
+   "labels": [
+    "Needs additional review",
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-08-26T22:15:25Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8129?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `97.22222%` with `1 line` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8129?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [.../tx/transactors/lending/LoanBrokerCoverDeposit.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8129?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvbGVuZGluZy9Mb2FuQnJva2VyQ292ZXJEZXBvc2l0LmNwcA==) | 66.7% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8129?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8129#issuecomment-5431747023"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-12T15:05:39Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8129#issuecomment-6126951640"
+    }
+   ],
+   "body": "## High Level Overview of Change\nThis change tightens IOU freeze handling on a few direct `accountSend` paths so they match Payment / XLS-77.\nRegular freeze only stops a holder from **sending**. They must still be able to **receive**, and they must still be able to return tokens to the issuer. Deep freeze on either side of a trust line blocks non-issuer sends and receives.\n`VaultWithdraw` and `AMMWithdraw` already follow that rule under `fixCleanup3_3_0` (`checkWithdrawFreeze`). Two gaps remained:\n1. **Deposits** (`AMMDeposit`, `VaultDeposit`, and the same helper used by `LoanBrokerCoverDeposit`) only checked issuer-side regular freeze. A holder who set deep freeze on their own side could still deposit into an AMM or vault.\n2. **`CheckCash`** used `isFrozen` on the destination, so an individually frozen holder could not cash a check. It also treated frozen source funds as empty even when the destination was the issuer, so the issuer could not redeem during a freeze.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "Kassaking7:DEFI-836-837",
+   "additions": 195,
+   "deletions": 24,
+   "changedFiles": 10,
+   "commits": 4,
+   "reviewComments": 2,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:05:08Z",
+     "body": "### 🟡 Changes recommended\n\nA `CheckCash` change appears to apply the new issuer-redemption freeze bypass to MPT amounts as well as IOUs, which likely exceeds the stated intent and could change MPT behavior unexpectedly.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR tightens IOU freeze/deep-freeze handling for direct `accountSend`-style paths (CheckCash and pseudo-account deposits) so they match the established Payment/XLS-77 semantics, with behavior gated by `fixCleanup3_4_0`.\n\n**Changes:**\n- Extend `VaultDeposit`, `AMMDeposit`, and `LoanBrokerCoverDeposit` preclaim checks to reject holder-side deep-freeze for deposits when `fixCleanup3_4_0` is enabled.\n- Adjust `CheckCash` to (a) allow receiving under regular individual freeze, (b) block receiving only under global freeze or deep freeze, and (c) allow issuer redemption even when the source line is frozen.\n- Add/extend unit tests covering the amended behaviors across vault, AMM, and check-cashing scenarios, and update deposit-freeze helper documentation/logic.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/libxrpl/tx/transactors/check/CheckCash.cpp | Alters CheckCash freeze handling to align receive/redeem behavior with freeze/deep-freeze rules under `fixCleanup3_4_0`. |\n| src/libxrpl/ledger/helpers/TokenHelpers.cpp | Extends `checkDepositFreeze` to enforce depositor deep-freeze checks (gated by `fixCleanup3_4_0`). |\n| include/xrpl/ledger/helpers/TokenHelpers.h | Updates `checkDepositFreeze` documentation to describe new deep-freeze depositor rule. |\n| src/libxrpl/tx/transactors/vault/VaultDeposit.cpp | Adds depositor deep-freeze enforcement in the legacy (pre-`fixCleanup3_3_0`) deposit path when `fixCleanup3_4_0` is enabled. |\n| src/libxrpl/tx/transactors/dex/AMMDeposit.cpp | Adds depositor deep-freeze enforcement for legacy deposit validation paths when `fixCleanup3_4_0` is enabled. |\n| src/libxrpl/tx/transactors/lending/LoanBrokerCoverDeposit.cpp | Adds depositor deep-freeze enforcement in the legacy (pre-`fixCleanup3_3_0`) path when `fixCleanup3_4_0` is enabled. |\n| src/test/app/Freeze_test.cpp | Updates check-freeze expectations around CheckCash across amendment combinations; adds explicit coverage for `sa - fixCleanup3_4_0`. |\n| src/test/app/Check_test.cpp | Extends check-cashing tests to validate issuer redemption and “regular freeze does not block receive” behavior under `fixCleanup3_4_0`. |\n| src/test/app/vault/VaultFreeze_test.cpp | Adds vault deposit/withdraw deep-freeze tests and runs the suite with `fixCleanup3_4_0` toggled. |\n| src/test/app/AMM_test.cpp | Adds AMM deposit/withdraw coverage for holder-side deep-freeze behavior across relevant amendment sets. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 10/10 changed files\n- **Comments generated:** 1\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "PeterChen13579",
+     "state": "APPROVED",
+     "date": "2026-09-23T20:36:03Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-28T15:59:55Z",
+     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nAdd LoanBroker holder-side deep-freeze regression coverage and update the libxrpl impact checklist.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Add regression test for holder-side deep-freeze rejection](#discussion_r4124322515) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [`destIsIssuer` is currently true for MPT amounts as well as IOUs (it only checks…](#discussion_r3908842326)\n</details>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:05:08Z",
+     "path": "src/libxrpl/tx/transactors/check/CheckCash.cpp",
+     "body": "`destIsIssuer` is currently true for MPT amounts as well as IOUs (it only checks `!value.native()`), which makes the new `FreezeHandling::IgnoreFreeze` path apply to locked/frozen MPT balances too. If the intent is only to allow IOU redemption to the issuer (as described in the comment/PR description), scope this to `Issue` amounts so MPT behavior is unchanged.",
+     "url": "https://github.com/XRPLF/rippled/pull/8129#discussion_r3908842326"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-28T15:59:54Z",
+     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerCoverDeposit.cpp",
+     "body": "This adds a new holder-side deep-freeze rejection path for `LoanBrokerCoverDeposit`, but the existing `testCoverDepositFreezes` cases only exercise issuer-side freezes (for the source and pseudo-account). Please add a regression case that sets the depositor's own-side deep-freeze flag and verifies the `fixCleanup3_5_0` result, including the pre-amendment behavior, so this newly introduced branch is covered independently of the Vault/AMM callers.",
+     "url": "https://github.com/XRPLF/rippled/pull/8129#discussion_r4124322515"
+    }
+   ]
+  },
+  {
    "number": 7044,
    "title": "test: Add vault-share AMM and MPT CanTransfer VaultCreate cases",
    "url": "https://github.com/XRPLF/rippled/pull/7044",
    "state": "open",
    "author": "Tapanito",
    "createdAt": "2026-04-29T09:47:27Z",
-   "updatedAt": "2026-10-01T08:17:07Z",
+   "updatedAt": "2026-10-12T12:59:50Z",
    "closedAt": null,
    "labels": [
-    "Trivial"
+    "Trivial",
+    "PR: has conflicts"
    ],
    "comments": [
     {
@@ -108,6 +362,12 @@
      "date": "2026-10-01T08:15:40Z",
      "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
      "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-5927515869"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-12T12:59:50Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7044#issuecomment-6124763361"
     }
    ],
    "body": "## High Level Overview of Change\n\nTest-only. Adds coverage for two behaviours that had none:\n\n- `AMMMPT_test::testAMMWithVaultShares`: `AMMCreate` returns `tecWRONG_ASSET` when vault shares are the first asset, and when shares of two different vaults are paired, confirming the rejection does not depend on argument position or on the other asset's type.\n- `VaultValidation_test::testCreateFailMPT`: `VaultCreate` on an MPT issuance without `lsfMPTCanTransfer` fails with `tecNO_AUTH` for the issuer as well as for a holder, and succeeds once the issuer enables the flag through `MPTokenIssuanceSet`.\n\n### Context of Change\n\nThe original version of this PR tested positive-path AMM pools holding vault shares. Since then `AMMCreate` rejects vault shares (#7666) and MPT mutable flags became enable-only, so those scenarios no longer exist. The PR was trimmed to the cases that remain novel.\n\n### Type of Change\n\n- [x] Tests (you added tests for code that already exists, or your new feature included in this PR)\n\n### API Impact\n\nNone.",
@@ -613,219 +873,6 @@
      "path": "src/test/app/AMM_test.cpp",
      "body": "This is pre-existing code, but I can make that change.",
      "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3929339505"
-    }
-   ]
-  },
-  {
-   "number": 8129,
-   "title": "fix: Align CheckCash receive and AMM/Vault deposits with freeze and deep-freeze rules",
-   "url": "https://github.com/XRPLF/rippled/pull/8129",
-   "state": "open",
-   "author": "Kassaking7",
-   "createdAt": "2026-08-26T22:13:19Z",
-   "updatedAt": "2026-09-28T15:59:55Z",
-   "closedAt": null,
-   "labels": [
-    "Needs additional review"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-08-26T22:15:25Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8129?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `97.22222%` with `1 line` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8129?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [.../tx/transactors/lending/LoanBrokerCoverDeposit.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8129?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvbGVuZGluZy9Mb2FuQnJva2VyQ292ZXJEZXBvc2l0LmNwcA==) | 66.7% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8129?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8129#issuecomment-5431747023"
-    }
-   ],
-   "body": "## High Level Overview of Change\nThis change tightens IOU freeze handling on a few direct `accountSend` paths so they match Payment / XLS-77.\nRegular freeze only stops a holder from **sending**. They must still be able to **receive**, and they must still be able to return tokens to the issuer. Deep freeze on either side of a trust line blocks non-issuer sends and receives.\n`VaultWithdraw` and `AMMWithdraw` already follow that rule under `fixCleanup3_3_0` (`checkWithdrawFreeze`). Two gaps remained:\n1. **Deposits** (`AMMDeposit`, `VaultDeposit`, and the same helper used by `LoanBrokerCoverDeposit`) only checked issuer-side regular freeze. A holder who set deep freeze on their own side could still deposit into an AMM or vault.\n2. **`CheckCash`** used `isFrozen` on the destination, so an individually frozen holder could not cash a check. It also treated frozen source funds as empty even when the destination was the issuer, so the issuer could not redeem during a freeze.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "Kassaking7:DEFI-836-837",
-   "additions": 195,
-   "deletions": 24,
-   "changedFiles": 10,
-   "commits": 4,
-   "reviewComments": 2,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-01T22:05:08Z",
-     "body": "### 🟡 Changes recommended\n\nA `CheckCash` change appears to apply the new issuer-redemption freeze bypass to MPT amounts as well as IOUs, which likely exceeds the stated intent and could change MPT behavior unexpectedly.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR tightens IOU freeze/deep-freeze handling for direct `accountSend`-style paths (CheckCash and pseudo-account deposits) so they match the established Payment/XLS-77 semantics, with behavior gated by `fixCleanup3_4_0`.\n\n**Changes:**\n- Extend `VaultDeposit`, `AMMDeposit`, and `LoanBrokerCoverDeposit` preclaim checks to reject holder-side deep-freeze for deposits when `fixCleanup3_4_0` is enabled.\n- Adjust `CheckCash` to (a) allow receiving under regular individual freeze, (b) block receiving only under global freeze or deep freeze, and (c) allow issuer redemption even when the source line is frozen.\n- Add/extend unit tests covering the amended behaviors across vault, AMM, and check-cashing scenarios, and update deposit-freeze helper documentation/logic.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/libxrpl/tx/transactors/check/CheckCash.cpp | Alters CheckCash freeze handling to align receive/redeem behavior with freeze/deep-freeze rules under `fixCleanup3_4_0`. |\n| src/libxrpl/ledger/helpers/TokenHelpers.cpp | Extends `checkDepositFreeze` to enforce depositor deep-freeze checks (gated by `fixCleanup3_4_0`). |\n| include/xrpl/ledger/helpers/TokenHelpers.h | Updates `checkDepositFreeze` documentation to describe new deep-freeze depositor rule. |\n| src/libxrpl/tx/transactors/vault/VaultDeposit.cpp | Adds depositor deep-freeze enforcement in the legacy (pre-`fixCleanup3_3_0`) deposit path when `fixCleanup3_4_0` is enabled. |\n| src/libxrpl/tx/transactors/dex/AMMDeposit.cpp | Adds depositor deep-freeze enforcement for legacy deposit validation paths when `fixCleanup3_4_0` is enabled. |\n| src/libxrpl/tx/transactors/lending/LoanBrokerCoverDeposit.cpp | Adds depositor deep-freeze enforcement in the legacy (pre-`fixCleanup3_3_0`) path when `fixCleanup3_4_0` is enabled. |\n| src/test/app/Freeze_test.cpp | Updates check-freeze expectations around CheckCash across amendment combinations; adds explicit coverage for `sa - fixCleanup3_4_0`. |\n| src/test/app/Check_test.cpp | Extends check-cashing tests to validate issuer redemption and “regular freeze does not block receive” behavior under `fixCleanup3_4_0`. |\n| src/test/app/vault/VaultFreeze_test.cpp | Adds vault deposit/withdraw deep-freeze tests and runs the suite with `fixCleanup3_4_0` toggled. |\n| src/test/app/AMM_test.cpp | Adds AMM deposit/withdraw coverage for holder-side deep-freeze behavior across relevant amendment sets. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 10/10 changed files\n- **Comments generated:** 1\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "PeterChen13579",
-     "state": "APPROVED",
-     "date": "2026-09-23T20:36:03Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-28T15:59:55Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nAdd LoanBroker holder-side deep-freeze regression coverage and update the libxrpl impact checklist.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Add regression test for holder-side deep-freeze rejection](#discussion_r4124322515) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [`destIsIssuer` is currently true for MPT amounts as well as IOUs (it only checks…](#discussion_r3908842326)\n</details>"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T22:05:08Z",
-     "path": "src/libxrpl/tx/transactors/check/CheckCash.cpp",
-     "body": "`destIsIssuer` is currently true for MPT amounts as well as IOUs (it only checks `!value.native()`), which makes the new `FreezeHandling::IgnoreFreeze` path apply to locked/frozen MPT balances too. If the intent is only to allow IOU redemption to the issuer (as described in the comment/PR description), scope this to `Issue` amounts so MPT behavior is unchanged.",
-     "url": "https://github.com/XRPLF/rippled/pull/8129#discussion_r3908842326"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-28T15:59:54Z",
-     "path": "src/libxrpl/tx/transactors/lending/LoanBrokerCoverDeposit.cpp",
-     "body": "This adds a new holder-side deep-freeze rejection path for `LoanBrokerCoverDeposit`, but the existing `testCoverDepositFreezes` cases only exercise issuer-side freezes (for the source and pseudo-account). Please add a regression case that sets the depositor's own-side deep-freeze flag and verifies the `fixCleanup3_5_0` result, including the pre-amendment behavior, so this newly introduced branch is covered independently of the Vault/AMM callers.",
-     "url": "https://github.com/XRPLF/rippled/pull/8129#discussion_r4124322515"
-    }
-   ]
-  },
-  {
-   "number": 7867,
-   "title": "fix: Preventing attacker to suppress AMM trading fees indefinitely and extract value from liquidity providers",
-   "url": "https://github.com/XRPLF/rippled/pull/7867",
-   "state": "open",
-   "author": "Kassaking7",
-   "createdAt": "2026-07-24T18:34:20Z",
-   "updatedAt": "2026-09-01T22:03:03Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-07-24T19:01:18Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7867?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `96.22642%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/7867?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/ledger/helpers/AMMHelpers.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7867?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvbGVkZ2VyL2hlbHBlcnMvQU1NSGVscGVycy5jcHA=) | 95.9% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/7867?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5073471336"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-11T15:00:22Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5254902669"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-11T18:31:45Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5257255926"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-08-12T00:02:24Z",
-     "body": "### AMM full-withdrawal can zero out a live pool's trading fee\n\n**What the code does.** `updateAMMVoteSlotsAndFee` recomputes the pool fee as a holdings-weighted average of the surviving voters, then **deletes `sfTradingFee`** whenever that average comes out to 0 — the `den == 0` → `else` branch in `AMMHelpers.cpp` (~918–921).\n\n**The bug.** `den == 0` does **not** mean the pool is empty. It means *no account that currently holds a vote slot still holds LP tokens*. The voter set and the LP set can be disjoint, because a deposit into an already-live pool grants LP tokens but **no vote slot** (`AMMDeposit.cpp:541` — `initializeFeeAuctionVote` only runs when `lptAMMBalance == 0`). The withdraw call site even gates on `newLPTokenBalance != 0` (`AMMWithdraw.cpp:483`), so the code is guaranteed to be looking at a *funded* pool when it deletes the fee.\n\n**Repro.**\n1. Alice creates AMM(XRP/USD) with `TradingFee = 1000` (1%) → she is the sole voter.\n2. Bob deposits into the now-live pool → receives LP tokens, but **no** vote slot. `VoteSlots` is still `{Alice}`.\n3. Alice withdraws everything. Bob still holds LP tokens, so the pool stays alive and `updateAMMVoteSlotsAndFee` runs. Alice's slot is pruned → zero surviving voters → `den == 0` → `fee = 0` → `sfTradingFee` deleted.\n\n**Impact.** Bob's fully-funded pool now trades at **0% forever** (until someone votes or bids again). This is strictly worse than the stale-vote bug being fixed: instead of Alice's vote lingering at 1%, the fee is wiped to 0 and any trader/arbitrageur swaps against Bob's liquidity for free. It's also reachable on **existing** pools — any pool already carrying a stale vote slot (from the very bug this PR fixes) can have its fee zeroed by *anyone's* 1-drop withdrawal once the amendment activates.\n\n**Root cause.** An average over an empty voter set is undefined, but the code treats it as a genuine 0% vote and removes the fee. When no voters survive, it should **leave `sfTradingFee` unchanged** (keep the last governance-set value, let the next `AMMVote` decide) — never delete it while the pool still holds liquidity.\n\n**Related gaps.**\n- The same path writes an **empty `sfVoteSlots` array**, a ledger shape nothing else produces, which makes `amm_info` silently drop `vote_slots` for a live pool (`AMMInfo.cpp:215`).\n- `testFeeVoteWithdraw` never exercises `den == 0` (it always keeps two live voters), so the entire branch is untested.",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#issuecomment-5260295700"
-    }
-   ],
-   "body": "## High Level Overview of Change\nAn attacker will suppress AMM trading fees indefinitely and extract value from liquidity providers: Failure to invalidate vote slots and recompute the trading fee after a full LP withdrawal will cause persistent fee manipulation losses for liquidity providers as an attacker will perform a flash deposit, vote for a reduced fee, withdraw all liquidity, and leave a stale vote that continues to control the pool fee.\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "Kassaking7:DEFI-716",
-   "additions": 387,
-   "deletions": 0,
-   "changedFiles": 5,
-   "commits": 7,
-   "reviewComments": 9,
-   "reviews": [
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-08-11T19:30:41Z",
-     "body": ""
-    },
-    {
-     "author": "oleks-rip",
-     "state": "COMMENTED",
-     "date": "2026-08-13T15:10:34Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-08-18T16:25:42Z",
-     "body": ""
-    },
-    {
-     "author": "Kassaking7",
-     "state": "COMMENTED",
-     "date": "2026-08-19T16:25:06Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-01T22:03:02Z",
-     "body": "### 🔵 Needs a closer look\n\nIt changes core AMM ledger/transaction behavior in a security-sensitive area and should receive final human review despite strong targeted test coverage.\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR addresses a fee-governance vulnerability in AMM pools where vote slots could persist after a liquidity provider fully withdraws (or is clawed back), allowing stale fee votes and auction-slot ownership to linger and suppress trading fees, harming remaining liquidity providers.\n\n**Changes:**\n- Introduces `updateAMMVoteSlotsAndFee` to prune vote slots for accounts that no longer hold LP tokens, recompute the trading fee (and discounted fee), and clear the auction slot holder when appropriate.\n- Invokes this cleanup from `AMMWithdraw` and `AMMClawback` when `fixCleanup3_4_0` is enabled and the AMM remains non-empty.\n- Adds targeted AMM unit tests covering full/partial withdrawals, last-voter withdrawal with non-voting LPs remaining, auction-slot behavior after withdrawal, and clawback parity.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/app/AMM_test.cpp | Adds regression tests for vote-slot pruning, fee recomputation, auction-slot clearing, and clawback behavior under `fixCleanup3_4_0`. |\n| src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp | Calls vote/fee/auction cleanup after successful withdraw when the AMM remains non-empty and the amendment is enabled. |\n| src/libxrpl/tx/transactors/dex/AMMClawback.cpp | Mirrors the same cleanup in clawback paths that bypass `AMMWithdraw::applyGuts`. |\n| src/libxrpl/ledger/helpers/AMMHelpers.cpp | Implements `updateAMMVoteSlotsAndFee` to prune stale vote slots, recompute fees, and clear auction holder on full LP exit. |\n| include/xrpl/ledger/helpers/AMMHelpers.h | Declares and documents the new helper function and its intended semantics. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 5/5 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "ckeshava",
-     "date": "2026-08-11T19:04:41Z",
-     "path": "src/test/app/AMM_test.cpp",
-     "body": "Can you add another test that demonstrates the expected behavior in the case of partial withdrawal from `carol`? Suppose, carol withdraws 99% of her deposits from the AMM, then what is the expected behavior with respect to the Discounted-Slot and the TradingFees?",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3760906525"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-08-11T19:11:02Z",
-     "path": "src/test/app/AMM_test.cpp",
-     "body": "We need to test one more circumstance in this case: Suppose that a new account `zelda` outbids `carol`'s existing bid and ends up winning the auction slot. In this case, we need to ensure that:\n\n(1) `zelda`'s bid only needs to exceed the current auction-maximum, not `carol`'s bid because carol has withdrawn all her funds.\n\n(2) `carol` must not be re-compensated (assuming zelda outbids her within 24 hours of `carol`'s bid) due to the loss of her bid within 24 hours.\n\nPlease refer to this portion of the docs: \n\n<img width=\"822\" height=\"314\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/e97f8e0d-68f7-4b38-8408-9fb68022a864\" />",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3760950268"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-08-11T19:23:55Z",
-     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
-     "body": "I believe this check is completely skipped in the case of AMMClawback transaction. this is because AMMClawback directly invokes the specific withdraw method like this: https://github.com/XRPLF/rippled/blob/26cc683ec143e8a5fcc6dd09c2c1fe25ac08b94c/src/libxrpl/tx/transactors/dex/AMMClawback.cpp#L226.\n\nIf this circumstance occurs due to the AMMClawback action of the Issuer, then also -- we need to ensure that the Holder does not have the preferred Auction-slot and the discounted fees.",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3761036605"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-08-11T19:24:23Z",
-     "path": "src/libxrpl/tx/transactors/dex/AMMWithdraw.cpp",
-     "body": "If I have misunderstood this case, please add a test that shows that the case of AMMClawback is also handled correctly.",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3761039667"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-08-11T19:30:36Z",
-     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
-     "body": "Instead of re-writing this logic, can we refactor and make use of the existing code in AMMBid transactor? https://github.com/XRPLF/rippled/blob/26cc683ec143e8a5fcc6dd09c2c1fe25ac08b94c/src/libxrpl/tx/transactors/dex/AMMBid.cpp#L214\n\nIn my opinion, the `updateSlots` method needs to be updated to account for the present LPTokenBalance of bidder account.",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3761081972"
-    },
-    {
-     "author": "oleks-rip",
-     "date": "2026-08-13T14:57:46Z",
-     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
-     "body": "`    STArray updatedVoteSlots(sfVoteSlots,  ammSle->getFieldArray(sfVoteSlots).size())`",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3776456050"
-    },
-    {
-     "author": "oleks-rip",
-     "date": "2026-08-13T15:00:47Z",
-     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
-     "body": "Number{0} - >kNumZero",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3776480342"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-08-18T16:25:42Z",
-     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
-     "body": "The number of the new vote slots might not be identical to the existing numbers. If this suggestion is accepted, then the array will need to be resized after the processing is completed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3805981676"
-    },
-    {
-     "author": "Kassaking7",
-     "date": "2026-08-19T16:25:05Z",
-     "path": "src/libxrpl/ledger/helpers/AMMHelpers.cpp",
-     "body": "`updateAMMVoteSlotsAndFee` mirrors `AMMVote::applyVote (prune voters + weighted fee)`, not `AMMBid`. `updateSlot` is the bid-settlement path (new holder, expiration, burn LP) and isn’t appropriate on withdraw/clawback.\n\nAuction cleanup is narrower: if this withdrawing/clawed account is the current holder and now has 0 LP, we clear sfAccount to the zero account (same vacant path applyBid already takes when validOwner fails). We don’t change validOwner to check LP balance, because bidding burns LP and a holder can legitimately own the slot with 0 tokens.",
-     "url": "https://github.com/XRPLF/rippled/pull/7867#discussion_r3814815997"
     }
    ]
   },
