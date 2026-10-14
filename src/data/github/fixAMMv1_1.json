@@ -1,20 +1,18 @@
 {
  "name": "fixAMMv1_1",
- "fetchedAt": "2026-10-13T08:09:39.525Z",
+ "fetchedAt": "2026-10-14T08:09:41.839Z",
  "summary": {
-  "status": "in development",
+  "status": "merged",
   "prs": 2,
-  "open": 1,
-  "merged": 1,
+  "open": 0,
+  "merged": 2,
   "issues": 0,
   "proposals": 0,
-  "branches": [
-   "gregtatcam/retire/fixAMMv1_1"
-  ],
-  "lastActivity": "2026-10-12T23:40:10Z",
-  "lastMerged": "2024-05-14T19:28:38Z",
+  "branches": [],
+  "lastActivity": "2026-10-13T20:04:17Z",
+  "lastMerged": "2026-10-13T20:04:15Z",
   "release": "2.2.0",
-  "totalComments": 201
+  "totalComments": 203
  },
  "release": {
   "version": "2.2.0",
@@ -27,12 +25,14 @@
    "number": 8226,
    "title": "refactor: Retire fixAMMv1_1 amendment",
    "url": "https://github.com/XRPLF/rippled/pull/8226",
-   "state": "open",
+   "state": "closed",
    "author": "gregtatcam",
    "createdAt": "2026-09-14T18:44:55Z",
-   "updatedAt": "2026-10-12T23:40:10Z",
-   "closedAt": null,
-   "labels": [],
+   "updatedAt": "2026-10-13T20:04:17Z",
+   "closedAt": "2026-10-13T20:04:15Z",
+   "labels": [
+    "Ready to merge"
+   ],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -113,16 +113,16 @@
      "url": "https://github.com/XRPLF/rippled/pull/8226#issuecomment-6126954719"
     }
    ],
-   "body": "## High Level Overview of Change\n\nfixAMMv1_1 has been enabled on mainnet long enough to retire, so move\nits macro to the retired list and delete the conditional code it\nguarded, keeping the enabled behavior.\n\nRemoved gates: changeSpotPriceQuality, swapAssetIn and swapAssetOut in\nAMMHelpers.h; adjustAmountsByLPTokens in AMMHelpers.cpp; accountSendIOU\nin TokenHelpers.cpp; the LP token balance checks in AMMWithdraw.cpp;\nand adjustQualityWithFees plus the two qualityThreshold lambdas in\nBookStep.cpp.\n\nThree parameters became dead and are dropped with their call sites: the\nRules argument of changeSpotPriceQuality, and the Rules argument of\nboth adjustQualityWithFees overloads. BookStep.cpp no longer needs\nRules.h.\n\nOne behavior change is worth noting. swapAssetIn and swapAssetOut read\nthe amendment through getCurrentTransactionRules(), which is only\nseated during transaction application. Path finding reaches them\nthrough RippleCalc::rippleCalculate from Pathfinder and PathRequest,\nwhere it is unseated, so ripple_path_find and path_find have been using\nthe pre-fix swap math while the transactors used the post-fix math.\nRetiring the amendment makes both paths agree. This is RPC-visible but\nnot consensus-relevant, since path finding only proposes paths and the\nPayment transactor executes them.\n\nadjustAmountsByLPTokens is unaffected: its only callers are\nAMMDeposit::deposit and AMMWithdraw::withdraw, both reached solely\nthrough doApply, where Transactor::operator() seats the rules\nunconditionally.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n## Test Plan\n\nUpdated AMM_test.cpp, AMMExtended_test.cpp, AMMMPT_test.cpp, and AMMCalc_test.cpp",
-   "merged": false,
-   "mergedAt": null,
+   "body": "## High Level Overview of Change\n\nfixAMMv1_1 has been enabled on mainnet long enough to retire, so move\nits macro to the retired list and delete the conditional code it\nguarded, keeping the enabled behavior.\n\nRemoved gates: changeSpotPriceQuality, swapAssetIn and swapAssetOut in\nAMMHelpers.h; adjustAmountsByLPTokens in AMMHelpers.cpp; accountSendIOU\nin TokenHelpers.cpp; the LP token balance checks in AMMWithdraw.cpp;\nand adjustQualityWithFees plus the two qualityThreshold lambdas in\nBookStep.cpp.\n\nThree parameters became dead and are dropped with their call sites: the\nRules argument of changeSpotPriceQuality, and the Rules argument of\nboth adjustQualityWithFees overloads. BookStep.cpp no longer needs\nRules.h.\n\nOne behavior change is worth noting. swapAssetIn and swapAssetOut read\nthe amendment through getCurrentTransactionRules(), which is only\nseated during transaction application. Path finding reaches them\nthrough RippleCalc::rippleCalculate from Pathfinder and PathRequest,\nwhere it is unseated, so ripple_path_find and path_find have been using\nthe pre-fix swap math while the transactors used the post-fix math.\nRetiring the amendment makes both paths agree. This is RPC-visible but\nnot consensus-relevant, since path finding only proposes paths and the\nPayment transactor executes them.\n\nadjustAmountsByLPTokens is unaffected: its only callers are\nAMMDeposit::deposit and AMMWithdraw::withdraw, both reached solely\nthrough doApply, where Transactor::operator() seats the rules\nunconditionally.\n\n([fixAMMv1_1 was enabled on Sept 24, 2024.](https://xrpscan.com/amendment/fixAMMv1_1))\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n## Test Plan\n\nUpdated AMM_test.cpp, AMMExtended_test.cpp, AMMMPT_test.cpp, and AMMCalc_test.cpp",
+   "merged": true,
+   "mergedAt": "2026-10-13T20:04:15Z",
    "draft": false,
    "base": "develop",
    "head": "XRPLF:gregtatcam/retire/fixAMMv1_1",
    "additions": 693,
    "deletions": 1667,
    "changedFiles": 11,
-   "commits": 16,
+   "commits": 17,
    "reviewComments": 19,
    "reviews": [
     {
@@ -340,6 +340,18 @@
      "state": "COMMENTED",
      "date": "2026-10-12T23:40:10Z",
      "body": "### 🔵 Needs a closer look\n\nAdd path-finding amount regression coverage and preserve or document the breaking public helper API change.\n\n**0 open findings**\n\n🧠 **Review effort:** Lite"
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-10-13T13:58:29Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-13T16:11:04Z",
+     "body": "This diff only contains test-file changes (src/test/app/AMM_test.cpp) that mechanically collapse the `fixAMMv1_1`/pre-fix conditional branches in favor of the always-enabled post-fix behavior, consistent with the amendment retirement described in the MR. The production code changes mentioned in the MR description (AMMHelpers.h/.cpp, TokenHelpers.cpp, AMMWithdraw.cpp, BookStep.cpp) are not part of this diff and could not be reviewed here. The transformation is largely mechanical (deleting dead `if (!features[fixAMMv1_1])` branches and keeping the previously-enabled-amendment values/behavior), and spot-checking several of the collapsed branches shows the retained branch consistently matches the amendment-enabled values, so no logic/value transcription errors were found. A few spots additionally add `amm.has_value() &&` guards before dereferencing `amm`, which is a safety improvement (converts a potential nullopt dereference into a test assertion failure) rather than a regression. No security, correctness, or test-pollution/resource-leak issues were identified in the changed lines."
     }
    ],
    "reviewCommentsList": [
@@ -1376,7 +1388,5 @@
  ],
  "issues": [],
  "proposals": [],
- "branches": [
-  "gregtatcam/retire/fixAMMv1_1"
- ]
+ "branches": []
 }
