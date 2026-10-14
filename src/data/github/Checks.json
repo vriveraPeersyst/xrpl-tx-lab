@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-10-13T08:02:04.986Z",
+ "fetchedAt": "2026-10-14T08:02:04.741Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-10-12T21:27:44Z",
+  "lastActivity": "2026-10-13T10:28:09Z",
   "lastMerged": "2026-10-09T10:54:21Z",
   "release": "0.90.0",
-  "totalComments": 558
+  "totalComments": 559
  },
  "release": {
   "version": "0.90.0",
@@ -24,6 +24,97 @@
   "excerpt": "The `Checks` amendment, which allows users to create deferred payments that can be cancelled or cashed by their intended recipients."
  },
  "prs": [
+  {
+   "number": 7722,
+   "title": "fix: Add null SLE checks in directory callbacks",
+   "url": "https://github.com/XRPLF/rippled/pull/7722",
+   "state": "open",
+   "author": "BraedonKlock",
+   "createdAt": "2026-07-05T15:05:55Z",
+   "updatedAt": "2026-10-13T10:28:09Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "ximinez",
+     "date": "2026-07-06T23:56:40Z",
+     "body": "Hi @BraedonKlock. Thank you for your contributions! We really appreciate them. At this point, we ask that you hold off on submitting any more until we've had a chance to review the current batch. There is a not insignificant engineer overhead for each review, and it may take some time to get caught up. Too many PRs can make that harder. When we've gotten down to 3 open or fewer, feel free to create more!\n\nIn the meantime, you can open \"Draft\" PRs so that changes will be ready to go once we're ready for more. At that time, you'll be able to decide which ones are the best, and convert them to \"Ready to review\". Keep in mind that you will be responsible for keeping your PRs up to date with `develop`. The more you open, the more chances you'll have for conflicts, so don't get _too_ carried away. 😄",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#issuecomment-4898697914"
+    },
+    {
+     "author": "BraedonKlock",
+     "date": "2026-07-07T00:50:53Z",
+     "body": "Thank you @ximinez for the clarification! I really appreciate the feedback. I completely understand. I'll hold off on opening additional ready for review PRs until my open count is down to three or fewer. In the meantime, I'll continue working locally and use draft PRs if appropriate. Thanks again!",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#issuecomment-4898988702"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-09-30T15:58:50Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#issuecomment-5914914260"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-13T10:28:09Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#issuecomment-6143536195"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds null `SLE` checks in directory iteration callbacks for `NoRippleCheck` and `GatewayBalances`.\n\nThis prevents possible null pointer dereferences if directory iteration passes a null ledger entry to the callback.\n\nFixes #7510.\n\n### Context of Change\n\n`forEachItemAfter` in `NoRippleCheck` and `forEachItem` in `GatewayBalances` both receive `std::shared_ptr<SLE const>` values from directory iteration.\n\nThis change adds the missing checks before calling `getType()` in both affected callbacks:\n\n- `NoRippleCheck`: returns `false` when `ownedItem` is null\n- `GatewayBalances`: returns early when `sle` is null\n\n### API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "BraedonKlock:fix-missing-null-sle-checks",
+   "additions": 17,
+   "deletions": 1,
+   "changedFiles": 2,
+   "commits": 5,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T22:17:00Z",
+     "body": "### 🟡 Changes recommended\n\nThe new null-check blocks introduce tab-based/misaligned indentation that deviates from surrounding formatting and is likely to fail style/format checks.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR hardens RPC account handlers against potential null `SLE` values passed through directory-iteration callbacks, preventing possible null dereferences in corrupted-ledger edge cases.\n\n**Changes:**\n- Add a null-guard in `NoRippleCheck`’s `forEachItemAfter` callback before calling `getType()`.\n- Add a null-guard in `GatewayBalances`’s `forEachItem` callback before calling `getType()`.\n- Add `UNREACHABLE` instrumentation (LCOV-excluded) for unexpected null `SLE` inputs.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/rpc/handlers/account/NoRippleCheck.cpp | Adds a null-check in the directory iteration callback to avoid dereferencing a null `SLE`. |\n| src/xrpld/rpc/handlers/account/GatewayBalances.cpp | Adds a null-check in the directory iteration callback to avoid dereferencing a null `SLE`. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 2\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-02T13:33:35Z",
+     "body": "### 🟢 Approval recommended\n\nThe changes are small, localized, and align with existing null-check patterns used in similar directory-iteration callbacks.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 1\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-02T13:50:22Z",
+     "body": "### 🟢 Approval recommended\n\nThe changes are minimal, consistent with existing handler patterns, and directly prevent a confirmed null-dereference risk without altering normal behavior.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:16:59Z",
+     "path": "src/xrpld/rpc/handlers/account/GatewayBalances.cpp",
+     "body": "The added null-check introduces tab indentation and misaligned alignment within the lambda body. Reindent using spaces to match the surrounding style (and keep a blank line between the null guard and the type check).",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#discussion_r3908913473"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T22:17:00Z",
+     "path": "src/xrpld/rpc/handlers/account/NoRippleCheck.cpp",
+     "body": "The newly added null-check block uses tab indentation / misaligned braces compared to the surrounding space-indented style, and there’s a stray whitespace-only line after the lambda opens; this is likely to trip formatting/lint checks and reduces readability. Please reindent this block using spaces consistent with the rest of the file.",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#discussion_r3908913518"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-02T13:33:35Z",
+     "path": "src/xrpld/rpc/handlers/account/GatewayBalances.cpp",
+     "body": "Line is indented with a tab character, which breaks the file’s consistent 4-space indentation and introduces mixed whitespace.",
+     "url": "https://github.com/XRPLF/rippled/pull/7722#discussion_r3914639979"
+    }
+   ]
+  },
   {
    "number": 8543,
    "title": "chore: Fix less frequent clang-tidy v23 checks",
@@ -1875,93 +1966,6 @@
      "path": "src/libxrpl/tx/invariants/MPTInvariant.cpp",
      "body": "This new restriction classifies a deleted holding using only the post-transaction account's `sfVaultID`. A corrupt VaultDelete can retag another vault pseudo-account (for example, replace `sfVaultID` with `sfLoanBrokerID` for a live broker) while deleting its holding; the existing pseudo-account invariant only requires one designator field, so `isVaultPseudo` then returns false and this check accepts the unrelated deletion. Track the account's pre-transaction pseudo-account type (as the MPT transfer invariant does) or otherwise bind the deleted holding to the VaultID/account being deleted instead of relying only on the post-state field.",
      "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4027975712"
-    }
-   ]
-  },
-  {
-   "number": 7722,
-   "title": "fix: Add null SLE checks in directory callbacks",
-   "url": "https://github.com/XRPLF/rippled/pull/7722",
-   "state": "open",
-   "author": "BraedonKlock",
-   "createdAt": "2026-07-05T15:05:55Z",
-   "updatedAt": "2026-09-30T15:58:50Z",
-   "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "ximinez",
-     "date": "2026-07-06T23:56:40Z",
-     "body": "Hi @BraedonKlock. Thank you for your contributions! We really appreciate them. At this point, we ask that you hold off on submitting any more until we've had a chance to review the current batch. There is a not insignificant engineer overhead for each review, and it may take some time to get caught up. Too many PRs can make that harder. When we've gotten down to 3 open or fewer, feel free to create more!\n\nIn the meantime, you can open \"Draft\" PRs so that changes will be ready to go once we're ready for more. At that time, you'll be able to decide which ones are the best, and convert them to \"Ready to review\". Keep in mind that you will be responsible for keeping your PRs up to date with `develop`. The more you open, the more chances you'll have for conflicts, so don't get _too_ carried away. 😄",
-     "url": "https://github.com/XRPLF/rippled/pull/7722#issuecomment-4898697914"
-    },
-    {
-     "author": "BraedonKlock",
-     "date": "2026-07-07T00:50:53Z",
-     "body": "Thank you @ximinez for the clarification! I really appreciate the feedback. I completely understand. I'll hold off on opening additional ready for review PRs until my open count is down to three or fewer. In the meantime, I'll continue working locally and use draft PRs if appropriate. Thanks again!",
-     "url": "https://github.com/XRPLF/rippled/pull/7722#issuecomment-4898988702"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-30T15:58:50Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7722#issuecomment-5914914260"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nAdds null `SLE` checks in directory iteration callbacks for `NoRippleCheck` and `GatewayBalances`.\n\nThis prevents possible null pointer dereferences if directory iteration passes a null ledger entry to the callback.\n\nFixes #7510.\n\n### Context of Change\n\n`forEachItemAfter` in `NoRippleCheck` and `forEachItem` in `GatewayBalances` both receive `std::shared_ptr<SLE const>` values from directory iteration.\n\nThis change adds the missing checks before calling `getType()` in both affected callbacks:\n\n- `NoRippleCheck`: returns `false` when `ownedItem` is null\n- `GatewayBalances`: returns early when `sle` is null\n\n### API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "BraedonKlock:fix-missing-null-sle-checks",
-   "additions": 15,
-   "deletions": 0,
-   "changedFiles": 2,
-   "commits": 4,
-   "reviewComments": 3,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-01T22:17:00Z",
-     "body": "### 🟡 Changes recommended\n\nThe new null-check blocks introduce tab-based/misaligned indentation that deviates from surrounding formatting and is likely to fail style/format checks.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR hardens RPC account handlers against potential null `SLE` values passed through directory-iteration callbacks, preventing possible null dereferences in corrupted-ledger edge cases.\n\n**Changes:**\n- Add a null-guard in `NoRippleCheck`’s `forEachItemAfter` callback before calling `getType()`.\n- Add a null-guard in `GatewayBalances`’s `forEachItem` callback before calling `getType()`.\n- Add `UNREACHABLE` instrumentation (LCOV-excluded) for unexpected null `SLE` inputs.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/rpc/handlers/account/NoRippleCheck.cpp | Adds a null-check in the directory iteration callback to avoid dereferencing a null `SLE`. |\n| src/xrpld/rpc/handlers/account/GatewayBalances.cpp | Adds a null-check in the directory iteration callback to avoid dereferencing a null `SLE`. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 2\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-02T13:33:35Z",
-     "body": "### 🟢 Approval recommended\n\nThe changes are small, localized, and align with existing null-check patterns used in similar directory-iteration callbacks.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 1\n- **Review effort level:** Lite\n</details>"
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-02T13:50:22Z",
-     "body": "### 🟢 Approval recommended\n\nThe changes are minimal, consistent with existing handler patterns, and directly prevent a confirmed null-dereference risk without altering normal behavior.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 2/2 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T22:16:59Z",
-     "path": "src/xrpld/rpc/handlers/account/GatewayBalances.cpp",
-     "body": "The added null-check introduces tab indentation and misaligned alignment within the lambda body. Reindent using spaces to match the surrounding style (and keep a blank line between the null guard and the type check).",
-     "url": "https://github.com/XRPLF/rippled/pull/7722#discussion_r3908913473"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T22:17:00Z",
-     "path": "src/xrpld/rpc/handlers/account/NoRippleCheck.cpp",
-     "body": "The newly added null-check block uses tab indentation / misaligned braces compared to the surrounding space-indented style, and there’s a stray whitespace-only line after the lambda opens; this is likely to trip formatting/lint checks and reduces readability. Please reindent this block using spaces consistent with the rest of the file.",
-     "url": "https://github.com/XRPLF/rippled/pull/7722#discussion_r3908913518"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-02T13:33:35Z",
-     "path": "src/xrpld/rpc/handlers/account/GatewayBalances.cpp",
-     "body": "Line is indented with a tab character, which breaks the file’s consistent 4-space indentation and introduces mixed whitespace.",
-     "url": "https://github.com/XRPLF/rippled/pull/7722#discussion_r3914639979"
     }
    ]
   },
