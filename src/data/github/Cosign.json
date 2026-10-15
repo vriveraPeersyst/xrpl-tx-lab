@@ -1,6 +1,6 @@
 {
  "name": "Cosign",
- "fetchedAt": "2026-10-14T08:02:34.999Z",
+ "fetchedAt": "2026-10-15T08:02:34.923Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -9,9 +9,9 @@
   "issues": 0,
   "proposals": 3,
   "branches": [],
-  "lastActivity": "2026-10-13T21:32:20Z",
+  "lastActivity": "2026-10-14T23:41:21Z",
   "lastMerged": "2026-10-13T21:28:00Z",
-  "totalComments": 337
+  "totalComments": 351
  },
  "release": {},
  "prs": [
@@ -22,11 +22,9 @@
    "state": "open",
    "author": "ckeshava",
    "createdAt": "2026-08-26T23:42:46Z",
-   "updatedAt": "2026-10-13T21:32:20Z",
+   "updatedAt": "2026-10-14T23:41:21Z",
    "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
+   "labels": [],
    "comments": [
     {
      "author": "github-actions[bot]",
@@ -51,19 +49,25 @@
      "date": "2026-10-13T21:32:20Z",
      "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
      "url": "https://github.com/XRPLF/rippled/pull/8130#issuecomment-6155647957"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-14T16:34:11Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#issuecomment-6173248048"
     }
    ],
-   "body": "## High Level Overview of Change\n\nAdds `ValidTransactionProposal`, a global invariant for the `TransactionProposal` ledger entry, plus tests. No behavior change for valid transactions.\n\nThe invariant enforces four properties:\n\n1. **Immutable payload.** `ProposedTransaction` may change only in its signature fields, plus `PreviousTxn` bookkeeping. The signature fields are `SigningPubKey`, `TxnSignature`, `Signers`, `CounterpartySignature`, `SponsorSignature`, `BatchSigners`, and nested `Signers`. `SponsorshipTransfer` may reassign the object's `Sponsor` and nothing else.\n2. **Reserve accounting.** Creating or deleting a proposal moves the owner's `OwnerCount` by that proposal's own reserve size, which is 5, or 10 for a proposed `Batch`. When the reserve is sponsored, `SponsoredOwnerCount` and `SponsoringOwnerCount` move consistently. A Ticket the transaction itself consumes is modelled too, including the sponsor counts of a sponsored Ticket. No other account's counts may move.\n3. **Effect whitelist.** Only `TransactionProposalCreate` may create a proposal and only `SponsorshipTransfer` may modify one, with the exact counts the result allows. A proposal is deleted only by a successful `TransactionProposalCancel`, or together with the Ticket it is keyed to. The Ticket goes when the proposed transaction executes or fails with a claimed-fee `tec`, or when `AccountDelete` sweeps the target's Tickets. A failed `TransactionProposalCreate` or `TransactionProposalCancel` must leave no trace.\n4. **Canonical signer arrays.** Collected signer arrays stay sorted by account, free of duplicates, and within `STTx::kMaxMultiSigners` (32) and `kMaxBatchSigners` (24).\n\n### Context of Change\n\nThis is the invariant layer for the On-Chain Cosigner work ([XLS-0103](https://github.com/shawnxie999/XRPL-Standards/blob/cosign/XLS-0103-onchain-cosigner/README.md)). Properties 1 and 4 restate spec sections 4.2.1 and 6.1; property 2 restates section 4.4.\n\nIt is implemented as a **global** invariant rather than in `TransactionProposalCreate::visitInvariantEntry`. The properties are about the ledger entry itself and must hold no matter which transactor touches it. That is what makes property 3 meaningful. `TransactionProposalCancel` and reserved-ticket cleanup (#7979) are admitted explicitly. As `TransactionProposalSign` lands it has to be added to the whitelist deliberately. Until then no other transaction type can manufacture or mutate a proposal.\n\nReserve reconciliation is applied only once a transaction has actually touched a proposal. Owner counts also move for offers, escrows, and for the ticket a transaction consumes to pay for itself. So the modelled deltas describe the ledger exactly only for `TransactionProposalCreate`, `TransactionProposalCancel`, and a `SponsorshipTransfer` reassigning a proposal. The comparison is skipped when a proposal is deleted together with its Ticket. The enclosing transaction, the proposed transaction or an `AccountDelete`, has owner-count effects of its own that this invariant cannot model. That reserve release rests on the shared `deleteProposal`, which the Cancel path checks exactly.\n\n### API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\nThe invariant is gated on `featureCosign`, so it cannot change behavior on a ledger where the amendment is not enabled.\n\n## Test Plan\n\nTwenty-five cases in `InvariantsTransactionProposal_test.cpp`. Twenty-one violate exactly one rule each:\n\n- a mutated `TicketSequence`;\n- an `Expiration` change under `SponsorshipTransfer`;\n- an insertion with no `OwnerCount` bump;\n- a sponsored insertion whose reserve is charged to the wrong sponsor;\n- a sponsored insertion whose owner's `SponsoredOwnerCount` never moves;\n- a well-formed insertion alongside an `OwnerCount` move on an unrelated account;\n- an insertion from `AccountSet`;\n- a create, a sponsorship transfer, and a cancel that still change a proposal under a `tec` result;\n- a deletion from `AccountSet` that releases the reserve;\n- a cancel that also consumes the proposal's reserved Ticket;\n- a deletion alongside an unrelated Ticket of the owner's;\n- eight signer-array cases: duplicates, descending order, both length limits, an entry with no `Account`, and duplicates nested under `CounterpartySignature`, `SponsorSignature`, and a `BatchSigner`.\n\nFour are negative controls asserting `tesSUCCESS`: a well-formed create, a proposal left untouched, and a cancel. The fourth is a proposal deleted together with its Ticket while another account's owner count moves. The first reuses the setup of the failure cases above it and differs only in the `OwnerCount` bump and the transaction type. That pins each of those failures to the defect it names rather than to the hand-built ledger state.\n\nThe success path is also covered by real flows, since invariants run on every transaction in every test. The `TransactionProposalCreate` suite (23 cases) exercises this invariant returning true. That includes sponsored create, sponsorship transfer, a create paid with the proposer's own Ticket, and one paid with a sponsored Ticket. The sponsored Ticket is stamped into the open ledger, as no transaction can sponsor a Ticket yet. With the Ticket's sponsor accounting removed, that case fails with `tecINVARIANT_FAILED`. The `TransactionProposalCancel` and `TransactionProposalReservedTicket` suites exercise the Cancel and ticket-consumption deletion paths.",
+   "body": "## High Level Overview of Change\n\nAdds `ValidTransactionProposal`, a global invariant for the `TransactionProposal` ledger entry.\n\nThe invariant enforces five properties:\n\n1. **Immutable payload.** `ProposedTransaction` may change only in its signature fields, plus `PreviousTxn` bookkeeping. The signature fields are `SigningPubKey`, `TxnSignature`, `Signers`, `CounterpartySignature`, `SponsorSignature`, `BatchSigners`, and nested `Signers`. `SponsorshipTransfer` may reassign the object's `Sponsor` and nothing else.\n2. **Reserve accounting.** Creating or deleting a proposal moves the owner's `OwnerCount` by that proposal's reserve size, 5 or 10 for a proposed `Batch`. A Ticket the transaction itself consumes is modelled too. Sponsored and sponsoring counts are left to the existing sponsorship invariants. No other account's counts may move. A `TransactionProposalCreate` or `TransactionProposalCancel` is compared exactly even when no proposal changed, so a failed one cannot move a reserve.\n3. **Effect whitelist.** Only `TransactionProposalCreate` may create a proposal and only `SponsorshipTransfer` may modify one, with the exact counts the result allows. A proposal is deleted only by a successful `TransactionProposalCancel`, or together with the Ticket it is keyed to. A deleted Ticket takes its proposal along. A failed `TransactionProposalCreate` or `TransactionProposalCancel` must leave no trace.\n4. **Cancel effects.** A successful `TransactionProposalCancel` deletes exactly the proposal its `ProposalID` names. A live proposal may be cancelled only by its Owner, the proposed transaction's `Account`, or its `Delegate` (XLS-0103 section 7.2). A `TransactionProposalCreate`, a `TransactionProposalCancel`, or a `SponsorshipTransfer` reassigning a proposal consumes no Ticket but the one it pays with, and mints none.\n5. **Canonical signer arrays.** Collected signer arrays stay sorted by account, free of duplicates, and within `STTx::kMaxMultiSigners` (32) and `kMaxBatchSigners` (24).\n\n### Context of Change\n\nThis is the invariant layer for the On-Chain Cosigner work ([XLS-0103](https://github.com/shawnxie999/XRPL-Standards/blob/cosign/XLS-0103-onchain-cosigner/README.md)). Properties 1 and 5 restate spec sections 4.2.1 and 6.1; property 2 restates section 4.4; property 4 restates sections 4.5 and 7.2.\n\nIt is a **global** invariant rather than part of `TransactionProposalCreate::visitInvariantEntry`. The properties are about the ledger entry and must hold whichever transactor touches it. `TransactionProposalCancel` and reserved-ticket cleanup are admitted explicitly.\n\nReserve reconciliation is exact for every `TransactionProposalCreate` and `TransactionProposalCancel`, and for a `SponsorshipTransfer` once it has reassigned a proposal. Other transaction types move owner counts for offers, escrows, and the Ticket they pay with. They are reconciled only once they touch a proposal. A proposal deleted with its Ticket is not reconciled, since the enclosing transaction has effects of its own.\n\nThe invariant re-evaluates the cancel permission rule itself, mirroring `TransactionProposalCancel::preclaim`; no transactor changes.\n\n### API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\nThe invariant is gated on `featureCosign`.\n\n## Test Plan\n\nThirty-eight cases in `InvariantsTransactionProposal_test.cpp`. Twenty-nine violate exactly one rule each:\n\n- a mutated `TicketSequence`;\n- an `Expiration` change under `SponsorshipTransfer`;\n- an insertion with no `OwnerCount` bump;\n- a well-formed insertion alongside an `OwnerCount` move on an unrelated account;\n- an insertion from `AccountSet`;\n- a create, a sponsorship transfer, and a cancel that still change a proposal under a `tec` result;\n- a cancel that still releases, and a create that still charges, the reserve under a `tec` result;\n- a deletion from `AccountSet` that releases the reserve;\n- a cancel that also consumes the proposal's reserved Ticket;\n- a cancel, a create, and a sponsorship transfer that consume an unrelated Ticket of the owner's, and a cancel that mints one;\n- a cancel that pays with its own Ticket yet consumes a second;\n- a cancel that deletes a proposal other than the one it names;\n- a cancel of a live proposal by an account that is neither its Owner nor its target;\n- a deletion alongside an unrelated Ticket of the owner's;\n- a deleted Ticket whose proposal stays behind;\n- eight signer-array cases: duplicates, descending order, both length limits, an entry with no `Account`, and duplicates nested under `CounterpartySignature`, `SponsorSignature`, and a `BatchSigner`.\n\nNine negative controls leave the result unchanged:\n\n- a well-formed create, a proposal left untouched, and a cancel by the Owner;\n- a create, a cancel, and a sponsorship transfer paid with the actor's own Ticket;\n- a failed cancel paid with a Ticket;\n- a terminal proposal cancelled by a stranger;\n- a proposal deleted with its Ticket while another account's owner count moves.\n\nThe `TransactionProposalCreate` suite gains a create paid with the proposer's own Ticket, and the `TransactionProposalCancel` suite a failed ticket-paid cancel.",
    "merged": false,
    "mergedAt": null,
    "draft": false,
    "base": "develop",
    "head": "ckeshava:cosign-invariants-v1",
-   "additions": 5261,
-   "deletions": 54,
-   "changedFiles": 23,
-   "commits": 48,
-   "reviewComments": 32,
+   "additions": 1537,
+   "deletions": 8,
+   "changedFiles": 12,
+   "commits": 59,
+   "reviewComments": 39,
    "reviews": [
     {
      "author": "shawnxie999",
@@ -196,6 +200,42 @@
      "state": "COMMENTED",
      "date": "2026-10-13T21:04:24Z",
      "body": "### 🟡 Changes recommended\n\nThe proposal-type validator throws instead of rejecting a top-level object missing `TransactionType`.\n\n<details open>\n<summary><strong>1 open finding</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Handle missing top-level transaction type without throwing](https://github.com/XRPLF/rippled/pull/8130#discussion_r4263999825) · New\n</details>\n\n<details>\n<summary><strong>3 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Correct article and field name in case description](https://github.com/XRPLF/rippled/pull/8130#discussion_r4235008275)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix parenthetical spacing and sentence capitalization](https://github.com/XRPLF/rippled/pull/8130#discussion_r4235008239)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Clarify cleanup behavior and remove duplicated AccountDelete wording](https://github.com/XRPLF/rippled/pull/8130#discussion_r4235008199)\n</details>\n\n🧠 **Review effort:** Balanced"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-14T16:44:08Z",
+     "body": "### 🟡 Changes recommended\n\nReserve reconciliation accepts unrelated Ticket effects, weakening its protection against unexpected account-count changes.\n\n<details open>\n<summary><strong>2 open findings</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject unrelated Ticket changes in reconciled transaction paths](https://github.com/XRPLF/rippled/pull/8130#discussion_r4273635084) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Avoid allocating zero-value reserve delta map entries](https://github.com/XRPLF/rippled/pull/8130#discussion_r4273635178) · New\n</details>\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Handle missing top-level transaction type without throwing](https://github.com/XRPLF/rippled/pull/8130#discussion_r4263999825)\n</details>\n\n🧠 **Review effort:** Balanced"
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-14T17:09:06Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-14T17:13:15Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-14T18:47:36Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-10-14T22:19:27Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-14T23:39:39Z",
+     "body": ""
     }
    ],
    "reviewCommentsList": [
@@ -422,6 +462,55 @@
      "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
      "body": "This helper accepts a generic `STObject`, but it reads `sfTransactionType` before checking that the field exists. `getFieldU16` throws when a generic object has no such field, so a typeless top-level proposal escapes the advertised boolean validation path even though typeless Batch inners are explicitly rejected below. Return `false` for a missing top-level type as well.",
      "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4263999825"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-14T16:44:07Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "Every Ticket insertion or deletion contributes an expected reserve delta, even when it is unrelated to the transaction's payment Ticket. For example, a sequence-based TransactionProposalCreate that inserts its proposal and deletes a bystander's Ticket with the matching OwnerCount decrement passes this invariant's reserve and effect checks. This defeats the check that unrelated accounts' counts must not move. In the exactly reconciled Create/Cancel/Transfer paths, allow only deletion of the Ticket identified by the transaction's Account and TicketSequence; reject other Ticket effects. Keep the separate proposal-with-Ticket cleanup path, and add a rejection test for an unrelated Ticket change.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4273635084"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-14T16:44:08Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "These operator[] calls allocate three map entries for every visited AccountRoot, even when all reserve deltas are zero. The global checker does this for ordinary payments and before finalize checks whether Cosign is enabled. Avoid these unnecessary allocations in transaction processing by recording only nonzero deltas; deltasMatch already treats missing entries as zero.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4273635178"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-14T17:09:06Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "@Kassaking7  \n> When a sponsored Ticket is consumed\n\nAt present time, this is not yet possible in XRPL. Tickets cannot be sponsor-reserved. However, I have future-proofed the invariant by accounting for such sponsor-updates too.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4273894184"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-14T17:13:15Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "The additional map allocations are a small memory-cost to pay, because these maps will go out-of-scope, once the control complete the invariant checks. \n\nI would prefer to keep the code more readable, instead of optimizing for this small memory gain.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4273935934"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-14T18:47:35Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "Addressed in 1c0d9d3473 and c643a6d4d3. On the exactly reconciled paths (Create, Cancel, and a SponsorshipTransfer that reassigns a proposal) the invariant now allows no Ticket effect other than consuming the Ticket named by the transaction's own Account and TicketSequence, and no Ticket creation; the proposal-with-Ticket cleanup path is unchanged. Rejection cases in InvariantsTransactionProposal_test.cpp cover an unrelated Ticket deleted by each of the three, a minted Ticket, and a second Ticket consumed alongside the fee Ticket, each with a passing own-Ticket control.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4274887081"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-10-14T22:19:27Z",
+     "path": "include/xrpl/tx/invariants/CosignerInvariant.h",
+     "body": "Does the sponsorship-related logic really belong here? I think the existing sponsorship invariants already do a good job of ensuring that net changes to owner counts remain accurate. Even if we want to improve invariant coverage, I feel that would be better handled within the sponsor invariants rather than here.\n\nWhile this logic does provide some value in terms of account mapping, it feels more like a workaround specific to the cosign invariant. I think we could leave it out for now and consider a more generic solution in the future that works across all object and transaction types. But that's just my opinion",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4276885612"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-14T23:39:39Z",
+     "path": "include/xrpl/tx/invariants/CosignerInvariant.h",
+     "body": "Agreed, removed in 1e83706add: the invariant now reconciles only OwnerCount per account and leaves SponsoredOwnerCount and SponsoringOwnerCount to SponsorshipOwnerCountsMatch. The tests that existed only for the per-account sponsor tracking are gone too.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4277433079"
     }
    ]
   },
