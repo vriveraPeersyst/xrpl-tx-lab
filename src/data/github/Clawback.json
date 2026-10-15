@@ -1,6 +1,6 @@
 {
  "name": "Clawback",
- "fetchedAt": "2026-10-14T08:02:10.718Z",
+ "fetchedAt": "2026-10-15T08:02:14.788Z",
  "summary": {
   "status": "in development",
   "prs": 10,
@@ -12,13 +12,12 @@
    "dangell7/token-paychan-clawback",
    "gregtatcam/clawback-invariant-rounding",
    "mvadari/rearch/vault-clawbackAmount",
-   "tapanito/vault-clawback-invariants",
-   "tialymov/FN-30-vault_clawback_holder_existence"
+   "tapanito/vault-clawback-invariants"
   ],
-  "lastActivity": "2026-10-12T13:38:45Z",
+  "lastActivity": "2026-10-15T07:13:43Z",
   "lastMerged": "2026-08-26T18:06:55Z",
   "release": "1.12.0",
-  "totalComments": 287
+  "totalComments": 290
  },
  "release": {
   "version": "1.12.0",
@@ -34,7 +33,7 @@
    "state": "open",
    "author": "gregtatcam",
    "createdAt": "2026-10-03T20:39:20Z",
-   "updatedAt": "2026-10-12T13:38:45Z",
+   "updatedAt": "2026-10-15T07:13:43Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -55,7 +54,7 @@
    "deletions": 1,
    "changedFiles": 2,
    "commits": 3,
-   "reviewComments": 3,
+   "reviewComments": 4,
    "reviews": [
     {
      "author": "xrplf-ai-reviewer[bot]",
@@ -110,6 +109,18 @@
      "state": "COMMENTED",
      "date": "2026-10-12T13:38:44Z",
      "body": "### 🟢 Approval recommended\n\nThe invariant now mirrors the applied balance calculation, with comprehensive regression coverage.\n\n**0 open findings**\n\n🧠 **Review effort:** Balanced"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-10-14T22:44:29Z",
+     "body": ""
+    },
+    {
+     "author": "Tapanito",
+     "state": "APPROVED",
+     "date": "2026-10-15T07:13:43Z",
+     "body": ""
     }
    ],
    "reviewCommentsList": [
@@ -133,6 +144,13 @@
      "path": "src/test/app/Clawback_test.cpp",
      "body": "Shouldn't we assert the return code `tesSUCCESS` after amendment and `tecINVARIANT_FAILED` before? That way we could drop the logs check later on.",
      "url": "https://github.com/XRPLF/rippled/pull/8475#discussion_r4200433931"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-10-14T22:44:29Z",
+     "path": "src/test/app/Clawback_test.cpp",
+     "body": "Added an explicit Ter(tesSUCCESS) on the claw. With MPTokensV2 that's the real check, since a failed invariant would return tecINVARIANT_FAILED there. Without MPTokensV2 the invariant only logs and the tx still returns tesSUCCESS, so the log check is still needed for that run. I limited it to the non-V2 case. There's no run where tecINVARIANT_FAILED can be asserted because the fix isn't amendment gated, so the invariant passes either way.",
+     "url": "https://github.com/XRPLF/rippled/pull/8475#discussion_r4277081867"
     }
    ]
   },
@@ -2277,7 +2295,6 @@
   "dangell7/token-paychan-clawback",
   "gregtatcam/clawback-invariant-rounding",
   "mvadari/rearch/vault-clawbackAmount",
-  "tapanito/vault-clawback-invariants",
-  "tialymov/FN-30-vault_clawback_holder_existence"
+  "tapanito/vault-clawback-invariants"
  ]
 }

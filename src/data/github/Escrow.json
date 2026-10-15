@@ -1,12 +1,12 @@
 {
  "name": "Escrow",
- "fetchedAt": "2026-10-14T08:03:58.120Z",
+ "fetchedAt": "2026-10-15T08:04:01.792Z",
  "summary": {
   "status": "in development",
-  "prs": 12,
+  "prs": 11,
   "open": 4,
-  "merged": 5,
-  "issues": 0,
+  "merged": 4,
+  "issues": 1,
   "proposals": 8,
   "branches": [
    "dangell7/fix-token-escrow-v2",
@@ -22,10 +22,10 @@
    "smart-escrow/versioning",
    "timothybanks/smart-escrow-deletion"
   ],
-  "lastActivity": "2026-10-13T21:14:09Z",
+  "lastActivity": "2026-10-14T22:57:01Z",
   "lastMerged": "2026-10-06T20:35:01Z",
   "release": "0.60.0",
-  "totalComments": 399
+  "totalComments": 420
  },
  "release": {
   "version": "0.60.0",
@@ -35,495 +35,13 @@
  },
  "prs": [
   {
-   "number": 8214,
-   "title": "feat: Add Smart Escrow fee voting",
-   "url": "https://github.com/XRPLF/rippled/pull/8214",
-   "state": "open",
-   "author": "mvadari",
-   "createdAt": "2026-09-10T20:26:46Z",
-   "updatedAt": "2026-10-13T21:14:09Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-10T20:28:56Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8214?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `99.25926%` with `1 line` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8214?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/misc/FeeVoteImpl.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8214?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL0ZlZVZvdGVJbXBsLmNwcA==) | 98.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8214?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#issuecomment-5625005994"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-06T18:43:00Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#issuecomment-6023062772"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-12T20:05:08Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#issuecomment-6131719470"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nAdds `GasLimit`, `BytecodeSizeLimit` and `GasPrice` to the network's votable fee\nsettings, gated on `featureSmartEscrow`. These are the three settings that bound\nwhat a Smart Escrow contract may cost: how much gas one run may burn, how large\na contract may be, and what a unit of gas costs in micro-drops.\n\nExtracted from the `ripple/smart-escrow` feature branch. Replaces the closed #5810.\n\n## Context of Change\n\n`ripple/smart-escrow` is being upstreamed piece by piece. #8157 landed the\n`.macro` and autogen plumbing for these fields; this adds the behavior behind\nthem — config parsing, fee voting, `SetFee`, `FeeSettings` genesis and load, and\nthe RPC surfaces that report fee settings.\n\n`detail::VotableValue` in `FeeVoteImpl.cpp` becomes a template: it was\nhard-wired to `XRPAmount`, and the three new settings are `std::uint32_t`.\n\nThe limits are always read from the ledger, never from local configuration.\nConfiguration only seeds a genesis ledger and sets a validator's vote. Once\n`featureSmartEscrow` is enabled, a field absent from `FeeSettings` resolves to\nthe protocol default, and activating the amendment writes those defaults into\n`FeeSettings`. `GasPrice` has a floor of 1: zero is refused in config, in votes\nand in `SetFee`.\n\n`featureSmartEscrow` stays `Supported::No`, so none of this can take effect on a\nproduction network yet.\n\n## API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\nThree new response fields, all present only once `featureSmartEscrow` is\nenabled: `gas_limit`, `bytecode_size_limit` and `gas_price`, on `server_info`\n(`info.validated_ledger`), `subscribe` to `ledger`, and the `validations`\nstream. No existing field changes.\n\n## Test Plan\n\n`FeeVote_test` is extended over the three new fields — voting, `SetFee`\napplication, partial field updates, the gas price floor, seeding on activation,\nand config parsing for valid, non-numeric, negative, overflowing and\nover-maximum values. `PseudoTx_test` and `Subscribe_test` run their matrices\nwith and without the amendment. The new `ExtensionFees` gtest covers how\n`Ledger::setup()` resolves absent, present and zero fields.\n\nFull suite on this branch: 256 suites, 4933 cases, 1,291,357 tests, 0 failures.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:mvadari/smart-escrow-fee-voting",
-   "additions": 1435,
-   "deletions": 80,
-   "changedFiles": 18,
-   "commits": 11,
-   "reviewComments": 34,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-09-10T20:33:12Z",
-     "body": "Gas vote triggers spuriously pre-amendment when feature is disabled — see inline."
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-10T20:37:06Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-10T20:41:20Z",
-     "body": "### 🟡 Changes recommended\n\n`FeeSetup::toFees()` does not propagate the newly added Smart Escrow fee fields into `Fees`, and one key stream output (`gas_price`) is not asserted in the updated Subscribe test.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR extends XRPLD’s fee-voting and fee-settings plumbing to support Smart Escrow (Feature Extensions) resource/price bounds—`GasLimit`, `BytecodeSizeLimit`, and `GasPrice`—all gated behind `featureSmartEscrow`. It threads these settings through config parsing, fee voting/SetFee application, ledger fee-settings initialization/loading, and the RPC/stream surfaces that report the effective fee settings.\n\n**Changes:**\n- Add Smart Escrow extension fee settings (gas limit, bytecode size limit, gas price) to config (`[fee_vote]`), fee voting, and `ttFEE` (`SetFee`) application logic under `featureSmartEscrow`.\n- Persist/load the new settings via the ledger’s fee-settings object and expose them via `server_info`, ledger streams, and validation streams (amendment-gated where applicable).\n- Extend unit tests to exercise voting/application behavior and amendment-gated API/stream outputs.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/core/detail/Config.cpp | Parses `gas_limit`, `bytecode_size_limit`, `gas_price` from `[fee_vote]` with max checks for the limit fields. |\n| src/xrpld/core/Config.h | Adds the three new fields to `FeeSetup`. |\n| src/xrpld/app/misc/NetworkOPs.cpp | Emits new fee settings on `server_info`, ledger streams, and validation stream JSON (amendment-gated for server/ledger outputs). |\n| src/xrpld/app/misc/FeeVoteImpl.cpp | Generalizes fee voting to handle both `XRPAmount` and `uint32_t` votables; adds Smart Escrow voting behavior. |\n| src/xrpld/app/main/Application.cpp | Implements `ServiceRegistry::getFees()` to expose configured fee settings via the application. |\n| src/tests/libxrpl/helpers/TestServiceRegistry.h | Adds a test implementation of `getFees()` and defaults including the new Smart Escrow fields. |\n| src/test/rpc/Subscribe_test.cpp | Extends validation stream assertions for amendment-gated Smart Escrow fields (but currently misses `gas_price`). |\n| src/test/jtx/impl/envconfig.cpp | Seeds unit-test config with defaults for the new fee fields. |\n| src/test/app/PseudoTx_test.cpp | Updates pseudo-tx construction expectations when Smart Escrow is enabled. |\n| src/test/app/FeeVote_test.cpp | Extends FeeVote tests for config parsing, SetFee application, partial updates, and Smart Escrow voting paths. |\n| src/libxrpl/tx/transactors/system/Change.cpp | Enforces required presence/range for Smart Escrow fee fields in `ttFEE` under the amendment and applies them to fee settings. |\n| src/libxrpl/ledger/Ledger.cpp | Initializes and loads the new fee fields in the fee-settings SLE, rejecting premature population before amendment enablement. |\n| include/xrpl/protocol/jss.h | Adds JSON keys: `gas_limit`, `bytecode_size_limit`, `gas_price`. |\n| include/xrpl/protocol/Fees.h | Adds constants/maxima and extends `Fees` with the three new fields. |\n| include/xrpl/core/ServiceRegistry.h | Adds `getFees()` to the ServiceRegistry interface. |\n| include/xrpl/config/Constants.h | Adds config keys for the three new `[fee_vote]` parameters. |\n| cfg/xrpld-example.cfg | Documents new `[fee_vote]` parameters and their meanings. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 17/17 changed files\n- **Comments generated:** 2\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-10T22:10:30Z",
-     "body": "The Smart Escrow fee-voting feature is thoroughly implemented and well-tested (config parsing, voting, SetFee application, genesis/load, and the three RPC surfaces all correctly gate on featureSmartEscrow, with good regression tests for the pre-amendment zero-vote case). I traced the VotableValue templatization, the Ledger genesis/setup gas-field handling, the Change.cpp preclaim/apply changes, and the RPC publish paths (getServerInfo, publishLedgerStreams, subLedger, pubValidation) and found the gating logic consistent and correctly tested. The one thing worth cleaning up is a duplicated field-mapping in ApplicationImp::getFees() that could drift from FeeSetup::toFees() over time."
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-10T22:14:51Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-09-11T14:13:03Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-09-11T14:14:03Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-09-11T14:15:06Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-09-11T14:16:50Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-05T18:03:50Z",
-     "body": "Well-structured, thoroughly-tested extension of fee voting to Smart Escrow's three new fields. The template refactor of VotableValue, the config parsing bounds, and the ledger genesis/load logic for gasLimit/bytecodeSizeLimit/gasPrice are all internally consistent and backed by matching unit tests (FeeVote_test, PseudoTx_test, Subscribe_test, new ExtensionFees gtest). I did not find any clear correctness or security bugs in the added lines. One behavioral change worth a quick sanity check from the author is flagged below."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-05T19:58:59Z",
-     "body": "The diff is well-scoped and heavily tested (FeeVote_test, PseudoTx_test, Subscribe_test, new gtest ExtensionFees.cpp). I traced the gating logic across Ledger::setup (old/new/extension fee consistency checks), Change::preclaim/applyFee/initializeVMFees, and the now-templated VotableValue in FeeVoteImpl, and the amendment-gating is consistent and matches what the tests assert (absent-field fallback to protocol defaults, explicit zero as kill switch, pre-amendment votes excluded from triggering a SetFee, all three gas fields required together on ttFEE once the amendment is live). I did not find a correctness or security bug with high confidence in the changed lines. One minor/low-confidence item below."
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-10-06T13:57:36Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-06T14:16:59Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-10-06T14:20:17Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-10-06T14:27:38Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-10-06T14:30:25Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-10-06T14:35:27Z",
-     "body": ""
-    },
-    {
-     "author": "kuznetsss",
-     "state": "COMMENTED",
-     "date": "2026-10-06T14:39:45Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-12T19:23:28Z",
-     "body": "Reviewed the Smart Escrow fee-voting changes end to end: config parsing (Config.cpp/Config.h), VotableValue templatization and the three-field voting/validation logic (FeeVoteImpl.cpp), SetFee application and amendment-activation seeding (Change.cpp), genesis/ledger-load resolution (Ledger.cpp), and the new RPC/subscribe surfaces (NetworkOPs.cpp). I specifically traced every gasLimit/bytecodeSizeLimit/gasPrice touch point end-to-end to look for a swapped-field copy/paste bug (a very plausible failure mode given three parallel uint32 fields threaded through ~10 call sites) and found the field order and bounds checks (max for gasLimit/bytecodeSizeLimit, min floor for gasPrice) consistently correct everywhere, including the FeeSetup::toFees() constructor argument order. The amendment gating (featureSmartEscrow) is applied consistently across preclaim, applyFee, Ledger::setup, and all three publish paths (pubValidation/getServerInfo/publishLedgerStreams/subLedger), matching the extensive new test coverage (FeeVote_test, ExtensionFees gtest, PseudoTx_test, Subscribe_test). No logic errors, resource leaks, or security issues stood out as high-confidence problems in the changed lines; this is a well-tested, internally consistent change."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-12T19:41:20Z",
-     "body": "### 🟡 Changes recommended\n\nUnresolved moderate findings affect API compatibility, validation-stream gating, and negative `gas_price` parsing.\n\n<details open>\n<summary><strong>4 open findings</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Preserve backward compatibility for the three-argument constructor](https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713126) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Gate validation fields on Smart Escrow activation](https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713188) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject negative gas prices before uint32 conversion](https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713217) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document public RPC field changes in API-CHANGELOG.md](https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713247) · New\n</details>\n\n<details>\n<summary><strong>2 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [`FeeSetup::toFees()` only copies the XRP fee fields; the newly added Smart Escrow fee settings…](https://github.com/XRPLF/rippled/pull/8214#discussion_r3983307241)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [The validations-stream assertions cover `gas_limit` and `bytecode_size_limit` but not `gas_price`,…](https://github.com/XRPLF/rippled/pull/8214#discussion_r3983307334)\n</details>\n\n🧠 **Review effort:** Lite"
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:12:59Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:13:01Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:13:03Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:13:04Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:13:06Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:13:08Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:13:10Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:13:11Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:13:13Z",
-     "body": ""
-    },
-    {
-     "author": "kuznetsss",
-     "state": "APPROVED",
-     "date": "2026-10-13T10:27:09Z",
-     "body": "LGTM, but need to fix clang-tidy. Also if possible please add tests for new not covered lines (there are warnings in the diff view)"
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "APPROVED",
-     "date": "2026-10-13T15:56:26Z",
-     "body": "Looks good."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-13T17:04:07Z",
-     "body": "The diff implements Smart Escrow fee voting (GasLimit, BytecodeSizeLimit, GasPrice) across config parsing, FeeVoteImpl, Change (SetFee), Ledger genesis/load, and RPC surfaces, consistently gated on featureSmartEscrow. The core logic (preclaim bounds checks, VotableValue templating, Ledger::setup fallback-to-protocol-default behavior, config parsing bounds) is coherent and well covered by the accompanying tests. One real inconsistency was found: NetworkOPs::pubValidation emits the three new JSON fields based purely on field presence in the STValidation, unlike the other three call sites (getServerInfo, publishLedgerStreams, subLedger) which all explicitly gate on `rules().enabled(featureSmartEscrow)` — this contradicts the MR's stated contract that these fields are 'present only once featureSmartEscrow is enabled' on the validations stream."
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-13T21:14:09Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-09-10T20:33:12Z",
-     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
-     "body": "Gas changed-flags trigger spuriously pre-amendment: ledger=0, target=1M+ default. Gate on rules.enabled(featureSmartEscrow):\n\n```suggestion:-0+1\n    if ((baseFeeChanged || baseReserveChanged || incReserveChanged) ||\n        (rules.enabled(featureSmartEscrow) && (gasLimitChanged || bytecodeSizeLimitChanged || gasPriceChanged)))\n```\n\n```suggestion\n    if (baseFeeChanged || baseReserveChanged || incReserveChanged ||\n        (rules.enabled(featureSmartEscrow) &&\n         (gasLimitChanged || bytecodeSizeLimitChanged || gasPriceChanged)))\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983240716"
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "date": "2026-09-10T20:37:06Z",
-     "path": "src/xrpld/core/Config.h",
-     "body": "⚪ **Severity: LOW**\n\nThese three new `FeeSetup` fields (`gasLimit`, `bytecodeSizeLimit`, `gasPrice`) are never propagated by the existing `toFees()` method (line 93), which uses the 3-arg `Fees` constructor. All genesis ledger and ledger-loading call sites use `toFees()`, so the FeeSettings ledger entry will silently get zeros for all gas fields regardless of configured values.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Update the `toFees()` method (lines 90-94 of `src/xrpld/core/Config.h`) to propagate the three new gas-related fields. Since `Fees` only has a 3-arg constructor, construct the `Fees` object and then set the additional fields before returning:\n\n```cpp\n[[nodiscard]] Fees\ntoFees() const\n{\n    Fees fees{referenceFee, accountReserve, ownerReserve};\n    fees.gasLimit = gasLimit;\n    fees.bytecodeSizeLimit = bytecodeSizeLimit;\n    fees.gasPrice = gasPrice;\n    return fees;\n}\n```\n\nAlternatively, add a 6-argument constructor to the `Fees` struct in `include/xrpl/protocol/Fees.h` and use it here.\n\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983273103"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-10T20:41:19Z",
-     "path": "src/xrpld/core/Config.h",
-     "body": "`FeeSetup::toFees()` only copies the XRP fee fields; the newly added Smart Escrow fee settings (gasLimit/bytecodeSizeLimit/gasPrice) are not propagated into the `Fees` object. This prevents the configured values from being applied during ledger construction/genesis when `featureSmartEscrow` is enabled.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983307241"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-10T20:41:20Z",
-     "path": "src/test/rpc/Subscribe_test.cpp",
-     "body": "The validations-stream assertions cover `gas_limit` and `bytecode_size_limit` but not `gas_price`, even though the PR adds `gas_price` to the same surfaces. This leaves the new field untested for both the enabled and disabled amendment cases.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983307334"
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "date": "2026-09-10T22:14:51Z",
-     "path": "src/xrpld/core/detail/Config.cpp",
-     "body": "⚪ **Severity: LOW**\n\nConfig parsing for `gas_price` lacks an upper-bound check, unlike `gas_limit` (capped at `kMaxGasLimit`) and `bytecode_size_limit` (capped at `kMaxBytecodeSizeLimit`). Negative config strings (e.g. `gas_price = -1`) silently wrap to near-`UINT32_MAX` and are accepted, causing the validator to vote for an extreme gas price.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add an upper-bound check for `gas_price` to match the pattern used by `gas_limit` and `bytecode_size_limit`. This requires two changes:\n\n1. In `include/xrpl/protocol/Fees.h`, add a `kMaxGasPrice` constant alongside the existing `kMaxGasLimit` and `kMaxBytecodeSizeLimit` constants (around line 20). Choose an appropriate maximum value for gas price in micro-drops.\n\n2. In `src/xrpld/core/detail/Config.cpp` at line 1261, add `&& temp <= kMaxGasPrice` to the condition, changing it to:\n   `if (set(temp, Keys::kGasPrice, section) && temp <= kMaxGasPrice)`\n\n3. In `src/xrpld/app/misc/FeeVoteImpl.cpp` at line 324, replace `std::numeric_limits<std::uint32_t>::max()` with `kMaxGasPrice` in the `doVote` call for `gasPriceVote`.\n\nThis ensures consistent bounding across all three Smart Escrow fee voting parameters.\n\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983969677"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-11T14:13:03Z",
-     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
-     "body": "Confirmed, and worse than spurious flags — pre-amendment the ledger reports 0 for all three while the config targets default to non-zero, and the validator-vote loop is itself amendment-gated, so the vote map holds only our own target and all three report a change. Every node would have emitted a no-op `SetFee` on every flag ledger until the amendment activated.\n\nGated as suggested in 052782a, with a regression test asserting `doVoting` adds nothing when no fee change is wanted and the amendment is off.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3989989629"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-11T14:14:03Z",
-     "path": "src/xrpld/core/Config.h",
-     "body": "Right, and it is a real bug — `startGenesisLedger` is the one caller that matters, and the gas fields it writes into `FeeSettings` were always zero. Fixed in e4476e5.\n\nPropagating through `toFees()` alone was not sufficient, though. Every `Ledger` built from stored data is seeded with the same `Fees`, and `Ledger::setup()` only overwrites fields the `FeeSettings` entry actually carries — a pre-amendment ledger carries none, so the seed survived and the node read its own config back as if the network had agreed to it, then never voted for the values it wanted. The genesis constructor now clears the three whenever it does not write them, so a ledger reports what its `FeeSettings` entry holds and nothing more.\n\n`Subscribe_test` caught this: with the seed leaking, the validation stream stopped publishing the gas fields entirely.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3989999079"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-11T14:15:06Z",
-     "path": "src/xrpld/core/Config.h",
-     "body": "Confirmed and fixed in e4476e5 — see the reply on the same line for why `toFees()` alone was not enough.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3990009796"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-11T14:16:50Z",
-     "path": "src/test/rpc/Subscribe_test.cpp",
-     "body": "Added in 4cca584, on both the enabled and disabled paths.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3990027288"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-10-06T13:57:36Z",
-     "path": "src/xrpld/core/detail/Config.cpp",
-     "body": "What do we think about adding a max gas price?  This seems like it would be more of a validator misconfiguration and a handful of validators making this mistake most likely wouldn't affect the price.  Having a max for this does **_seem_** consistent with the other values though.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196161389"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-10-06T13:58:43Z",
-     "path": "include/xrpl/protocol/Fees.h",
-     "body": "Should each of them be a separate type wrapping `uint32_t`?\n@godexsoft recommended this library: https://github.com/rollbear/strong_type. But it's probably out of scope of this PR. Adding a `TODO` here to fix later would be fine for now.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196173716"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-10-06T14:07:31Z",
-     "path": "src/libxrpl/ledger/Ledger.cpp",
-     "body": "Would be good to add a test for branch line if possible",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196280238"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-06T14:16:59Z",
-     "path": "src/xrpld/core/detail/Config.cpp",
-     "body": "We don't have maxes for existing fields. Not opposed to adding it, but we may want super-high gas prices to be an option in the case of some bugs.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196396199"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-10-06T14:20:17Z",
-     "path": "src/libxrpl/ledger/Ledger.cpp",
-     "body": "nit:  Is having multiple `std::ranges::find` the right pattern here?  The amendments vector probably isn't large at all, so scanning like this multiple times most likely will never be a performance concern.  There might be a readability argument to make though.  It might be nice to use the same `rules.enabled` idiom elsewhere in the code?",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196433298"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-10-06T14:27:38Z",
-     "path": "src/libxrpl/tx/transactors/system/Change.cpp",
-     "body": "nit:  Extending the `set` lambda to be variadic on the `field` parameter would be a nice cleanup?  Then you could have something like:\n```\nset(feeObject, ctx_.tx, sfGasLimit, sfBytecodeSizeLimit, sfGasPrice);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196524837"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-10-06T14:29:32Z",
-     "path": "src/tests/libxrpl/ledger/ExtensionFees.cpp",
-     "body": "It could a bit shorter:\n```suggestion\nstruct ExtensionFees : ::testing::Test\n{\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196546480"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-10-06T14:30:25Z",
-     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
-     "body": "nit:  It might be useful to leave this in?\n```\nusing value_type = ValueType;\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196555922"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-10-06T14:34:15Z",
-     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
-     "body": "It seems it could be flattened to a single if-else:\n```suggestion\n            if (auto const field = ~val->at(~sfield); field.has_value() && *field >= minValue && *field <= maxValue)\n            {\n                  value.addVote(field.value());\n             }\n             else\n            {\n                value.noVote();\n            }\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196599474"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-10-06T14:35:27Z",
-     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
-     "body": "nit:  Could probably collapse this:\n```\n            if (auto const field = ~val->at(~sfield); field && field.value() >= minValue && field.value() <= maxValue)\n            {\n                value.addVote(field.value());\n                return;\n            }\n            value.noVote();\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196612268"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-10-06T14:38:02Z",
-     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
-     "body": "nit: Maybe move the last value into a separate variable?\n```cpp\nif (baseFeeChanged || baseReserveChanged || incReserveChanged || smartEscrowFeeChanged)\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196643080"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-12T19:41:19Z",
-     "path": "include/xrpl/protocol/Fees.h",
-     "body": "This is a public `libxrpl` constructor that previously accepted three fee arguments. Making the three new parameters mandatory breaks existing downstream callers even though the PR describes the API impact as a new feature rather than a breaking change. Preserve the three-argument form with default arguments or an overload that supplies the protocol defaults.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713126"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-12T19:41:19Z",
-     "path": "src/xrpld/app/misc/NetworkOPs.cpp",
-     "body": "These fields are emitted whenever an `STValidation` happens to contain them, but this path does not check whether Smart Escrow is enabled. The validation format accepts these fields as optional and peer deserialization does not apply an amendment gate, so a pre-amendment peer validation can expose `gas_limit`, `bytecode_size_limit`, or `gas_price` on the validations stream despite the API contract that they only appear after activation. Gate this serialization using the rules for the validation's ledger (or omit the fields when that ledger cannot be confirmed).",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713188"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-12T19:41:20Z",
-     "path": "src/xrpld/core/detail/Config.cpp",
-     "body": "A negative `gas_price` string is converted directly to `uint32_t`, so e.g. `-300` wraps to a large positive value and passes the `>= kMinGasPrice` check. That value can then be voted for and seeded into the ledger, instead of being rejected as below the configured floor. Parse this setting through a signed or wider intermediate type and check the range before narrowing.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713217"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-12T19:41:20Z",
-     "path": "include/xrpl/protocol/jss.h",
-     "body": "This change adds public response fields to `server_info`, `ledgerClosed`, and `validationReceived`, but the pull request does not add an entry to `API-CHANGELOG.md`. The RPC-specific repository guidance requires every public RPC field change to be documented under the Unreleased section.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713247"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:12:59Z",
-     "path": "include/xrpl/protocol/Fees.h",
-     "body": "Added a TODO in 4c5b2e3; agreed it's out of scope here.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251939148"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:13:01Z",
-     "path": "src/libxrpl/ledger/Ledger.cpp",
-     "body": "Added in 4c5b2e3. `setup()` only reports through the loading constructor, so the test flushes a ledger carrying `GasLimit` without the amendment and checks it fails to load, with a control case that has the amendment.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251939397"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:13:03Z",
-     "path": "src/libxrpl/ledger/Ledger.cpp",
-     "body": "This has to match the Amendments entry the constructor writes. `rules_` also holds presets that aren't in that list (that's how test Envs enable features), so `rules_.enabled` would write fields the ledger then rejects. It mirrors the `featureXRPFees` branch just above.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251939563"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:13:04Z",
-     "path": "src/libxrpl/tx/transactors/system/Change.cpp",
-     "body": "Done in 4c5b2e3, for all three blocks.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251939800"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:13:06Z",
-     "path": "src/tests/libxrpl/ledger/ExtensionFees.cpp",
-     "body": "Done in 4c5b2e3.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251940040"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:13:08Z",
-     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
-     "body": "Kept in 4c5b2e3.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251940344"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:13:10Z",
-     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
-     "body": "Flattened in 4c5b2e3.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251940562"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:13:11Z",
-     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
-     "body": "Flattened in 4c5b2e3.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251940715"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:13:13Z",
-     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
-     "body": "Done in 4c5b2e3 as `smartEscrowFeeChanged`.",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251940897"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-13T21:14:09Z",
-     "path": "src/xrpld/core/detail/Config.cpp",
-     "body": "This is user error",
-     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4264084966"
-    }
-   ]
-  },
-  {
    "number": 6329,
    "title": "feat: Smart Escrows (XLS-100)",
    "url": "https://github.com/XRPLF/rippled/pull/6329",
    "state": "open",
    "author": "mvadari",
    "createdAt": "2026-02-04T23:44:48Z",
-   "updatedAt": "2026-10-13T19:39:30Z",
+   "updatedAt": "2026-10-14T22:57:01Z",
    "closedAt": null,
    "labels": [
     "PR: has conflicts"
@@ -674,10 +192,10 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:ripple/smart-escrow",
-   "additions": 46098,
+   "additions": 46332,
    "deletions": 267,
    "changedFiles": 416,
-   "commits": 773,
+   "commits": 776,
    "reviewComments": 71,
    "reviews": [
     {
@@ -1099,6 +617,24 @@
      "state": "CHANGES_REQUESTED",
      "date": "2026-10-13T16:19:58Z",
      "body": "Type mismatch in test — see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-14T11:09:50Z",
+     "body": "Ceiling division bug in gas allowance calculation — see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-14T14:28:38Z",
+     "body": "This diff adds test-only Rust infrastructure for the Smart Escrow WASM engine: a pinned round-trip test for `HostError` wire codes, and two new crates (`xrpl-wasm-testkit` for WAT-to-wasm compilation in C++ tests, and the skeleton of `xrpl-wasm-vm-ffi`). The code is well-documented, deliberately isolates the WAT text assembler from the production/consensus path (not linked into `libxrpl`/`xrpld`), and the test logic (code table, range check, round-trip, unknown-code handling) is internally consistent. No changed lines in this diff introduce correctness, security, or infrastructure issues worth flagging; the final file (`xrpl-wasm-vm-ffi/src/lib.rs`) has no diff content to review."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-14T22:57:01Z",
+     "body": "Ceiling division rounds up incorrectly — see inline."
     }
    ],
    "reviewCommentsList": [
@@ -1602,13 +1138,906 @@
    ]
   },
   {
+   "number": 7789,
+   "title": "fix: Add perf tests for escrow create and escrow finish",
+   "url": "https://github.com/XRPLF/rippled/pull/7789",
+   "state": "closed",
+   "author": "TimothyBanks",
+   "createdAt": "2026-07-10T20:23:46Z",
+   "updatedAt": "2026-10-14T22:11:22Z",
+   "closedAt": "2026-10-14T22:11:22Z",
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "pwang200",
+     "date": "2026-07-22T18:47:10Z",
+     "body": "This is from claude. I think it makes sense. Please take a look. \n\nThe execution-timing metric can't resolve these calls — it reports 0.\n\n`runEscrowWasm` / `preflightEscrowWasm` cast the elapsed time to `std::chrono::milliseconds` before notifying (WasmVM.cpp, the `duration_cast<milliseconds>` in both hooks), and `beast::insight::Event` is fixed to millisecond granularity anyway (EventImpl.h: `using value_type = std::chrono::milliseconds`). The escrow WASM calls run well under 1ms, so every sample truncates to 0.\n\nI measured it locally (Release build, wasmi, `kAllHostFunctionsWasmHex`, 1000 runs each):\n\n    escrow finish (runEscrowWasm):       mean ~88 µs\n    escrow create (preflightEscrowWasm): mean ~35 µs\n\nThat's ~11x and ~28x below the 1ms resolution, and the test output confirms it — both perf cases print `Mean (ms): 0`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#issuecomment-5050106076"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-27T13:14:37Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#issuecomment-5091766819"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-07-28T17:02:13Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#issuecomment-5107245136"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-07-28T17:29:37Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7789?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#issuecomment-5107521349"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-08-09T23:32:19Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#issuecomment-5234415871"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds very simple perf test around escrow create and escrow finish calls.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "ripple/smart-escrow",
+   "head": "XRPLF:smart-escrow/perf-test",
+   "additions": 239,
+   "deletions": 13,
+   "changedFiles": 15,
+   "commits": 17,
+   "reviewComments": 20,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-10T20:25:13Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-10T20:45:09Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-11T03:08:01Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-16T15:25:09Z",
+     "body": "Test assertion always fails — see inline comment.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-16T16:51:40Z",
+     "body": "Had a look at this\n\nTwo correctness issues flagged inline: nanosecond timing is silently truncated to milliseconds by `Event::notify` (both timing sites in `WasmVM.cpp`), and the destructor unconditionally prints to stdout for every test instance, not just the perf tests.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-07-16T17:00:22Z",
+     "body": "One unused variable flagged inline — see line 1588.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-07-16T21:18:18Z",
+     "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-07-22T18:36:09Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-07-22T19:07:38Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-22T19:55:23Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-22T19:56:41Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-23T15:00:26Z",
+     "body": "Data race in wasm execution timing — concurrent unordered_map access without synchronization."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-07-23T19:42:56Z",
+     "body": "Duration unit bugs in WASM metrics and test configuration issues - see inline."
+    },
+    {
+     "author": "pwang200",
+     "state": "COMMENTED",
+     "date": "2026-07-27T15:55:05Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-27T16:26:33Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-27T16:26:40Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-28T17:21:09Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-07-28T17:22:00Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-08-24T13:14:42Z",
+     "body": "## Pull request overview\n\nAdds manual WASM escrow create/finish performance tests and supporting timing instrumentation.\n\n**Changes:**\n- Adds repeated escrow performance tests and timing capture.\n- Instruments WASM execution metrics and synchronizes collector group creation.\n- Relocates `CollectorManager` and updates includes, tooling, and dependency ordering.\n\nTwo moderate issues remain: the public `HostFunctions` interface change requires ABI/API impact assessment, and `WasmVM.cpp` records microsecond values as milliseconds, producing metrics 1000× too large.\n\n### Reviewed changes\n\nCopilot reviewed 13 out of 15 changed files in this pull request and generated 2 comments.\n\n<details>\n<summary>Show a summary per file</summary>\n\n| File | Summary |\n|---|---|\n| `src/xrpld/shamap/NodeFamily.h` | Updates collector manager include. |\n| `src/xrpld/shamap/NodeFamily.cpp` | Updates collector manager include. |\n| `src/xrpld/rpc/ServerHandler.h` | Updates collector manager include. |\n| `src/xrpld/app/main/CollectorManager.cpp` | Uses the relocated interface. |\n| `src/xrpld/app/main/Application.cpp` | Updates collector manager include. |\n| `src/test/app/WasmPerf_test.cpp` | Adds manual escrow performance tests. |\n| `src/test/app/Wasm_test.cpp` | Scopes the byte-conversion helper. |\n| `src/test/app/TestHostFunctions.h` | Adds timing event recording support. |\n| `src/libxrpl/tx/wasm/WasmVM.cpp` | Records WASM execution durations. |\n| `src/libxrpl/beast/insight/Groups.cpp` | Synchronizes metric group creation. |\n| `include/xrpl/tx/wasm/HostFuncImpl.h` | Connects WASM timing to collectors. |\n| `include/xrpl/tx/wasm/HostFunc.h` | Adds the timing event hook. |\n| `include/xrpl/core/CollectorManager.h` | Defines the relocated collector manager interface. |\n| `bin/pre-commit/clang_tidy_check.py` | Improves repository-root detection. |\n| `.github/scripts/levelization/results/ordering.txt` | Updates dependency ordering. |\n</details>\n\n\n\n\n\n<details>\n<summary>Suppressed comments (3)</summary>\n\n**src/libxrpl/tx/wasm/WasmVM.cpp:183**\n* This repeats the same unit mismatch: `EventImpl::value_type` and the StatsD wire format are milliseconds, but the microsecond count is stored as milliseconds. Consequently preflight timings are also reported 1000× too high. Keep the units consistent or introduce an explicit microsecond metric type rather than passing a microsecond count to a millisecond event.\n```\n            std::chrono::milliseconds{std::chrono::duration_cast<std::chrono::microseconds>(\n                                          std::chrono::steady_clock::now() - start)\n                                          .count()});\n```\n**src/libxrpl/tx/wasm/WasmVM.cpp:142**\n* The `notify` object's expression is evaluated before its argument, so `executionTimeEvent()` runs before `steady_clock::now() - start` is captured. This includes the event lookup/creation (and its lock/allocation on the production StatsD path) in every reported WASM sample, skewing the perf result. Capture the elapsed duration in a local before looking up the event.\n```\n    hfs.executionTimeEvent(\"runEscrowWasm_us\")\n        .notify(\n            std::chrono::milliseconds{std::chrono::duration_cast<std::chrono::microseconds>(\n                                          std::chrono::steady_clock::now() - start)\n                                          .count()});\n```\n**src/libxrpl/tx/wasm/WasmVM.cpp:183**\n* The `notify` object's expression is evaluated before its argument, so `executionTimeEvent()` runs before `steady_clock::now() - start` is captured. This includes the event lookup/creation (and its lock/allocation on the production StatsD path) in every reported WASM sample, skewing the perf result. Capture the elapsed duration in a local before looking up the event.\n```\n    hfs.executionTimeEvent(\"preflightEscrowWasm_us\")\n        .notify(\n            std::chrono::milliseconds{std::chrono::duration_cast<std::chrono::microseconds>(\n                                          std::chrono::steady_clock::now() - start)\n                                          .count()});\n```\n</details>\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/ripple/smart-escrow?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/en/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-16T15:25:09Z",
+     "path": "src/test/app/Wasm_test.cpp",
+     "body": "`mock` is passed to `preflightEscrowWasm` but `perf()` checks `hfns.execTimeEvent->count` — assertion always fails. Pass `hfns` instead:\n```suggestion\n        perf(hfns, kRuns, [&] { return !preflightEscrowWasm(wasm, hfns, escrowFunctionName); });\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3596759521"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-16T16:51:40Z",
+     "path": "src/libxrpl/tx/wasm/WasmVM.cpp",
+     "body": "`Event::notify` truncates to milliseconds internally, so casting to `nanoseconds` here loses precision silently. Use `milliseconds` to match what's actually stored (also fix line 172):\n```suggestion:-0+1\n            std::chrono::duration_cast<std::chrono::milliseconds>(\n                std::chrono::steady_clock::now() - start));\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3597360550"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-16T16:51:41Z",
+     "path": "src/test/app/TestHostFunctions.h",
+     "body": "Destructor prints to stdout for every test instance, even when no events were recorded. Guard with `count > 0`:\n```suggestion\n        if (count > 0) std::cout << \"Mean (ns): \" << meanNs() << \"\\n\";\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3597360561"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-16T17:00:22Z",
+     "path": "src/test/app/Wasm_test.cpp",
+     "body": "Unused variable `mock` — copy-paste leftover, will cause `-Wunused-variable` warning. Remove it:\n```suggestion:-0+0\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3597416582"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-07-22T18:36:09Z",
+     "path": "src/libxrpl/tx/wasm/WasmVM.cpp",
+     "body": "This was a surprise to me too, but the caller in EscrowCreate.cpp is a mock. So it doesn't have the real impl of `executionTimeEvent`. \n```\n        HostFunctions mock(ctx.j);\n        auto const re = preflightEscrowWasm(code, mock, escrowFunctionName);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3632834400"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-07-22T19:07:38Z",
+     "path": "src/test/app/TestHostFunctions.h",
+     "body": "Nit: Claude complained see this printed too many times for unrelated tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3633061056"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-22T19:55:23Z",
+     "path": "src/libxrpl/tx/wasm/WasmVM.cpp",
+     "body": "That does seem a bit intentional?",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3633368156"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-22T19:56:41Z",
+     "path": "src/test/app/TestHostFunctions.h",
+     "body": "Addressed.\n\nAs for the resolution of the metrics, the best I can do is fake the values as milliseconds.  That is pass in microseconds.  StatsD is set at millisecond resolution.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3633376250"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-23T15:00:26Z",
+     "path": "include/xrpl/tx/wasm/HostFuncImpl.h",
+     "body": "Data race on `CollectorManager::group()` — unsynchronized unordered_map lookup from hot path. Add mutable member to cache the Event:\n\n```suggestion:-0+7\n    beast::insight::Event\n    executionTimeEvent(std::string_view name) const override\n    {\n        if (!cachedEvent_)\n            cachedEvent_ = ctx_.registry.get()\n                .getCollectorManager()\n                .group(\"finish_time\")\n                ->makeEvent(\"finish_time\");\n        return *cachedEvent_;\n    }\n```\n\nAlso add this member to the class:\n```cpp\nmutable std::optional<beast::insight::Event> cachedEvent_;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3639137743"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-23T19:42:56Z",
+     "path": "src/libxrpl/tx/wasm/WasmVM.cpp",
+     "body": "Duration mislabeled as milliseconds inflates metrics 1000x. Pass duration directly to notify():\n\n```suggestion:-0+3\n        .notify(std::chrono::duration_cast<std::chrono::microseconds>(\n            std::chrono::steady_clock::now() - start));\n```\n\n```suggestion\n    hfs.executionTimeEvent(\"runEscrowWasm_us\")\n        .notify(std::chrono::duration_cast<std::chrono::microseconds>(\n            std::chrono::steady_clock::now() - start));\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3640905161"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-23T19:42:56Z",
+     "path": "src/libxrpl/tx/wasm/WasmVM.cpp",
+     "body": "Identical duration unit mislabeling. Apply same fix:\n\n```suggestion:-0+3\n        .notify(std::chrono::duration_cast<std::chrono::microseconds>(\n            std::chrono::steady_clock::now() - start));\n```\n\n```suggestion\n    hfs.executionTimeEvent(\"preflightEscrowWasm_us\")\n        .notify(std::chrono::duration_cast<std::chrono::microseconds>(\n            std::chrono::steady_clock::now() - start));\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3640905178"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-23T19:42:56Z",
+     "path": "src/test/app/Wasm_test.cpp",
+     "body": "Perf tests run on all builds, bloating CI. Use BEAST_DEFINE_TESTSUITE_MANUAL (see AMMCalc_test.cpp):",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3640905180"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-07-23T19:42:56Z",
+     "path": "src/test/app/TestHostFunctions.h",
+     "body": "std::cout used without explicit `#include <iostream>`. Add to the includes section:\n\n```suggestion\n#include <iostream>\n```\n\n```suggestion\n#include <iostream>\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3640905185"
+    },
+    {
+     "author": "pwang200",
+     "date": "2026-07-27T15:55:04Z",
+     "path": "src/test/app/TestHostFunctions.h",
+     "body": "Claude used `kAllHostFunctionsWasmHex` as the example. As the name says, this wasm code tests all the host functions. I think a fair amount of \"normal\" wasm code might be less expensive. Assuming claude's measured numbers are real, we will have a lot of wasm executions in the tens of microseconds range. If StatsD's time events in at millisecond resolution, and reporting is not free (google says: \"Sending a StatsD metric takes roughly 1 to 5 microseconds of application CPU time.), then we need a different approach. Does it have to be a StatsD time event, or sent every time... I don't know the receiving side to give a good suggestion. On the wasm VM side though, we just want to have some basic statistics, and also get some information if some wasm code takes relatively longer time, like 10 ms.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3658798695"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-27T16:26:33Z",
+     "path": "src/libxrpl/tx/wasm/WasmVM.cpp",
+     "body": "The `EventImpl` is always milliseconds.  I need to encode the actual precision I need by tricking it into thinking the microseconds are the milliseconds count.  This is by design to get around the millisecond precision enforced by the event.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3659042707"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-27T16:26:40Z",
+     "path": "src/libxrpl/tx/wasm/WasmVM.cpp",
+     "body": "The `EventImpl` is always milliseconds.  I need to encode the actual precision I need by tricking it into thinking the microseconds are the milliseconds count.  This is by design to get around the millisecond precision enforced by the event.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3659043573"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-28T17:21:09Z",
+     "path": "src/test/app/TestHostFunctions.h",
+     "body": "Fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3667753224"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-07-28T17:22:00Z",
+     "path": "src/test/app/Wasm_test.cpp",
+     "body": "Fixed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3667759098"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-24T13:14:41Z",
+     "path": "include/xrpl/tx/wasm/HostFunc.h",
+     "body": "`HostFunctions` is a public libxrpl header, so adding this virtual method changes the public interface and can change the vtable/ABI for existing derived implementations. The PR's API Impact section leaves the `libxrpl` checkbox unchecked; please record and assess this compatibility impact, or use an ABI-preserving extension if that compatibility is required.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3843775811"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-08-24T13:14:42Z",
+     "path": "src/libxrpl/tx/wasm/WasmVM.cpp",
+     "body": "`Event::notify` converts its argument to `EventImpl::value_type`, which is `std::chrono::milliseconds`, and the StatsD implementation emits that value with a `|ms` suffix. Constructing a millisecond duration from a microsecond count therefore exports a 200 µs run as 200 ms (1000× too large). Either keep this metric in milliseconds and remove the `_us`/microsecond claims, or add a distinct microsecond event/StatsD path before recording it.\n\nThis issue also appears on line 181 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/7789#discussion_r3843775882"
+    }
+   ]
+  },
+  {
+   "number": 8214,
+   "title": "feat: Add Smart Escrow fee voting",
+   "url": "https://github.com/XRPLF/rippled/pull/8214",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-09-10T20:26:46Z",
+   "updatedAt": "2026-10-14T21:23:34Z",
+   "closedAt": null,
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-10T20:28:56Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8214?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `99.27536%` with `1 line` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8214?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/misc/FeeVoteImpl.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8214?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL0ZlZVZvdGVJbXBsLmNwcA==) | 98.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8214?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#issuecomment-5625005994"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-06T18:43:00Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#issuecomment-6023062772"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-12T20:05:08Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#issuecomment-6131719470"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-14T18:43:45Z",
+     "body": "@kuznetsss Fixed clang-tidy and added tests for the uncovered lines in de50fa5, except `FeeVoteImpl.cpp:329`: `testDoVotingSmartEscrow` already reaches it through its untrusted validations, so that looks like a coverage-tool artifact.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#issuecomment-6175710965"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds `GasLimit`, `BytecodeSizeLimit` and `GasPrice` to the network's votable fee\nsettings, gated on `featureSmartEscrow`. These are the three settings that bound\nwhat a Smart Escrow contract may cost: how much gas one run may burn, how large\na contract may be, and what a unit of gas costs in micro-drops.\n\nExtracted from the `ripple/smart-escrow` feature branch. Replaces the closed #5810.\n\n## Context of Change\n\n`ripple/smart-escrow` is being upstreamed piece by piece. #8157 landed the\n`.macro` and autogen plumbing for these fields; this adds the behavior behind\nthem — config parsing, fee voting, `SetFee`, `FeeSettings` genesis and load, and\nthe RPC surfaces that report fee settings.\n\n`detail::VotableValue` in `FeeVoteImpl.cpp` becomes a template: it was\nhard-wired to `XRPAmount`, and the three new settings are `std::uint32_t`.\n\nThe limits are always read from the ledger, never from local configuration.\nConfiguration only seeds a genesis ledger and sets a validator's vote. Once\n`featureSmartEscrow` is enabled, a field absent from `FeeSettings` resolves to\nthe protocol default, and activating the amendment writes those defaults into\n`FeeSettings`. `GasPrice` has a floor of 1: zero is refused in config, in votes\nand in `SetFee`.\n\n`featureSmartEscrow` stays `Supported::No`, so none of this can take effect on a\nproduction network yet.\n\n## API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\nThree new response fields: `gas_limit`, `bytecode_size_limit` and `gas_price`. On `server_info` (`info.validated_ledger`) and `subscribe` to `ledger`, they are present only once `featureSmartEscrow` is enabled. The `validations` stream shows them whenever a validation carries them, the same as `base_fee_drops`; this server only signs them once the amendment is enabled. No existing field changes.\n\n## Test Plan\n\n`FeeVote_test` is extended over the three new fields — voting, `SetFee`\napplication, partial field updates, the gas price floor, seeding on activation,\nand config parsing for valid, non-numeric, negative, overflowing and\nover-maximum values. `PseudoTx_test` and `Subscribe_test` run their matrices\nwith and without the amendment. The new `ExtensionFees` gtest covers how\n`Ledger::setup()` resolves absent, present and zero fields.\n\nFull suite on this branch: 256 suites, 4933 cases, 1,291,357 tests, 0 failures.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:mvadari/smart-escrow-fee-voting",
+   "additions": 1432,
+   "deletions": 80,
+   "changedFiles": 18,
+   "commits": 12,
+   "reviewComments": 39,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-09-10T20:33:12Z",
+     "body": "Gas vote triggers spuriously pre-amendment when feature is disabled — see inline."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-10T20:37:06Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-10T20:41:20Z",
+     "body": "### 🟡 Changes recommended\n\n`FeeSetup::toFees()` does not propagate the newly added Smart Escrow fee fields into `Fees`, and one key stream output (`gas_price`) is not asserted in the updated Subscribe test.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR extends XRPLD’s fee-voting and fee-settings plumbing to support Smart Escrow (Feature Extensions) resource/price bounds—`GasLimit`, `BytecodeSizeLimit`, and `GasPrice`—all gated behind `featureSmartEscrow`. It threads these settings through config parsing, fee voting/SetFee application, ledger fee-settings initialization/loading, and the RPC/stream surfaces that report the effective fee settings.\n\n**Changes:**\n- Add Smart Escrow extension fee settings (gas limit, bytecode size limit, gas price) to config (`[fee_vote]`), fee voting, and `ttFEE` (`SetFee`) application logic under `featureSmartEscrow`.\n- Persist/load the new settings via the ledger’s fee-settings object and expose them via `server_info`, ledger streams, and validation streams (amendment-gated where applicable).\n- Extend unit tests to exercise voting/application behavior and amendment-gated API/stream outputs.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/core/detail/Config.cpp | Parses `gas_limit`, `bytecode_size_limit`, `gas_price` from `[fee_vote]` with max checks for the limit fields. |\n| src/xrpld/core/Config.h | Adds the three new fields to `FeeSetup`. |\n| src/xrpld/app/misc/NetworkOPs.cpp | Emits new fee settings on `server_info`, ledger streams, and validation stream JSON (amendment-gated for server/ledger outputs). |\n| src/xrpld/app/misc/FeeVoteImpl.cpp | Generalizes fee voting to handle both `XRPAmount` and `uint32_t` votables; adds Smart Escrow voting behavior. |\n| src/xrpld/app/main/Application.cpp | Implements `ServiceRegistry::getFees()` to expose configured fee settings via the application. |\n| src/tests/libxrpl/helpers/TestServiceRegistry.h | Adds a test implementation of `getFees()` and defaults including the new Smart Escrow fields. |\n| src/test/rpc/Subscribe_test.cpp | Extends validation stream assertions for amendment-gated Smart Escrow fields (but currently misses `gas_price`). |\n| src/test/jtx/impl/envconfig.cpp | Seeds unit-test config with defaults for the new fee fields. |\n| src/test/app/PseudoTx_test.cpp | Updates pseudo-tx construction expectations when Smart Escrow is enabled. |\n| src/test/app/FeeVote_test.cpp | Extends FeeVote tests for config parsing, SetFee application, partial updates, and Smart Escrow voting paths. |\n| src/libxrpl/tx/transactors/system/Change.cpp | Enforces required presence/range for Smart Escrow fee fields in `ttFEE` under the amendment and applies them to fee settings. |\n| src/libxrpl/ledger/Ledger.cpp | Initializes and loads the new fee fields in the fee-settings SLE, rejecting premature population before amendment enablement. |\n| include/xrpl/protocol/jss.h | Adds JSON keys: `gas_limit`, `bytecode_size_limit`, `gas_price`. |\n| include/xrpl/protocol/Fees.h | Adds constants/maxima and extends `Fees` with the three new fields. |\n| include/xrpl/core/ServiceRegistry.h | Adds `getFees()` to the ServiceRegistry interface. |\n| include/xrpl/config/Constants.h | Adds config keys for the three new `[fee_vote]` parameters. |\n| cfg/xrpld-example.cfg | Documents new `[fee_vote]` parameters and their meanings. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 17/17 changed files\n- **Comments generated:** 2\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-10T22:10:30Z",
+     "body": "The Smart Escrow fee-voting feature is thoroughly implemented and well-tested (config parsing, voting, SetFee application, genesis/load, and the three RPC surfaces all correctly gate on featureSmartEscrow, with good regression tests for the pre-amendment zero-vote case). I traced the VotableValue templatization, the Ledger genesis/setup gas-field handling, the Change.cpp preclaim/apply changes, and the RPC publish paths (getServerInfo, publishLedgerStreams, subLedger, pubValidation) and found the gating logic consistent and correctly tested. The one thing worth cleaning up is a duplicated field-mapping in ApplicationImp::getFees() that could drift from FeeSetup::toFees() over time."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-10T22:14:51Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T14:13:03Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T14:14:03Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T14:15:06Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-09-11T14:16:50Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-05T18:03:50Z",
+     "body": "Well-structured, thoroughly-tested extension of fee voting to Smart Escrow's three new fields. The template refactor of VotableValue, the config parsing bounds, and the ledger genesis/load logic for gasLimit/bytecodeSizeLimit/gasPrice are all internally consistent and backed by matching unit tests (FeeVote_test, PseudoTx_test, Subscribe_test, new ExtensionFees gtest). I did not find any clear correctness or security bugs in the added lines. One behavioral change worth a quick sanity check from the author is flagged below."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-05T19:58:59Z",
+     "body": "The diff is well-scoped and heavily tested (FeeVote_test, PseudoTx_test, Subscribe_test, new gtest ExtensionFees.cpp). I traced the gating logic across Ledger::setup (old/new/extension fee consistency checks), Change::preclaim/applyFee/initializeVMFees, and the now-templated VotableValue in FeeVoteImpl, and the amendment-gating is consistent and matches what the tests assert (absent-field fallback to protocol defaults, explicit zero as kill switch, pre-amendment votes excluded from triggering a SetFee, all three gas fields required together on ttFEE once the amendment is live). I did not find a correctness or security bug with high confidence in the changed lines. One minor/low-confidence item below."
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-06T13:57:36Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-06T14:16:59Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-06T14:20:17Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-06T14:27:38Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-06T14:30:25Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-06T14:35:27Z",
+     "body": ""
+    },
+    {
+     "author": "kuznetsss",
+     "state": "COMMENTED",
+     "date": "2026-10-06T14:39:45Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-12T19:23:28Z",
+     "body": "Reviewed the Smart Escrow fee-voting changes end to end: config parsing (Config.cpp/Config.h), VotableValue templatization and the three-field voting/validation logic (FeeVoteImpl.cpp), SetFee application and amendment-activation seeding (Change.cpp), genesis/ledger-load resolution (Ledger.cpp), and the new RPC/subscribe surfaces (NetworkOPs.cpp). I specifically traced every gasLimit/bytecodeSizeLimit/gasPrice touch point end-to-end to look for a swapped-field copy/paste bug (a very plausible failure mode given three parallel uint32 fields threaded through ~10 call sites) and found the field order and bounds checks (max for gasLimit/bytecodeSizeLimit, min floor for gasPrice) consistently correct everywhere, including the FeeSetup::toFees() constructor argument order. The amendment gating (featureSmartEscrow) is applied consistently across preclaim, applyFee, Ledger::setup, and all three publish paths (pubValidation/getServerInfo/publishLedgerStreams/subLedger), matching the extensive new test coverage (FeeVote_test, ExtensionFees gtest, PseudoTx_test, Subscribe_test). No logic errors, resource leaks, or security issues stood out as high-confidence problems in the changed lines; this is a well-tested, internally consistent change."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-12T19:41:20Z",
+     "body": "### 🟡 Changes recommended\n\nUnresolved moderate findings affect API compatibility, validation-stream gating, and negative `gas_price` parsing.\n\n<details open>\n<summary><strong>4 open findings</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Preserve backward compatibility for the three-argument constructor](https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713126) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Gate validation fields on Smart Escrow activation](https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713188) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject negative gas prices before uint32 conversion](https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713217) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document public RPC field changes in API-CHANGELOG.md](https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713247) · New\n</details>\n\n<details>\n<summary><strong>2 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [`FeeSetup::toFees()` only copies the XRP fee fields; the newly added Smart Escrow fee settings…](https://github.com/XRPLF/rippled/pull/8214#discussion_r3983307241)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [The validations-stream assertions cover `gas_limit` and `bytecode_size_limit` but not `gas_price`,…](https://github.com/XRPLF/rippled/pull/8214#discussion_r3983307334)\n</details>\n\n🧠 **Review effort:** Lite"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:12:59Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:13:01Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:13:03Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:13:04Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:13:06Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:13:08Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:13:10Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:13:11Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:13:13Z",
+     "body": ""
+    },
+    {
+     "author": "kuznetsss",
+     "state": "APPROVED",
+     "date": "2026-10-13T10:27:09Z",
+     "body": "LGTM, but need to fix clang-tidy. Also if possible please add tests for new not covered lines (there are warnings in the diff view)"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "APPROVED",
+     "date": "2026-10-13T15:56:26Z",
+     "body": "Looks good."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-13T17:04:07Z",
+     "body": "The diff implements Smart Escrow fee voting (GasLimit, BytecodeSizeLimit, GasPrice) across config parsing, FeeVoteImpl, Change (SetFee), Ledger genesis/load, and RPC surfaces, consistently gated on featureSmartEscrow. The core logic (preclaim bounds checks, VotableValue templating, Ledger::setup fallback-to-protocol-default behavior, config parsing bounds) is coherent and well covered by the accompanying tests. One real inconsistency was found: NetworkOPs::pubValidation emits the three new JSON fields based purely on field presence in the STValidation, unlike the other three call sites (getServerInfo, publishLedgerStreams, subLedger) which all explicitly gate on `rules().enabled(featureSmartEscrow)` — this contradicts the MR's stated contract that these fields are 'present only once featureSmartEscrow is enabled' on the validations stream."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-13T21:14:09Z",
+     "body": ""
+    },
+    {
+     "author": "kuznetsss",
+     "state": "APPROVED",
+     "date": "2026-10-14T10:51:11Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-14T18:43:34Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-14T18:43:36Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-14T18:43:38Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-14T18:43:40Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-14T18:43:43Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-14T18:45:53Z",
+     "body": "This MR extends FeeVote/SetFee/FeeSettings with three new votable settings (GasLimit, BytecodeSizeLimit, GasPrice) gated on featureSmartEscrow, and templates VotableValue to support both XRPAmount and uint32_t. The change is carefully gated behind the amendment at every surface (preclaim, apply, genesis, Ledger::setup, RPC/subscribe output), and is backed by an unusually thorough test suite (FeeVote_test, PseudoTx_test, Subscribe_test, Config_test, and a new ExtensionFees gtest) that directly exercises the boundary conditions I would otherwise worry about (zero-as-kill-switch vs absent-as-default, inclusive bounds, pre/post-amendment rejection, noVote vs vote-for-zero). I traced the control flow in Ledger.cpp (genesis write + setup() resolution), Change.cpp (preclaim/apply/initializeVMFees), and FeeVoteImpl.cpp (doValidation/doVoting templated voting) against the stated invariants and did not find a logic error, off-by-one, or type-safety issue in the added (+) lines that I'm confident about. The one asymmetry I checked closely -- NetworkOPs::pubValidation emitting gas_limit/bytecode_size_limit/gas_price without an explicit featureSmartEscrow rules check -- mirrors the pre-existing (unmodified) pattern used for reserve_inc on the same function, so it's consistent with existing conventions rather than a new bug."
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "APPROVED",
+     "date": "2026-10-14T18:56:02Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2026-10-14T21:23:33Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-09-10T20:33:12Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "Gas changed-flags trigger spuriously pre-amendment: ledger=0, target=1M+ default. Gate on rules.enabled(featureSmartEscrow):\n\n```suggestion:-0+1\n    if ((baseFeeChanged || baseReserveChanged || incReserveChanged) ||\n        (rules.enabled(featureSmartEscrow) && (gasLimitChanged || bytecodeSizeLimitChanged || gasPriceChanged)))\n```\n\n```suggestion\n    if (baseFeeChanged || baseReserveChanged || incReserveChanged ||\n        (rules.enabled(featureSmartEscrow) &&\n         (gasLimitChanged || bytecodeSizeLimitChanged || gasPriceChanged)))\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983240716"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-10T20:37:06Z",
+     "path": "src/xrpld/core/Config.h",
+     "body": "⚪ **Severity: LOW**\n\nThese three new `FeeSetup` fields (`gasLimit`, `bytecodeSizeLimit`, `gasPrice`) are never propagated by the existing `toFees()` method (line 93), which uses the 3-arg `Fees` constructor. All genesis ledger and ledger-loading call sites use `toFees()`, so the FeeSettings ledger entry will silently get zeros for all gas fields regardless of configured values.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Update the `toFees()` method (lines 90-94 of `src/xrpld/core/Config.h`) to propagate the three new gas-related fields. Since `Fees` only has a 3-arg constructor, construct the `Fees` object and then set the additional fields before returning:\n\n```cpp\n[[nodiscard]] Fees\ntoFees() const\n{\n    Fees fees{referenceFee, accountReserve, ownerReserve};\n    fees.gasLimit = gasLimit;\n    fees.bytecodeSizeLimit = bytecodeSizeLimit;\n    fees.gasPrice = gasPrice;\n    return fees;\n}\n```\n\nAlternatively, add a 6-argument constructor to the `Fees` struct in `include/xrpl/protocol/Fees.h` and use it here.\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983273103"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-10T20:41:19Z",
+     "path": "src/xrpld/core/Config.h",
+     "body": "`FeeSetup::toFees()` only copies the XRP fee fields; the newly added Smart Escrow fee settings (gasLimit/bytecodeSizeLimit/gasPrice) are not propagated into the `Fees` object. This prevents the configured values from being applied during ledger construction/genesis when `featureSmartEscrow` is enabled.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983307241"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-10T20:41:20Z",
+     "path": "src/test/rpc/Subscribe_test.cpp",
+     "body": "The validations-stream assertions cover `gas_limit` and `bytecode_size_limit` but not `gas_price`, even though the PR adds `gas_price` to the same surfaces. This leaves the new field untested for both the enabled and disabled amendment cases.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983307334"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-09-10T22:14:51Z",
+     "path": "src/xrpld/core/detail/Config.cpp",
+     "body": "⚪ **Severity: LOW**\n\nConfig parsing for `gas_price` lacks an upper-bound check, unlike `gas_limit` (capped at `kMaxGasLimit`) and `bytecode_size_limit` (capped at `kMaxBytecodeSizeLimit`). Negative config strings (e.g. `gas_price = -1`) silently wrap to near-`UINT32_MAX` and are accepted, causing the validator to vote for an extreme gas price.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Add an upper-bound check for `gas_price` to match the pattern used by `gas_limit` and `bytecode_size_limit`. This requires two changes:\n\n1. In `include/xrpl/protocol/Fees.h`, add a `kMaxGasPrice` constant alongside the existing `kMaxGasLimit` and `kMaxBytecodeSizeLimit` constants (around line 20). Choose an appropriate maximum value for gas price in micro-drops.\n\n2. In `src/xrpld/core/detail/Config.cpp` at line 1261, add `&& temp <= kMaxGasPrice` to the condition, changing it to:\n   `if (set(temp, Keys::kGasPrice, section) && temp <= kMaxGasPrice)`\n\n3. In `src/xrpld/app/misc/FeeVoteImpl.cpp` at line 324, replace `std::numeric_limits<std::uint32_t>::max()` with `kMaxGasPrice` in the `doVote` call for `gasPriceVote`.\n\nThis ensures consistent bounding across all three Smart Escrow fee voting parameters.\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3983969677"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T14:13:03Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "Confirmed, and worse than spurious flags — pre-amendment the ledger reports 0 for all three while the config targets default to non-zero, and the validator-vote loop is itself amendment-gated, so the vote map holds only our own target and all three report a change. Every node would have emitted a no-op `SetFee` on every flag ledger until the amendment activated.\n\nGated as suggested in 052782a, with a regression test asserting `doVoting` adds nothing when no fee change is wanted and the amendment is off.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3989989629"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T14:14:03Z",
+     "path": "src/xrpld/core/Config.h",
+     "body": "Right, and it is a real bug — `startGenesisLedger` is the one caller that matters, and the gas fields it writes into `FeeSettings` were always zero. Fixed in e4476e5.\n\nPropagating through `toFees()` alone was not sufficient, though. Every `Ledger` built from stored data is seeded with the same `Fees`, and `Ledger::setup()` only overwrites fields the `FeeSettings` entry actually carries — a pre-amendment ledger carries none, so the seed survived and the node read its own config back as if the network had agreed to it, then never voted for the values it wanted. The genesis constructor now clears the three whenever it does not write them, so a ledger reports what its `FeeSettings` entry holds and nothing more.\n\n`Subscribe_test` caught this: with the seed leaking, the validation stream stopped publishing the gas fields entirely.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3989999079"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T14:15:06Z",
+     "path": "src/xrpld/core/Config.h",
+     "body": "Confirmed and fixed in e4476e5 — see the reply on the same line for why `toFees()` alone was not enough.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3990009796"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-09-11T14:16:50Z",
+     "path": "src/test/rpc/Subscribe_test.cpp",
+     "body": "Added in 4cca584, on both the enabled and disabled paths.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r3990027288"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-06T13:57:36Z",
+     "path": "src/xrpld/core/detail/Config.cpp",
+     "body": "What do we think about adding a max gas price?  This seems like it would be more of a validator misconfiguration and a handful of validators making this mistake most likely wouldn't affect the price.  Having a max for this does **_seem_** consistent with the other values though.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196161389"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-10-06T13:58:43Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "Should each of them be a separate type wrapping `uint32_t`?\n@godexsoft recommended this library: https://github.com/rollbear/strong_type. But it's probably out of scope of this PR. Adding a `TODO` here to fix later would be fine for now.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196173716"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-10-06T14:07:31Z",
+     "path": "src/libxrpl/ledger/Ledger.cpp",
+     "body": "Would be good to add a test for branch line if possible",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196280238"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-06T14:16:59Z",
+     "path": "src/xrpld/core/detail/Config.cpp",
+     "body": "We don't have maxes for existing fields. Not opposed to adding it, but we may want super-high gas prices to be an option in the case of some bugs.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196396199"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-06T14:20:17Z",
+     "path": "src/libxrpl/ledger/Ledger.cpp",
+     "body": "nit:  Is having multiple `std::ranges::find` the right pattern here?  The amendments vector probably isn't large at all, so scanning like this multiple times most likely will never be a performance concern.  There might be a readability argument to make though.  It might be nice to use the same `rules.enabled` idiom elsewhere in the code?",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196433298"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-06T14:27:38Z",
+     "path": "src/libxrpl/tx/transactors/system/Change.cpp",
+     "body": "nit:  Extending the `set` lambda to be variadic on the `field` parameter would be a nice cleanup?  Then you could have something like:\n```\nset(feeObject, ctx_.tx, sfGasLimit, sfBytecodeSizeLimit, sfGasPrice);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196524837"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-10-06T14:29:32Z",
+     "path": "src/tests/libxrpl/ledger/ExtensionFees.cpp",
+     "body": "It could a bit shorter:\n```suggestion\nstruct ExtensionFees : ::testing::Test\n{\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196546480"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-06T14:30:25Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "nit:  It might be useful to leave this in?\n```\nusing value_type = ValueType;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196555922"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-10-06T14:34:15Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "It seems it could be flattened to a single if-else:\n```suggestion\n            if (auto const field = ~val->at(~sfield); field.has_value() && *field >= minValue && *field <= maxValue)\n            {\n                  value.addVote(field.value());\n             }\n             else\n            {\n                value.noVote();\n            }\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196599474"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-06T14:35:27Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "nit:  Could probably collapse this:\n```\n            if (auto const field = ~val->at(~sfield); field && field.value() >= minValue && field.value() <= maxValue)\n            {\n                value.addVote(field.value());\n                return;\n            }\n            value.noVote();\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196612268"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-10-06T14:38:02Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "nit: Maybe move the last value into a separate variable?\n```cpp\nif (baseFeeChanged || baseReserveChanged || incReserveChanged || smartEscrowFeeChanged)\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4196643080"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-12T19:41:19Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "This is a public `libxrpl` constructor that previously accepted three fee arguments. Making the three new parameters mandatory breaks existing downstream callers even though the PR describes the API impact as a new feature rather than a breaking change. Preserve the three-argument form with default arguments or an overload that supplies the protocol defaults.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713126"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-12T19:41:19Z",
+     "path": "src/xrpld/app/misc/NetworkOPs.cpp",
+     "body": "These fields are emitted whenever an `STValidation` happens to contain them, but this path does not check whether Smart Escrow is enabled. The validation format accepts these fields as optional and peer deserialization does not apply an amendment gate, so a pre-amendment peer validation can expose `gas_limit`, `bytecode_size_limit`, or `gas_price` on the validations stream despite the API contract that they only appear after activation. Gate this serialization using the rules for the validation's ledger (or omit the fields when that ledger cannot be confirmed).",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713188"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-12T19:41:20Z",
+     "path": "src/xrpld/core/detail/Config.cpp",
+     "body": "A negative `gas_price` string is converted directly to `uint32_t`, so e.g. `-300` wraps to a large positive value and passes the `>= kMinGasPrice` check. That value can then be voted for and seeded into the ledger, instead of being rejected as below the configured floor. Parse this setting through a signed or wider intermediate type and check the range before narrowing.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713217"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-12T19:41:20Z",
+     "path": "include/xrpl/protocol/jss.h",
+     "body": "This change adds public response fields to `server_info`, `ledgerClosed`, and `validationReceived`, but the pull request does not add an entry to `API-CHANGELOG.md`. The RPC-specific repository guidance requires every public RPC field change to be documented under the Unreleased section.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251713247"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:12:59Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "Added a TODO in 4c5b2e3; agreed it's out of scope here.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251939148"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:13:01Z",
+     "path": "src/libxrpl/ledger/Ledger.cpp",
+     "body": "Added in 4c5b2e3. `setup()` only reports through the loading constructor, so the test flushes a ledger carrying `GasLimit` without the amendment and checks it fails to load, with a control case that has the amendment.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251939397"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:13:03Z",
+     "path": "src/libxrpl/ledger/Ledger.cpp",
+     "body": "This has to match the Amendments entry the constructor writes. `rules_` also holds presets that aren't in that list (that's how test Envs enable features), so `rules_.enabled` would write fields the ledger then rejects. It mirrors the `featureXRPFees` branch just above.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251939563"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:13:04Z",
+     "path": "src/libxrpl/tx/transactors/system/Change.cpp",
+     "body": "Done in 4c5b2e3, for all three blocks.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251939800"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:13:06Z",
+     "path": "src/tests/libxrpl/ledger/ExtensionFees.cpp",
+     "body": "Done in 4c5b2e3.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251940040"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:13:08Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "Kept in 4c5b2e3.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251940344"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:13:10Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "Flattened in 4c5b2e3.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251940562"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:13:11Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "Flattened in 4c5b2e3.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251940715"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:13:13Z",
+     "path": "src/xrpld/app/misc/FeeVoteImpl.cpp",
+     "body": "Done in 4c5b2e3 as `smartEscrowFeeChanged`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4251940897"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-13T21:14:09Z",
+     "path": "src/xrpld/core/detail/Config.cpp",
+     "body": "This is user error",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4264084966"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-14T18:43:34Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "Restored as an overload in de50fa5; it leaves the gas settings at their protocol defaults.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4274844602"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-14T18:43:36Z",
+     "path": "src/xrpld/app/misc/NetworkOPs.cpp",
+     "body": "The validations stream reports what the validator signed, the same as `base_fee_drops` and the reserve fields, and a peer's validation comes with no rules to check it against. This server only signs these fields once `featureSmartEscrow` is enabled. I've corrected the PR description, which said all three surfaces are gated.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4274844997"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-14T18:43:38Z",
+     "path": "src/xrpld/core/detail/Config.cpp",
+     "body": "Fixed in de50fa5: the gas settings are parsed through a signed type, so a negative value is ignored.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4274845375"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-14T18:43:40Z",
+     "path": "include/xrpl/protocol/jss.h",
+     "body": "These fields are gated on `featureSmartEscrow`, which won't ship in 3.5.0. The changelog entry will go in with the release that enables it.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4274845830"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-14T18:43:42Z",
+     "path": "include/xrpl/protocol/Fees.h",
+     "body": "Moved the TODO to #8594 instead.",
+     "url": "https://github.com/XRPLF/rippled/pull/8214#discussion_r4274846231"
+    }
+   ]
+  },
+  {
    "number": 8215,
    "title": "feat: Handle Smart Escrow's Bytecode, Data and Gas fields",
    "url": "https://github.com/XRPLF/rippled/pull/8215",
    "state": "open",
    "author": "mvadari",
    "createdAt": "2026-09-10T20:27:06Z",
-   "updatedAt": "2026-10-13T17:45:36Z",
+   "updatedAt": "2026-10-14T21:22:57Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -1628,7 +2057,7 @@
    "additions": 1356,
    "deletions": 39,
    "changedFiles": 12,
-   "commits": 9,
+   "commits": 10,
    "reviewComments": 15,
    "reviews": [
     {
@@ -1714,6 +2143,18 @@
      "state": "APPROVED",
      "date": "2026-10-13T17:03:32Z",
      "body": "This is a well-structured and carefully tested PR implementing the Smart Escrow transactor behavior (Bytecode/Data/Gas handling) gated behind featureSmartEscrow. The reserve/fee calculations, amendment gating, and ordering of checks (tecNO_DST/preauth before condition check) all look internally consistent and match the PR description. I found one latent correctness issue in a shared test helper that could cause a crash if ever reused with a small size argument, though it isn't triggered by any call site in this diff."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-14T18:46:14Z",
+     "body": "This is a well-structured, feature-gated change (featureSmartEscrow) that threads Bytecode/Data/Gas handling through EscrowCreate/EscrowFinish's preflight/preclaim/doApply, plus the matching reserve/fee math in EscrowCancel, SponsorHelpers, and the invariant/sponsor tests. I traced the reserve math (calculateAdditionalReserve), the fee formulas, the reordering of tecNO_DST/deposit-preauth ahead of the condition check under the new amendment, and the Bytecode/Gas pairing checks (tefBYTECODE_NOT_INCLUDED/tefNO_BYTECODE) against the PR description and tests, and found the production code logically consistent — both branches of the owner-count increase/decrease (sponsored vs. recycleReserve) were updated symmetrically, and the pre-existing behavior is preserved when featureSmartEscrow is disabled. The only issue worth flagging is a latent (currently untriggered) integer-underflow in a new test helper."
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2026-10-14T21:22:57Z",
+     "body": ""
     }
    ],
    "reviewCommentsList": [
@@ -2595,342 +3036,25 @@
      "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4074704974"
     }
    ]
-  },
-  {
-   "number": 8216,
-   "title": "Decide the Smart Escrow fee limits from the ledger, and lower the default values of the limits",
-   "url": "https://github.com/XRPLF/rippled/pull/8216",
-   "state": "closed",
-   "author": "pwang200",
-   "createdAt": "2026-09-10T21:21:54Z",
-   "updatedAt": "2026-09-15T02:35:13Z",
-   "closedAt": "2026-09-15T02:22:38Z",
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-10T21:22:04Z",
-     "body": "⚠️ This PR contains unsigned commits. To get your PR merged, please sign them. ⚠️\n\nIf only the most recent commit is unsigned, you can run:\n1. Amend the commit: `git commit --amend --no-edit -n -S`\n2. Overwrite the commit: `git push --force-with-lease`\n\nIf multiple commits are unsigned, you can run:\n1. Go into interactive rebase mode: `git rebase --interactive HEAD~<NUM_OF_COMMITS>`, where `NUM_OF_COMMITS` is the number of most recent commits that will be available to edit.\n2. Change \"pick\" to \"edit\" for the commits you need to sign, and then save and exit.\n3. For each commit, run: `git commit --amend --no-edit -n -S`\n4. Continue the rebase: `git rebase --continue`\n5. Overwrite the commit(s): `git push --force-with-lease`\n\nIf you're new to commit signing, there are different ways to set it up:\n\n<details>\n<summary><b>Sign commits with <code>gpg</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `gpg`:\n1. [Generate a GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)\n2. [Add the GPG key to your GitHub account](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)\n3. [Configure `git` to use your GPG key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-gpg-key)\n</details>\n\n<details>\n<summary><b>Sign commits with <code>ssh-agent</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `ssh-agent`:\n1. [Generate an SSH key and add it to `ssh-agent`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)\n2. [Add the SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)\n3. [Configure `git` to use your SSH key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)\n</details>\n\n<details>\n<summary><b>Sign commits with 1Password</b></summary>\n<p></p>\n\nYou can also sign commits using 1Password, which lets you sign commits with biometrics without the signing key leaving the local 1Password process.\nSee [use 1Password to sign your commits](https://developer.1password.com/docs/ssh/git-commit-signing/).\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#issuecomment-5625616498"
-    },
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-10T21:24:27Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8216?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `90.16393%` with `6 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8216?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8216?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvZXNjcm93L0VzY3Jvd0ZpbmlzaC5jcHA=) | 50.0% | [4 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8216?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/libxrpl/tx/transactors/system/Change.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8216?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvc3lzdGVtL0NoYW5nZS5jcHA=) | 86.7% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8216?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#issuecomment-5625642828"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-11T13:32:25Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#issuecomment-5635182137"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-15T02:22:38Z",
-     "body": "I am gonna close this PR and open 3 separate PRs one for each topic. Also because the base had a lot of changes. I feel a new PR is cleaner.",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#issuecomment-5673703112"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-15T02:35:13Z",
-     "body": "New PR https://github.com/XRPLF/rippled/pull/8228",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#issuecomment-5673812666"
-    }
-   ],
-   "body": "## The defect\n\n`gasLimit`, `bytecodeSizeLimit` and `gasPrice` are network parameters: voted, and\ncarried in the `FeeSettings` ledger object. Two paths let a node's own config\ndecide them instead.\n\n**Admission read the config file.** `EscrowCreate::preflight` and\n`EscrowFinish::preflight` took their limits from `ServiceRegistry::getFees()`,\nwhich returns this node's `FeeSetup`. So:\n\n* **Nodes could disagree.** Two nodes with different limits configured admit\n  different sets of transactions from the same ledger.\n* **The kill switch did not work.** Voting a limit to `0` writes it to\n  `FeeSettings`, which admission never read — so a successful vote to disable\n  changed nothing.\n* **Gas was nearly free after activation.** The charge is\n  `allowance * gasPrice / microDropsPerDrop + 1`, and `gasPrice` came from the\n  ledger, where it was absent and read as `0` — one drop for any allowance. The\n  guard that would have refused execution read `gasLimit` from config, where it\n  was non-zero. One value from each source; either source alone would have been\n  safe. Transient: the first fee vote closes it.\n\n**Absent fields inherited the config too.** `Ledger::setup` assigned a field only\nwhen `FeeSettings` carried it, leaving an absent one at whatever `fees_` was\nconstructed with — and every `Ledger` is built from the local `FeeSetup`. Same\ndivergence, second route. (Genesis is the exception: there, reading config is\ncorrect.)\n\n## The fix\n\n`preflight` has no view, so it bounds against the protocol ceilings\n`kMaxGasLimit` / `kMaxBytecodeSizeLimit`; `preclaim` applies the voted values.\n\nWASM validation moves to `preclaim` too — a cached `preflight` result outlives the\nvote that invalidates it — and runs last, since compiling is the expensive step.\n\n`isBytecodeUploadDisabled` / `isBytecodeExecutionDisabled` are two rungs on\npurpose: zeroing `bytecodeSizeLimit` stops new uploads but leaves existing escrows\nfinishable, so the feature can be wound down without forcing holders to wait for\n`CancelAfter`. Zeroing `gasLimit` stops both.\n\n`Ledger::setup` now resolves an absent field to the protocol constants, so a\nconsensus value is either in the ledger or a compile-time constant. Amendment\ngated.\n\n`Change::applyAmendment` seeds the three fields on activation; without it they\nread as `0` until the first post-activation `SetFee`. That makes the seeded values\nconsensus-critical, and it is why they are constants rather than `FeeSetup`.\n\n`getFees()` is deleted rather than fixed: levelization already forbids `libxrpl`\nfrom reaching config, and this accessor was the way around it.\n\n## Commits\n\n| | |\n|---|---|\n| `0d355925a6` | **Fix `FeeSetup::toFees` dropping the extension fee settings.** Pre-existing: it returned only the three base fields, unnoticed because nothing read them yet. The `Fees` constructor now requires every field, so the omission is a compile error. |\n| `bc8109388c` | **The divergence fix**, end to end. |\n| `5818dad4c1` | **Reduce the defaults** to 400,000 gas / 50,000 bytes. Policy, not part of the fix — separate so it is revertible on its own. |\n| `6d14434fb8` | **Floor the voted gas price** at 1,000 micro-drops. `gasPrice` is a price, not a capability, so `0` means free rather than disabled. Enforced at the vote target and the `SetFee`, not at config parse time. |\n\n## Why lower the defaults\n\nAssuming building a ledger has ~1 s execution budget, 200 smart escrow txns running some handcrafted wasm code with 1M gas break this budget. \nLowering to 400K keeps the execution time way below the budget. 50,000 bytes bounds module compile time, which scales with size and does not charge fuel.\n\nNot restrictive: the largest module in the tree is 10,667 B, so 50 KB leaves\n~4.7x headroom on code, and the heaviest contract we can measure\n(`all_host_functions`) uses 48,433 gas, so 400K leaves ~8.3x on gas. That gas\nfigure is a single data point from a contract that calls each host function once\nand does not loop, so it is not an upper bound on legitimate usage. Both limits\nare voted, so either is one vote from correction.\n\n## Tests\n\n* **`ExtensionFees`** (new gtest) pins the resolution: absent yields the constants\n  and *not* the configured values, present still governs, explicit `0` is the kill\n  switch rather than absence.\n* **`testLimitsIgnoreLocalConfig`** is the regression test — two runs, identical\n  genesis, one with a hostile `FeeSetup`; identical results and ledger hash.\n* **Kill-switch ladder** covers both rungs, including that zeroing\n  `bytecodeSizeLimit` leaves an existing escrow finishable.\n* Activation seeding in `FeeVote_test`; `toFees()` round-trip in `Config_test`;\n  `gas_price` added to the validations stream test.\n* The jtx config stops pinning the three limits — a second source of truth nothing\n  read. Tests inherit the defaults and set `[voting]` when they need otherwise.\n\n## Notes for reviewers\n\n* `EscrowCreate::preclaim` returns `tem` codes that depend on ledger state\n  (`temTEMP_DISABLED`, `temMALFORMED`). Unusual, but deliberate: these must not\n  claim a fee, and `preflight` cannot see the voted values.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "ripple/smart-escrow",
-   "head": "pwang200:smart-escrow-fees-fix",
-   "additions": 689,
-   "deletions": 296,
-   "changedFiles": 22,
-   "commits": 4,
-   "reviewComments": 8,
-   "reviews": [
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-09-11T16:09:23Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-09-11T16:10:16Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-09-11T16:11:11Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-09-11T16:11:38Z",
-     "body": ""
-    },
-    {
-     "author": "pwang200",
-     "state": "COMMENTED",
-     "date": "2026-09-15T02:18:53Z",
-     "body": ""
-    },
-    {
-     "author": "pwang200",
-     "state": "COMMENTED",
-     "date": "2026-09-15T02:20:18Z",
-     "body": ""
-    },
-    {
-     "author": "pwang200",
-     "state": "COMMENTED",
-     "date": "2026-09-15T02:20:36Z",
-     "body": ""
-    },
-    {
-     "author": "pwang200",
-     "state": "COMMENTED",
-     "date": "2026-09-15T02:21:03Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "mvadari",
-     "date": "2026-09-11T16:09:23Z",
-     "path": "cfg/xrpld-example.cfg",
-     "body": "Do these matter? We haven't decided on final limits anyways",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r3991092278"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-11T16:10:17Z",
-     "path": "include/xrpl/protocol/Fees.h",
-     "body": "This is different from the other fee settings amounts - why?",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r3991099475"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-11T16:11:11Z",
-     "path": "include/xrpl/tx/transactors/system/Change.h",
-     "body": "This is a confusing name - I thought it was about something called a \"seed extension\" for a second. Perhaps something like `initializeVMFees`?",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r3991106592"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-11T16:11:39Z",
-     "path": "src/libxrpl/ledger/Ledger.cpp",
-     "body": "The grammar in this comment doesn't make sense to me",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r3991110069"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-15T02:18:52Z",
-     "path": "cfg/xrpld-example.cfg",
-     "body": "I am gonna open another PR for these changes.",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r4011317232"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-15T02:20:18Z",
-     "path": "include/xrpl/protocol/Fees.h",
-     "body": "The  base, reserve and increment are grandfathered and not amendment-dependent. Genesis writes one representation or the other unconditionally, so those fields are always present in FeeSettings and Ledger::setup always overwrites whatever the Fees was constructed with. Their 0 initializers are never observed.                          \n                                                                                                                                                                       \nThe three extension fields are amendment-dependent: nothing writes them until featureSmartEscrow activates, so there is a real window where the Fees value is what gets used. That is the difference the initializers are tracking.                                                                                                     \n                                                                                                                                                                       \nLeaving them at 0 is not wrong either, but it has two practical costs. An explicit 0 is the voted kill switch — gasLimit = 0 disables execution, bytecodeSizeLimit = 0 disables uploads — so \"not configured yet\" and \"switched off\" become indistinguishable at the point of use. And every test would need to run past a flag ledger and vote before it could do anything, which is a lot of ceremony for a default.                                                                                          \n                                                                                                                                                                       \nWe also tried the other obvious fix, writing the defaults into genesis FeeSettings unconditionally. That changes the genesis ledger hash and broke a large number of unit tests in unrelated features, so it is not a small change.                                                                                                       \n                                                                                                                                                                       \nSo this is a correct solution that happens to look different from the existing pattern, because the new fields genuinely are in a different position.",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r4011325721"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-15T02:20:36Z",
-     "path": "include/xrpl/tx/transactors/system/Change.h",
-     "body": "Will change.",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r4011327560"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-15T02:21:03Z",
-     "path": "src/libxrpl/ledger/Ledger.cpp",
-     "body": "Claude picked up my grammar. I will change it.",
-     "url": "https://github.com/XRPLF/rippled/pull/8216#discussion_r4011330432"
-    }
-   ]
-  },
-  {
-   "number": 8201,
-   "title": "fix: Port smart escrow tests to new design",
-   "url": "https://github.com/XRPLF/rippled/pull/8201",
-   "state": "closed",
-   "author": "TimothyBanks",
-   "createdAt": "2026-09-09T00:59:04Z",
-   "updatedAt": "2026-09-11T13:30:13Z",
-   "closedAt": "2026-09-11T13:30:10Z",
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-09T14:24:25Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8201?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8201#issuecomment-5603480184"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": true,
-   "mergedAt": "2026-09-11T13:30:10Z",
-   "draft": false,
-   "base": "ripple/smart-escrow",
-   "head": "XRPLF:timothybanks/port-smart-escrow-tests",
-   "additions": 1528,
-   "deletions": 4519,
-   "changedFiles": 20,
-   "commits": 8,
-   "reviewComments": 9,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-09T14:46:08Z",
-     "body": "This is largely a well-structured test-porting change (deleting the old EscrowSmart_test.cpp/Wasm_test.cpp fixtures and replacing them with a layered transactor test suite under src/tests/libxrpl/tx/wasm/transactor/, plus TxTest/TestServiceRegistry helper additions for metadata capture and fee overrides). The logic in TxTest.cpp/h, EscrowWasm.cpp/h, and ModuleBuilder.cpp/h looks internally consistent and carefully documented. The main actionable finding is that the fee-arithmetic helpers introduced in this same PR (EscrowWasm.h's escrowCreateFee/escrowFinishFee) are not reused everywhere — BytecodeSize.cpp and DataOnReject.cpp reimplement the identical formulas locally, which risks silent drift between test files if the real transactor fee formula ever changes."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-09T15:50:05Z",
-     "body": "This MR is a large, mostly mechanical port of the smart-escrow/WASM tests to the new TxTest-based transactor harness (new fixtures, TxTest additions for fees/metadata/balances, and several new transactor-level test files). The new TxTest helpers (submitAndClose, getMetadata, getOwnerCount, getXrpBalance, closeTimeOffset, createAccounts) and the fee-calculation fixtures (escrowCreateFee/escrowFinishFee) look correct and consistent with the documented production fee formulas. The only concrete issue found is an unused local variable in one of the new BytecodeSize tests, which is a likely -Wunused-variable / -Werror build break."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-09T15:58:25Z",
-     "body": "This is a large, well-documented test-porting change (old EscrowSmart_test.cpp/Wasm_test.cpp fixtures replaced by a new layered `transactor/` test suite plus TxTest harness extensions for fees, metadata, and owner/balance helpers). I read through the new TxTest.cpp/h changes, the WASM ModuleBuilder binary encoder, the fee-calculation helpers, and all new transactor test files. The binary module builder (type/function/memory/export/code/data sections, LEB128 encoding) is internally consistent and correctly ordered per the wasm spec. The fee-arithmetic helpers are explicitly documented to mirror production `calculateBaseFee` logic and are exercised by dedicated exact/one-drop-short tests, so I did not flag them despite the unconditional '+1' looking unusual — the comment states it intentionally matches the transactor. The only issue worth raising is a minor ineffective `std::move` on a `const` object in the newly added metadata-capture block in `TxTest::close()`, which silently falls back to a copy instead of a move (harmless in test code, but worth cleaning up since it signals an intent that isn't achieved)."
-    },
-    {
-     "author": "kuznetsss",
-     "state": "COMMENTED",
-     "date": "2026-09-10T13:02:24Z",
-     "body": "Overall looks good, a few small comments"
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-10T13:42:52Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-10T13:44:45Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-10T13:46:19Z",
-     "body": "This is a well-executed port of the smart-escrow/WASM tests onto the new transactor-level design. The TxTest harness additions (submitAndClose, getMetadata, getOwnerCount/getXrpBalance, per-call fee override) are consistent and well-documented, the fee-arithmetic helpers in EscrowWasm.cpp mirror the documented production formulas (EscrowCreate/EscrowFinish::calculateBaseFee), and the hand-rolled WASM binary builder in ModuleBuilder.cpp produces structurally valid modules (type/function/export/code/data sections line up correctly, LEB128 encoding is correct). I traced the const-correctness of the new free functions (escrowCreateFee/escrowFinishFee take TxTest const& and call getOpenLedger()) and the potential const-vs-move issue in TxTest::close()'s new metadata capture, but couldn't confirm either is a real defect without visibility into unchanged parts of TxTest.h/.cpp (and the README's cited passing test counts suggest the suite already builds and runs), so I'm not flagging them speculatively. No changed lines stood out as clear correctness, security, or resource-management bugs."
-    },
-    {
-     "author": "kuznetsss",
-     "state": "COMMENTED",
-     "date": "2026-09-10T14:02:44Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-10T16:52:41Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-10T17:12:06Z",
-     "body": "This is a large, well-documented port of the smart-escrow/WASM tests onto the new TxTest harness (TxTest gains fee overrides, metadata capture, submitAndClose, and balance/owner-count helpers; new fixtures build WASM modules and fee arithmetic; new transactor test files cover preflight, size limits, execution, gas fees, and failure modes). The changes are internally consistent and each new helper is well justified by its accompanying doc comments (e.g. fee must be set on both the view and the registry, metadata only exists after close). I did not find clear correctness, security, or resource-leak bugs in the added code. The one item worth double-checking is the gas-fee rounding helper below, since several boundary tests (exact-fee / one-drop-short) depend on it matching the production formula exactly."
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-10T17:57:04Z",
-     "body": ""
-    },
-    {
-     "author": "kuznetsss",
-     "state": "APPROVED",
-     "date": "2026-09-11T13:03:30Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "kuznetsss",
-     "date": "2026-09-10T11:09:18Z",
-     "path": "src/tests/libxrpl/helpers/TxTest.h",
-     "body": "nit: Why overload instead of default value?",
-     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3978424346"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-09-10T11:19:40Z",
-     "path": "src/tests/libxrpl/tx/wasm/fixtures/EscrowWasm.h",
-     "body": "`kRejects` is not used anywhere",
-     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3978499731"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-09-10T11:21:34Z",
-     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodePreflight.cpp",
-     "body": "Once merged `the old compiled fixtures` will not have any meaning",
-     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3978515865"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-09-10T12:49:11Z",
-     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodeRun.cpp",
-     "body": "GoogleTest recommends to use constructor/destructor over SetUp/TearDown where possible:\nhttps://google.github.io/googletest/faq.html#CtorVsSetUp",
-     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3979214104"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-10T13:42:52Z",
-     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodeRun.cpp",
-     "body": "Right, that is a guideline.  It is forward looking though to use setup as asserts are respected within a call to Setup whereas they are not within a constructor.",
-     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3979690996"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-10T13:44:45Z",
-     "path": "src/tests/libxrpl/helpers/TxTest.h",
-     "body": "They both work perfectly fine as a solution to this and comes down to mainly preference.  But I made the change.",
-     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3979709100"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-09-10T14:02:44Z",
-     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodeRun.cpp",
-     "body": "The problem with `SetUp()` and `TearDown()` we had before (and the guideline says about it) is when an inherited fixture is used. For example, if someone would add later a subset of tests they would have to remember to call `SetUp()` of the base class:\n```cpp\nstruct BytecodeRunFailureTest : BytecodeRun {\n  void SetUp() override {\n    ByteCodeRun::SetUp();\n    // init specific for BytecodeRunFailureTest\n  }\n};\n```\n\nWhile without `SetUp()` there is nothing to remember because base class is initialised automatically:\n```cpp\nstruct BytecodeRunFailureTest : BytecodeRun {\n  BytecodeRunFailureTest() {\n    // init specific for BytecodeRunFailureTest\n  }\n};\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3979887967"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-10T16:52:41Z",
-     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodeRun.cpp",
-     "body": "Calling the base type `SetUp` would normally be the rule anyways if the `SetUp` function is being overridden in the derived type.  If you don't need to override it, then there is nothing to remember.  But as a rule, if you override `SetUp`, you should be calling the base version regardless of if that base type has an overridden version or not.  In this case, I should probably call `Test::Setup` but that is just noop virtual method in the root type.",
-     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3981490072"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-10T17:57:03Z",
-     "path": "src/tests/libxrpl/tx/wasm/transactor/BytecodeRun.cpp",
-     "body": "Made the requested changes since I don't have a strong opinion on this.",
-     "url": "https://github.com/XRPLF/rippled/pull/8201#discussion_r3982007908"
-    }
-   ]
   }
  ],
- "issues": [],
+ "issues": [
+  {
+   "number": 8594,
+   "title": "Give the Smart Escrow fee settings distinct strong types (Version: develop)",
+   "url": "https://github.com/XRPLF/rippled/issues/8594",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-10-14T18:43:14Z",
+   "updatedAt": "2026-10-14T18:43:14Z",
+   "closedAt": null,
+   "labels": [
+    "Feature Request"
+   ],
+   "comments": 0,
+   "body": "## Summary\n\n`Fees` and `FeeSetup` carry three Smart Escrow settings, `gasLimit`, `bytecodeSizeLimit` and `gasPrice`, all as plain `std::uint32_t`. Give each one its own strong type.\n\n## Motivation\n\nThe three settings travel together through the `Fees` constructor, `FeeSetup::toFees()`, config parsing, fee voting and `SetFee`. Because they share a type, passing them in the wrong order compiles silently. Raised in review of #8214.\n\n## Solution\n\nWrap each setting in a distinct type, for example with [rollbear/strong_type](https://github.com/rollbear/strong_type) or a small in-house wrapper, so a swapped argument is a compile error.\n\n## Paths Not Taken\n\nLeaving them as `std::uint32_t` with named parameters, which documents the order but doesn't enforce it."
+  }
+ ],
  "proposals": [
   {
    "number": 593,

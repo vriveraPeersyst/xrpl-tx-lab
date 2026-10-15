@@ -1,10 +1,10 @@
 {
   "source": {
-    "commit": "166e97e12b935f1a294d41eb04f23a342b7a54bf",
-    "commitDate": "2026-10-13T23:33:32Z",
+    "commit": "f1ce9449f20fa0e51f074e6821efbcfbf96325c1",
+    "commitDate": "2026-10-14T21:02:45Z",
     "branch": "develop",
     "repo": "https://github.com/XRPLF/rippled",
-    "extractedAt": "2026-10-14T08:00:26.039Z"
+    "extractedAt": "2026-10-15T08:00:26.787Z"
   },
   "transactions": [
     {
@@ -9905,7 +9905,7 @@
         "headerFile": "include/xrpl/tx/transactors/vault/VaultCreate.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 40,
+            "line": 41,
             "ter": [],
             "features": [
               "featureLendingProtocolV1_1",
@@ -9921,7 +9921,7 @@
             ]
           },
           "getFlagsMask": {
-            "line": 57,
+            "line": 58,
             "ter": [],
             "features": [],
             "flags": [
@@ -9930,7 +9930,7 @@
             "fields": []
           },
           "preflight": {
-            "line": 63,
+            "line": 64,
             "ter": [
               "temMALFORMED",
               "tesSUCCESS"
@@ -9954,12 +9954,13 @@
             ]
           },
           "preclaim": {
-            "line": 134,
+            "line": 138,
             "ter": [
               "tecEXPIRED",
               "tecFROZEN",
               "tecLOCKED",
               "tecOBJECT_NOT_FOUND",
+              "tecPRECISION_LOSS",
               "tecWRONG_ASSET",
               "terADDRESS_COLLISION",
               "tesSUCCESS"
@@ -9969,20 +9970,21 @@
             "fields": [
               "Account",
               "Asset",
+              "AssetsMaximum",
               "DomainID",
               "RedemptionDate",
+              "Scale",
               "SubscriptionDate"
             ]
           },
           "doApply": {
-            "line": 181,
+            "line": 201,
             "ter": [
               "tecINSUFFICIENT_RESERVE",
               "tefINTERNAL",
               "tesSUCCESS"
             ],
             "features": [
-              "featureLendingProtocolV1_1",
               "fixCleanup3_2_0"
             ],
             "flags": [
@@ -9997,6 +9999,7 @@
               "Account",
               "Asset",
               "AssetsAvailable",
+              "AssetsDeployed",
               "AssetsMaximum",
               "AssetsTotal",
               "Data",
@@ -10013,18 +10016,19 @@
               "SubscriptionDate",
               "VaultID",
               "VaultKind",
-              "WithdrawalPolicy"
+              "WithdrawalPolicy",
+              "YieldUnrealized"
             ]
           },
           "visitInvariantEntry": {
-            "line": 323,
+            "line": 353,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 329,
+            "line": 359,
             "ter": [],
             "features": [],
             "flags": [],
@@ -10037,6 +10041,7 @@
           "tecINSUFFICIENT_RESERVE",
           "tecLOCKED",
           "tecOBJECT_NOT_FOUND",
+          "tecPRECISION_LOSS",
           "tecWRONG_ASSET",
           "tefINTERNAL",
           "temMALFORMED",
@@ -10063,6 +10068,7 @@
           "Account",
           "Asset",
           "AssetsAvailable",
+          "AssetsDeployed",
           "AssetsMaximum",
           "AssetsTotal",
           "Data",
@@ -10079,9 +10085,10 @@
           "SubscriptionDate",
           "VaultID",
           "VaultKind",
-          "WithdrawalPolicy"
+          "WithdrawalPolicy",
+          "YieldUnrealized"
         ],
-        "lines": 336,
+        "lines": 366,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": [
@@ -10127,7 +10134,7 @@
         "headerFile": "include/xrpl/tx/transactors/vault/VaultSet.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 22,
+            "line": 24,
             "ter": [],
             "features": [
               "featurePermissionedDomains"
@@ -10138,7 +10145,7 @@
             ]
           },
           "preflight": {
-            "line": 28,
+            "line": 30,
             "ter": [
               "temMALFORMED",
               "tesSUCCESS"
@@ -10153,7 +10160,7 @@
             ]
           },
           "preclaim": {
-            "line": 65,
+            "line": 67,
             "ter": [
               "tecNO_ENTRY",
               "tecNO_PERMISSION",
@@ -10163,6 +10170,7 @@
               "tesSUCCESS"
             ],
             "features": [
+              "featureLendingProtocolV1_2",
               "fixCleanup3_5_0"
             ],
             "flags": [
@@ -10180,7 +10188,7 @@
             ]
           },
           "doApply": {
-            "line": 128,
+            "line": 145,
             "ter": [
               "tecLIMIT_EXCEEDED",
               "tefINTERNAL",
@@ -10191,7 +10199,6 @@
             "fields": [
               "Asset",
               "AssetsMaximum",
-              "AssetsTotal",
               "Data",
               "DomainID",
               "ShareMPTID",
@@ -10199,14 +10206,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 192,
+            "line": 209,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 198,
+            "line": 215,
             "ter": [],
             "features": [],
             "flags": [],
@@ -10224,6 +10231,7 @@
           "tesSUCCESS"
         ],
         "allFeatures": [
+          "featureLendingProtocolV1_2",
           "featurePermissionedDomains",
           "fixCleanup3_5_0"
         ],
@@ -10235,14 +10243,13 @@
           "Account",
           "Asset",
           "AssetsMaximum",
-          "AssetsTotal",
           "Data",
           "DomainID",
           "Owner",
           "ShareMPTID",
           "VaultID"
         ],
-        "lines": 205,
+        "lines": 222,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -10278,7 +10285,7 @@
         "headerFile": "include/xrpl/tx/transactors/vault/VaultDelete.h",
         "functions": {
           "preflight": {
-            "line": 25,
+            "line": 26,
             "ter": [
               "temDISABLED",
               "temMALFORMED",
@@ -10294,7 +10301,7 @@
             ]
           },
           "preclaim": {
-            "line": 44,
+            "line": 45,
             "ter": [
               "tecHAS_OBLIGATIONS",
               "tecNO_ENTRY",
@@ -10307,7 +10314,6 @@
             "fields": [
               "Account",
               "AssetsAvailable",
-              "AssetsTotal",
               "Issuer",
               "OutstandingAmount",
               "Owner",
@@ -10316,7 +10322,7 @@
             ]
           },
           "doApply": {
-            "line": 97,
+            "line": 98,
             "ter": [
               "tecHAS_OBLIGATIONS",
               "tefBAD_LEDGER",
@@ -10337,14 +10343,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 226,
+            "line": 227,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 232,
+            "line": 233,
             "ter": [],
             "features": [],
             "flags": [],
@@ -10370,7 +10376,6 @@
           "Account",
           "Asset",
           "AssetsAvailable",
-          "AssetsTotal",
           "Balance",
           "Issuer",
           "MemoData",
@@ -10381,7 +10386,7 @@
           "ShareMPTID",
           "VaultID"
         ],
-        "lines": 239,
+        "lines": 240,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -10416,7 +10421,7 @@
         "headerFile": "include/xrpl/tx/transactors/vault/VaultDeposit.h",
         "functions": {
           "preflight": {
-            "line": 86,
+            "line": 68,
             "ter": [
               "temBAD_AMOUNT",
               "temMALFORMED",
@@ -10430,7 +10435,7 @@
             ]
           },
           "preclaim": {
-            "line": 101,
+            "line": 83,
             "ter": [
               "tecEXPIRED",
               "tecFROZEN",
@@ -10461,7 +10466,7 @@
             ]
           },
           "doApply": {
-            "line": 230,
+            "line": 214,
             "ter": [
               "tecINTERNAL",
               "tecLIMIT_EXCEEDED",
@@ -10481,7 +10486,6 @@
               "Account",
               "Amount",
               "Asset",
-              "AssetsAvailable",
               "AssetsMaximum",
               "AssetsTotal",
               "Issuer",
@@ -10493,14 +10497,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 430,
+            "line": 418,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 436,
+            "line": 424,
             "ter": [],
             "features": [],
             "flags": [],
@@ -10537,7 +10541,6 @@
           "Account",
           "Amount",
           "Asset",
-          "AssetsAvailable",
           "AssetsMaximum",
           "AssetsTotal",
           "Issuer",
@@ -10547,7 +10550,7 @@
           "ShareMPTID",
           "VaultID"
         ],
-        "lines": 448,
+        "lines": 436,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -10598,12 +10601,13 @@
         "headerFile": "include/xrpl/tx/transactors/vault/VaultWithdraw.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 34,
+            "line": 37,
             "ter": [],
             "features": [
               "featureCredentials",
               "fixCleanup3_2_0",
-              "fixCleanup3_4_0"
+              "fixCleanup3_4_0",
+              "fixCleanup3_5_0"
             ],
             "flags": [],
             "fields": [
@@ -10611,7 +10615,7 @@
             ]
           },
           "preflight": {
-            "line": 53,
+            "line": 76,
             "ter": [
               "temBAD_AMOUNT",
               "temMALFORMED",
@@ -10626,7 +10630,7 @@
             ]
           },
           "preclaim": {
-            "line": 79,
+            "line": 102,
             "ter": [
               "tecNO_ENTRY",
               "tecPATH_DRY",
@@ -10662,7 +10666,7 @@
             ]
           },
           "doApply": {
-            "line": 278,
+            "line": 303,
             "ter": [
               "tecHAS_OBLIGATIONS",
               "tecINSUFFICIENT_FUNDS",
@@ -10682,6 +10686,7 @@
               "Amount",
               "Asset",
               "AssetsAvailable",
+              "AssetsDeployed",
               "AssetsTotal",
               "Destination",
               "LossUnrealized",
@@ -10693,14 +10698,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 592,
+            "line": 626,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 598,
+            "line": 632,
             "ter": [],
             "features": [],
             "flags": [],
@@ -10728,7 +10733,8 @@
           "fixCleanup3_1_3",
           "fixCleanup3_2_0",
           "fixCleanup3_3_0",
-          "fixCleanup3_4_0"
+          "fixCleanup3_4_0",
+          "fixCleanup3_5_0"
         ],
         "allFlags": [
           "lsfVaultPrivate"
@@ -10738,6 +10744,7 @@
           "Amount",
           "Asset",
           "AssetsAvailable",
+          "AssetsDeployed",
           "AssetsTotal",
           "CredentialIDs",
           "Destination",
@@ -10750,7 +10757,7 @@
           "VaultID",
           "WithdrawalPolicy"
         ],
-        "lines": 610,
+        "lines": 644,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -10790,7 +10797,7 @@
         "headerFile": "include/xrpl/tx/transactors/vault/VaultClawback.h",
         "functions": {
           "preflight": {
-            "line": 36,
+            "line": 37,
             "ter": [
               "temBAD_AMOUNT",
               "temMALFORMED",
@@ -10807,7 +10814,7 @@
             ]
           },
           "preclaim": {
-            "line": 79,
+            "line": 80,
             "ter": [
               "tecLIMIT_EXCEEDED",
               "tecNO_ENTRY",
@@ -10816,10 +10823,12 @@
               "tecPSEUDO_ACCOUNT",
               "tecWRONG_ASSET",
               "tefINTERNAL",
+              "terNO_ACCOUNT",
               "tesSUCCESS"
             ],
             "features": [
-              "fixCleanup3_4_0"
+              "fixCleanup3_4_0",
+              "fixCleanup3_5_0"
             ],
             "flags": [
               "lsfAllowTrustLineClawback",
@@ -10840,8 +10849,9 @@
             ]
           },
           "assetsToClawback": {
-            "line": 234,
+            "line": 243,
             "ter": [
+              "tecHAS_OBLIGATIONS",
               "tecINTERNAL",
               "tecPATH_DRY"
             ],
@@ -10853,6 +10863,7 @@
             "fields": [
               "Asset",
               "AssetsAvailable",
+              "AssetsDeployed",
               "AssetsTotal",
               "OutstandingAmount",
               "Scale",
@@ -10860,10 +10871,9 @@
             ]
           },
           "doApply": {
-            "line": 390,
+            "line": 411,
             "ter": [
               "tecHAS_OBLIGATIONS",
-              "tecPATH_DRY",
               "tecPRECISION_LOSS",
               "tefINTERNAL",
               "tesSUCCESS"
@@ -10876,25 +10886,21 @@
               "Account",
               "Amount",
               "Asset",
-              "AssetsAvailable",
-              "AssetsTotal",
               "Holder",
-              "OutstandingAmount",
               "Owner",
-              "Scale",
               "ShareMPTID",
               "VaultID"
             ]
           },
           "visitInvariantEntry": {
-            "line": 545,
+            "line": 538,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 551,
+            "line": 544,
             "ter": [],
             "features": [],
             "flags": [],
@@ -10915,11 +10921,13 @@
           "tefINTERNAL",
           "temBAD_AMOUNT",
           "temMALFORMED",
+          "terNO_ACCOUNT",
           "tesSUCCESS"
         ],
         "allFeatures": [
           "fixCleanup3_1_3",
-          "fixCleanup3_4_0"
+          "fixCleanup3_4_0",
+          "fixCleanup3_5_0"
         ],
         "allFlags": [
           "lsfAllowTrustLineClawback",
@@ -10931,6 +10939,7 @@
           "Amount",
           "Asset",
           "AssetsAvailable",
+          "AssetsDeployed",
           "AssetsTotal",
           "Holder",
           "OutstandingAmount",
@@ -10939,7 +10948,7 @@
           "ShareMPTID",
           "VaultID"
         ],
-        "lines": 563,
+        "lines": 556,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -11307,7 +11316,7 @@
             ]
           },
           "doApply": {
-            "line": 247,
+            "line": 249,
             "ter": [
               "tecINSUFFICIENT_RESERVE",
               "tecINTERNAL",
@@ -11337,14 +11346,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 375,
+            "line": 377,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 381,
+            "line": 383,
             "ter": [],
             "features": [],
             "flags": [],
@@ -11392,7 +11401,7 @@
           "VaultID",
           "VaultNode"
         ],
-        "lines": 395,
+        "lines": 397,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": [
@@ -11424,14 +11433,14 @@
         "headerFile": "include/xrpl/tx/transactors/lending/LoanBrokerDelete.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 23,
+            "line": 24,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "preflight": {
-            "line": 29,
+            "line": 30,
             "ter": [
               "temINVALID",
               "tesSUCCESS"
@@ -11443,7 +11452,7 @@
             ]
           },
           "preclaim": {
-            "line": 38,
+            "line": 39,
             "ter": [
               "tecHAS_OBLIGATIONS",
               "tecNO_ENTRY",
@@ -11452,7 +11461,8 @@
               "tesSUCCESS"
             ],
             "features": [
-              "fixCleanup3_2_0"
+              "fixCleanup3_2_0",
+              "fixCleanup3_5_0"
             ],
             "flags": [],
             "fields": [
@@ -11467,13 +11477,15 @@
             ]
           },
           "doApply": {
-            "line": 124,
+            "line": 142,
             "ter": [
               "tecHAS_OBLIGATIONS",
               "tefBAD_LEDGER",
               "tesSUCCESS"
             ],
-            "features": [],
+            "features": [
+              "fixCleanup3_5_0"
+            ],
             "flags": [],
             "fields": [
               "Account",
@@ -11488,14 +11500,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 204,
+            "line": 243,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 210,
+            "line": 249,
             "ter": [],
             "features": [],
             "flags": [],
@@ -11511,7 +11523,8 @@
           "tesSUCCESS"
         ],
         "allFeatures": [
-          "fixCleanup3_2_0"
+          "fixCleanup3_2_0",
+          "fixCleanup3_5_0"
         ],
         "allFlags": [],
         "allFields": [
@@ -11527,7 +11540,7 @@
           "VaultID",
           "VaultNode"
         ],
-        "lines": 224,
+        "lines": 263,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -11559,14 +11572,14 @@
         "headerFile": "include/xrpl/tx/transactors/lending/LoanBrokerCoverDeposit.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 22,
+            "line": 24,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "preflight": {
-            "line": 28,
+            "line": 30,
             "ter": [
               "temBAD_AMOUNT",
               "temINVALID",
@@ -11580,7 +11593,7 @@
             ]
           },
           "preclaim": {
-            "line": 44,
+            "line": 46,
             "ter": [
               "tecINSUFFICIENT_FUNDS",
               "tecNO_ENTRY",
@@ -11606,7 +11619,7 @@
             ]
           },
           "doApply": {
-            "line": 137,
+            "line": 152,
             "ter": [
               "tecINTERNAL",
               "tesSUCCESS"
@@ -11625,14 +11638,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 192,
+            "line": 214,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 198,
+            "line": 220,
             "ter": [],
             "features": [],
             "flags": [],
@@ -11665,7 +11678,7 @@
           "Owner",
           "VaultID"
         ],
-        "lines": 212,
+        "lines": 234,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -11714,7 +11727,7 @@
         "headerFile": "include/xrpl/tx/transactors/lending/LoanBrokerCoverWithdraw.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 27,
+            "line": 28,
             "ter": [],
             "features": [
               "featureCredentials",
@@ -11726,7 +11739,7 @@
             ]
           },
           "preflight": {
-            "line": 37,
+            "line": 38,
             "ter": [
               "temBAD_AMOUNT",
               "temINVALID",
@@ -11742,11 +11755,12 @@
             ]
           },
           "preclaim": {
-            "line": 64,
+            "line": 65,
             "ter": [
               "tecINSUFFICIENT_FUNDS",
               "tecNO_ENTRY",
               "tecNO_PERMISSION",
+              "tecPRECISION_LOSS",
               "tecPSEUDO_ACCOUNT",
               "tecWRONG_ASSET",
               "tefBAD_LEDGER",
@@ -11764,15 +11778,17 @@
               "Asset",
               "CoverAvailable",
               "CoverRateMinimum",
+              "CredentialIDs",
               "DebtTotal",
               "Destination",
+              "DestinationTag",
               "LoanBrokerID",
               "Owner",
               "VaultID"
             ]
           },
           "doApply": {
-            "line": 209,
+            "line": 236,
             "ter": [
               "tecINTERNAL"
             ],
@@ -11789,14 +11805,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 246,
+            "line": 278,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 252,
+            "line": 284,
             "ter": [],
             "features": [],
             "flags": [],
@@ -11808,6 +11824,7 @@
           "tecINTERNAL",
           "tecNO_ENTRY",
           "tecNO_PERMISSION",
+          "tecPRECISION_LOSS",
           "tecPSEUDO_ACCOUNT",
           "tecWRONG_ASSET",
           "tefBAD_LEDGER",
@@ -11832,11 +11849,12 @@
           "CredentialIDs",
           "DebtTotal",
           "Destination",
+          "DestinationTag",
           "LoanBrokerID",
           "Owner",
           "VaultID"
         ],
-        "lines": 266,
+        "lines": 298,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -11868,20 +11886,21 @@
         "headerFile": "include/xrpl/tx/transactors/lending/LoanBrokerCoverClawback.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 37,
+            "line": 38,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "preflight": {
-            "line": 43,
+            "line": 44,
             "ter": [
               "tecINSUFFICIENT_FUNDS",
               "tecINTERNAL",
               "tecNO_ENTRY",
               "tecNO_PERMISSION",
               "tecOBJECT_NOT_FOUND",
+              "tecPRECISION_LOSS",
               "tecWRONG_ASSET",
               "temBAD_AMOUNT",
               "temINVALID",
@@ -11906,7 +11925,7 @@
             ]
           },
           "preclaim": {
-            "line": 237,
+            "line": 251,
             "ter": [
               "tecINTERNAL",
               "tecNO_ENTRY",
@@ -11924,7 +11943,7 @@
             ]
           },
           "doApply": {
-            "line": 337,
+            "line": 359,
             "ter": [
               "tecINTERNAL"
             ],
@@ -11939,14 +11958,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 379,
+            "line": 401,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 385,
+            "line": 407,
             "ter": [],
             "features": [],
             "flags": [],
@@ -11959,6 +11978,7 @@
           "tecNO_ENTRY",
           "tecNO_PERMISSION",
           "tecOBJECT_NOT_FOUND",
+          "tecPRECISION_LOSS",
           "tecWRONG_ASSET",
           "tefBAD_LEDGER",
           "temBAD_AMOUNT",
@@ -11984,7 +12004,7 @@
           "LoanBrokerID",
           "VaultID"
         ],
-        "lines": 399,
+        "lines": 421,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -12221,7 +12241,7 @@
             ]
           },
           "doApply": {
-            "line": 441,
+            "line": 454,
             "ter": [
               "tecDUPLICATE",
               "tecINSUFFICIENT_FUNDS",
@@ -12289,14 +12309,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 758,
+            "line": 802,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 764,
+            "line": 808,
             "ter": [],
             "features": [],
             "flags": [],
@@ -12388,7 +12408,7 @@
           "TxnSignature",
           "VaultID"
         ],
-        "lines": 773,
+        "lines": 817,
         "ownerReserveFee": false,
         "customBaseFee": true,
         "ownerCountCalls": [
@@ -12417,14 +12437,14 @@
         "headerFile": "include/xrpl/tx/transactors/lending/LoanDelete.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 22,
+            "line": 23,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "preflight": {
-            "line": 28,
+            "line": 29,
             "ter": [
               "temINVALID",
               "tesSUCCESS"
@@ -12436,7 +12456,7 @@
             ]
           },
           "preclaim": {
-            "line": 37,
+            "line": 38,
             "ter": [
               "tecHAS_OBLIGATIONS",
               "tecINTERNAL",
@@ -12456,7 +12476,7 @@
             ]
           },
           "doApply": {
-            "line": 73,
+            "line": 74,
             "ter": [
               "tefBAD_LEDGER",
               "tesSUCCESS"
@@ -12477,14 +12497,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 139,
+            "line": 140,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 145,
+            "line": 146,
             "ter": [],
             "features": [],
             "flags": [],
@@ -12516,7 +12536,7 @@
           "PaymentRemaining",
           "VaultID"
         ],
-        "lines": 154,
+        "lines": 155,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -12545,14 +12565,14 @@
         "headerFile": "include/xrpl/tx/transactors/lending/LoanManage.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 32,
+            "line": 33,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "getFlagsMask": {
-            "line": 38,
+            "line": 39,
             "ter": [],
             "features": [],
             "flags": [
@@ -12561,7 +12581,7 @@
             "fields": []
           },
           "preflight": {
-            "line": 44,
+            "line": 45,
             "ter": [
               "temINVALID",
               "temINVALID_FLAG",
@@ -12580,7 +12600,7 @@
             ]
           },
           "preclaim": {
-            "line": 65,
+            "line": 66,
             "ter": [
               "tecINTERNAL",
               "tecNO_ENTRY",
@@ -12605,11 +12625,12 @@
               "LoanID",
               "NextPaymentDueDate",
               "Owner",
-              "PaymentRemaining"
+              "PaymentRemaining",
+              "VaultID"
             ]
           },
           "defaultLoan": {
-            "line": 135,
+            "line": 143,
             "ter": [
               "tecINTERNAL",
               "tefBAD_LEDGER"
@@ -12637,7 +12658,7 @@
             ]
           },
           "impairLoan": {
-            "line": 283,
+            "line": 291,
             "ter": [
               "tecLIMIT_EXCEEDED",
               "tecTOO_SOON",
@@ -12658,7 +12679,7 @@
             ]
           },
           "unimpairLoan": {
-            "line": 335,
+            "line": 343,
             "ter": [
               "tefBAD_LEDGER",
               "tesSUCCESS"
@@ -12678,7 +12699,7 @@
             ]
           },
           "doApply": {
-            "line": 389,
+            "line": 397,
             "ter": [
               "tefBAD_LEDGER",
               "tesSUCCESS"
@@ -12699,14 +12720,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 435,
+            "line": 443,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 441,
+            "line": 449,
             "ter": [],
             "features": [],
             "flags": [],
@@ -12764,7 +12785,7 @@
           "TotalValueOutstanding",
           "VaultID"
         ],
-        "lines": 454,
+        "lines": 462,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -12799,14 +12820,14 @@
         "headerFile": "include/xrpl/tx/transactors/lending/LoanPay.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 76,
+            "line": 77,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "getFlagsMask": {
-            "line": 82,
+            "line": 83,
             "ter": [],
             "features": [],
             "flags": [
@@ -12815,7 +12836,7 @@
             "fields": []
           },
           "preflight": {
-            "line": 88,
+            "line": 89,
             "ter": [
               "temBAD_AMOUNT",
               "temINVALID",
@@ -12836,7 +12857,7 @@
             ]
           },
           "calculateBaseFee": {
-            "line": 113,
+            "line": 114,
             "ter": [],
             "features": [
               "fixCleanup3_1_3",
@@ -12862,7 +12883,7 @@
             ]
           },
           "preclaim": {
-            "line": 229,
+            "line": 230,
             "ter": [
               "tecINSUFFICIENT_FUNDS",
               "tecKILLED",
@@ -12893,7 +12914,7 @@
             ]
           },
           "doApply": {
-            "line": 332,
+            "line": 338,
             "ter": [
               "tecDUPLICATE",
               "tecINTERNAL",
@@ -12930,14 +12951,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 851,
+            "line": 857,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 857,
+            "line": 863,
             "ter": [],
             "features": [],
             "flags": [],
@@ -12997,7 +13018,7 @@
           "PrincipalOutstanding",
           "VaultID"
         ],
-        "lines": 866,
+        "lines": 872,
         "ownerReserveFee": false,
         "customBaseFee": true,
         "ownerCountCalls": []
