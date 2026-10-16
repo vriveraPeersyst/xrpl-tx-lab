@@ -50,6 +50,9 @@ pm2 logs xrpl-tx-lab-sync
 pnpm sync                        # manual run (SYNC_NO_GIT=1 to skip committing)
 ```
 
+The sync commits straight to `main` and pushes. The site deploys through Vercel's Git
+integration (project `xrpld-txs-lab`), which redeploys on every push to `main`.
+
 ## Content
 
 `content/GUIDE.md` defines the format of `content/tx/*.md`, `content/objects/*.md`,

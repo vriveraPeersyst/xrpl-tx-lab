@@ -9,26 +9,23 @@
  *   3. Re-extracts protocol.json.
  *   4. Runs the coverage lint; for everything missing (new tx, object, amendment)
  *      generates the documentation: with `claude -p` if available, otherwise a stub marked draft.
- *   5. Runs the lint again, writes src/data/sync-log.json and, if there are changes, commits.
- *      With a remote: commits on sync/<date>, pushes, opens (or reuses) the PR and squash-merges
- *      it with `gh`, then returns to the updated main. Without a remote: commits on the current
- *      branch. GitHub auth: GH_TOKEN for gh (scheduled.ts pins vriveraPeersyst) and the remote
- *      URL carries the user (https://vriveraPeersyst@github.com/…) so git asks for that account.
- *   6. Deploys to Vercel whenever HEAD is not the last deployed commit, so a deploy that failed
- *      is retried by the next run even if that run has nothing new to commit.
+ *   5. Runs the lint again, writes src/data/sync-log.json and, if there are changes, commits
+ *      on main and pushes it (rebasing once if main moved meanwhile). Without a remote: commits
+ *      on the current branch. GitHub auth: GH_TOKEN for gh (scheduled.ts pins vriveraPeersyst)
+ *      and the remote URL carries the user (https://vriveraPeersyst@github.com/…) so git asks
+ *      for that account.
+ *   The site is not deployed from here: Vercel's Git integration redeploys on every push to main.
  *
- * Exit codes: 0 ok, 2 coverage errors (not retryable), 3 deploy failed, 1 anything else.
+ * Exit codes: 0 ok, 2 coverage errors (not retryable), 1 anything else.
  *
  * Claude drafting needs CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`), like qwen-onehextwo:
  * it must not depend on whichever account the Mac's keychain happens to be logged into.
  * SYNC_CLAUDE_LOCAL_AUTH=1 opts into the keychain login instead.
  *
- * Variables: TESTNET_RPC, SYNC_NO_GIT=1 (no commit), SYNC_NO_CLAUDE=1 (stubs only), SYNC_NO_PUSH=1,
- * SYNC_NO_DEPLOY=1, SYNC_STATE_DIR (default ~/.config/xrpl-tx-lab)
+ * Variables: TESTNET_RPC, SYNC_NO_GIT=1 (no commit), SYNC_NO_CLAUDE=1 (stubs only), SYNC_NO_PUSH=1
  */
 import fs from "node:fs";
 import path from "node:path";
-import os from "node:os";
 import { execSync, spawnSync } from "node:child_process";
 
 const ROOT = path.resolve(import.meta.dirname, "../..");
@@ -39,17 +36,9 @@ const sh = (cmd: string, cwd = ROOT) => execSync(cmd, { cwd, stdio: "pipe", enco
 const run = (cmd: string, cwd = ROOT) => execSync(cmd, { cwd, stdio: "inherit" });
 const readJson = (rel: string) => (fs.existsSync(path.join(ROOT, rel)) ? JSON.parse(fs.readFileSync(path.join(ROOT, rel), "utf8")) : undefined);
 
-const STATE_DIR = process.env.SYNC_STATE_DIR ?? path.join(os.homedir(), ".config/xrpl-tx-lab");
 const NET_DIR = path.join(ROOT, "src/data/networks");
 const readSnap = (id: string) => readJson(`src/data/networks/${id}/snapshot.json`);
 const netIds = () => (fs.existsSync(NET_DIR) ? fs.readdirSync(NET_DIR).filter((n) => fs.existsSync(path.join(NET_DIR, n, "snapshot.json"))).sort() : []);
-// Retry of a run whose data was already merged and only the deploy failed: redeploy what main
-// has, without regenerating anything or opening a second PR for the same day.
-if (process.env.SYNC_DEPLOY_ONLY === "1") {
-  log("deploy-only retry");
-  process.exit(deploy() ? 0 : 3);
-}
-
 const hasRemote = !process.env.SYNC_NO_GIT && !process.env.SYNC_NO_PUSH && sh("git remote").length > 0;
 
 // 0. Start from an up-to-date main. Generated data is thrown away (it is regenerated below);
@@ -174,42 +163,21 @@ if (!process.env.SYNC_NO_GIT) {
     const msg = `sync: ${Object.entries(after).map(([id, a]) => `${id} ${a.buildVersion}`).join(", ")}${changes.length ? "\n\n" + changes.map((c) => "- " + c).join("\n") : ""}${generated.length ? "\n\nGenerated: " + generated.join(", ") : ""}\n\nCo-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`;
     const msgFile = path.join(ROOT, ".git/SYNC_COMMIT_MSG");
     fs.writeFileSync(msgFile, msg);
-    const branch = `sync/${new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Madrid" })}`;
-    if (hasRemote) run(`git checkout -q -B ${branch}`);
     run(`git commit -q -F ${JSON.stringify(msgFile)}`);
     log("commit done");
     if (hasRemote) {
-      // A retry on the same day overwrites the branch and reuses its open PR.
-      run(`git push -q -f -u origin ${branch}`);
-      const title = msg.split("\n")[0];
-      const open = sh(`gh pr list --head ${branch} --state open --json number --jq ".[0].number"`);
-      if (!open) run(`gh pr create --base main --head ${branch} --title ${JSON.stringify(title)} --body-file ${JSON.stringify(msgFile)}`);
-      run(`gh pr merge ${branch} --squash --subject ${JSON.stringify(title)} --body-file ${JSON.stringify(msgFile)}`);
-      run("git checkout -q main");
-      run("git pull -q --ff-only origin main");
-      run(`git push -q origin --delete ${branch}`);
-      run(`git branch -q -D ${branch}`);
-      log("PR merged into main");
+      // Push straight to main; Vercel redeploys from it. If main moved during the run
+      // (a manual commit), rebase once and push again.
+      try {
+        run("git push -q origin main");
+      } catch {
+        run("git pull -q --rebase origin main");
+        run("git push -q origin main");
+      }
+      log("pushed to main");
     }
     fs.unlinkSync(msgFile);
   } else log("no changes in the repo");
 }
 
-// 6. Deploy to Vercel when the project is linked and HEAD has not been deployed yet.
-const deployFailed = !deploy();
-process.exit(deployFailed ? 3 : cov.ok ? 0 : 2);
-
-function deploy(): boolean {
-  if (process.env.SYNC_NO_GIT || process.env.SYNC_NO_DEPLOY || !fs.existsSync(path.join(ROOT, ".vercel/project.json"))) return true;
-  const marker = path.join(STATE_DIR, "deployed-commit");
-  const head = sh("git rev-parse HEAD");
-  const deployed = fs.existsSync(marker) ? fs.readFileSync(marker, "utf8").trim() : "";
-  if (head === deployed) { log("Vercel already has", head.slice(0, 7)); return true; }
-  try {
-    run("vercel deploy --prod --yes");
-    fs.mkdirSync(STATE_DIR, { recursive: true });
-    fs.writeFileSync(marker, head + "\n");
-    log("deployed to Vercel", head.slice(0, 7));
-    return true;
-  } catch (e) { log("vercel deploy failed:", e instanceof Error ? e.message : e); return false; }
-}
+process.exit(cov.ok ? 0 : 2);

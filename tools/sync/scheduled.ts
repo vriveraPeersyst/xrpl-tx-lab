@@ -17,11 +17,10 @@
  *     Generate it while `claude auth status` shows vrivera@peersyst.com and declare it next to the
  *     token as CLAUDE_TOKEN_ACCOUNT. Missing token or another account ⇒ stubs only for the run.
  *
- * Secrets live outside the repo (the deploy uploads the working tree), in
- * ~/.config/xrpl-tx-lab/sync.env (chmod 600):
+ * Secrets live outside the repo, in ~/.config/xrpl-tx-lab/sync.env (chmod 600):
  *   CLAUDE_CODE_OAUTH_TOKEN=…                    (from `claude setup-token`)
  *   CLAUDE_TOKEN_ACCOUNT=vrivera@peersyst.com
- * State in the same folder: state.json (last success/attempt), sync.lock, deployed-commit.
+ * State in the same folder: state.json (last success/attempt), sync.lock.
  */
 import fs from "node:fs";
 import os from "node:os";
@@ -93,15 +92,12 @@ try {
   }
 
   const attempts = (state.lastAttemptDay === today ? state.attemptsToday ?? 0 : 0) + 1;
-  // Exit 3 means today's data was already merged into main and only the deploy failed: retry the
-  // deploy alone, so the day does not end up with a second PR for the same data.
-  if (state.lastAttemptDay === today && state.lastExit === 3) process.env.SYNC_DEPLOY_ONLY = "1";
-  log(`attempt ${attempts} for ${today}${process.env.SYNC_DEPLOY_ONLY ? " (deploy only)" : ""}`);
+  log(`attempt ${attempts} for ${today}`);
   const r = spawnSync("pnpm", ["exec", "tsx", "tools/sync/sync.ts"], { cwd: ROOT, stdio: "inherit", env: process.env });
   const code = r.status ?? 1;
 
   // 2 = coverage errors: missing docs/registry entries that a retry will not fix. The data is
-  // committed and deployed anyway, so the day counts as done.
+  // committed and pushed anyway, so the day counts as done.
   const ok = code === 0 || code === 2;
   state = { ...state, lastAttempt: now.toISOString(), lastAttemptDay: today, lastExit: code, attemptsToday: attempts, ...(ok ? { lastSuccess: today } : {}) };
   save();
