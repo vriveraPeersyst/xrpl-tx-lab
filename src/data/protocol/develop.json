@@ -1,10 +1,10 @@
 {
   "source": {
-    "commit": "4087861411f2a4ce861641372942c644e1fb76b4",
-    "commitDate": "2026-10-16T05:47:08Z",
+    "commit": "4060b1bcd4d2b68b766dcfd99840e4e766e18019",
+    "commitDate": "2026-10-16T14:06:30Z",
     "branch": "develop",
     "repo": "https://github.com/XRPLF/rippled",
-    "extractedAt": "2026-10-16T08:00:26.329Z"
+    "extractedAt": "2026-10-16T16:00:27.207Z"
   },
   "transactions": [
     {
@@ -393,7 +393,7 @@
         "headerFile": "include/xrpl/tx/transactors/escrow/EscrowCreate.h",
         "functions": {
           "makeTxConsequences": {
-            "line": 48,
+            "line": 49,
             "ter": [],
             "features": [],
             "flags": [],
@@ -402,7 +402,7 @@
             ]
           },
           "checkExtraFeatures": {
-            "line": 55,
+            "line": 56,
             "ter": [
               "temBAD_AMOUNT",
               "temBAD_CURRENCY",
@@ -421,8 +421,17 @@
               "Data"
             ]
           },
+          "calculateBaseFee": {
+            "line": 103,
+            "ter": [],
+            "features": [],
+            "flags": [],
+            "fields": [
+              "Bytecode"
+            ]
+          },
           "preflight": {
-            "line": 102,
+            "line": 116,
             "ter": [
               "temBAD_AMOUNT",
               "temBAD_EXPIRATION",
@@ -435,16 +444,20 @@
             "flags": [],
             "fields": [
               "Amount",
+              "Bytecode",
               "CancelAfter",
               "Condition",
+              "Data",
               "FinishAfter"
             ]
           },
           "preclaim": {
-            "line": 157,
+            "line": 205,
             "ter": [
               "tecNO_DST",
               "tecNO_PERMISSION",
+              "tefEXCEEDS_LIMIT",
+              "tefTEMP_DISABLED",
               "temDISABLED",
               "tesSUCCESS"
             ],
@@ -455,11 +468,12 @@
             "fields": [
               "Account",
               "Amount",
+              "Bytecode",
               "Destination"
             ]
           },
           "doApply": {
-            "line": 191,
+            "line": 263,
             "ter": [
               "tecDIR_FULL",
               "tecDST_TAG_NEEDED",
@@ -480,8 +494,10 @@
               "Account",
               "Amount",
               "Balance",
+              "Bytecode",
               "CancelAfter",
               "Condition",
+              "Data",
               "Destination",
               "DestinationNode",
               "DestinationTag",
@@ -494,14 +510,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 334,
+            "line": 413,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 340,
+            "line": 419,
             "ter": [],
             "features": [],
             "flags": [],
@@ -514,7 +530,9 @@
           "tecNO_DST",
           "tecNO_PERMISSION",
           "tecUNFUNDED",
+          "tefEXCEEDS_LIMIT",
           "tefINTERNAL",
+          "tefTEMP_DISABLED",
           "temBAD_AMOUNT",
           "temBAD_CURRENCY",
           "temBAD_EXPIRATION",
@@ -550,11 +568,11 @@
           "SourceTag",
           "TransferRate"
         ],
-        "lines": 383,
+        "lines": 462,
         "ownerReserveFee": false,
-        "customBaseFee": false,
+        "customBaseFee": true,
         "ownerCountCalls": [
-          "increaseOwnerCount(ctx_.getApplyViewContext(), sle, 1, ctx_.journal)"
+          "increaseOwnerCount(ctx_.getApplyViewContext(), sle, reserveToAdd, ctx_.journal)"
         ]
       }
     },
@@ -603,7 +621,7 @@
         "headerFile": "include/xrpl/tx/transactors/escrow/EscrowFinish.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 62,
+            "line": 65,
             "ter": [],
             "features": [
               "featureCredentials",
@@ -616,8 +634,9 @@
             ]
           },
           "preflight": {
-            "line": 74,
+            "line": 77,
             "ter": [
+              "temBAD_LIMIT",
               "temMALFORMED",
               "tesSUCCESS"
             ],
@@ -625,11 +644,12 @@
             "flags": [],
             "fields": [
               "Condition",
-              "Fulfillment"
+              "Fulfillment",
+              "Gas"
             ]
           },
           "preflightSigValidated": {
-            "line": 88,
+            "line": 108,
             "ter": [
               "temMALFORMED",
               "tesSUCCESS"
@@ -644,37 +664,46 @@
             ]
           },
           "calculateBaseFee": {
-            "line": 143,
+            "line": 163,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": [
-              "Fulfillment"
+              "Fulfillment",
+              "Gas"
             ]
           },
           "preclaim": {
-            "line": 156,
+            "line": 184,
             "ter": [
               "tecNO_TARGET",
+              "tefBYTECODE_NOT_INCLUDED",
+              "tefEXCEEDS_LIMIT",
+              "tefNO_BYTECODE",
+              "tefTEMP_DISABLED",
               "tesSUCCESS"
             ],
             "features": [
               "featureCredentials",
+              "featureSmartEscrow",
               "featureTokenEscrow"
             ],
             "flags": [],
             "fields": [
               "Account",
               "Amount",
+              "Bytecode",
               "Destination",
+              "Gas",
               "OfferSequence",
               "Owner"
             ]
           },
           "doApply": {
-            "line": 190,
+            "line": 259,
             "ter": [
               "tecCRYPTOCONDITION_ERROR",
+              "tecFAILED_PROCESSING",
               "tecINTERNAL",
               "tecNO_DST",
               "tecNO_PERMISSION",
@@ -684,6 +713,7 @@
               "tesSUCCESS"
             ],
             "features": [
+              "featureSmartEscrow",
               "featureSponsor",
               "featureTokenEscrow",
               "fixCleanup3_4_0"
@@ -693,6 +723,7 @@
               "Account",
               "Amount",
               "Balance",
+              "Bytecode",
               "CancelAfter",
               "Condition",
               "Destination",
@@ -707,14 +738,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 370,
+            "line": 479,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 376,
+            "line": 485,
             "ter": [],
             "features": [],
             "flags": [],
@@ -723,11 +754,17 @@
         },
         "allTer": [
           "tecCRYPTOCONDITION_ERROR",
+          "tecFAILED_PROCESSING",
           "tecINTERNAL",
           "tecNO_DST",
           "tecNO_PERMISSION",
           "tecNO_TARGET",
           "tefBAD_LEDGER",
+          "tefBYTECODE_NOT_INCLUDED",
+          "tefEXCEEDS_LIMIT",
+          "tefNO_BYTECODE",
+          "tefTEMP_DISABLED",
+          "temBAD_LIMIT",
           "temDISABLED",
           "temMALFORMED",
           "tesSUCCESS"
@@ -745,6 +782,7 @@
           "Account",
           "Amount",
           "Balance",
+          "Bytecode",
           "CancelAfter",
           "Condition",
           "CredentialIDs",
@@ -759,7 +797,7 @@
           "OwnerNode",
           "TransferRate"
         ],
-        "lines": 387,
+        "lines": 496,
         "ownerReserveFee": false,
         "customBaseFee": true,
         "ownerCountCalls": []
@@ -1140,6 +1178,7 @@
               "Account",
               "Amount",
               "Balance",
+              "Bytecode",
               "CancelAfter",
               "Destination",
               "DestinationNode",
@@ -1150,14 +1189,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 172,
+            "line": 180,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 178,
+            "line": 186,
             "ter": [],
             "features": [],
             "flags": [],
@@ -1182,6 +1221,7 @@
           "Account",
           "Amount",
           "Balance",
+          "Bytecode",
           "CancelAfter",
           "Destination",
           "DestinationNode",
@@ -1190,7 +1230,7 @@
           "Owner",
           "OwnerNode"
         ],
-        "lines": 189,
+        "lines": 197,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -20179,13 +20219,6 @@
       "unused": false
     },
     {
-      "code": "temTEMP_DISABLED",
-      "category": "tem",
-      "value": -246,
-      "description": "The transaction requires logic that is currently temporarily disabled.",
-      "unused": false
-    },
-    {
       "code": "tefFAILURE",
       "category": "tef",
       "value": -199,
@@ -20366,6 +20399,20 @@
       "category": "tef",
       "value": -174,
       "description": "WASM code requires a field that was not included.",
+      "unused": false
+    },
+    {
+      "code": "tefTEMP_DISABLED",
+      "category": "tef",
+      "value": -173,
+      "description": "The transaction requires logic that is currently temporarily disabled.",
+      "unused": false
+    },
+    {
+      "code": "tefEXCEEDS_LIMIT",
+      "category": "tef",
+      "value": -172,
+      "description": "The transaction exceeds a limit set by fee voting.",
       "unused": false
     },
     {
