@@ -1,6 +1,6 @@
 {
  "name": "Clawback",
- "fetchedAt": "2026-10-15T08:02:14.788Z",
+ "fetchedAt": "2026-10-16T08:01:58.395Z",
  "summary": {
   "status": "in development",
   "prs": 10,
@@ -14,10 +14,10 @@
    "mvadari/rearch/vault-clawbackAmount",
    "tapanito/vault-clawback-invariants"
   ],
-  "lastActivity": "2026-10-15T07:13:43Z",
+  "lastActivity": "2026-10-15T23:22:20Z",
   "lastMerged": "2026-08-26T18:06:55Z",
   "release": "1.12.0",
-  "totalComments": 290
+  "totalComments": 295
  },
  "release": {
   "version": "1.12.0",
@@ -33,9 +33,11 @@
    "state": "open",
    "author": "gregtatcam",
    "createdAt": "2026-10-03T20:39:20Z",
-   "updatedAt": "2026-10-15T07:13:43Z",
+   "updatedAt": "2026-10-15T23:22:20Z",
    "closedAt": null,
-   "labels": [],
+   "labels": [
+    "Ready to merge"
+   ],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -50,11 +52,11 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:gregtatcam/clawback-invariant-rounding",
-   "additions": 109,
+   "additions": 113,
    "deletions": 1,
    "changedFiles": 2,
-   "commits": 3,
-   "reviewComments": 4,
+   "commits": 4,
+   "reviewComments": 6,
    "reviews": [
     {
      "author": "xrplf-ai-reviewer[bot]",
@@ -121,6 +123,24 @@
      "state": "APPROVED",
      "date": "2026-10-15T07:13:43Z",
      "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-10-15T14:09:36Z",
+     "body": "C++20 compatibility issue - see inline."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-15T14:21:32Z",
+     "body": "### 🟢 Approval recommended\n\nThe focused correction matches the balance-update arithmetic, and regression tests cover rounding behavior in both amendment states.\n\n**0 open findings**\n\n🧠 **Review effort:** Balanced"
+    },
+    {
+     "author": "gregtatcam",
+     "state": "COMMENTED",
+     "date": "2026-10-15T23:22:19Z",
+     "body": ""
     }
    ],
    "reviewCommentsList": [
@@ -151,6 +171,20 @@
      "path": "src/test/app/Clawback_test.cpp",
      "body": "Added an explicit Ter(tesSUCCESS) on the claw. With MPTokensV2 that's the real check, since a failed invariant would return tecINVARIANT_FAILED there. Without MPTokensV2 the invariant only logs and the tx still returns tesSUCCESS, so the log check is still needed for that run. I limited it to the non-V2 case. There's no run where tecINVARIANT_FAILED can be asserted because the fix isn't amendment gated, so the invariant passes either way.",
      "url": "https://github.com/XRPLF/rippled/pull/8475#discussion_r4277081867"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-15T14:09:36Z",
+     "path": "src/test/app/Clawback_test.cpp",
+     "body": "C++23 method `contains()` breaks C++20 builds. Use `find() != npos`:\n\n```suggestion\n                    BEAST_EXPECT(logs.find(\"Invariant failed\") == std::string::npos);\n```\n\n```suggestion\n                    BEAST_EXPECT(logs.find(\"Invariant failed\") == std::string::npos);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8475#discussion_r4284041677"
+    },
+    {
+     "author": "gregtatcam",
+     "date": "2026-10-15T23:22:19Z",
+     "path": "src/test/app/Clawback_test.cpp",
+     "body": "The project builds with C++23 (CMakeLists.txt sets CMAKE_CXX_STANDARD 23, since #7431), and std::string::contains is already used elsewhere in the tests, e.g. GRPCServerTLS_test.cpp and NuDBFactory.cpp. Keeping contains() here.",
+     "url": "https://github.com/XRPLF/rippled/pull/8475#discussion_r4289264540"
     }
    ]
   },

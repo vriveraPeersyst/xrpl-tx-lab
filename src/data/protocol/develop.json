@@ -1,10 +1,10 @@
 {
   "source": {
-    "commit": "f1ce9449f20fa0e51f074e6821efbcfbf96325c1",
-    "commitDate": "2026-10-14T21:02:45Z",
+    "commit": "4087861411f2a4ce861641372942c644e1fb76b4",
+    "commitDate": "2026-10-16T05:47:08Z",
     "branch": "develop",
     "repo": "https://github.com/XRPLF/rippled",
-    "extractedAt": "2026-10-15T08:00:26.787Z"
+    "extractedAt": "2026-10-16T08:00:26.329Z"
   },
   "transactions": [
     {
@@ -8706,6 +8706,7 @@
               "Flags",
               "Holder",
               "ImmutableFlags",
+              "InitialIssuerEncryptionKey",
               "IssuerEncryptionKey",
               "IssuerKeyEpoch",
               "MPTokenIssuanceID",
@@ -8714,14 +8715,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 502,
+            "line": 510,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 508,
+            "line": 516,
             "ter": [],
             "features": [],
             "flags": [],
@@ -8777,6 +8778,7 @@
           "Flags",
           "Holder",
           "ImmutableFlags",
+          "InitialIssuerEncryptionKey",
           "Issuer",
           "IssuerEncryptionKey",
           "IssuerKeyEpoch",
@@ -8784,7 +8786,7 @@
           "MPTokenMetadata",
           "TransferFee"
         ],
-        "lines": 520,
+        "lines": 528,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -12565,14 +12567,14 @@
         "headerFile": "include/xrpl/tx/transactors/lending/LoanManage.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 33,
+            "line": 34,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "getFlagsMask": {
-            "line": 39,
+            "line": 40,
             "ter": [],
             "features": [],
             "flags": [
@@ -12581,7 +12583,7 @@
             "fields": []
           },
           "preflight": {
-            "line": 45,
+            "line": 46,
             "ter": [
               "temINVALID",
               "temINVALID_FLAG",
@@ -12600,7 +12602,7 @@
             ]
           },
           "preclaim": {
-            "line": 66,
+            "line": 67,
             "ter": [
               "tecINTERNAL",
               "tecNO_ENTRY",
@@ -12625,12 +12627,35 @@
               "LoanID",
               "NextPaymentDueDate",
               "Owner",
+              "PaymentRemaining"
+            ]
+          },
+          "calculateDefaultCover": {
+            "line": 137,
+            "ter": [
+              "tesSUCCESS"
+            ],
+            "features": [],
+            "flags": [
+              "lsfLoanDefault",
+              "lsfLoanImpaired"
+            ],
+            "fields": [
+              "Account",
+              "Asset",
+              "CoverAvailable",
+              "CoverRateLiquidation",
+              "CoverRateMinimum",
+              "DebtTotal",
+              "ManagementFeeOutstanding",
+              "NextPaymentDueDate",
               "PaymentRemaining",
-              "VaultID"
+              "PrincipalOutstanding",
+              "TotalValueOutstanding"
             ]
           },
           "defaultLoan": {
-            "line": 143,
+            "line": 249,
             "ter": [
               "tecINTERNAL",
               "tefBAD_LEDGER"
@@ -12642,6 +12667,7 @@
             ],
             "fields": [
               "Account",
+              "Asset",
               "AssetsAvailable",
               "AssetsTotal",
               "CoverAvailable",
@@ -12658,7 +12684,7 @@
             ]
           },
           "impairLoan": {
-            "line": 291,
+            "line": 400,
             "ter": [
               "tecLIMIT_EXCEEDED",
               "tecTOO_SOON",
@@ -12679,7 +12705,7 @@
             ]
           },
           "unimpairLoan": {
-            "line": 343,
+            "line": 469,
             "ter": [
               "tefBAD_LEDGER",
               "tesSUCCESS"
@@ -12699,7 +12725,7 @@
             ]
           },
           "doApply": {
-            "line": 397,
+            "line": 532,
             "ter": [
               "tefBAD_LEDGER",
               "tesSUCCESS"
@@ -12714,20 +12740,22 @@
             ],
             "fields": [
               "Asset",
+              "AssetsAvailable",
+              "AssetsTotal",
               "LoanBrokerID",
               "LoanID",
               "VaultID"
             ]
           },
           "visitInvariantEntry": {
-            "line": 443,
+            "line": 596,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 449,
+            "line": 602,
             "ter": [],
             "features": [],
             "flags": [],
@@ -12785,7 +12813,7 @@
           "TotalValueOutstanding",
           "VaultID"
         ],
-        "lines": 462,
+        "lines": 615,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -12820,14 +12848,14 @@
         "headerFile": "include/xrpl/tx/transactors/lending/LoanPay.h",
         "functions": {
           "checkExtraFeatures": {
-            "line": 77,
+            "line": 94,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "getFlagsMask": {
-            "line": 83,
+            "line": 100,
             "ter": [],
             "features": [],
             "flags": [
@@ -12836,7 +12864,7 @@
             "fields": []
           },
           "preflight": {
-            "line": 89,
+            "line": 106,
             "ter": [
               "temBAD_AMOUNT",
               "temINVALID",
@@ -12857,7 +12885,7 @@
             ]
           },
           "calculateBaseFee": {
-            "line": 114,
+            "line": 131,
             "ter": [],
             "features": [
               "fixCleanup3_1_3",
@@ -12883,7 +12911,7 @@
             ]
           },
           "preclaim": {
-            "line": 230,
+            "line": 247,
             "ter": [
               "tecINSUFFICIENT_FUNDS",
               "tecKILLED",
@@ -12914,7 +12942,7 @@
             ]
           },
           "doApply": {
-            "line": 338,
+            "line": 350,
             "ter": [
               "tecDUPLICATE",
               "tecINTERNAL",
@@ -12946,19 +12974,23 @@
               "LoanBrokerID",
               "LoanID",
               "LoanScale",
+              "ManagementFeeOutstanding",
               "Owner",
+              "PaymentRemaining",
+              "PrincipalOutstanding",
+              "TotalValueOutstanding",
               "VaultID"
             ]
           },
           "visitInvariantEntry": {
-            "line": 857,
+            "line": 914,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 863,
+            "line": 920,
             "ter": [],
             "features": [],
             "flags": [],
@@ -13012,13 +13044,15 @@
           "LoanID",
           "LoanScale",
           "LoanServiceFee",
+          "ManagementFeeOutstanding",
           "Owner",
           "PaymentRemaining",
           "PeriodicPayment",
           "PrincipalOutstanding",
+          "TotalValueOutstanding",
           "VaultID"
         ],
-        "lines": 872,
+        "lines": 929,
         "ownerReserveFee": false,
         "customBaseFee": true,
         "ownerCountCalls": []
@@ -14468,7 +14502,7 @@
             ]
           },
           "doApply": {
-            "line": 208,
+            "line": 211,
             "ter": [
               "tecINTERNAL",
               "tesSUCCESS"
@@ -14485,14 +14519,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 258,
+            "line": 261,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 263,
+            "line": 266,
             "ter": [],
             "features": [],
             "flags": [],
@@ -14532,7 +14566,7 @@
           "MPTokenIssuanceID",
           "ZKProof"
         ],
-        "lines": 274,
+        "lines": 277,
         "ownerReserveFee": false,
         "customBaseFee": true,
         "ownerCountCalls": []
@@ -14620,14 +14654,14 @@
             ]
           },
           "calculateBaseFee": {
-            "line": 101,
+            "line": 104,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "preclaim": {
-            "line": 107,
+            "line": 110,
             "ter": [
               "tecDUPLICATE",
               "tecNO_PERMISSION",
@@ -14650,7 +14684,7 @@
             ]
           },
           "doApply": {
-            "line": 150,
+            "line": 156,
             "ter": [
               "tecINTERNAL",
               "tesSUCCESS"
@@ -14670,14 +14704,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 205,
+            "line": 211,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 210,
+            "line": 216,
             "ter": [],
             "features": [],
             "flags": [],
@@ -14713,7 +14747,7 @@
           "RecoveryKey",
           "ZKProof"
         ],
-        "lines": 221,
+        "lines": 227,
         "ownerReserveFee": false,
         "customBaseFee": true,
         "ownerCountCalls": []
@@ -14982,8 +15016,9 @@
         "headerFile": "include/xrpl/tx/transactors/system/Change.h",
         "functions": {
           "preclaim": {
-            "line": 77,
+            "line": 78,
             "ter": [
+              "temBAD_FEE",
               "temDISABLED",
               "temINVALID",
               "temMALFORMED",
@@ -14991,6 +15026,7 @@
               "tesSUCCESS"
             ],
             "features": [
+              "featureSmartEscrow",
               "featureXRPFees"
             ],
             "flags": [],
@@ -15008,7 +15044,7 @@
             ]
           },
           "doApply": {
-            "line": 143,
+            "line": 155,
             "ter": [
               "tefFAILURE"
             ],
@@ -15017,20 +15053,33 @@
             "fields": []
           },
           "preCompute": {
-            "line": 162,
+            "line": 174,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
+          "initializeVMFees": {
+            "line": 180,
+            "ter": [],
+            "features": [],
+            "flags": [],
+            "fields": [
+              "BytecodeSizeLimit",
+              "GasLimit",
+              "GasPrice"
+            ]
+          },
           "applyAmendment": {
-            "line": 168,
+            "line": 202,
             "ter": [
               "tefALREADY",
               "temINVALID_FLAG",
               "tesSUCCESS"
             ],
-            "features": [],
+            "features": [
+              "featureSmartEscrow"
+            ],
             "flags": [
               "tfGotMajority",
               "tfLostMajority"
@@ -15044,17 +15093,21 @@
             ]
           },
           "applyFee": {
-            "line": 260,
+            "line": 297,
             "ter": [
               "tesSUCCESS"
             ],
             "features": [
+              "featureSmartEscrow",
               "featureXRPFees"
             ],
             "flags": [],
             "fields": [
               "BaseFee",
               "BaseFeeDrops",
+              "BytecodeSizeLimit",
+              "GasLimit",
+              "GasPrice",
               "ReferenceFeeUnits",
               "ReserveBase",
               "ReserveBaseDrops",
@@ -15063,7 +15116,7 @@
             ]
           },
           "applyUNLModify": {
-            "line": 298,
+            "line": 334,
             "ter": [
               "tefFAILURE",
               "tesSUCCESS"
@@ -15081,14 +15134,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 414,
+            "line": 450,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 420,
+            "line": 456,
             "ter": [],
             "features": [],
             "flags": [],
@@ -15111,6 +15164,7 @@
         ],
         "allFeatures": [
           "featureLendingProtocol",
+          "featureSmartEscrow",
           "featureXRPFees"
         ],
         "allFlags": [
@@ -15147,7 +15201,7 @@
           "ValidatorToDisable",
           "ValidatorToReEnable"
         ],
-        "lines": 427,
+        "lines": 463,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -15223,8 +15277,9 @@
         "headerFile": "include/xrpl/tx/transactors/system/Change.h",
         "functions": {
           "preclaim": {
-            "line": 77,
+            "line": 78,
             "ter": [
+              "temBAD_FEE",
               "temDISABLED",
               "temINVALID",
               "temMALFORMED",
@@ -15232,6 +15287,7 @@
               "tesSUCCESS"
             ],
             "features": [
+              "featureSmartEscrow",
               "featureXRPFees"
             ],
             "flags": [],
@@ -15249,7 +15305,7 @@
             ]
           },
           "doApply": {
-            "line": 143,
+            "line": 155,
             "ter": [
               "tefFAILURE"
             ],
@@ -15258,20 +15314,33 @@
             "fields": []
           },
           "preCompute": {
-            "line": 162,
+            "line": 174,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
+          "initializeVMFees": {
+            "line": 180,
+            "ter": [],
+            "features": [],
+            "flags": [],
+            "fields": [
+              "BytecodeSizeLimit",
+              "GasLimit",
+              "GasPrice"
+            ]
+          },
           "applyAmendment": {
-            "line": 168,
+            "line": 202,
             "ter": [
               "tefALREADY",
               "temINVALID_FLAG",
               "tesSUCCESS"
             ],
-            "features": [],
+            "features": [
+              "featureSmartEscrow"
+            ],
             "flags": [
               "tfGotMajority",
               "tfLostMajority"
@@ -15285,17 +15354,21 @@
             ]
           },
           "applyFee": {
-            "line": 260,
+            "line": 297,
             "ter": [
               "tesSUCCESS"
             ],
             "features": [
+              "featureSmartEscrow",
               "featureXRPFees"
             ],
             "flags": [],
             "fields": [
               "BaseFee",
               "BaseFeeDrops",
+              "BytecodeSizeLimit",
+              "GasLimit",
+              "GasPrice",
               "ReferenceFeeUnits",
               "ReserveBase",
               "ReserveBaseDrops",
@@ -15304,7 +15377,7 @@
             ]
           },
           "applyUNLModify": {
-            "line": 298,
+            "line": 334,
             "ter": [
               "tefFAILURE",
               "tesSUCCESS"
@@ -15322,14 +15395,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 414,
+            "line": 450,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 420,
+            "line": 456,
             "ter": [],
             "features": [],
             "flags": [],
@@ -15352,6 +15425,7 @@
         ],
         "allFeatures": [
           "featureLendingProtocol",
+          "featureSmartEscrow",
           "featureXRPFees"
         ],
         "allFlags": [
@@ -15388,7 +15462,7 @@
           "ValidatorToDisable",
           "ValidatorToReEnable"
         ],
-        "lines": 427,
+        "lines": 463,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -15424,8 +15498,9 @@
         "headerFile": "include/xrpl/tx/transactors/system/Change.h",
         "functions": {
           "preclaim": {
-            "line": 77,
+            "line": 78,
             "ter": [
+              "temBAD_FEE",
               "temDISABLED",
               "temINVALID",
               "temMALFORMED",
@@ -15433,6 +15508,7 @@
               "tesSUCCESS"
             ],
             "features": [
+              "featureSmartEscrow",
               "featureXRPFees"
             ],
             "flags": [],
@@ -15450,7 +15526,7 @@
             ]
           },
           "doApply": {
-            "line": 143,
+            "line": 155,
             "ter": [
               "tefFAILURE"
             ],
@@ -15459,20 +15535,33 @@
             "fields": []
           },
           "preCompute": {
-            "line": 162,
+            "line": 174,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
+          "initializeVMFees": {
+            "line": 180,
+            "ter": [],
+            "features": [],
+            "flags": [],
+            "fields": [
+              "BytecodeSizeLimit",
+              "GasLimit",
+              "GasPrice"
+            ]
+          },
           "applyAmendment": {
-            "line": 168,
+            "line": 202,
             "ter": [
               "tefALREADY",
               "temINVALID_FLAG",
               "tesSUCCESS"
             ],
-            "features": [],
+            "features": [
+              "featureSmartEscrow"
+            ],
             "flags": [
               "tfGotMajority",
               "tfLostMajority"
@@ -15486,17 +15575,21 @@
             ]
           },
           "applyFee": {
-            "line": 260,
+            "line": 297,
             "ter": [
               "tesSUCCESS"
             ],
             "features": [
+              "featureSmartEscrow",
               "featureXRPFees"
             ],
             "flags": [],
             "fields": [
               "BaseFee",
               "BaseFeeDrops",
+              "BytecodeSizeLimit",
+              "GasLimit",
+              "GasPrice",
               "ReferenceFeeUnits",
               "ReserveBase",
               "ReserveBaseDrops",
@@ -15505,7 +15598,7 @@
             ]
           },
           "applyUNLModify": {
-            "line": 298,
+            "line": 334,
             "ter": [
               "tefFAILURE",
               "tesSUCCESS"
@@ -15523,14 +15616,14 @@
             ]
           },
           "visitInvariantEntry": {
-            "line": 414,
+            "line": 450,
             "ter": [],
             "features": [],
             "flags": [],
             "fields": []
           },
           "finalizeInvariants": {
-            "line": 420,
+            "line": 456,
             "ter": [],
             "features": [],
             "flags": [],
@@ -15553,6 +15646,7 @@
         ],
         "allFeatures": [
           "featureLendingProtocol",
+          "featureSmartEscrow",
           "featureXRPFees"
         ],
         "allFlags": [
@@ -15589,7 +15683,7 @@
           "ValidatorToDisable",
           "ValidatorToReEnable"
         ],
-        "lines": 427,
+        "lines": 463,
         "ownerReserveFee": false,
         "customBaseFee": false,
         "ownerCountCalls": []
@@ -17923,6 +18017,11 @@
           "mptSupported": false
         },
         {
+          "name": "InitialIssuerEncryptionKey",
+          "optionality": "optional",
+          "mptSupported": false
+        },
+        {
           "name": "ConfidentialOutstandingAmount",
           "optionality": "default",
           "mptSupported": false
@@ -18004,6 +18103,11 @@
         },
         {
           "name": "AuditorKeyMirrorEpoch",
+          "optionality": "optional",
+          "mptSupported": false
+        },
+        {
+          "name": "IssuerMirrorEncryptionKey",
           "optionality": "optional",
           "mptSupported": false
         },
@@ -22694,6 +22798,18 @@
       "name": "RecoveryKey",
       "type": "VL",
       "nth": 48,
+      "untyped": false
+    },
+    {
+      "name": "InitialIssuerEncryptionKey",
+      "type": "VL",
+      "nth": 49,
+      "untyped": false
+    },
+    {
+      "name": "IssuerMirrorEncryptionKey",
+      "type": "VL",
+      "nth": 50,
       "untyped": false
     },
     {
