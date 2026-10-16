@@ -1,6 +1,6 @@
 {
  "name": "BatchV1_1",
- "fetchedAt": "2026-10-15T08:01:52.811Z",
+ "fetchedAt": "2026-10-16T08:01:36.132Z",
  "summary": {
   "status": "in development",
   "prs": 8,
@@ -20,10 +20,10 @@
    "mvadari/batch-multisign-prefix",
    "ripple/custody-old-batch-cmpt"
   ],
-  "lastActivity": "2026-10-15T07:13:57Z",
+  "lastActivity": "2026-10-16T07:44:18Z",
   "lastMerged": "2026-07-02T19:05:46Z",
   "release": "3.3.0",
-  "totalComments": 301
+  "totalComments": 302
  },
  "release": {
   "version": "3.3.0",
@@ -39,7 +39,7 @@
    "state": "open",
    "author": "bthomee",
    "createdAt": "2026-08-23T22:10:04Z",
-   "updatedAt": "2026-10-15T07:13:57Z",
+   "updatedAt": "2026-10-16T07:44:18Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -107,7 +107,7 @@
    "body": "Part 15/28 of a stack. Base: part 14 (`bthomee/shamap-invalid-11-revive-timer`).\n\n## High Level Overview of Change\n\n`TransactionAcquire::takeNodes()` now accumulates one combined verdict across a whole batch instead of\nstopping at the first bad node, so a packet that ends badly still gets credit (and clears the\ntimeout-postponing progress flag) for the good nodes ahead of it, matching what\n`InboundLedger::receiveNode()` already does.\n\n### Context of Change\n\n`TransactionAcquire::takeNodes()` accumulates one `SHAMapAddNode` across the batch and hands it back, so\na packet ending on one bad node still counts the nodes hooked in ahead of it. A root the set already\nholds counts as a duplicate rather than passing unremarked, which is what tells a batch of nodes we\nalready have from one that was never examined at all.\n\nThe body moves to `takeNodesLocked()` and `takeNodes()` becomes a thin wrapper that takes the lock and\nrecords what the batch achieved on the one exit, since several of the inner exits stop the batch\nearly and\nnothing in the compiler catches one that forgets to record progress. Progress turns on the batch being\nuseful rather than good, so a batch of nothing but duplicates records none: that flag is what keeps the\nnext timer tick from counting a timeout, and a reply carrying nothing new advanced nothing. It costs\nretry budget on the ordinary second responder to a fan-out and nothing else.\n\n`InboundTransactions::gotData()` asks `isGood()` rather than `isUseful()` for the useless-data charge,\nwhich keeps that duplicate free. Now that the verdict distinguishes a duplicate from an empty tally,\nthe useful test would charge for it while the batch that was never examined still needs charging.\n\n`testPartialBatchIsCounted` feeds two good nodes followed by one at a position it cannot occupy, and\nchecks the verdict names both halves and that the flag is set; then a batch of nothing but a root\nalready held, checking it is good, not useful, and records nothing; then that root alongside a node the\nset does need, checking the duplicate is reported as one while the other records the progress.\n\n### API Impact\n\nNone of the checkboxes below apply: this is an internal `xrpld` correctness fix with no `libxrpl`,\npublic-API, or peer-protocol surface.",
    "merged": false,
    "mergedAt": null,
-   "draft": true,
+   "draft": false,
    "base": "bthomee/shamap-invalid-11-revive-timer",
    "head": "XRPLF:bthomee/shamap-invalid-12-batch-progress",
    "additions": 147,
@@ -340,9 +340,11 @@
    "state": "open",
    "author": "oleks-rip",
    "createdAt": "2026-08-19T16:48:52Z",
-   "updatedAt": "2026-10-15T01:26:29Z",
+   "updatedAt": "2026-10-15T19:09:08Z",
    "closedAt": null,
-   "labels": [],
+   "labels": [
+    "PR: has conflicts"
+   ],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -379,6 +381,12 @@
      "date": "2026-10-15T00:58:06Z",
      "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
      "url": "https://github.com/XRPLF/rippled/pull/8052#issuecomment-6181903578"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-15T19:09:08Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#issuecomment-6200164799"
     }
    ],
    "body": "## High Level Overview of Change\nBatch transactions allow to be queued.\nSome limitations:  Inner tx can't be replaced, Batch tx (or its inner)  can't replace any tx.  (regular tx still can replace batch tx)",

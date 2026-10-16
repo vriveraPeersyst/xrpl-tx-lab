@@ -1,6 +1,6 @@
 {
  "name": "Cosign",
- "fetchedAt": "2026-10-15T08:02:34.923Z",
+ "fetchedAt": "2026-10-16T08:02:19.420Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -9,9 +9,9 @@
   "issues": 0,
   "proposals": 3,
   "branches": [],
-  "lastActivity": "2026-10-14T23:41:21Z",
+  "lastActivity": "2026-10-15T21:04:36Z",
   "lastMerged": "2026-10-13T21:28:00Z",
-  "totalComments": 351
+  "totalComments": 362
  },
  "release": {},
  "prs": [
@@ -22,7 +22,7 @@
    "state": "open",
    "author": "ckeshava",
    "createdAt": "2026-08-26T23:42:46Z",
-   "updatedAt": "2026-10-14T23:41:21Z",
+   "updatedAt": "2026-10-15T21:04:36Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -57,17 +57,17 @@
      "url": "https://github.com/XRPLF/rippled/pull/8130#issuecomment-6173248048"
     }
    ],
-   "body": "## High Level Overview of Change\n\nAdds `ValidTransactionProposal`, a global invariant for the `TransactionProposal` ledger entry.\n\nThe invariant enforces five properties:\n\n1. **Immutable payload.** `ProposedTransaction` may change only in its signature fields, plus `PreviousTxn` bookkeeping. The signature fields are `SigningPubKey`, `TxnSignature`, `Signers`, `CounterpartySignature`, `SponsorSignature`, `BatchSigners`, and nested `Signers`. `SponsorshipTransfer` may reassign the object's `Sponsor` and nothing else.\n2. **Reserve accounting.** Creating or deleting a proposal moves the owner's `OwnerCount` by that proposal's reserve size, 5 or 10 for a proposed `Batch`. A Ticket the transaction itself consumes is modelled too. Sponsored and sponsoring counts are left to the existing sponsorship invariants. No other account's counts may move. A `TransactionProposalCreate` or `TransactionProposalCancel` is compared exactly even when no proposal changed, so a failed one cannot move a reserve.\n3. **Effect whitelist.** Only `TransactionProposalCreate` may create a proposal and only `SponsorshipTransfer` may modify one, with the exact counts the result allows. A proposal is deleted only by a successful `TransactionProposalCancel`, or together with the Ticket it is keyed to. A deleted Ticket takes its proposal along. A failed `TransactionProposalCreate` or `TransactionProposalCancel` must leave no trace.\n4. **Cancel effects.** A successful `TransactionProposalCancel` deletes exactly the proposal its `ProposalID` names. A live proposal may be cancelled only by its Owner, the proposed transaction's `Account`, or its `Delegate` (XLS-0103 section 7.2). A `TransactionProposalCreate`, a `TransactionProposalCancel`, or a `SponsorshipTransfer` reassigning a proposal consumes no Ticket but the one it pays with, and mints none.\n5. **Canonical signer arrays.** Collected signer arrays stay sorted by account, free of duplicates, and within `STTx::kMaxMultiSigners` (32) and `kMaxBatchSigners` (24).\n\n### Context of Change\n\nThis is the invariant layer for the On-Chain Cosigner work ([XLS-0103](https://github.com/shawnxie999/XRPL-Standards/blob/cosign/XLS-0103-onchain-cosigner/README.md)). Properties 1 and 5 restate spec sections 4.2.1 and 6.1; property 2 restates section 4.4; property 4 restates sections 4.5 and 7.2.\n\nIt is a **global** invariant rather than part of `TransactionProposalCreate::visitInvariantEntry`. The properties are about the ledger entry and must hold whichever transactor touches it. `TransactionProposalCancel` and reserved-ticket cleanup are admitted explicitly.\n\nReserve reconciliation is exact for every `TransactionProposalCreate` and `TransactionProposalCancel`, and for a `SponsorshipTransfer` once it has reassigned a proposal. Other transaction types move owner counts for offers, escrows, and the Ticket they pay with. They are reconciled only once they touch a proposal. A proposal deleted with its Ticket is not reconciled, since the enclosing transaction has effects of its own.\n\nThe invariant re-evaluates the cancel permission rule itself, mirroring `TransactionProposalCancel::preclaim`; no transactor changes.\n\n### API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\nThe invariant is gated on `featureCosign`.\n\n## Test Plan\n\nThirty-eight cases in `InvariantsTransactionProposal_test.cpp`. Twenty-nine violate exactly one rule each:\n\n- a mutated `TicketSequence`;\n- an `Expiration` change under `SponsorshipTransfer`;\n- an insertion with no `OwnerCount` bump;\n- a well-formed insertion alongside an `OwnerCount` move on an unrelated account;\n- an insertion from `AccountSet`;\n- a create, a sponsorship transfer, and a cancel that still change a proposal under a `tec` result;\n- a cancel that still releases, and a create that still charges, the reserve under a `tec` result;\n- a deletion from `AccountSet` that releases the reserve;\n- a cancel that also consumes the proposal's reserved Ticket;\n- a cancel, a create, and a sponsorship transfer that consume an unrelated Ticket of the owner's, and a cancel that mints one;\n- a cancel that pays with its own Ticket yet consumes a second;\n- a cancel that deletes a proposal other than the one it names;\n- a cancel of a live proposal by an account that is neither its Owner nor its target;\n- a deletion alongside an unrelated Ticket of the owner's;\n- a deleted Ticket whose proposal stays behind;\n- eight signer-array cases: duplicates, descending order, both length limits, an entry with no `Account`, and duplicates nested under `CounterpartySignature`, `SponsorSignature`, and a `BatchSigner`.\n\nNine negative controls leave the result unchanged:\n\n- a well-formed create, a proposal left untouched, and a cancel by the Owner;\n- a create, a cancel, and a sponsorship transfer paid with the actor's own Ticket;\n- a failed cancel paid with a Ticket;\n- a terminal proposal cancelled by a stranger;\n- a proposal deleted with its Ticket while another account's owner count moves.\n\nThe `TransactionProposalCreate` suite gains a create paid with the proposer's own Ticket, and the `TransactionProposalCancel` suite a failed ticket-paid cancel.",
+   "body": "## High Level Overview of Change\n\nAdds `ValidTransactionProposal`, a global invariant for the `TransactionProposal` ledger entry.\n\nThe invariant enforces two properties:\n\n1. **Effect whitelist.** Only `TransactionProposalCreate` may create a proposal and only `SponsorshipTransfer` may modify one, with the exact counts the result allows. A proposal is deleted only by a successful `TransactionProposalCancel`, or together with the Ticket it is keyed to. A deleted Ticket takes its proposal along. A failed `TransactionProposalCreate`, `TransactionProposalCancel`, or `SponsorshipTransfer` must leave no trace.\n2. **Canonical signer arrays.** Collected signer arrays stay sorted by account, free of duplicates, and within `STTx::kMaxMultiSigners` (32) and `kMaxBatchSigners` (24).\n\n### Context of Change\n\nThis is the invariant layer for the On-Chain Cosigner work ([XLS-0103](https://github.com/shawnxie999/XRPL-Standards/blob/cosign/XLS-0103-onchain-cosigner/README.md)). Property 1 restates spec section 4.5; property 2 restates the signer-array rules in sections 4.2.2, 4.6 and 6.1.\n\nIt is a **global** invariant rather than part of `TransactionProposalCreate::visitInvariantEntry`. The properties are about the ledger entry and must hold whichever transactor touches it. `TransactionProposalCancel` and reserved-ticket cleanup are admitted explicitly.\n\nEarlier revisions also reconciled every `OwnerCount` move exactly. They held a Create or Cancel to the one Ticket it pays with, and re-checked the Cancel's named proposal and its authorization. Those checks are gone. Each restated a single shared helper or a transactor's preclaim, and together they were most of the file. An immutable-payload comparison (spec section 4.6) is gone as well. Which fields a transaction may change is the transactor's business, and the effect whitelist already limits who may modify a proposal.\n\nReserve accounting rests on `proposal::deleteProposal` and `proposalOwnerCount`, which the transactor suites assert directly. Sponsored and sponsoring counts are left to the existing sponsorship invariants. `TransactionProposalSign` will extend this invariant when it lands.\n\n### API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\nThe invariant is gated on `featureCosign`.\n\n## Test Plan\n\nTwenty-three cases in `InvariantsTransactionProposal_test.cpp`. Seventeen violate exactly one rule each:\n\n- an insertion and a modification from `AccountSet`;\n- a create, a sponsorship transfer, and a cancel that still change a proposal under a `tec` result;\n- a deletion from `AccountSet`;\n- a cancel that also consumes the proposal's reserved Ticket;\n- a deletion alongside an unrelated Ticket of the owner's;\n- a deleted Ticket whose proposal stays behind;\n- eight signer-array cases: duplicates, descending order, both length limits, an entry with no `Account`, and duplicates nested under `CounterpartySignature`, `SponsorSignature`, and a `BatchSigner`.\n\nSix negative controls leave the result unchanged:\n\n- a well-formed create, a proposal left untouched, and a cancel by the Owner;\n- a cancel paid with the canceller's own Ticket;\n- a sponsorship transfer reassigning the Sponsor;\n- a proposal deleted with its Ticket.\n\nThe `TransactionProposalCreate` suite gains a create paid with the proposer's own Ticket, and the `TransactionProposalCancel` suite a failed ticket-paid cancel.",
    "merged": false,
    "mergedAt": null,
    "draft": false,
    "base": "develop",
    "head": "ckeshava:cosign-invariants-v1",
-   "additions": 1537,
+   "additions": 933,
    "deletions": 8,
    "changedFiles": 12,
-   "commits": 59,
-   "reviewComments": 39,
+   "commits": 64,
+   "reviewComments": 44,
    "reviews": [
     {
      "author": "shawnxie999",
@@ -235,6 +235,42 @@
      "author": "ckeshava",
      "state": "COMMENTED",
      "date": "2026-10-14T23:39:39Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-15T17:07:07Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "COMMENTED",
+     "date": "2026-10-15T17:49:06Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-15T18:10:42Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-15T20:42:06Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-15T20:45:18Z",
+     "body": ""
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-10-15T21:04:36Z",
      "body": ""
     }
    ],
@@ -511,6 +547,41 @@
      "path": "include/xrpl/tx/invariants/CosignerInvariant.h",
      "body": "Agreed, removed in 1e83706add: the invariant now reconciles only OwnerCount per account and leaves SponsoredOwnerCount and SponsoringOwnerCount to SponsorshipOwnerCountsMatch. The tests that existed only for the per-account sponsor tracking are gone too.",
      "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4277433079"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-15T17:07:07Z",
+     "path": "include/xrpl/tx/invariants/CosignerInvariant.h",
+     "body": "I have also removed three other checks that I felt were not critical for the Cosign-invariants. [81bd363](https://github.com/XRPLF/rippled/pull/8130/commits/81bd3630abf4355bef06ebfd501e568ed9caf04e)\n\n\nThis helps with reducing the complexity of this invariant and removed duplication of preclaim logic inside invariants.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4285983872"
+    },
+    {
+     "author": "shawnxie999",
+     "date": "2026-10-15T17:49:06Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "Is checking for immutable fields necessary? The same reasoning could apply to any object, since some fields are expected to change while others aren't. Invariants are generally meant to catch accounting or consistency issues that are difficult to enforce during transaction processing, whereas field changes are usually intentional and explicitly handled.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4286391773"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-15T18:10:42Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "yeah, that's a fair point.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4286608468"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-15T20:42:06Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "Addressed in 429d60a0fa: the immutable-fields check and its helpers are gone. The AccountSet mutation case now asserts the effect-whitelist message instead, since a proposal changed by a transaction outside the whitelist is still rejected on the count alone.",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4288065907"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-15T20:45:18Z",
+     "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
+     "body": "@shawnxie999  Let me know if this design of the invariants looks good. I do not have rigid opinions about the other cosign-invariants too. I added them to ensure a comprehensive coverage. However, if you guys feel that there is an overlap with preclaim logic, I can remove them to reduce the complexity of this PR",
+     "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4288094236"
     }
    ]
   },
