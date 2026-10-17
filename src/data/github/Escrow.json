@@ -1,18 +1,17 @@
 {
  "name": "Escrow",
- "fetchedAt": "2026-10-16T08:03:40.919Z",
+ "fetchedAt": "2026-10-17T08:03:26.031Z",
  "summary": {
   "status": "in development",
   "prs": 11,
-  "open": 3,
-  "merged": 5,
+  "open": 2,
+  "merged": 6,
   "issues": 1,
   "proposals": 8,
   "branches": [
    "dangell7/fix-token-escrow-v2",
    "mvadari/rearch/mptoken-lockEscrowMPT",
    "mvadari/rearch/mptoken-unlockEscrowMPT",
-   "mvadari/smart-escrow-escrow-tx",
    "mvadari/smart-escrow-update-se-fees",
    "ripple/smart-escrow",
    "ripple/smart-escrow2",
@@ -21,10 +20,10 @@
    "smart-escrow/versioning",
    "timothybanks/smart-escrow-deletion"
   ],
-  "lastActivity": "2026-10-15T19:41:46Z",
-  "lastMerged": "2026-10-15T16:26:19Z",
+  "lastActivity": "2026-10-16T15:37:52Z",
+  "lastMerged": "2026-10-16T13:37:35Z",
   "release": "0.60.0",
-  "totalComments": 449
+  "totalComments": 451
  },
  "release": {
   "version": "0.60.0",
@@ -34,413 +33,13 @@
  },
  "prs": [
   {
-   "number": 8215,
-   "title": "feat: Handle Smart Escrow's Bytecode, Data and Gas fields",
-   "url": "https://github.com/XRPLF/rippled/pull/8215",
-   "state": "open",
-   "author": "mvadari",
-   "createdAt": "2026-09-10T20:27:06Z",
-   "updatedAt": "2026-10-15T19:41:46Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-05T16:54:41Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8215?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.37398%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8215?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8215?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvZXNjcm93L0VzY3Jvd0ZpbmlzaC5jcHA=) | 96.9% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8215?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#issuecomment-5999078681"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-15T16:30:42Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#issuecomment-6197060766"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-15T18:01:44Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#issuecomment-6198820103"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nAdds the transaction handling for `EscrowCreate.Bytecode` / `EscrowCreate.Data`\nand `EscrowFinish.Gas`, gated on `featureSmartEscrow`: the validation rules, the\nfee a contract costs to store, and the owner reserve it occupies.\n\n**Nothing in this PR runs the bytecode.** The WASM engine is not on `develop`,\nso `EscrowFinish` stops at a `TODO` where the contract would run and reports\n`tecFAILED_PROCESSING`.\n\nExtracted from the `ripple/smart-escrow` feature branch; this is the escrow half\nof #6329, which is left holding the WASM engine alone.\n\nStacked on #8214. Retarget to `develop` once that merges.\n\n## Context of Change\n\n#8157 landed the fields and result codes; #8214 landed the fee settings that\nbound a contract. This PR is the transactor behavior: `Bytecode` joins\n`FinishAfter` and `Condition` as a way of saying how an escrow completes, priced\nat ten base fees plus five drops per byte and reserved at one owner increment\nper 500 bytes.\n\nDeliberately absent, so that nothing lands as unreachable code — these arrive\nwith the WASM engine:\n\n- Screening the module in `preclaim` (that it compiles, and imports and exports\n  what the engine can serve). Until then any blob of the right size is accepted\n  onto the ledger.\n- Running the contract, `tecBYTECODE_REJECTED`, and the `Data` a rejected\n  contract leaves behind.\n- The `GasUsed` and `VMReturnCode` metadata, and the `Transactor` replay path\n  that preserves a rejected escrow's `Data`.\n\n`featureSmartEscrow` remains `Supported::No`, so no production network can reach\nany of this. The engine PR precedes the `Supported::Yes` flip.\n\n## Before / After\n\n`EscrowCreate`\n\n- `Bytecode` always needs a `CancelAfter`: nothing else can free the funds if\n  the contract never accepts.\n- `Data` requires `Bytecode`, and is capped at `kMaxWasmDataLength` (1 KB).\n- `Bytecode` must be non-empty and within the protocol ceiling in `preflight`,\n  and within the voted `BytecodeSizeLimit` in `preclaim`. It is refused with\n  `tefTEMP_DISABLED` when fee voting has zeroed `GasLimit` or\n  `BytecodeSizeLimit`, and with `tefEXCEEDS_LIMIT` when it exceeds the voted\n  `BytecodeSizeLimit`.\n- The owner reserve is one increment per started 500 bytes of bytecode. After\n  an XRP escrow locks its funds, the owner must still hold that full reserve.\n  `EscrowCancel` and `EscrowFinish` refund what was taken, and sponsorship moves\n  the full weight.\n\n`EscrowFinish`\n\n- `Gas` is bounded by the protocol ceiling in `preflight` and by the voted\n  `GasLimit` in `preclaim`, and costs `GasPrice` micro-drops each, rounded up to\n  the drop. A zeroed `GasLimit` refuses it with `tefTEMP_DISABLED`, and `Gas`\n  over the voted `GasLimit` with `tefEXCEEDS_LIMIT`.\n- `Gas` and the escrow's `Bytecode` must both be present or both absent\n  (`tefBYTECODE_NOT_INCLUDED` / `tefNO_BYTECODE`).\n- The `tecNO_DST` and deposit-preauth checks move ahead of the condition check,\n  so a contract never runs against a destination that cannot receive.\n\n## API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n`EscrowCreate` accepts `Bytecode` and `Data`; `EscrowFinish` accepts `Gas`; the\n`Escrow` ledger entry carries `Bytecode` and `Data`. All only once the amendment\nis enabled. The fields themselves were added in #8157.\n\n## Test Plan\n\nNew `EscrowSmart_test` covers everything that does not need the engine:\namendment gating, every `EscrowCreate` malformity, the fee formula, the reserve\nsizing across the 500-byte boundary, insufficient reserve, the on-ledger fields,\nthe `EscrowFinish` gas bounds and `Bytecode`/`Gas` pairing, fee overflow, and\nthe reserve refund on cancel. Limits are set through fee voting, not local\nconfig. `Escrow_test` gains `- featureSmartEscrow` legs. `Sponsor_test` and\n`InvariantsMisc_test` cover sponsoring a bytecode escrow.\n\nFull suite on this branch: 257 suites, 4974 cases, 1,295,773 tests, 0 failures.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:mvadari/smart-escrow-escrow-tx",
-   "additions": 1375,
-   "deletions": 41,
-   "changedFiles": 14,
-   "commits": 3,
-   "reviewComments": 24,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-05T18:04:28Z",
-     "body": "Gas fee calculation formula incorrect — see inline."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-05T20:00:35Z",
-     "body": "Focused review of the Smart Escrow transactor changes (EscrowCreate/EscrowFinish/EscrowHelpers/SponsorHelpers) plus the new test suite. The reserve-sizing math (`calculateAdditionalReserve`), the amendment gating, the Bytecode/Data/Gas validation ordering, and the reserve refund wiring all check out against the stated spec and are exercised consistently by the new tests. One concrete correctness bug found in the Gas fee calculation's rounding logic."
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-05T20:06:12Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-10-06T14:44:03Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-10-06T14:50:51Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-10-06T14:51:18Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-10-06T14:53:27Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-06T15:49:11Z",
-     "body": ""
-    },
-    {
-     "author": "kuznetsss",
-     "state": "COMMENTED",
-     "date": "2026-10-06T15:55:26Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-12T19:22:41Z",
-     "body": "This is a well-structured, heavily-tested change implementing the Smart Escrow Bytecode/Data/Gas transaction logic. The fee/reserve math, amendment gating, and check reordering (tecNO_DST + deposit-preauth ahead of the condition check) all look correct and are backed by extensive new tests. I found one latent robustness bug in a new test helper that isn't triggered by current call sites but would blow up if ever used with a small size argument."
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:13:15Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:13:16Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T20:13:18Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-13T17:03:32Z",
-     "body": "This is a well-structured and carefully tested PR implementing the Smart Escrow transactor behavior (Bytecode/Data/Gas handling) gated behind featureSmartEscrow. The reserve/fee calculations, amendment gating, and ordering of checks (tecNO_DST/preauth before condition check) all look internally consistent and match the PR description. I found one latent correctness issue in a shared test helper that could cause a crash if ever reused with a small size argument, though it isn't triggered by any call site in this diff."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-14T18:46:14Z",
-     "body": "This is a well-structured, feature-gated change (featureSmartEscrow) that threads Bytecode/Data/Gas handling through EscrowCreate/EscrowFinish's preflight/preclaim/doApply, plus the matching reserve/fee math in EscrowCancel, SponsorHelpers, and the invariant/sponsor tests. I traced the reserve math (calculateAdditionalReserve), the fee formulas, the reordering of tecNO_DST/deposit-preauth ahead of the condition check under the new amendment, and the Bytecode/Gas pairing checks (tefBYTECODE_NOT_INCLUDED/tefNO_BYTECODE) against the PR description and tests, and found the production code logically consistent — both branches of the owner-count increase/decrease (sponsored vs. recycleReserve) were updated symmetrically, and the pre-existing behavior is preserved when featureSmartEscrow is disabled. The only issue worth flagging is a latent (currently untriggered) integer-underflow in a new test helper."
-    },
-    {
-     "author": "pwang200",
-     "state": "DISMISSED",
-     "date": "2026-10-14T21:22:57Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-15T15:22:41Z",
-     "body": "This is a well-scoped, carefully gated addition of Smart Escrow's Bytecode/Data/Gas fields, consistent with the stated amendment-gating and reserve/fee design. I traced preflight/preclaim/doApply for EscrowCreate, EscrowCancel, and EscrowFinish, the new reserve-sizing helper, and the TER code renumbering, and did not find concrete correctness bugs in the added lines — the reserve math, fee formulas, and tef/tem classification all line up with the described semantics and are exercised by the new tests. One behavioral nuance worth a second look is flagged below; everything else is solid."
-    },
-    {
-     "author": "kuznetsss",
-     "state": "DISMISSED",
-     "date": "2026-10-15T15:36:37Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-15T15:37:29Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-15T15:37:30Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-15T15:37:32Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-15T15:37:34Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-15T15:37:36Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-15T15:37:37Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-15T18:04:28Z",
-     "body": "This is a well-contained amendment-gated feature addition (Bytecode/Data/Gas handling for EscrowCreate/EscrowFinish). The reserve/fee math, the create/finish preflight-preclaim ordering, and the duplicate decreaseOwnerCountForObject call sites are all consistently updated to use calculateAdditionalReserve instead of a hardcoded 1, with no missed instances found. The one notable issue found is in the new test helper bytecodeOfSize, which can underflow for small sizes."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-15T18:23:17Z",
-     "body": "### 🔵 Needs a closer look\n\nConsensus-sensitive changes to fees, reserve accounting, and transaction-result precedence warrant final human review.\n\n<details open>\n<summary><strong>1 open finding</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Add fractional fee rounding regression test](https://github.com/XRPLF/rippled/pull/8215#discussion_r4286730257) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds amendment-gated Smart Escrow field handling on top of the protocol fields and fee-voting changes. WASM execution remains deferred.\n\n**Changes:**\n- Validates Bytecode, Data, and Gas and calculates storage and execution fees.\n- Scales escrow reserves and sponsorship accounting by bytecode size.\n- Adds validation, fee, reserve, and sponsorship tests.\n\n| File | Description |\n| ---- | ----------- |\n| src/​test/​jtx/​escrow.h | Adds Bytecode, Data, and Gas test helpers. |\n| src/​test/​app/​Sponsor_test.cpp | Tests weighted escrow sponsorship. |\n| src/​test/​app/​invariants/​InvariantsMisc_test.cpp | Tests sponsorship weight invariants. |\n| src/​test/​app/​EscrowSmart_test.cpp | Adds Smart Escrow behavior tests. |\n| src/​test/​app/​Escrow_test.cpp | Extends amendment-disabled coverage. |\n| src/​libxrpl/​tx/​transactors/​escrow/​EscrowFinish.cpp | Adds gas fees, validation, and execution placeholder. |\n| src/​libxrpl/​tx/​transactors/​escrow/​EscrowCreate.cpp | Validates and stores bytecode with scaled fees and reserves. |\n| src/​libxrpl/​tx/​transactors/​escrow/​EscrowCancel.cpp | Releases the full bytecode reserve. |\n| src/​libxrpl/​protocol/​TER.cpp | Updates transaction-result messages. |\n| src/​libxrpl/​ledger/​helpers/​SponsorHelpers.cpp | Accounts for bytecode reserve weight. |\n| include/​xrpl/​tx/​transactors/​escrow/​EscrowCreate.h | Declares custom fee calculation. |\n| include/​xrpl/​protocol/​TER.h | Adds fee-voting failure codes. |\n| include/​xrpl/​protocol/​Protocol.h | Defines the escrow data-size ceiling. |\n| include/​xrpl/​ledger/​helpers/​EscrowHelpers.h | Adds voted-limit and reserve helpers. |\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-15T19:22:39Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-15T19:23:41Z",
-     "body": "This is a well-contained, carefully reasoned change: the Bytecode/Data/Gas handling is consistently gated behind featureSmartEscrow, the fee formulas (10 base fees + 5 drops/byte for Bytecode, gasPrice*Gas rounded up to the drop for Gas) are implemented with correct wide-integer arithmetic to avoid overflow, and the owner-reserve scaling (ceil(size/500)) is threaded consistently through EscrowCreate, EscrowCancel, EscrowFinish, and the Sponsor owner-count helper. The TEM->TEF code move for the 'temporarily disabled' result only touches enum tail positions in both enums, so no other result code is renumbered. The reorder of tecNO_DST/deposit-preauth ahead of the condition check for featureSmartEscrow is implemented as two mutually-exclusive branches guarded by the same feature check, so behavior for non-smart escrows is unchanged, and the new WASM-less 'tecFAILED_PROCESSING' stop happens before any state mutation, matching the test expectations that the escrow and its reserve survive. I did not find a correctness, security, or resource-leak issue in the added/changed lines that I'm confident about; the few duplicated-check patterns (e.g., the two near-identical tecNO_DST/preauth blocks in EscrowFinish::doApply) are intentional per the PR description and covered by tests, so I'm treating them as acceptable rather than flagging them."
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-15T19:34:10Z",
-     "body": ""
-    },
-    {
-     "author": "pwang200",
-     "state": "APPROVED",
-     "date": "2026-10-15T19:41:03Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-15T19:41:46Z",
-     "body": "### 🔵 Needs a closer look\n\nConsensus-sensitive fee and reserve accounting across amendment combinations warrants final human review.\n\n**0 open findings**\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Add fractional fee rounding regression test](https://github.com/XRPLF/rippled/pull/8215#discussion_r4286730257)\n</details>\n\n🧠 **Review effort:** Balanced"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-10-05T18:04:28Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "Gas fee uses floor+1 instead of true ceiling, overcharging when evenly divisible:\n\n```suggestion:-1+0\n        uint64_t const allowanceFee =\n            (((*allowance) * view.fees().gasPrice) + microDropsPerDrop - 1) / microDropsPerDrop;\n```\n\n```suggestion\n            (((*allowance) * view.fees().gasPrice) + microDropsPerDrop - 1) / microDropsPerDrop;\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4187171122"
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "date": "2026-10-05T20:06:12Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "⚪ **Severity: LOW**\n\nThe gas fee formula uses `x / d + 1` instead of proper ceiling division `(x + d - 1) / d`. This **always** adds 1 extra drop, even when `gas * gasPrice` is exactly divisible by `microDropsPerDrop`. Users are systematically overcharged by 1 drop on every Gas-bearing `EscrowFinish`.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Replace the incorrect `x / d + 1` formula with proper ceiling division `(x + d - 1) / d`. The current formula unconditionally adds 1 drop even when the division is exact, overcharging users by 1 drop. Update the comment on line 159 as well to reflect the corrected approach.\n\n> **⚠️ Experimental Feature**: This code suggestion is automatically generated. Please review carefully.\n\n```suggestion\n        // Integer math rounds down by default, so we use ceiling division.\n        uint64_t const allowanceFee =\n            (((*allowance) * view.fees().gasPrice) + microDropsPerDrop - 1) / microDropsPerDrop;\n```\n\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4188231754"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-10-06T14:44:03Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
-     "body": "The comment doesn't appear to match the calculation?",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196707971"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-10-06T14:44:36Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "Why not to make them as methods of `Fees`?",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196714104"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-10-06T14:48:07Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "Would be good to add test for this edge case or add an assert and exclude it from code coverage if it is unreachable",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196753220"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-10-06T14:50:51Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "What do you think about this?",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196782308"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-10-06T14:51:18Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "nit:\n```suggestion\n    if (auto const allowance = tx[~sfGas]; allowance)\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196787250"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-10-06T14:53:27Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "Are we ready to address this TODO?  Should a ticket be created?",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196810392"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-06T15:00:40Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "This TODO is addressed by the whole WASM engine integration, so to keep this PR simple it was left out. Otherwise this PR basically just becomes #6329.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196897879"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-10-06T15:21:16Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
-     "body": "`tem` code may be not the best choice here. Because if `preclaim()` returns `tem` code the transaction will be marked as `BAD` in `HashRouter` and it will be skipped from processing for the hold time (300 seconds by default). But the result of `preclaim()` depends on fees which could be different from ledger to ledger. So if `preclaim()` failed in the current ledger, it could be successful for the next one but it will not be recalculated because of the `tem` code. `tef` code could be a better choice here because it doesn't cause an update of transaction's hash in `HashRouter`.\nAnd the same for `EscrowFinish::preclaim()`.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4197135856"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-10-06T15:45:10Z",
-     "path": "src/test/jtx/escrow.h",
-     "body": "```suggestion\n    explicit Gas(std::uint32_t const value) : value_(value)\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4197412294"
-    },
-    {
-     "author": "kuznetsss",
-     "date": "2026-10-06T15:47:13Z",
-     "path": "src/test/jtx/escrow.h",
-     "body": "`Bytecode` and `Data` duplicate each other. The code could be probably reused by adding a template parameter:\n```cpp\ntemplate <SF_VL const& Field>\nstruct HexBlobField\n{\nprivate:\n    std::string value_;\n\npublic:\n...\n    void\n    operator()(Env&, JTx& jt) const\n    {\n        jt.jv[Field.jsonName] = value_;\n    }\n};\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4197433589"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:13:14Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "Agreed, switched to a true ceiling in d37982f.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4251941095"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:13:16Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
-     "body": "Reworded in d37982f: one base fee comes from `Transactor::calculateBaseFee`, and this adds the other nine.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4251941303"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T20:13:18Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "Done in d37982f. Widened at the multiply, since `Gas` and `GasPrice` are both 32-bit and the product can overflow.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4251941497"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-15T15:37:29Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "Fixed in d37982f.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285065847"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-15T15:37:30Z",
-     "path": "src/test/jtx/escrow.h",
-     "body": "Done in 10659b4.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285066121"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-15T15:37:32Z",
-     "path": "src/test/jtx/escrow.h",
-     "body": "Done in 10659b4, as `HexBlobField`.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285066443"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-15T15:37:34Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "Marked it `UNREACHABLE` and excluded it from coverage in 10659b4. An escrow can never carry empty `Bytecode`, because create refuses it.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285066798"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-15T15:37:36Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "`Fees` only carries the settings; what a zero means is Smart Escrow policy, so it stays with the escrow helpers.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285067115"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-15T15:37:37Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
-     "body": "Good catch, confirmed: a `tem` from preclaim marks the transaction `BAD` in the `HashRouter`. Changed in 10659b4: `temTEMP_DISABLED` is now `tefTEMP_DISABLED`, and the voted-limit checks in `EscrowCreate` and `EscrowFinish` return a new `tefEXCEEDS_LIMIT`.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285067368"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-15T18:23:17Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "The fee tests use GasPrice = 1,000,000, so they do not exercise fractional-drop rounding. Rounding down or charging one drop per gas would still pass. Add a regression case in EscrowSmart_test.cpp that votes GasPrice = 1, confirms the voted value, and finishes with Gas = 2: the base fee alone should return telINSUF_FEE_P, while base + 1 drop should reach tecFAILED_PROCESSING. This distinguishes ceiling division from both incorrect alternatives.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4286730257"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-15T19:22:39Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "Added in e2c7b79: votes `GasPrice = 1` and finishes with `Gas = 2`; the base fee alone is refused, and base + 1 drop is accepted.",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4287328958"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-15T19:34:10Z",
-     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
-     "body": "[`e2c7b79` (this PR)](https://github.com/XRPLF/rippled/pull/8215/commits/e2c7b79db47b2d07a7987aa975c13cc5480fd1a8)",
-     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4287442383"
-    }
-   ]
-  },
-  {
    "number": 6329,
    "title": "feat: Smart Escrows (XLS-100)",
    "url": "https://github.com/XRPLF/rippled/pull/6329",
    "state": "open",
    "author": "mvadari",
    "createdAt": "2026-02-04T23:44:48Z",
-   "updatedAt": "2026-10-15T17:32:37Z",
+   "updatedAt": "2026-10-16T15:37:52Z",
    "closedAt": null,
    "labels": [
     "PR: has conflicts"
@@ -591,10 +190,10 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:ripple/smart-escrow",
-   "additions": 46363,
-   "deletions": 267,
-   "changedFiles": 416,
-   "commits": 778,
+   "additions": 46719,
+   "deletions": 263,
+   "changedFiles": 419,
+   "commits": 780,
    "reviewComments": 71,
    "reviews": [
     {
@@ -1040,6 +639,12 @@
      "state": "COMMENTED",
      "date": "2026-10-15T16:35:36Z",
      "body": "Ceiling division bug causes systematic 1-drop overcharge — see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-16T15:37:52Z",
+     "body": "This portion of the diff adds new Rust test/tooling crates (xrpl-wasm-testkit, xrpl-wasm-vm-ffi) and a host-error round-trip test suite. The code is test-only or build-script scaffolding, well-documented, and I didn't find concrete correctness, security, or infrastructure bugs in the added lines. No issues worth flagging in this chunk."
     }
    ],
    "reviewCommentsList": [
@@ -1539,6 +1144,414 @@
      "path": "crates/xrpl-wasm-vm/src/vm.rs",
      "body": "🟡 **Severity: MEDIUM**\n\n`LazyTranslation` defers function-body translation until first call, charging 7 fuel/byte from the guest's gas. However, validation at compile time walks the entire module without metering, and runs twice per escrow finish — once in `preflightEscrowWasm` and once in `runEscrowWasm`. A 200KB adversarial module forces ~400KB of unmetered validation work on every validator that processes the transaction, with no gas or fee proportional to this CPU cost.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** This is a resource accounting gap where WASM module validation during `Module::new()` runs without fuel metering, and happens twice per escrow transaction (once in `check`/preflight and once in `run`). Several mitigations should be considered:\n\n1. **Add an explicit WASM bytecode size cap in the `compile()` function** (line 310-312 in vm.rs) before calling `Module::new()`. This would bound the unmetered validation work. For example, add a check like `if wasm.len() > MAX_WASM_BYTES { return Err(...) }` with a constant tighter than the 1MB transaction size limit.\n\n2. **Cache the compiled `Module`** between the preflight check and the run phase to avoid double validation/compilation. Currently `check()` in `preflight/mod.rs` (line 77) calls `compile(&wasm_engine(), wasm)` and discards the module, then `run()` in `vm.rs` (line 323) compiles it again. Passing the already-compiled module from preflight to run would halve the unmetered work.\n\n3. **Ensure the transaction fee is proportional to WASM size**, not just the gas allowance, so that the cost of unmetered validation is covered by the fee charged to the submitter.\n\nThe simplest immediate mitigation is option (1): adding a WASM size cap in `compile()` before `Module::new()` is called.\n\n</details>",
      "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4261113352"
+    }
+   ]
+  },
+  {
+   "number": 8215,
+   "title": "feat: Handle Smart Escrow's Bytecode, Data and Gas fields",
+   "url": "https://github.com/XRPLF/rippled/pull/8215",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2026-09-10T20:27:06Z",
+   "updatedAt": "2026-10-16T13:37:37Z",
+   "closedAt": "2026-10-16T13:37:35Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-05T16:54:41Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8215?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `98.37398%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8215?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8215?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvZXNjcm93L0VzY3Jvd0ZpbmlzaC5jcHA=) | 96.9% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8215?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#issuecomment-5999078681"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-15T16:30:42Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#issuecomment-6197060766"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-15T18:01:44Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#issuecomment-6198820103"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds the transaction handling for `EscrowCreate.Bytecode` / `EscrowCreate.Data`\nand `EscrowFinish.Gas`, gated on `featureSmartEscrow`: the validation rules, the\nfee a contract costs to store, and the owner reserve it occupies.\n\n**Nothing in this PR runs the bytecode.** The WASM engine is not on `develop`,\nso `EscrowFinish` stops at a `TODO` where the contract would run and reports\n`tecFAILED_PROCESSING`.\n\nExtracted from the `ripple/smart-escrow` feature branch; this is the escrow half\nof #6329, which is left holding the WASM engine alone.\n\nStacked on #8214. Retarget to `develop` once that merges.\n\n## Context of Change\n\n#8157 landed the fields and result codes; #8214 landed the fee settings that\nbound a contract. This PR is the transactor behavior: `Bytecode` joins\n`FinishAfter` and `Condition` as a way of saying how an escrow completes, priced\nat ten base fees plus five drops per byte and reserved at one owner increment\nper 500 bytes.\n\nDeliberately absent, so that nothing lands as unreachable code — these arrive\nwith the WASM engine:\n\n- Screening the module in `preclaim` (that it compiles, and imports and exports\n  what the engine can serve). Until then any blob of the right size is accepted\n  onto the ledger.\n- Running the contract, `tecBYTECODE_REJECTED`, and the `Data` a rejected\n  contract leaves behind.\n- The `GasUsed` and `VMReturnCode` metadata, and the `Transactor` replay path\n  that preserves a rejected escrow's `Data`.\n\n`featureSmartEscrow` remains `Supported::No`, so no production network can reach\nany of this. The engine PR precedes the `Supported::Yes` flip.\n\n## Before / After\n\n`EscrowCreate`\n\n- `Bytecode` always needs a `CancelAfter`: nothing else can free the funds if\n  the contract never accepts.\n- `Data` requires `Bytecode`, and is capped at `kMaxWasmDataLength` (1 KB).\n- `Bytecode` must be non-empty and within the protocol ceiling in `preflight`,\n  and within the voted `BytecodeSizeLimit` in `preclaim`. It is refused with\n  `tefTEMP_DISABLED` when fee voting has zeroed `GasLimit` or\n  `BytecodeSizeLimit`, and with `tefEXCEEDS_LIMIT` when it exceeds the voted\n  `BytecodeSizeLimit`.\n- The owner reserve is one increment per started 500 bytes of bytecode. After\n  an XRP escrow locks its funds, the owner must still hold that full reserve.\n  `EscrowCancel` and `EscrowFinish` refund what was taken, and sponsorship moves\n  the full weight.\n\n`EscrowFinish`\n\n- `Gas` is bounded by the protocol ceiling in `preflight` and by the voted\n  `GasLimit` in `preclaim`, and costs `GasPrice` micro-drops each, rounded up to\n  the drop. A zeroed `GasLimit` refuses it with `tefTEMP_DISABLED`, and `Gas`\n  over the voted `GasLimit` with `tefEXCEEDS_LIMIT`.\n- `Gas` and the escrow's `Bytecode` must both be present or both absent\n  (`tefBYTECODE_NOT_INCLUDED` / `tefNO_BYTECODE`).\n- The `tecNO_DST` and deposit-preauth checks move ahead of the condition check,\n  so a contract never runs against a destination that cannot receive.\n\n## API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n`EscrowCreate` accepts `Bytecode` and `Data`; `EscrowFinish` accepts `Gas`; the\n`Escrow` ledger entry carries `Bytecode` and `Data`. All only once the amendment\nis enabled. The fields themselves were added in #8157.\n\n## Test Plan\n\nNew `EscrowSmart_test` covers everything that does not need the engine:\namendment gating, every `EscrowCreate` malformity, the fee formula, the reserve\nsizing across the 500-byte boundary, insufficient reserve, the on-ledger fields,\nthe `EscrowFinish` gas bounds and `Bytecode`/`Gas` pairing, fee overflow, and\nthe reserve refund on cancel. Limits are set through fee voting, not local\nconfig. `Escrow_test` gains `- featureSmartEscrow` legs. `Sponsor_test` and\n`InvariantsMisc_test` cover sponsoring a bytecode escrow.\n\nFull suite on this branch: 257 suites, 4974 cases, 1,295,773 tests, 0 failures.",
+   "merged": true,
+   "mergedAt": "2026-10-16T13:37:35Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:mvadari/smart-escrow-escrow-tx",
+   "additions": 1375,
+   "deletions": 41,
+   "changedFiles": 14,
+   "commits": 3,
+   "reviewComments": 24,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-05T18:04:28Z",
+     "body": "Gas fee calculation formula incorrect — see inline."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-05T20:00:35Z",
+     "body": "Focused review of the Smart Escrow transactor changes (EscrowCreate/EscrowFinish/EscrowHelpers/SponsorHelpers) plus the new test suite. The reserve-sizing math (`calculateAdditionalReserve`), the amendment gating, the Bytecode/Data/Gas validation ordering, and the reserve refund wiring all check out against the stated spec and are exercised consistently by the new tests. One concrete correctness bug found in the Gas fee calculation's rounding logic."
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-05T20:06:12Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-06T14:44:03Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-06T14:50:51Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-06T14:51:18Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-06T14:53:27Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-06T15:49:11Z",
+     "body": ""
+    },
+    {
+     "author": "kuznetsss",
+     "state": "COMMENTED",
+     "date": "2026-10-06T15:55:26Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-12T19:22:41Z",
+     "body": "This is a well-structured, heavily-tested change implementing the Smart Escrow Bytecode/Data/Gas transaction logic. The fee/reserve math, amendment gating, and check reordering (tecNO_DST + deposit-preauth ahead of the condition check) all look correct and are backed by extensive new tests. I found one latent robustness bug in a new test helper that isn't triggered by current call sites but would blow up if ever used with a small size argument."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:13:15Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:13:16Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T20:13:18Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-13T17:03:32Z",
+     "body": "This is a well-structured and carefully tested PR implementing the Smart Escrow transactor behavior (Bytecode/Data/Gas handling) gated behind featureSmartEscrow. The reserve/fee calculations, amendment gating, and ordering of checks (tecNO_DST/preauth before condition check) all look internally consistent and match the PR description. I found one latent correctness issue in a shared test helper that could cause a crash if ever reused with a small size argument, though it isn't triggered by any call site in this diff."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-14T18:46:14Z",
+     "body": "This is a well-structured, feature-gated change (featureSmartEscrow) that threads Bytecode/Data/Gas handling through EscrowCreate/EscrowFinish's preflight/preclaim/doApply, plus the matching reserve/fee math in EscrowCancel, SponsorHelpers, and the invariant/sponsor tests. I traced the reserve math (calculateAdditionalReserve), the fee formulas, the reordering of tecNO_DST/deposit-preauth ahead of the condition check under the new amendment, and the Bytecode/Gas pairing checks (tefBYTECODE_NOT_INCLUDED/tefNO_BYTECODE) against the PR description and tests, and found the production code logically consistent — both branches of the owner-count increase/decrease (sponsored vs. recycleReserve) were updated symmetrically, and the pre-existing behavior is preserved when featureSmartEscrow is disabled. The only issue worth flagging is a latent (currently untriggered) integer-underflow in a new test helper."
+    },
+    {
+     "author": "pwang200",
+     "state": "DISMISSED",
+     "date": "2026-10-14T21:22:57Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-15T15:22:41Z",
+     "body": "This is a well-scoped, carefully gated addition of Smart Escrow's Bytecode/Data/Gas fields, consistent with the stated amendment-gating and reserve/fee design. I traced preflight/preclaim/doApply for EscrowCreate, EscrowCancel, and EscrowFinish, the new reserve-sizing helper, and the TER code renumbering, and did not find concrete correctness bugs in the added lines — the reserve math, fee formulas, and tef/tem classification all line up with the described semantics and are exercised by the new tests. One behavioral nuance worth a second look is flagged below; everything else is solid."
+    },
+    {
+     "author": "kuznetsss",
+     "state": "DISMISSED",
+     "date": "2026-10-15T15:36:37Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-15T15:37:29Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-15T15:37:30Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-15T15:37:32Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-15T15:37:34Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-15T15:37:36Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-15T15:37:37Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-15T18:04:28Z",
+     "body": "This is a well-contained amendment-gated feature addition (Bytecode/Data/Gas handling for EscrowCreate/EscrowFinish). The reserve/fee math, the create/finish preflight-preclaim ordering, and the duplicate decreaseOwnerCountForObject call sites are all consistently updated to use calculateAdditionalReserve instead of a hardcoded 1, with no missed instances found. The one notable issue found is in the new test helper bytecodeOfSize, which can underflow for small sizes."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-15T18:23:17Z",
+     "body": "### 🔵 Needs a closer look\n\nConsensus-sensitive changes to fees, reserve accounting, and transaction-result precedence warrant final human review.\n\n<details open>\n<summary><strong>1 open finding</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Add fractional fee rounding regression test](https://github.com/XRPLF/rippled/pull/8215#discussion_r4286730257) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds amendment-gated Smart Escrow field handling on top of the protocol fields and fee-voting changes. WASM execution remains deferred.\n\n**Changes:**\n- Validates Bytecode, Data, and Gas and calculates storage and execution fees.\n- Scales escrow reserves and sponsorship accounting by bytecode size.\n- Adds validation, fee, reserve, and sponsorship tests.\n\n| File | Description |\n| ---- | ----------- |\n| src/​test/​jtx/​escrow.h | Adds Bytecode, Data, and Gas test helpers. |\n| src/​test/​app/​Sponsor_test.cpp | Tests weighted escrow sponsorship. |\n| src/​test/​app/​invariants/​InvariantsMisc_test.cpp | Tests sponsorship weight invariants. |\n| src/​test/​app/​EscrowSmart_test.cpp | Adds Smart Escrow behavior tests. |\n| src/​test/​app/​Escrow_test.cpp | Extends amendment-disabled coverage. |\n| src/​libxrpl/​tx/​transactors/​escrow/​EscrowFinish.cpp | Adds gas fees, validation, and execution placeholder. |\n| src/​libxrpl/​tx/​transactors/​escrow/​EscrowCreate.cpp | Validates and stores bytecode with scaled fees and reserves. |\n| src/​libxrpl/​tx/​transactors/​escrow/​EscrowCancel.cpp | Releases the full bytecode reserve. |\n| src/​libxrpl/​protocol/​TER.cpp | Updates transaction-result messages. |\n| src/​libxrpl/​ledger/​helpers/​SponsorHelpers.cpp | Accounts for bytecode reserve weight. |\n| include/​xrpl/​tx/​transactors/​escrow/​EscrowCreate.h | Declares custom fee calculation. |\n| include/​xrpl/​protocol/​TER.h | Adds fee-voting failure codes. |\n| include/​xrpl/​protocol/​Protocol.h | Defines the escrow data-size ceiling. |\n| include/​xrpl/​ledger/​helpers/​EscrowHelpers.h | Adds voted-limit and reserve helpers. |\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-15T19:22:39Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-15T19:23:41Z",
+     "body": "This is a well-contained, carefully reasoned change: the Bytecode/Data/Gas handling is consistently gated behind featureSmartEscrow, the fee formulas (10 base fees + 5 drops/byte for Bytecode, gasPrice*Gas rounded up to the drop for Gas) are implemented with correct wide-integer arithmetic to avoid overflow, and the owner-reserve scaling (ceil(size/500)) is threaded consistently through EscrowCreate, EscrowCancel, EscrowFinish, and the Sponsor owner-count helper. The TEM->TEF code move for the 'temporarily disabled' result only touches enum tail positions in both enums, so no other result code is renumbered. The reorder of tecNO_DST/deposit-preauth ahead of the condition check for featureSmartEscrow is implemented as two mutually-exclusive branches guarded by the same feature check, so behavior for non-smart escrows is unchanged, and the new WASM-less 'tecFAILED_PROCESSING' stop happens before any state mutation, matching the test expectations that the escrow and its reserve survive. I did not find a correctness, security, or resource-leak issue in the added/changed lines that I'm confident about; the few duplicated-check patterns (e.g., the two near-identical tecNO_DST/preauth blocks in EscrowFinish::doApply) are intentional per the PR description and covered by tests, so I'm treating them as acceptable rather than flagging them."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-15T19:34:10Z",
+     "body": ""
+    },
+    {
+     "author": "pwang200",
+     "state": "APPROVED",
+     "date": "2026-10-15T19:41:03Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-15T19:41:46Z",
+     "body": "### 🔵 Needs a closer look\n\nConsensus-sensitive fee and reserve accounting across amendment combinations warrants final human review.\n\n**0 open findings**\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Add fractional fee rounding regression test](https://github.com/XRPLF/rippled/pull/8215#discussion_r4286730257)\n</details>\n\n🧠 **Review effort:** Balanced"
+    },
+    {
+     "author": "kuznetsss",
+     "state": "APPROVED",
+     "date": "2026-10-16T10:38:05Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-05T18:04:28Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "Gas fee uses floor+1 instead of true ceiling, overcharging when evenly divisible:\n\n```suggestion:-1+0\n        uint64_t const allowanceFee =\n            (((*allowance) * view.fees().gasPrice) + microDropsPerDrop - 1) / microDropsPerDrop;\n```\n\n```suggestion\n            (((*allowance) * view.fees().gasPrice) + microDropsPerDrop - 1) / microDropsPerDrop;\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4187171122"
+    },
+    {
+     "author": "depthfirst-app[bot]",
+     "date": "2026-10-05T20:06:12Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "⚪ **Severity: LOW**\n\nThe gas fee formula uses `x / d + 1` instead of proper ceiling division `(x + d - 1) / d`. This **always** adds 1 extra drop, even when `gas * gasPrice` is exactly divisible by `microDropsPerDrop`. Users are systematically overcharged by 1 drop on every Gas-bearing `EscrowFinish`.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Replace the incorrect `x / d + 1` formula with proper ceiling division `(x + d - 1) / d`. The current formula unconditionally adds 1 drop even when the division is exact, overcharging users by 1 drop. Update the comment on line 159 as well to reflect the corrected approach.\n\n> **⚠️ Experimental Feature**: This code suggestion is automatically generated. Please review carefully.\n\n```suggestion\n        // Integer math rounds down by default, so we use ceiling division.\n        uint64_t const allowanceFee =\n            (((*allowance) * view.fees().gasPrice) + microDropsPerDrop - 1) / microDropsPerDrop;\n```\n\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4188231754"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-06T14:44:03Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "The comment doesn't appear to match the calculation?",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196707971"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-10-06T14:44:36Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "Why not to make them as methods of `Fees`?",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196714104"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-10-06T14:48:07Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "Would be good to add test for this edge case or add an assert and exclude it from code coverage if it is unreachable",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196753220"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-06T14:50:51Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "What do you think about this?",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196782308"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-06T14:51:18Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "nit:\n```suggestion\n    if (auto const allowance = tx[~sfGas]; allowance)\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196787250"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-06T14:53:27Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "Are we ready to address this TODO?  Should a ticket be created?",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196810392"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-06T15:00:40Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "This TODO is addressed by the whole WASM engine integration, so to keep this PR simple it was left out. Otherwise this PR basically just becomes #6329.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4196897879"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-10-06T15:21:16Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "`tem` code may be not the best choice here. Because if `preclaim()` returns `tem` code the transaction will be marked as `BAD` in `HashRouter` and it will be skipped from processing for the hold time (300 seconds by default). But the result of `preclaim()` depends on fees which could be different from ledger to ledger. So if `preclaim()` failed in the current ledger, it could be successful for the next one but it will not be recalculated because of the `tem` code. `tef` code could be a better choice here because it doesn't cause an update of transaction's hash in `HashRouter`.\nAnd the same for `EscrowFinish::preclaim()`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4197135856"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-10-06T15:45:10Z",
+     "path": "src/test/jtx/escrow.h",
+     "body": "```suggestion\n    explicit Gas(std::uint32_t const value) : value_(value)\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4197412294"
+    },
+    {
+     "author": "kuznetsss",
+     "date": "2026-10-06T15:47:13Z",
+     "path": "src/test/jtx/escrow.h",
+     "body": "`Bytecode` and `Data` duplicate each other. The code could be probably reused by adding a template parameter:\n```cpp\ntemplate <SF_VL const& Field>\nstruct HexBlobField\n{\nprivate:\n    std::string value_;\n\npublic:\n...\n    void\n    operator()(Env&, JTx& jt) const\n    {\n        jt.jv[Field.jsonName] = value_;\n    }\n};\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4197433589"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:13:14Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "Agreed, switched to a true ceiling in d37982f.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4251941095"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:13:16Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "Reworded in d37982f: one base fee comes from `Transactor::calculateBaseFee`, and this adds the other nine.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4251941303"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T20:13:18Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "Done in d37982f. Widened at the multiply, since `Gas` and `GasPrice` are both 32-bit and the product can overflow.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4251941497"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-15T15:37:29Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "Fixed in d37982f.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285065847"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-15T15:37:30Z",
+     "path": "src/test/jtx/escrow.h",
+     "body": "Done in 10659b4.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285066121"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-15T15:37:32Z",
+     "path": "src/test/jtx/escrow.h",
+     "body": "Done in 10659b4, as `HexBlobField`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285066443"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-15T15:37:34Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "Marked it `UNREACHABLE` and excluded it from coverage in 10659b4. An escrow can never carry empty `Bytecode`, because create refuses it.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285066798"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-15T15:37:36Z",
+     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
+     "body": "`Fees` only carries the settings; what a zero means is Smart Escrow policy, so it stays with the escrow helpers.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285067115"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-15T15:37:37Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "Good catch, confirmed: a `tem` from preclaim marks the transaction `BAD` in the `HashRouter`. Changed in 10659b4: `temTEMP_DISABLED` is now `tefTEMP_DISABLED`, and the voted-limit checks in `EscrowCreate` and `EscrowFinish` return a new `tefEXCEEDS_LIMIT`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4285067368"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-15T18:23:17Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "The fee tests use GasPrice = 1,000,000, so they do not exercise fractional-drop rounding. Rounding down or charging one drop per gas would still pass. Add a regression case in EscrowSmart_test.cpp that votes GasPrice = 1, confirms the voted value, and finishes with Gas = 2: the base fee alone should return telINSUF_FEE_P, while base + 1 drop should reach tecFAILED_PROCESSING. This distinguishes ceiling division from both incorrect alternatives.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4286730257"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-15T19:22:39Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "Added in e2c7b79: votes `GasPrice = 1` and finishes with `Gas = 2`; the base fee alone is refused, and base + 1 drop is accepted.",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4287328958"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-15T19:34:10Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowFinish.cpp",
+     "body": "[`e2c7b79` (this PR)](https://github.com/XRPLF/rippled/pull/8215/commits/e2c7b79db47b2d07a7987aa975c13cc5480fd1a8)",
+     "url": "https://github.com/XRPLF/rippled/pull/8215#discussion_r4287442383"
     }
    ]
   },
@@ -3339,7 +3352,6 @@
   "dangell7/fix-token-escrow-v2",
   "mvadari/rearch/mptoken-lockEscrowMPT",
   "mvadari/rearch/mptoken-unlockEscrowMPT",
-  "mvadari/smart-escrow-escrow-tx",
   "mvadari/smart-escrow-update-se-fees",
   "ripple/smart-escrow",
   "ripple/smart-escrow2",
