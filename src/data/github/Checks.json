@@ -1,21 +1,21 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-10-18T08:01:33.075Z",
+ "fetchedAt": "2026-10-19T08:01:35.002Z",
  "summary": {
   "status": "in development",
   "prs": 12,
-  "open": 7,
-  "merged": 3,
+  "open": 8,
+  "merged": 2,
   "issues": 0,
   "proposals": 1,
   "branches": [
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-10-17T11:14:25Z",
+  "lastActivity": "2026-10-18T22:18:52Z",
   "lastMerged": "2026-10-09T10:54:21Z",
   "release": "0.90.0",
-  "totalComments": 487
+  "totalComments": 450
  },
  "release": {
   "version": "0.90.0",
@@ -24,6 +24,47 @@
   "excerpt": "The `Checks` amendment, which allows users to create deferred payments that can be cancelled or cashed by their intended recipients."
  },
  "prs": [
+  {
+   "number": 8620,
+   "title": "chore: Simplify `account` and `ident` checks via rpc-spec",
+   "url": "https://github.com/XRPLF/rippled/pull/8620",
+   "state": "open",
+   "author": "godexsoft",
+   "createdAt": "2026-10-18T22:01:04Z",
+   "updatedAt": "2026-10-18T22:18:52Z",
+   "closedAt": null,
+   "labels": [
+    "Trivial"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-18T22:03:56Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8620?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8620#issuecomment-6255705757"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nBumps `xrpl-rpc-spec` to 0.1.29 and simplifies the `account_info` and `account_lines` handlers to match. Handler `Input` types no longer wrap a `std::expected` in a `std::optional`.\n\n## Context of Change\n\n`account_info` used to carry `account` and `ident` as two `std::optional<DeferredAccountId>` members, and `account_lines` carried `peer` as one. Each handler had to check whether the field was present and then whether it decoded (`input.peer->has_value()`, `**input.peer`).\n\nIn 0.1.29, `AccountError` gains `Missing`:\n- `account_info` has one `DeferredAccountId account`. The spec binds both `ident` and `account` to it, and a missing account is still rejected in the spec.\n- `account_lines`' `peer` is a `DeferredAccountId` that defaults to `Missing`. An empty string also counts as `Missing`.\n\nThe handlers now check `has_value()` once. A malformed account is still reported by the handler, after the ledger is resolved and with the ledger fields in the response, as before.\n\nNo behaviour or wire-format change.\n\n## API Impact\n\nNone.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "godexsoft:chore/improve-rpc-spec-api-usage",
+   "additions": 10,
+   "deletions": 14,
+   "changedFiles": 4,
+   "commits": 2,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-18T22:18:51Z",
+     "body": "### 🔵 Needs a closer look\n\nExternal parser compatibility and the additional `secp256k1` recipe revision remain unverified.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nUpdates account RPC handlers to use the simplified deferred account types in `xrpl-rpc-spec` 0.1.29, with no intended wire-format change.\n\n**Changes:**\n- Uses one account field for `account_info` and simplifies optional peer handling in `account_lines`.\n- Updates the RPC specification dependency and lockfile, including a separate `secp256k1` recipe revision.\n\n| File | Description |\n| ---- | ----------- |\n| src/​xrpld/​rpc/​handlers/​account/​AccountLines.cpp | Simplifies peer validation using `AccountError::Malformed`. |\n| src/​xrpld/​rpc/​handlers/​account/​AccountInfo.cpp | Uses the unified account input directly. |\n| conanfile.py | Bumps `xrpl-rpc-spec` to 0.1.29. |\n| conan.lock | Locks the updated RPC spec and `secp256k1` recipe revisions. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    }
+   ],
+   "reviewCommentsList": []
+  },
   {
    "number": 8543,
    "title": "chore: Fix less frequent clang-tidy v23 checks",
@@ -3217,277 +3258,6 @@
      "path": "src/test/app/Invariants_test.cpp",
      "body": "You could initialize `oracleKeylet` with bogus values\n```\nKeylet oracleKeylet{ltAny, beast::kZero};\n```\n(Edit: Because I was confused at first, and having a clearly bogus value will avoid that.)",
      "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3456151692"
-    }
-   ]
-  },
-  {
-   "number": 7977,
-   "title": "fix: Tighten destination checks on vault withdrawal",
-   "url": "https://github.com/XRPLF/rippled/pull/7977",
-   "state": "closed",
-   "author": "tyalymov",
-   "createdAt": "2026-08-07T17:42:24Z",
-   "updatedAt": "2026-08-26T11:01:17Z",
-   "closedAt": "2026-08-24T13:45:34Z",
-   "labels": [
-    "Ready to merge",
-    "feature: LP1.1"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-08-07T18:18:45Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7977?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5220583811"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-12T17:47:28Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5270410914"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-13T12:56:45Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5280707271"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-18T18:38:06Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5332480415"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-19T15:18:36Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5344181807"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-20T16:37:16Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5358864495"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-20T17:20:01Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5359321166"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-08-20T19:08:00Z",
-     "body": "@Tapanito @a1q123456 this needs one of you to approve the most recent commit(s) before it can be merged.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5360476328"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-21T13:13:00Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5370228565"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-08-21T17:05:55Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5372908872"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-08-21T17:43:01Z",
-     "body": "@a1q123456 \n\nCould you please re-review after conflict resolution?",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#issuecomment-5373272921"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nTwo additions to the destination checks in `VaultWithdraw`, both gated behind\n`fixCleanup3_4_0`. A withdrawal out of a private vault to a third party now\nrequires both the submitter and the destination to be members of the vault's\npermissioned domain. A withdrawal to a pseudo-account is refused with\n`tecPSEUDO_ACCOUNT` instead of a misleading `tecNO_PERMISSION`.\n\n### Context of Change\n\n**Permissioned domain.** A private vault restricts who may take part in it, but\n`VaultWithdraw` only ever checked that the destination was allowed to hold the\nunderlying asset, through `requireAuth`. There was no domain check anywhere in\nthe withdrawal path, so a participant could withdraw to an account the domain\nowner never admitted and the funds left the domain. `VaultDeposit` already\napplies the equivalent check on the way in, and both callers now share one\nhelper, `checkVaultDomain`, which reads the domain from the share issuance. The\ncallers differ only in how they treat an expired credential: the deposit path\ntolerates it because `doApply` deletes it, the withdrawal path has no such step\nand keeps the error.\n\nTwo cases deliberately skip the domain check:\n\n- **Withdrawal to self** is never restricted. Losing vault access must not\n  strand funds that were already deposited, so redeeming your own shares stays\n  available regardless of domain membership.\n- **The asset issuer** is always allowed to receive, which keeps the return path\n  for frozen assets open. This exemption covers both parties rather than just\n  the recipient: otherwise a submitter who had lost domain access could not\n  return a frozen asset to its issuer, which is precisely the situation that\n  path exists for. Reviewers may want to look closely at this one, it is the one\n  judgement call in the change rather than a direct reading of the\n  access-control rules.\n\n**Pseudo-accounts.** A pseudo-account is owned by a ledger object and cannot\ntake part in a user-initiated payout, but nothing in `VaultWithdraw` said so.\nThe withdrawal was already refused, because every pseudo-account is created\nwith deposit authorization set, and the resulting `tecNO_PERMISSION` named the\nwrong reason. `LoanBrokerCoverWithdraw` has always returned\n`tecPSEUDO_ACCOUNT` for the same case; `VaultWithdraw` was the odd one out. The\ncheck sits ahead of the domain check so a private vault gives the same answer as\na public one, rather than reporting a pseudo-account as lacking domain\nmembership it can never hold.\n\nPublic vaults, `VaultClawback` and `LoanBrokerCoverWithdraw` are unaffected by\nthe domain check. `VaultClawback` sends to the issuer through a separate path\nand does not use `sfDestination` at all.\n\n### API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nConsensus-affecting: a withdrawal that succeeds today can return `tecNO_AUTH`\nonce `fixCleanup3_4_0` is enabled, and one that fails with `tecNO_PERMISSION`\ncan return `tecPSEUDO_ACCOUNT` instead. Behavior is unchanged while the\namendment is off.\n\n## Test Plan\n\nTwo tests in `src/test/app/Vault_test.cpp`, each run twice, with and without\n`fixCleanup3_4_0`. Every account in them holds the asset, so anything blocked is\nblocked by the check under test alone.\n\n`testVaultWithdrawPrivateDestinationDomain` covers: destination inside the\ndomain; destination outside it; destination is the issuer; destination is the\nvault owner; withdrawal to self with and without an explicit `Destination`; a\nsubmitter who lost domain access withdrawing to self, to a domain member, and to\nthe issuer; a private vault whose domain has been cleared; and a public vault\npaying out to a non-member.\n\n`testVaultWithdrawPseudoAccountDestination` withdraws to another vault's\npseudo-account out of both a public and a private vault, and confirms that\nwithdrawal to self out of the same vault is untouched.",
-   "merged": true,
-   "mergedAt": "2026-08-24T13:45:33Z",
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:tialymov/FN-69-withdraw_destination_domain_check",
-   "additions": 418,
-   "deletions": 20,
-   "changedFiles": 6,
-   "commits": 19,
-   "reviewComments": 6,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-07T17:44:13Z",
-     "body": "The change adds a permissioned-domain check to VaultWithdraw::preclaim, gated behind fixCleanup3_4_0, mirroring VaultDeposit's existing domain check. The logic is sound: it correctly skips the check for self-withdrawals and for payouts to the asset issuer (with the exemption bypassing both parties' domain checks, as explicitly justified in the MR description for the frozen-asset-return case), reads the domain from the share issuance for consistency with VaultDeposit, and returns tecNO_AUTH when a private vault has no domain configured. The new test covers destination inside/outside the domain, the issuer, the vault owner, self-withdrawal (implicit and explicit), a submitter who lost domain access, and confirms public vaults are unaffected. I did not find correctness, security, or resource-management issues in the added code — no gaps in the pattern were found elsewhere in the diff (VaultClawback/LoanBrokerCoverWithdraw are explicitly and correctly out of scope per the description)."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-07T17:52:20Z",
-     "body": "Solid, well-scoped change: adds a permissioned-domain check to VaultWithdraw on the way out, gated behind fixCleanup3_4_0, mirroring the existing VaultDeposit check. The self-withdrawal and issuer-recipient exemptions are implemented consistently with the description, and the new test covers the described matrix (domain member, non-member, issuer, owner, self, and a submitter who lost domain access) plus a public-vault control case. Only one edge case caught my eye and is called out below for confirmation rather than as a confirmed bug; everything else in the diff looks correct."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-10T11:38:25Z",
-     "body": "The change adds a permissioned-domain check to VaultWithdraw for private vaults, mirroring VaultDeposit's existing check and gated behind fixCleanup3_4_0. The logic (skip check for self-withdrawal and for issuer-as-destination, error on missing domain, validate both submitter and destination) is coherent and matches the description, and is well covered by the new test cases (domain member, outsider, issuer, vault owner, self-withdrawal, and a submitter who lost domain access). I did not find clear correctness or security bugs in the diff."
-    },
-    {
-     "author": "Tapanito",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-08-11T13:09:33Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-12T12:23:49Z",
-     "body": "The change adds a domain-membership check to VaultWithdraw for private vaults, gated by fixCleanup3_4_0, mirroring the existing VaultDeposit logic. The exemptions for self-withdrawal and issuer-as-destination are correctly implemented in the guard condition (dstAcct != account && dstAcct != vaultAsset.getIssuer()), and both exemptions apply symmetrically as described. The new test covers the described cases (domain member, non-member, issuer, owner, self, and post-revocation submitter) and the expected Ter codes line up with the intended semantics for both the amendment-on and amendment-off runs. I did not find a concrete correctness or security bug in the added code; the one deliberate design nuance the author calls out (exempting both parties when the destination is the issuer) is implemented as documented."
-    },
-    {
-     "author": "a1q123456",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-08-12T13:54:26Z",
-     "body": "Left a suggestion."
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-08-12T14:18:01Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-12T14:19:36Z",
-     "body": "Well-scoped, carefully reasoned change: a shared checkVaultDomain helper now enforces permissioned-domain membership for private-vault withdrawals to third parties (skipping self-withdrawals and the asset issuer, as explicitly justified), and pseudo-account destinations are now rejected with the more accurate tecPSEUDO_ACCOUNT ahead of the domain check. I traced the guard conditions (dstAcct != account, dstAcct != vaultAsset.getIssuer(), SuppressExpired::No vs Yes) against the description and the added tests and found them internally consistent: self-withdrawal and issuer-destination both correctly bypass the new domain checks entirely (for both submitter and destination), matching the stated intent that the issuer exemption 'covers both parties.' The VaultDeposit refactor to use checkVaultDomain is a faithful behavior-preserving extraction. No correctness, security, or resource issues found in the changed lines; the amendment gating (fixCleanup3_4_0) is applied consistently so pre-amendment behavior is unchanged."
-    },
-    {
-     "author": "tyalymov",
-     "state": "COMMENTED",
-     "date": "2026-08-12T14:34:17Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-12T14:36:11Z",
-     "body": "Well-scoped change adding a shared checkVaultDomain helper used by both VaultDeposit and VaultWithdraw, plus a pseudo-account destination check in VaultWithdraw, all gated behind fixCleanup3_4_0. The logic (self-withdrawal exemption, issuer exemption, expired-credential handling that differs between deposit/withdraw, and check ordering relative to the pseudo-account check) matches the PR description and is backed by thorough new tests covering the domain and pseudo-account edge cases. I did not find any high-confidence correctness or security issues in the added code."
-    },
-    {
-     "author": "Tapanito",
-     "state": "APPROVED",
-     "date": "2026-08-12T15:39:19Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-13T12:59:48Z",
-     "body": "The change adds a domain-membership check and a pseudo-account check to VaultWithdraw's preclaim, both gated behind fixCleanup3_4_0, and factors the shared domain-check logic into a new checkVaultDomain helper reused by VaultDeposit. The refactor of VaultDeposit is a faithful behavior-preserving extraction, and the pseudo-account check correctly precedes the domain check as described. The logic for the two explicitly documented exemptions (self-withdrawal, and destination-is-issuer skipping both parties) matches the implementation. One asymmetry versus VaultDeposit's owner exemption is worth a second look from the author."
-    },
-    {
-     "author": "a1q123456",
-     "state": "APPROVED",
-     "date": "2026-08-14T11:21:18Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-08-17T12:55:54Z",
-     "body": "## Pull request overview\n\nThis PR tightens `VaultWithdraw` destination validation when `fixCleanup3_4_0` is enabled, aligning withdrawal behavior with private-vault permissioned-domain rules and improving the returned error for pseudo-account destinations.\n\n**Changes:**\n- Add permissioned-domain membership checks (submitter + destination) for third-party withdrawals from private vaults, with exemptions for self-withdrawals and withdrawals to the asset issuer.\n- Reject pseudo-account destinations early with `tecPSEUDO_ACCOUNT` (post-fix), instead of surfacing `tecNO_PERMISSION`.\n- Factor domain-validation logic into a shared `checkVaultDomain` helper and add targeted unit tests for both behaviors (pre- and post-fix).\n\n### Reviewed changes\n\nCopilot reviewed 5 out of 5 changed files in this pull request and generated 1 comment.\n\n<details>\n<summary>Show a summary per file</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/test/app/Vault_test.cpp | Adds regression tests for private-vault domain enforcement and pseudo-account destination errors, run with and without `fixCleanup3_4_0`. |\n| src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp | Implements pseudo-account destination rejection and private-vault domain checks in `preclaim` when `fixCleanup3_4_0` is enabled. |\n| src/libxrpl/tx/transactors/vault/VaultDeposit.cpp | Refactors private-vault domain membership validation to use the shared helper (while still allowing owner deposit). |\n| src/libxrpl/ledger/helpers/VaultHelpers.cpp | Introduces `checkVaultDomain` helper implementation (including optional suppression of `tecEXPIRED`). |\n| include/xrpl/ledger/helpers/VaultHelpers.h | Declares `checkVaultDomain` and `SuppressExpired` for reuse across transactors. |\n</details>\n\n\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/en/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-19T14:33:27Z",
-     "body": "This is a well-scoped, carefully reasoned change that adds a permissioned-domain check and a pseudo-account destination check to VaultWithdraw, sharing a new checkVaultDomain helper with VaultDeposit. I traced through the added preclaim logic (pseudo-account check placement, the self/issuer exemptions, and the SuppressExpired semantics for both callers) and it matches the stated intent and is exercised by the accompanying tests, which cover the domain-membership matrix (member/outsider/issuer/owner-as-destination, self-withdrawal, expired-credential submitter, domain-cleared vault, and public-vault non-effect) as well as the pseudo-account case for both public and private vaults. I did not find a concrete correctness or security bug in the newly added lines; the one subtlety worth a mental note (the vault owner gets no automatic domain exemption as a *submitter* on withdraw, unlike on deposit) appears to be a deliberate asymmetry consistent with the PR's own framing rather than an oversight, so I'm not flagging it without more confidence."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-08-19T14:33:28Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-19T16:07:25Z",
-     "body": "This is a clean, well-scoped change that adds domain checks to VaultWithdraw and fixes a misleading tec code for pseudo-account destinations, both correctly gated behind fixCleanup3_4_0. The `checkVaultDomain` helper is a good extraction that keeps VaultDeposit and VaultWithdraw consistent, and the self/issuer exemptions are exercised by thorough tests. I only have one open question about the issuer exemption's scope — everything else looks solid."
-    },
-    {
-     "author": "Tapanito",
-     "state": "APPROVED",
-     "date": "2026-08-20T14:49:52Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-20T17:21:42Z",
-     "body": "This MR adds a shared checkVaultDomain helper and uses it to (1) require both submitter and destination to be permissioned-domain members when a private vault withdrawal goes to a third party, and (2) reject withdrawals to pseudo-accounts with tecPSEUDO_ACCOUNT instead of a misleading tecNO_PERMISSION. I traced the new preclaim logic in VaultWithdraw.cpp and VaultHelpers.cpp against the stated design (self-withdrawal exempt, issuer-as-destination exempt for both parties, expired credentials not suppressed on withdrawal since there's no doApply cleanup step, pseudo-account check placed ahead of the domain check) and it matches correctly — the gating conditions (fix340Enabled, lsfVaultPrivate, dstAcct != account, dstAcct != vaultAsset.getIssuer()) are consistent with the documented intent, and the refactored VaultDeposit.cpp call to checkVaultDomain with SuppressExpired::Yes preserves prior behavior. The accompanying tests in VaultDomain_test.cpp and VaultValidation_test.cpp cover the self/issuer/owner/outsider/expired-credential/no-domain/public-vault/pseudo-account permutations described in the test plan, run both with and without the amendment. I did not find any correctness, security, or resource-management issues in the changed lines."
-    },
-    {
-     "author": "Tapanito",
-     "state": "APPROVED",
-     "date": "2026-08-21T08:34:42Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-08-21T17:07:29Z",
-     "body": "This is a well-scoped, carefully implemented change to VaultWithdraw's destination checks, gated entirely behind fixCleanup3_4_0 and backed by a new shared checkVaultDomain helper that VaultDeposit now also uses. I traced through the new domain-check block's self/issuer exemptions, the checkVaultDomain refactor (verifying the tecEXPIRED suppression logic is behaviorally equivalent to the original inline code in VaultDeposit), the pseudo-account check placement (ahead of requireAuth/domain checks, so it preempts the misleading tecNO_PERMISSION), and the accompanying tests. Everything lines up with the stated intent and I did not find a correctness, security, or consistency issue in the changed lines that I'm confident enough to flag."
-    },
-    {
-     "author": "a1q123456",
-     "state": "APPROVED",
-     "date": "2026-08-24T11:33:36Z",
-     "body": "previous concerns have been addressed and the merge looks solid."
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Tapanito",
-     "date": "2026-08-11T13:08:41Z",
-     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
-     "body": "This code is nearly identical to the logic in VaultDeposit. Please consider adding a helper, so that the Vault PD logic can be reused.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3758211426"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-08-12T13:50:05Z",
-     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
-     "body": "It doesn't feel to be too difficult to have a test case asserting that the sleIssuance does not have a domain id gets rejected for `tecNO_AUTH`. Maybe we can modify the domain id before we call env() with this transaction.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3766997937"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-08-12T14:18:01Z",
-     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
-     "body": "Fixed",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3767230959"
-    },
-    {
-     "author": "tyalymov",
-     "date": "2026-08-12T14:34:17Z",
-     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
-     "body": "Fixed",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3767365488"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-08-17T12:55:53Z",
-     "path": "include/xrpl/ledger/helpers/VaultHelpers.h",
-     "body": "The header comment implies that a vault with no domain set has “no authorized participants at all” and that “every subject fails with tecNO_AUTH”. That’s not generally true at the vault level because callers can (and do) exempt certain roles (e.g., VaultDeposit bypasses the check for the vault owner). Consider rewording to describe the helper’s behavior more precisely: for any subject the caller chooses to check, absence of sfDomainID yields tecNO_AUTH.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3796522079"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-08-19T14:33:28Z",
-     "path": "include/xrpl/ledger/helpers/VaultHelpers.h",
-     "body": "✅ Auto-resolved: the latest review no longer flags this issue, so it appears to have been addressed. If that is not correct, reopen this thread and it will be re-checked on the next review.",
-     "url": "https://github.com/XRPLF/rippled/pull/7977#discussion_r3813927230"
     }
    ]
   }
