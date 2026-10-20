@@ -1,6 +1,6 @@
 {
  "name": "fixBatchV1_2",
- "fetchedAt": "2026-10-19T08:09:24.188Z",
+ "fetchedAt": "2026-10-20T08:09:52.217Z",
  "summary": {
   "status": "in development",
   "prs": 7,
@@ -20,9 +20,9 @@
    "mvadari/batch-multisign-prefix",
    "ripple/custody-old-batch-cmpt"
   ],
-  "lastActivity": "2026-10-16T15:22:22Z",
+  "lastActivity": "2026-10-19T16:57:51Z",
   "release": "3.4.1",
-  "totalComments": 297
+  "totalComments": 298
  },
  "release": {
   "version": "3.4.1",
@@ -31,6 +31,99 @@
   "excerpt": "This release introduces a new amendment, **fixBatchV1_2**, with the default vote set to \"Yes\". The amendment also contains other fixes for security and stability."
  },
  "prs": [
+  {
+   "number": 8558,
+   "title": "fix: Apply DeliverMax to inner Batch Payments, simulate and submit",
+   "url": "https://github.com/XRPLF/rippled/pull/8558",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-10-10T12:53:06Z",
+   "updatedAt": "2026-10-19T16:57:51Z",
+   "closedAt": null,
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-10T13:00:46Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `96.29630%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/misc/detail/DeliverMax.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL2RldGFpbC9EZWxpdmVyTWF4LmNwcA==) | 95.5% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#issuecomment-6097763794"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-19T16:57:50Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#issuecomment-6272583692"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nA Payment inside the `RawTransactions` of a Batch now follows the `DeliverMax` rule on output and input, like a top-level Payment. `simulate` and `submit` with `tx_blob` follow it too.\n\n- `insertDeliverMax` applies the rule to each inner Payment of a Batch, so every method that already calls it renders inner Payments with `DeliverMax`. `simulate` and `submit` with `tx_blob` now call it on the `tx_json` they return.\n- `removeDeliverMax` replaces the alias handling in `checkPayment`, maps `DeliverMax` to `Amount` in inner Payments as well, and runs before `checkFee` (and before `autofillTx` in `simulate`).\n\nFixes #8557\n\n## Context of Change\n\n`insertDeliverMax` only acted on a top-level `ttPAYMENT`, and `checkPayment` only aliased a top-level Payment. `DeliverMax` is not an `SField`, so `STParsedJSON` rejected it in an inner Payment as an unknown field. While tracing the callers I found that `simulate` had no `DeliverMax` handling at all, and `doSubmit` rendered `tx_json` without calling `insertDeliverMax`.\n\nThe alias is resolved before `checkFee` because `getTxFee` parses `tx_json` to compute the fee. A Batch fee depends on its inner transactions, so an unresolved inner `DeliverMax` fails that parse and the autofilled fee falls back to the reference fee. `autofillTx` in `simulate` has the same dependency for a multi-signed Payment.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nIn API version 2, inner Payments and the `tx_json` returned by `simulate` and by `submit` with `tx_blob` now carry only `DeliverMax`, not `Amount`, matching every other Payment in v2. API version 1 gains `DeliverMax` next to `Amount`. `DeliverMax` is now accepted where it was rejected. Entries are in `API-CHANGELOG.md`.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:dangell7/batch-delivermax",
+   "additions": 366,
+   "deletions": 25,
+   "changedFiles": 9,
+   "commits": 2,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-10T12:55:46Z",
+     "body": "This change extends DeliverMax handling to inner Batch Payments and to simulate/submit responses, consolidating the alias logic into insertDeliverMax/removeDeliverMax. The refactor is coherent: removeDeliverMax is correctly short-circuited on a differing Amount/DeliverMax error, is applied before fee autofill (matching the stated rationale), and insertDeliverMax's Batch branch mutates inner RawTransaction objects by reference as needed. Call sites in TransactionSign.cpp, Simulate.cpp, and Submit.cpp appear consistently wired to match the CHANGELOG claims, and the accompanying tests exercise sign/submit/simulate/tx/transaction_entry/ledger/account_tx across API versions. I did not find a confident correctness or security bug introduced by the added lines."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-10T13:11:34Z",
+     "body": "The change plumbs DeliverMax handling into inner Batch Payments and into simulate/submit output rendering, and adds solid coverage for those specific paths (Batch via sign+submit, simulate, submit with tx_blob). The one thing I can't verify from the diff alone is call order in TransactionSign.cpp: checkPayment() had its DeliverMax-alias logic deleted and now only checks `txJson.isMember(jss::Amount)`, while the new `removeDeliverMax()` call is inserted elsewhere in transactionPreProcessImpl/transactionSubmitMultiSigned. If checkPayment still runs before that insertion point, a bare top-level Payment signed via `sign`/`submit_multisigned` with only `DeliverMax` (no `Amount`) would now be rejected with a missing-field error — a regression on exactly the feature this PR adds. None of the new tests catch this because they all route around checkPayment's Amount check (Batch's top-level type isn't Payment so checkPayment short-circuits; simulate and tx_blob submit never call checkPayment at all)."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-10T13:18:54Z",
+     "body": "### 🟡 Changes recommended\n\nNested Payments using wrappers accepted before `fixBatchV1_2` are not normalized.\n\n<details open>\n<summary><strong>1 open finding</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Traverse all RawTransactions object wrappers](https://github.com/XRPLF/rippled/pull/8558#discussion_r4237747708) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nExtends `DeliverMax` alias handling to Batch inner Payments and RPC simulation/submission paths.\n\n**Changes:**\n- Normalizes `DeliverMax` for nested Batch Payments.\n- Applies output conversion to `simulate` and blob-based `submit`.\n- Adds RPC and Batch regression coverage plus changelog entries.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​xrpld/​rpc/​handlers/​transaction/​Submit.cpp` | Converts returned Payment amounts to `DeliverMax`. |\n| `src/​xrpld/​rpc/​handlers/​transaction/​Simulate.cpp` | Normalizes input aliases and simulation output. |\n| `src/​xrpld/​rpc/​detail/​TransactionSign.cpp` | Centralizes input alias removal before fee processing. |\n| `src/​xrpld/​app/​misc/​detail/​DeliverMax.cpp` | Implements nested Batch alias traversal. |\n| `src/​xrpld/​app/​misc/​DeliverMax.h` | Documents and exposes input normalization. |\n| `src/​test/​rpc/​Submit_test.cpp` | Tests blob submission output. |\n| `src/​test/​rpc/​Simulate_test.cpp` | Tests simulation input, output, and fee handling. |\n| `src/​test/​app/​Batch_test.cpp` | Tests Batch signing and RPC representations. |\n| `API-CHANGELOG.md` | Documents API behavior changes. |\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T13:35:50Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T13:53:29Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-10T13:18:54Z",
+     "path": "src/xrpld/app/misc/detail/DeliverMax.cpp",
+     "body": "This only visits the canonical `RawTransaction` wrapper, but batches accepted before `fixBatchV1_2` can use other object wrappers (see `src/test/app/Batch_test.cpp:5951-6012`), and such transactions may also exist in historical ledgers. Their inner Payments will therefore still be rendered with `Amount`, and `DeliverMax` input remains unrecognized when those rules are active, contradicting the “each inner Payment” behavior. Traverse every object-valued wrapper in each `RawTransactions` entry rather than hard-coding `RawTransaction`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4237747708"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T13:35:50Z",
+     "path": "src/test/rpc/Submit_test.cpp",
+     "body": "Isn't this covered by the test in Batch_test.cpp? DO we need both?",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4248623144"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T13:53:29Z",
+     "path": "src/xrpld/app/misc/detail/DeliverMax.cpp",
+     "body": "This name implies that it's being removed entirely, not replaced. Can you make it more descriptive?",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4248797220"
+    }
+   ]
+  },
   {
    "number": 8052,
    "title": "feat: Add batch transactions to TxQ",
@@ -1920,91 +2013,6 @@
      "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
      "body": "Does this comment imply that a proposed-Batch transaction cannot have a `sfSponsor` for an inner transaction?",
      "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4009468325"
-    }
-   ]
-  },
-  {
-   "number": 8558,
-   "title": "fix: Apply DeliverMax to inner Batch Payments, simulate and submit",
-   "url": "https://github.com/XRPLF/rippled/pull/8558",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-10-10T12:53:06Z",
-   "updatedAt": "2026-10-12T13:53:29Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-10T13:00:46Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `96.29630%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/misc/detail/DeliverMax.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL2RldGFpbC9EZWxpdmVyTWF4LmNwcA==) | 95.5% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8558#issuecomment-6097763794"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nA Payment inside the `RawTransactions` of a Batch now follows the `DeliverMax` rule on output and input, like a top-level Payment. `simulate` and `submit` with `tx_blob` follow it too.\n\n- `insertDeliverMax` applies the rule to each inner Payment of a Batch, so every method that already calls it renders inner Payments with `DeliverMax`. `simulate` and `submit` with `tx_blob` now call it on the `tx_json` they return.\n- `removeDeliverMax` replaces the alias handling in `checkPayment`, maps `DeliverMax` to `Amount` in inner Payments as well, and runs before `checkFee` (and before `autofillTx` in `simulate`).\n\nFixes #8557\n\n## Context of Change\n\n`insertDeliverMax` only acted on a top-level `ttPAYMENT`, and `checkPayment` only aliased a top-level Payment. `DeliverMax` is not an `SField`, so `STParsedJSON` rejected it in an inner Payment as an unknown field. While tracing the callers I found that `simulate` had no `DeliverMax` handling at all, and `doSubmit` rendered `tx_json` without calling `insertDeliverMax`.\n\nThe alias is resolved before `checkFee` because `getTxFee` parses `tx_json` to compute the fee. A Batch fee depends on its inner transactions, so an unresolved inner `DeliverMax` fails that parse and the autofilled fee falls back to the reference fee. `autofillTx` in `simulate` has the same dependency for a multi-signed Payment.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nIn API version 2, inner Payments and the `tx_json` returned by `simulate` and by `submit` with `tx_blob` now carry only `DeliverMax`, not `Amount`, matching every other Payment in v2. API version 1 gains `DeliverMax` next to `Amount`. `DeliverMax` is now accepted where it was rejected. Entries are in `API-CHANGELOG.md`.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:dangell7/batch-delivermax",
-   "additions": 366,
-   "deletions": 25,
-   "changedFiles": 9,
-   "commits": 2,
-   "reviewComments": 3,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-10T12:55:46Z",
-     "body": "This change extends DeliverMax handling to inner Batch Payments and to simulate/submit responses, consolidating the alias logic into insertDeliverMax/removeDeliverMax. The refactor is coherent: removeDeliverMax is correctly short-circuited on a differing Amount/DeliverMax error, is applied before fee autofill (matching the stated rationale), and insertDeliverMax's Batch branch mutates inner RawTransaction objects by reference as needed. Call sites in TransactionSign.cpp, Simulate.cpp, and Submit.cpp appear consistently wired to match the CHANGELOG claims, and the accompanying tests exercise sign/submit/simulate/tx/transaction_entry/ledger/account_tx across API versions. I did not find a confident correctness or security bug introduced by the added lines."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-10T13:11:34Z",
-     "body": "The change plumbs DeliverMax handling into inner Batch Payments and into simulate/submit output rendering, and adds solid coverage for those specific paths (Batch via sign+submit, simulate, submit with tx_blob). The one thing I can't verify from the diff alone is call order in TransactionSign.cpp: checkPayment() had its DeliverMax-alias logic deleted and now only checks `txJson.isMember(jss::Amount)`, while the new `removeDeliverMax()` call is inserted elsewhere in transactionPreProcessImpl/transactionSubmitMultiSigned. If checkPayment still runs before that insertion point, a bare top-level Payment signed via `sign`/`submit_multisigned` with only `DeliverMax` (no `Amount`) would now be rejected with a missing-field error — a regression on exactly the feature this PR adds. None of the new tests catch this because they all route around checkPayment's Amount check (Batch's top-level type isn't Payment so checkPayment short-circuits; simulate and tx_blob submit never call checkPayment at all)."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-10T13:18:54Z",
-     "body": "### 🟡 Changes recommended\n\nNested Payments using wrappers accepted before `fixBatchV1_2` are not normalized.\n\n<details open>\n<summary><strong>1 open finding</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Traverse all RawTransactions object wrappers](https://github.com/XRPLF/rippled/pull/8558#discussion_r4237747708) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nExtends `DeliverMax` alias handling to Batch inner Payments and RPC simulation/submission paths.\n\n**Changes:**\n- Normalizes `DeliverMax` for nested Batch Payments.\n- Applies output conversion to `simulate` and blob-based `submit`.\n- Adds RPC and Batch regression coverage plus changelog entries.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​xrpld/​rpc/​handlers/​transaction/​Submit.cpp` | Converts returned Payment amounts to `DeliverMax`. |\n| `src/​xrpld/​rpc/​handlers/​transaction/​Simulate.cpp` | Normalizes input aliases and simulation output. |\n| `src/​xrpld/​rpc/​detail/​TransactionSign.cpp` | Centralizes input alias removal before fee processing. |\n| `src/​xrpld/​app/​misc/​detail/​DeliverMax.cpp` | Implements nested Batch alias traversal. |\n| `src/​xrpld/​app/​misc/​DeliverMax.h` | Documents and exposes input normalization. |\n| `src/​test/​rpc/​Submit_test.cpp` | Tests blob submission output. |\n| `src/​test/​rpc/​Simulate_test.cpp` | Tests simulation input, output, and fee handling. |\n| `src/​test/​app/​Batch_test.cpp` | Tests Batch signing and RPC representations. |\n| `API-CHANGELOG.md` | Documents API behavior changes. |\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T13:35:50Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T13:53:29Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-10-10T13:18:54Z",
-     "path": "src/xrpld/app/misc/detail/DeliverMax.cpp",
-     "body": "This only visits the canonical `RawTransaction` wrapper, but batches accepted before `fixBatchV1_2` can use other object wrappers (see `src/test/app/Batch_test.cpp:5951-6012`), and such transactions may also exist in historical ledgers. Their inner Payments will therefore still be rendered with `Amount`, and `DeliverMax` input remains unrecognized when those rules are active, contradicting the “each inner Payment” behavior. Traverse every object-valued wrapper in each `RawTransactions` entry rather than hard-coding `RawTransaction`.",
-     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4237747708"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T13:35:50Z",
-     "path": "src/test/rpc/Submit_test.cpp",
-     "body": "Isn't this covered by the test in Batch_test.cpp? DO we need both?",
-     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4248623144"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T13:53:29Z",
-     "path": "src/xrpld/app/misc/detail/DeliverMax.cpp",
-     "body": "This name implies that it's being removed entirely, not replaced. Can you make it more descriptive?",
-     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4248797220"
     }
    ]
   },

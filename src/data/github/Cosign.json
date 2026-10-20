@@ -1,20 +1,443 @@
 {
  "name": "Cosign",
- "fetchedAt": "2026-10-19T08:01:58.462Z",
+ "fetchedAt": "2026-10-20T08:02:18.325Z",
  "summary": {
-  "status": "merged",
+  "status": "in development",
   "prs": 12,
-  "open": 0,
+  "open": 1,
   "merged": 9,
   "issues": 0,
   "proposals": 3,
   "branches": [],
-  "lastActivity": "2026-10-16T21:30:35Z",
+  "lastActivity": "2026-10-20T00:49:08Z",
   "lastMerged": "2026-10-16T21:30:35Z",
-  "totalComments": 375
+  "totalComments": 377
  },
  "release": {},
  "prs": [
+  {
+   "number": 8556,
+   "title": "feat: Add transaction_proposal RPC for Cosign",
+   "url": "https://github.com/XRPLF/rippled/pull/8556",
+   "state": "open",
+   "author": "ckeshava",
+   "createdAt": "2026-10-10T06:11:30Z",
+   "updatedAt": "2026-10-20T00:49:08Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-10T06:14:29Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8556?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `99.77376%` with `1 line` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8556?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [...libxrpl/tx/transactors/proposal/ProposalStatus.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8556?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvcHJvcG9zYWwvUHJvcG9zYWxTdGF0dXMuY3Bw) | 99.7% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8556?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8556#issuecomment-6094550507"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds the `transaction_proposal` RPC from [XLS-0103 \"On-Chain Cosigner\"](https://github.com/XRPLF/XRPL-Standards/blob/master/XLS-0103-onchain-cosigner/README.md) §8. It returns a `TransactionProposal` ledger entry together with its computed completeness on the queried ledger. A wallet or signer sees how far a proposal is from a submittable transaction without re-deriving it.\n\n### Request\n\nA proposal is addressed by `proposal_id`, or by the target `account` plus the proposed transaction's `ticket_seq`, on any `ledger_index`. Field types and error codes match the `transaction_proposal` object of `ledger_entry`.\n\n| Error | When |\n|---|---|\n| `invalidParams` | neither or both addressing forms are given |\n| `malformedRequest` | bad `proposal_id` or `ticket_seq` |\n| `malformedAddress` | bad `account` |\n| `entryNotFound` | no proposal at the derived key, including an index that names another entry type |\n| `lgrNotFound` | the requested ledger is unavailable |\n\n### Response\n\n- `proposal_id` and `proposal`: the raw entry, as `ledger_entry` would return it.\n- `proposal_status`: `pending`, `complete`, or `expired`, evaluated terminal-first. Expired means `Expiration` reached by the parent close time, or `LastLedgerSequence` below the earliest ledger the transaction could still enter.\n- `signing_status`: one row per required authorization, in a fixed order. The target account or its `Delegate` comes first, then any `Counterparty`, then any `Sponsor`, then each `Batch` participant in ascending account order. For a `LoanSet` without a `Counterparty`, the owner of its `LoanBroker` fills that row.\n- Each row carries `account`, `signed`, and a `reason` when unsigned. An account with a live `SignerList` also reports `quorum`, a `signers` roster with per-member `signed` flags, and `signed_weight` once shares exist.\n- `tx_blob`: the stored `ProposedTransaction` in submit-ready binary form, present whenever every row is satisfied. An expired proposal that reached quorum still holds a submittable transaction (§13.4).\n\n### How the verdict is computed\n\nEach row's `signed` is the answer of the unmodified `Transactor::checkSign` for that account and its signature slot; its `NotTEC` maps to the `reason`. Sponsor rows start from the unmodified `Transactor::checkSponsor`, and a `Delegate` row from the type-erased `xrpl::invokeCheckPermission`. Both run on an `STTx` rebuilt from the stored transaction. These are the rules submission applies, so the verdicts cannot drift.\n\n## Context of Change\n\n`TransactionProposalSign` (#8127) is not merged yet, so the tests stage collected signatures into the stored `ProposedTransaction` through the open-ledger overlay. The last test collects real multi-signatures, checks that the returned `tx_blob` hashes to the signed transaction, and submits it.\n\nThis PR first targeted the `ripple/cosign` integration branch. #8538 merged that branch into `develop` and deleted it, which closed this PR. It now targets `develop` and carries a merge of `develop`; the diff against `develop` is the same ten files.\n\n## Test Plan\n\n`src/test/rpc/TransactionProposal_test.cpp` is new and runs fourteen cases:\n\n- amendment disabled (`featureCosign` off)\n- malformed requests\n- unsigned proposal is pending\n- single signature against the live account keys\n- multi-signature shares against the live `SignerList`\n- signature material the Sign transaction never produces\n- delegated proposed transaction\n- proposed `Batch` inner delegation and sponsorship\n- counterparty co-signature\n- sponsor co-signature or pre-authorization\n- sponsorship submission rejects outright\n- proposed `Batch` participants\n- terminal proposals report expired\n- a complete proposal's `tx_blob` is submittable\n\nThe two `Batch` cases also pin each operand of the account-creation rule. They cover the turn gates of an account an earlier inner creates, and the row an inner verdict for the outer account lands on.\n\n## API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\nNew public RPC method `transaction_proposal`; the `API-CHANGELOG.md` entry in this PR lists every field. In `libxrpl`, the `ReadView` overload of `Transactor::checkSign` becomes `public` with the same signature, and `xrpl/tx/transactors/proposal/ProposalStatus.h` is added.\n\n## Before / After\n\nBefore, a client read the entry with `ledger_entry` and fetched every relevant `SignerList`, account root, `Sponsorship` entry and `LoanBroker`. It then re-implemented the authorization rules itself. After, one call answers:\n\n```json\n{ \"command\": \"transaction_proposal\", \"account\": \"rTARGET...\", \"ticket_seq\": 1201, \"ledger_index\": \"validated\" }\n```\n\n```json\n{\n  \"proposal_id\": \"C1A2...\",\n  \"proposal\": { \"LedgerEntryType\": \"TransactionProposal\", \"Owner\": \"rPROPOSER...\", \"Expiration\": 800000000,\n                \"ProposedTransaction\": { \"TransactionType\": \"Payment\", \"Account\": \"rTARGET...\", \"TicketSequence\": 1201, \"SigningPubKey\": \"\", \"Signers\": [ ... ] },\n                \"index\": \"C1A2...\" },\n  \"proposal_status\": \"pending\",\n  \"signing_status\": [\n    { \"account\": \"rTARGET...\", \"signed\": false, \"reason\": \"inadequate_signatures\", \"signed_weight\": 1, \"quorum\": 2,\n      \"signers\": [ { \"account\": \"rBOB...\", \"weight\": 1, \"signed\": true }, { \"account\": \"rCAROL...\", \"weight\": 1, \"signed\": false } ] }\n  ],\n  \"ledger_index\": 12345678,\n  \"validated\": true\n}\n```\n\nOnce the second share is collected, the same call answers `\"proposal_status\": \"complete\"` and adds a `tx_blob` that `submit` accepts as is.\n\nPerformance: read-only, one `SignerList` read per required account plus one account-root read per collected signer. No locks beyond the ledger lookup every RPC performs.\n\n\n## Future Tasks\n\n- When #8127 lands, its role-resolution and jtx signing helpers can replace the suite's overlay staging and the evaluator's required-signer mirrors.\n- Propose the §8 additions to XLS-0103. This change ships six `reason` values beyond the §8.1.2 table: `invalid_sponsorship`, `sponsorship_entry_required`, `counterparty_unresolvable`, `no_delegate_permission`, `sequence_mismatch` and `ticket_reserved`. It also adds rows for non-co-signing inner Sponsors and for rejected `BatchSigners` entries, and attests the gates §8.1.3.4 leaves open.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "ckeshava:feat/transaction-proposal-rpc",
+   "additions": 4076,
+   "deletions": 14,
+   "changedFiles": 10,
+   "commits": 47,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-20T00:43:27Z",
+     "body": "### 🟡 Changes recommended\n\nTicket validation is bypassed for newly created Batch participants, allowing an unexecutable proposal to report complete.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Preserve Ticket validation for newly created accounts](https://github.com/XRPLF/rippled/pull/8556#discussion_r4320334544) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds `transaction_proposal` so Cosign clients can retrieve a proposal and its authorization progress without reproducing ledger rules.\n\n**Changes:**\n- Registers the RPC and serializes proposal status, signer details, and transaction blobs.\n- Adds a reusable evaluator using existing authorization checks.\n- Documents the API and adds fourteen test cases.\n\n| File | Description |\n| ---- | ----------- |\n| src/​xrpld/​rpc/​MethodNames.h | Defines the RPC name. |\n| src/​xrpld/​rpc/​handlers/​TransactionProposal.cpp | Parses requests and builds responses. |\n| src/​xrpld/​rpc/​handlers/​Handlers.h | Declares the handler. |\n| src/​xrpld/​rpc/​detail/​Handler.cpp | Registers the method. |\n| src/​test/​rpc/​TransactionProposal_test.cpp | Tests requests, authorization, expiry, and submission. |\n| src/​libxrpl/​tx/​transactors/​proposal/​ProposalStatus.cpp | Evaluates proposal completeness. |\n| include/​xrpl/​tx/​transactors/​proposal/​ProposalStatus.h | Defines evaluator interfaces and status types. |\n| include/​xrpl/​tx/​Transactor.h | Exposes the existing authorization checker. |\n| include/​xrpl/​protocol/​jss.h | Adds response field names. |\n| API-CHANGELOG.md | Documents the public API. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-20T00:43:26Z",
+     "path": "src/libxrpl/tx/transactors/proposal/ProposalStatus.cpp",
+     "body": "This return skips Ticket validation for newly created accounts, not just their initial Sequence comparison. For example, an all-or-nothing Batch can first fund an absent account and then have it spend `TicketSequence: 1` without an intervening TicketCreate. With valid signatures, the RPC reports `complete` and returns `tx_blob`, but submission rejects that inner with `tefNO_TICKET`, so the Batch cannot execute. Keep ticket-existence and consumption checks active for newly created accounts, including Tickets created by preceding inners, and add a regression case alongside the phantom-participant tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/8556#discussion_r4320334544"
+    }
+   ]
+  },
+  {
+   "number": 8538,
+   "title": "feat: Add TransactionProposalCancel & Cosign Ticket reservation",
+   "url": "https://github.com/XRPLF/rippled/pull/8538",
+   "state": "closed",
+   "author": "ckeshava",
+   "createdAt": "2026-10-08T18:56:15Z",
+   "updatedAt": "2026-10-20T00:15:12Z",
+   "closedAt": "2026-10-13T21:28:00Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-08T18:58:11Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8538?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#issuecomment-6066939960"
+    }
+   ],
+   "body": "Implementation of https://github.com/XRPLF/XRPL-Standards/pull/613 (XLS-0103 On-Chain Cosigner). Follow-up to #8205, which introduced the `Cosign` amendment and `TransactionProposalCreate`.\n\n## High Level Overview of Change\n\nAdds `TransactionProposalCancel` (tx type 94, field `ProposalID`), the second transaction of the Cosign proposal lifecycle. It deletes a `TransactionProposal` ledger entry and releases the reserve held by its Owner or reserve sponsor.\n\nWhile a proposal is live, only its Owner, the proposed transaction's `Account`, or the `Delegate` named in it may cancel it. Anyone else gets `tecNO_PERMISSION`. Once the proposal is terminal, anyone may delete it (XLS-0103 §7.2). A proposal is terminal when its `Expiration` has passed, or the ledger is strictly past the proposed transaction's `LastLedgerSequence`.\n\nIntroduces Ticket reservation (XLS-0103 §4.2.1). While a proposal keyed to a Ticket exists, only that proposal's own proposed transaction may consume the Ticket. Any other transaction spending it fails with the new retryable `terTICKET_RESERVED` code. This stops unrelated activity on the target account from invalidating a proposal while signatures are collected.\n\nA reserved Ticket is consumed either by the proposed transaction executing or by `AccountDelete` sweeping the target's Tickets. Either way, the stale proposal is deleted automatically and its reserve released (XLS-0103 §4.5).\n\n`TransactionProposalCreate` now also rejects proposing a `TransactionProposalCancel`. It likewise rejects a proposed `Batch` whose inner transactions include a proposal transaction, a pseudo-transaction, or a nested `Batch`.\n\n## Context of Change\n\nMerges the `ripple/cosign` integration branch into `develop`. The new transactor and Ticket reservation landed there via #7979, and the branch has since been kept current with `develop` (#8324, #8526).\n\nThe `featureCosign` amendment remains `Supported::No`, so none of this is enabled on any network. `TransactionProposalSign` will follow in a later PR.\n\n## API Impact\n\n- [x] `libxrpl` change (amendment-gated new transaction type and the new `terTICKET_RESERVED` result code)\n\n## Test Plan\n\n- `TransactionProposalCancel_test.cpp` covers cancel authorization, terminal boundaries, and the Batch, multisign, and sponsorship interactions. Cases include \"owner cancels live proposal\", \"third party cannot cancel live proposal\", and \"anyone cancels expired proposal\". Others are \"expiration boundary is inclusive\" and \"a cancel cannot itself be proposed\".\n- `TransactionProposalReservedTicket_test.cpp` covers Ticket reservation across the ordinary, Batch, and `AccountDelete` paths. Cases include \"unrelated spend of a reserved ticket is blocked\" and \"matching payload consumes the ticket and cleans up\". Another is \"deleting the target account deletes the proposal\".\n- `TransactionProposalCreate_test.cpp` is extended alongside; its cases include \"proposed batch reserve\" and \"reject proposal targeting a pseudo-account\". The jtx helpers in `src/test/jtx/proposal.h` gain the cancel builder.\n- gtest: `TransactionProposalCancelTests.cpp` (generated transaction tests) and `src/tests/libxrpl/tx/ProposalHelpers.cpp`.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+   "merged": true,
+   "mergedAt": "2026-10-13T21:28:00Z",
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:ripple/cosign",
+   "additions": 3987,
+   "deletions": 42,
+   "changedFiles": 18,
+   "commits": 36,
+   "reviewComments": 22,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-08T18:58:59Z",
+     "body": "This diff is test-support plumbing for the new TransactionProposalCancel transaction: a jtx helper (`cancel`) to build the JSON for the transaction, an auto-generated protocol test file, and a mechanical rename of `isValidProposal` to `isValidProposalTxnT ype` in existing ProposalHelpers tests (plus one comment fix). All changes are structurally straightforward and consistent with existing patterns in the file (e.g., `create()` in the same file). No logic errors, resource leaks, or security concerns were found in the added lines."
+    },
+    {
+     "author": "Kassaking7",
+     "state": "APPROVED",
+     "date": "2026-10-08T19:17:44Z",
+     "body": "Already Reviewed in feature branch"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-10-08T19:21:03Z",
+     "body": "Signature bypass in preflight - see inline."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-08T19:22:59Z",
+     "body": "### 🟡 Changes recommended\n\nPayload matching accepts undocumented mutable fields, and the stated Sign transaction type is already assigned.\n\n<details open>\n<summary><strong>2 open findings</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Type 93 conflicts with existing MPT holder key update assignment](#discussion_r4223220059) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Payload validation ignores mutable signature fields](#discussion_r4223220132) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds the amendment-gated cancellation phase and Ticket reservation behavior for on-ledger cosigning.\n\n**Changes:**\n- Implements `TransactionProposalCancel`, authorization, reserve release, and terminal handling.\n- Reserves proposal Tickets and automatically cleans proposals when Tickets are consumed.\n- Adds protocol wrappers, TER definitions, jtx helpers, and extensive tests.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​tests/​libxrpl/​tx/​ProposalHelpers.cpp` | Updates proposal-validation helper tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​transactions/​TransactionProposalCancelTests.cpp` | Tests generated Cancel wrapper and builder. |\n| `src/​test/​jtx/​proposal.h` | Declares Cancel test helper. |\n| `src/​test/​jtx/​impl/​proposal.cpp` | Implements Cancel JSON construction. |\n| `src/​test/​app/​TransactionProposalReservedTicket_test.cpp` | Covers Ticket reservation and cleanup paths. |\n| `src/​test/​app/​TransactionProposalCreate_test.cpp` | Expands nested-payload validation tests. |\n| `src/​test/​app/​TransactionProposalCancel_test.cpp` | Covers Cancel authorization and ledger effects. |\n| `src/​libxrpl/​tx/​transactors/​proposal/​TransactionProposalCreate.cpp` | Uses expanded proposal-type validation. |\n| `src/​libxrpl/​tx/​transactors/​proposal/​TransactionProposalCancel.cpp` | Implements the Cancel transactor. |\n| `src/​libxrpl/​tx/​Transactor.cpp` | Enforces reservations and proposal cleanup. |\n| `src/​libxrpl/​protocol/​TER.cpp` | Registers the reserved-Ticket result message. |\n| `src/​libxrpl/​ledger/​helpers/​ProposalHelpers.cpp` | Adds proposal matching, deletion, and terminal helpers. |\n| `include/​xrpl/​tx/​transactors/​proposal/​TransactionProposalCancel.h` | Declares the Cancel transactor. |\n| `include/​xrpl/​tx/​Transactor.h` | Documents Ticket deletion behavior. |\n| `include/​xrpl/​protocol/​TER.h` | Defines `terTICKET_RESERVED`. |\n| `include/​xrpl/​protocol/​detail/​transactions.macro` | Registers the Cancel transaction format. |\n| `include/​xrpl/​protocol_autogen/​transactions/​TransactionProposalCancel.h` | Adds generated Cancel API types. |\n| `include/​xrpl/​ledger/​helpers/​ProposalHelpers.h` | Exposes proposal lifecycle helpers. |\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-08T20:14:29Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-08T20:27:06Z",
+     "body": "This diff is almost entirely test-support plumbing: a new `cancel()` jtx helper for building `TransactionProposalCancel` transactions, its header declaration, a new auto-generated gtest file for the `TransactionProposalCancel` wrapper/builder round-trip, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across the `ProposalHelpers` unit tests to match a rename made elsewhere. All changes are internally consistent (helper signature matches declaration, renamed calls match the new function name) and no logic errors, resource leaks, or security concerns are introduced. No substantive issues found worth flagging."
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-08T20:28:19Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-08T20:28:21Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-10-08T21:03:29Z",
+     "body": "Critical signature validation bypass in preflight - see inline."
+    },
+    {
+     "author": "shawnxie999",
+     "state": "APPROVED",
+     "date": "2026-10-09T21:24:47Z",
+     "body": "LGTM. also each commit has been reviewed in separate PRs."
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-09T21:31:04Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-09T21:38:30Z",
+     "body": "This slice of the diff only touches test infrastructure: a new `cancel()` JTx helper for building TransactionProposalCancel JSON, its header declaration, an auto-generated unit test file for the TransactionProposalCancel wrapper/builder, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across ProposalHelpers.cpp's test cases. All renamed call sites are consistent, the new helper mirrors the existing `create()` helper's structure, and the generated test file follows the same boilerplate pattern as other protocol_autogen transaction tests. No logic errors, resource leaks, or security concerns are introduced in the changed lines."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-12T14:42:10Z",
+     "body": "This diff is low-risk: it adds a jtx `cancel()` helper for building TransactionProposalCancel JSON, an auto-generated gtest file for the new transaction type, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across existing unit tests. No new business logic is introduced in the reviewed hunks, and I don't see correctness, security, or resource-management issues in the changed lines."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-12T14:45:03Z",
+     "body": "### 🟡 Changes recommended\n\nSeveral new comments and public helper docs contradict the implemented expiration and ledger-bound behavior.\n\n<details open>\n<summary><strong>5 open findings</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Clarify expired proposals with signed payloads can still execute](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295671) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Correct Ticket removal terminology and remove duplicate AccountDelete usage](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295737) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Do not claim terminal proposals can never complete](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295785) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Use correct ProposalID terminology and grammar](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295843) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Correct Create boundary claim for LastLedgerSequence equality](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295908) · New\n</details>\n\n<details>\n<summary><strong>2 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Payload validation ignores mutable signature fields](https://github.com/XRPLF/rippled/pull/8538#discussion_r4223220132)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Type 93 conflicts with existing MPT holder key update assignment](https://github.com/XRPLF/rippled/pull/8538#discussion_r4223220059)\n</details>\n\n🧠 **Review effort:** Balanced"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-12T15:02:02Z",
+     "body": "This diff only touches test infrastructure: a new jtx helper `cancel()` for building TransactionProposalCancel transactions, an autogenerated boilerplate test file for the new transaction type, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across existing ProposalHelpers tests. All changes are consistent with existing patterns in the file (mirrors the existing `create()` helper, same builder/getter round-trip pattern as other autogenerated transaction tests), and the rename is purely a call-site update matching a renamed library function. No logic errors, security issues, or resource leaks are introduced in the changed (+) lines."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-12T15:29:00Z",
+     "body": "This diff portion is test-infrastructure only: a new `cancel()` jtx builder for TransactionProposalCancel, its header declaration, a new auto-generated gtest file for the TransactionProposalCancel wrapper/builder round-trip, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across ProposalHelpers.cpp (including its doc comment). All renames are consistent and complete within the shown diff, the new builder function mirrors the existing `create()` pattern, and the generated test file follows the standard boilerplate used for other transaction types. No correctness, security, or resource-management issues found in the changed lines; the actual transactor/ticket-reservation logic described in the MR is not part of this diff slice, so it isn't reviewed here."
+    },
+    {
+     "author": "Kassaking7",
+     "state": "APPROVED",
+     "date": "2026-10-12T16:52:38Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-12T17:52:45Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-12T17:52:46Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-12T17:52:48Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-12T17:52:49Z",
+     "body": ""
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-12T17:52:51Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-12T17:55:45Z",
+     "body": "Mostly a mechanical rename (isValidProposal → isValidProposalTxnType) plus new test-only jtx helper and auto-generated gtest file. Nothing problematic found in the diff itself — changes are test/helper code with no logic alterations beyond the rename and new TransactionProposalCancel builder helper, which look correct and consistent."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-10-12T18:49:11Z",
+     "body": "Signature validity check bypassed - see inline."
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-12T19:24:17Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-12T20:48:59Z",
+     "body": "The visible diff is small: it adds a few include lines and two new test cases to TransactionProposalCreate_test.cpp (one exercising a malformed Batch inner missing TransactionType via STTx construction, another directly exercising isValidProposalTxnType with a hand-built STObject), plus a comment wording fix. The second listed file, TransactionProposalReservedTicket_test.cpp, has no diff content shown (empty diff for a 'new' file), so it could not be reviewed here. No correctness, security, or style issues were found in the visible changes — the new test cases look internally consistent with their stated intent and use the appropriate flags/fields."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-12T21:04:40Z",
+     "body": "### 🔵 Needs a closer look\n\nConsensus-critical Ticket consumption, reserve accounting, and AccountDelete behavior warrant final human review despite broad test coverage.\n\n**0 open findings**\n\n<details>\n<summary><strong>5 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Correct Create boundary claim for LastLedgerSequence equality](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295908)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Use correct ProposalID terminology and grammar](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295843)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Do not claim terminal proposals can never complete](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295785)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Correct Ticket removal terminology and remove duplicate AccountDelete usage](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295737)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Clarify expired proposals with signed payloads can still execute](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295671)\n</details>\n\n🧠 **Review effort:** Balanced"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-10-13T13:42:20Z",
+     "body": "Security gap in preflight validation - see inline."
+    },
+    {
+     "author": "ckeshava",
+     "state": "COMMENTED",
+     "date": "2026-10-13T17:26:38Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-13T17:30:16Z",
+     "body": "This diff is limited to test infrastructure: a new `cancel` jtx builder helper for `TransactionProposalCancel`, its header declaration, an autogenerated gtest file for the new transaction wrapper/builder, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across the ProposalHelpers unit tests. The changes are internally consistent (comment, rename, and call sites all line up) and the new helper/test code follows the same patterns used elsewhere in the test DSL and autogenerated suites. No correctness, security, or resource-management issues were found in the added lines."
+    },
+    {
+     "author": "Kassaking7",
+     "state": "APPROVED",
+     "date": "2026-10-13T18:40:05Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-08T19:21:03Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "Missing preflight1/preflight2 wrapping bypasses signature verification:\n```suggestion:-1+9\nNotTEC TransactionProposalCancel::preflight(PreflightContext const& ctx)\n{\n    if (NotTEC const ret = preflight1(ctx); !isTesSuccess(ret))\n        return ret;\n\n    if (ctx.tx[sfProposalID] == beast::kZero)\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCancel: zero ProposalID.\";\n        return temMALFORMED;\n    }\n\n    return preflight2(ctx);\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223202271"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-08T19:22:58Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Type 93 is already assigned to `ttCONFIDENTIAL_MPT_HOLDER_KEY_UPDATE` at line 1155, so it cannot also be reserved for the forthcoming proposal-sign transaction. Assign Sign an unused type or remove/update this reservation before consumers rely on the documented wire value.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223220059"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-08T19:22:59Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "`addWithoutSigningFields` omits every field marked `kNotSigning`, including `sfSignature` and `sfMasterSignature`, not only the five containers listed above. Consequently, for transaction types such as `PaymentChannelClaim` and XChain attestations, a submission with a different `sfSignature` still passes `payloadMatches` and may consume the reserved Ticket, contrary to this helper's documented fixed-payload contract. Compare all fields after explicitly neutralizing only the fields XLS-0103 permits to evolve, or explicitly document and test these additional mutable fields if that behavior is intended.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223220132"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-08T20:14:29Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "Not a bypass. In this codebase transactors must not call `preflight1`/`preflight2` themselves: `invoke_preflight` in `include/xrpl/tx/Transactor.h` runs `preflight1`, `preflightUniversal`, `T::preflight`, `preflight2` and `T::preflightSigValidated` in that order for every transaction type, and the `Transactor` docs say \"Do not try to call preflight1 or preflight2 directly.\" `TransactionProposalCreate` follows the same pattern, so signature verification runs for Cancel exactly as it does for every other transactor.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223680316"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-08T20:28:19Z",
+     "path": "include/xrpl/protocol/detail/transactions.macro",
+     "body": "Addressed in c656e2670d: the comment no longer pins a number. Type 93 came in with the develop merge (ConfidentialMPTHolderKeyUpdate), so TransactionProposalSign will take the next unassigned type. #8127 needs the same renumber.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223800833"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-08T20:28:21Z",
+     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
+     "body": "Intentional, and the docs now say so (c656e2670d). payloadMatches compares the signing payload, i.e. exactly what the collected signatures commit to. `Signature` is kNotSigning, so even for an ordinary PaymentChannelClaim or XChain attestation the account's own TxnSignature does not cover it; a proposal cannot bind it more tightly than the signatures it collects do, and those transactors still verify a substituted value themselves in preflight. `MasterSignature` appears in no transaction format. The header and inline comment now list every excluded field and state this rationale.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223801147"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-08T21:03:29Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "Missing preflight1/preflight2 calls bypass signature and field validation. Wrap ProposalID check like other transactors:\n\n```suggestion:-0+9\nTransactionProposalCancel::preflight(PreflightContext const& ctx)\n{\n    if (auto const ret = preflight1(ctx); !isTesSuccess(ret))\n        return ret;\n\n    if (ctx.tx[sfProposalID] == beast::kZero)\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCancel: zero ProposalID.\";\n        return temMALFORMED;\n    }\n\n    return preflight2(ctx);\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4224109391"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-09T21:31:03Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "please refer to the rebuttal here: https://github.com/XRPLF/rippled/pull/8538/changes#r4223680316",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4234708973"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-12T14:45:01Z",
+     "path": "include/xrpl/ledger/helpers/ProposalHelpers.h",
+     "body": "This says every terminal proposal can never complete, but `TransactionProposalReservedTicket_test.cpp:691-723` verifies that an already signed payload still executes after proposal expiration. Terminal status stops signature collection and permits cancellation; only a passed payload `LastLedgerSequence` makes execution impossible.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295671"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-12T14:45:02Z",
+     "path": "include/xrpl/tx/Transactor.h",
+     "body": "A consumed or swept Ticket is removed, not “expired,” and the AccountDelete usage is stated twice in this paragraph. Rewording this avoids documenting a Ticket expiration state that does not exist.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295737"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-12T14:45:02Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "An expired proposal's already signed payload may still execute, as covered by `TransactionProposalReservedTicket_test.cpp:691-723`; terminal status only closes signature collection and widens cancellation permission. This rationale should not state that all terminal proposals can never complete.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295785"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-12T14:45:02Z",
+     "path": "src/test/app/TransactionProposalCancel_test.cpp",
+     "body": "Use “A previously cancelled ProposalID”; the current article is ungrammatical, and the field is named `ProposalID`, not `ProposedID`.\n\nThis issue also appears on line 385 of the same file.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295843"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-12T14:45:03Z",
+     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
+     "body": "This newly added description contradicts the established Create boundary: `TransactionProposalCreate_test.cpp:579-588` and `TransactionProposalCreate::preclaim` reject `LastLedgerSequence == view.seq()` with `tecEXPIRED`. This case creates the proposal before the bound and only verifies submission at/past it, so please avoid claiming that Create accepts equality.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295908"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-12T17:52:45Z",
+     "path": "include/xrpl/ledger/helpers/ProposalHelpers.h",
+     "body": "Addressed in 0ed44ef069: the isTerminal doc now says a terminal proposal stops accepting signatures and may be deleted by anyone, that an already signed payload still executes after Expiration, and that a passed LastLedgerSequence is what stops it.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4250886134"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-12T17:52:46Z",
+     "path": "include/xrpl/tx/Transactor.h",
+     "body": "Addressed in 0ed44ef069: the paragraph now says the proposal is deleted because its proposed transaction can never be applied once the Ticket is gone (tefNO_TICKET), and the AccountDelete sentence appears once.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4250886307"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-12T17:52:48Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "Addressed in 0ed44ef069: the rationale now says a terminal proposal is closed to new signatures and points to proposal::isTerminal, without claiming it can never complete.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4250886482"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-12T17:52:49Z",
+     "path": "src/test/app/TransactionProposalCancel_test.cpp",
+     "body": "Addressed in 0ed44ef069: now \"A previously cancelled ProposalID\". Line 385 carried the same \"can never complete\" claim as the other threads, so it is reworded there too.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4250886645"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-12T17:52:50Z",
+     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
+     "body": "Addressed in 0ed44ef069: the comment now says Create rejects a LastLedgerSequence at or before the ledger Create itself applies in (tecEXPIRED), and no longer implies Create accepts equality.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4250886816"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-12T18:49:10Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "Bypasses signature validity check. Call preflight1 at start, return preflight2 at end, matching other transactors:\n\n```suggestion:-0+10\nNotTEC\nTransactionProposalCancel::preflight(PreflightContext const& ctx)\n{\n    auto const res = preflight1(ctx);\n    if (!isTesSuccess(res))\n        return res;\n\n    if (ctx.tx[sfProposalID] == beast::kZero)\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCancel: zero ProposalID.\";\n        return temMALFORMED;\n    }\n\n    return preflight2(ctx);\n}\n```\n\n```suggestion\nNotTEC\nTransactionProposalCancel::preflight(PreflightContext const& ctx)\n{\n    if (auto const ret = preflight1(ctx); !isTesSuccess(ret))\n        return ret;\n\n    if (ctx.tx[sfProposalID] == beast::kZero)\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCancel: zero ProposalID.\";\n        return temMALFORMED;\n    }\n\n    return preflight2(ctx);\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4251326332"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-12T19:24:17Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "In this tree `Transactor::invokePreflight` runs `preflight1` before and `preflight2` after every transactor's own `preflight` (include/xrpl/tx/Transactor.h), and the header says not to call them directly. No transactor on develop calls them, so the signature check is not bypassed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4251590963"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-13T13:42:20Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "Missing `preflight1()` and `preflight2()` calls - signature and invariant checks skipped:\n\n```suggestion:-1+9\nNotTEC\nTransactionProposalCancel::preflight(PreflightContext const& ctx)\n{\n    if (NotTEC const ret = preflight1(ctx); !isTesSuccess(ret))\n        return ret;\n\n    if (ctx.tx[sfProposalID] == beast::kZero)\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCancel: zero ProposalID.\";\n        return temMALFORMED;\n    }\n\n    return preflight2(ctx);\n}\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4259383181"
+    },
+    {
+     "author": "ckeshava",
+     "date": "2026-10-13T17:26:38Z",
+     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
+     "body": "preflight1 and preflight2 run from Transactor::invokePreflight around every regular transactor's own preflight, this one included (include/xrpl/tx/Transactor.h). The header asks transactors not to call them directly, and none under src/libxrpl/tx/transactors does.",
+     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4261859495"
+    }
+   ]
+  },
   {
    "number": 8130,
    "title": "feat: Add TransactionProposal invariants for Cosign",
@@ -668,414 +1091,6 @@
      "path": "src/libxrpl/tx/invariants/CosignerInvariant.cpp",
      "body": "> If a faulty ledger update changes Ticket (owner, 10) to report TicketSequence = 11 before deleting it, this checks proposal (owner, 11) and can let the original proposal survive\n\nEven if this situation occurs due to a incorrect implementation of a future-transactor, the stale proposal remains in the ledger-state. This proposal can never be executed, due to the lack of the said Ticket object. Furthermore, the said proposal can be deleted via the `TransactionProposalCancel` transaction.\n\n> If a faulty ledger update changes Ticket (owner, 10) to report TicketSequence = 11 before deleting it\n\nThere are no transactions which perform this type of mutation on a Ticket object. If we want to prevent such mutations, it is prudent to write a new invariant titled \"TicketValidity\", instead of expecting to check this condition inside the `CosignerInvariant`.\n\nIf there is a possibility of a future-bug that introduces unwarranted mutations in the Ticket object, that is a critical issue deserving its own Invariant-checks. Enforcing such change only in the Cosigner-Invariant code-path is not much solace.\n\n\nLet me know if you are able to provide a reachable attack vector to back this code-change-suggestion.",
      "url": "https://github.com/XRPLF/rippled/pull/8130#discussion_r4299268156"
-    }
-   ]
-  },
-  {
-   "number": 8556,
-   "title": "feat: Add transaction_proposal RPC for Cosign",
-   "url": "https://github.com/XRPLF/rippled/pull/8556",
-   "state": "closed",
-   "author": "ckeshava",
-   "createdAt": "2026-10-10T06:11:30Z",
-   "updatedAt": "2026-10-13T21:28:05Z",
-   "closedAt": "2026-10-13T21:28:05Z",
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-10T06:14:29Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8556?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8556#issuecomment-6094550507"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nAdds the `transaction_proposal` RPC from XLS-0103 \"On-Chain Cosigner\" §8. It returns a `TransactionProposal` ledger entry together with its computed completeness on the queried ledger. A wallet or signer sees how far a proposal is from a submittable transaction without re-deriving it.\n\n### Request\n\nA proposal is addressed by `proposal_id`, or by the target `account` plus the proposed transaction's `ticket_seq`, on any `ledger_index`. Field types and error codes match the `transaction_proposal` object of `ledger_entry`.\n\n| Error | When |\n|---|---|\n| `invalidParams` | neither or both addressing forms are given |\n| `malformedRequest` | bad `proposal_id` or `ticket_seq` |\n| `malformedAddress` | bad `account` |\n| `entryNotFound` | no proposal at the derived key, including an index that names another entry type |\n| `lgrNotFound` | the requested ledger is unavailable |\n\n### Response\n\n- `proposal_id` and `proposal`: the raw entry, as `ledger_entry` would return it.\n- `proposal_status`: `pending`, `complete`, or `expired`, evaluated terminal-first. Expired means `Expiration` reached by the parent close time, or `LastLedgerSequence` below the earliest ledger the transaction could still enter.\n- `signing_status`: one row per required authorization, in a fixed order. The target account or its `Delegate` comes first, then any `Counterparty`, then any `Sponsor`, then each `Batch` participant in ascending account order. For a `LoanSet` without a `Counterparty`, the owner of its `LoanBroker` fills that row.\n- Each row carries `account`, `signed`, and a `reason` when unsigned. An account with a live `SignerList` also reports `quorum`, a `signers` roster with per-member `signed` flags, and `signed_weight` once shares exist.\n- `tx_blob`: the stored `ProposedTransaction` in submit-ready binary form, present whenever every row is satisfied. An expired proposal that reached quorum still holds a submittable transaction (§13.4).\n\n### How the verdict is computed\n\nEach row's `signed` is the answer of the unmodified `Transactor::checkSign` for that account and its signature slot; its `NotTEC` maps to the `reason`. Sponsor rows start from the unmodified `Transactor::checkSponsor`, and a `Delegate` row from the type-erased `xrpl::invokeCheckPermission`. Both run on an `STTx` rebuilt from the stored transaction. These are the rules submission applies, so the verdicts cannot drift.\n\n## Context of Change\n\n`TransactionProposalSign` (#8127) is not on `ripple/cosign` yet, so the tests stage collected signatures into the stored `ProposedTransaction` through the open-ledger overlay. The last test collects real multi-signatures, checks that the returned `tx_blob` hashes to the signed transaction, and submits it.\n\n## Test Plan\n\n`src/test/rpc/TransactionProposal_test.cpp` is new and runs fourteen cases:\n\n- amendment disabled (`featureCosign` off)\n- malformed requests\n- unsigned proposal is pending\n- single signature against the live account keys\n- multi-signature shares against the live `SignerList`\n- signature material the Sign transaction never produces\n- delegated proposed transaction\n- proposed `Batch` inner delegation and sponsorship\n- counterparty co-signature\n- sponsor co-signature or pre-authorization\n- sponsorship submission rejects outright\n- proposed `Batch` participants\n- terminal proposals report expired\n- a complete proposal's `tx_blob` is submittable\n\n## API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\nNew public RPC method `transaction_proposal`; the `API-CHANGELOG.md` entry in this PR lists every field. In `libxrpl`, the `ReadView` overload of `Transactor::checkSign` becomes `public` with the same signature, and `xrpl/tx/transactors/proposal/ProposalStatus.h` is added.\n\n## Before / After\n\nBefore, a client read the entry with `ledger_entry` and fetched every relevant `SignerList`, account root, `Sponsorship` entry and `LoanBroker`. It then re-implemented the authorization rules itself. After, one call answers:\n\n```json\n{ \"command\": \"transaction_proposal\", \"account\": \"rTARGET...\", \"ticket_seq\": 1201, \"ledger_index\": \"validated\" }\n```\n\n```json\n{\n  \"proposal_id\": \"C1A2...\",\n  \"proposal\": { \"LedgerEntryType\": \"TransactionProposal\", \"Owner\": \"rPROPOSER...\", \"Expiration\": 800000000,\n                \"ProposedTransaction\": { \"TransactionType\": \"Payment\", \"Account\": \"rTARGET...\", \"TicketSequence\": 1201, \"SigningPubKey\": \"\", \"Signers\": [ ... ] },\n                \"index\": \"C1A2...\" },\n  \"proposal_status\": \"pending\",\n  \"signing_status\": [\n    { \"account\": \"rTARGET...\", \"signed\": false, \"reason\": \"inadequate_signatures\", \"signed_weight\": 1, \"quorum\": 2,\n      \"signers\": [ { \"account\": \"rBOB...\", \"weight\": 1, \"signed\": true }, { \"account\": \"rCAROL...\", \"weight\": 1, \"signed\": false } ] }\n  ],\n  \"ledger_index\": 12345678,\n  \"validated\": true\n}\n```\n\nOnce the second share is collected, the same call answers `\"proposal_status\": \"complete\"` and adds a `tx_blob` that `submit` accepts as is.\n\nPerformance: read-only, one `SignerList` read per required account plus one account-root read per collected signer. No locks beyond the ledger lookup every RPC performs.\n\n\n## Future Tasks\n\n- When #8127 lands, its role-resolution and jtx signing helpers can replace the suite's overlay staging and the evaluator's required-signer mirrors.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "ripple/cosign",
-   "head": "ckeshava:feat/transaction-proposal-rpc",
-   "additions": 3892,
-   "deletions": 14,
-   "changedFiles": 10,
-   "commits": 9,
-   "reviewComments": 0,
-   "reviews": [],
-   "reviewCommentsList": []
-  },
-  {
-   "number": 8538,
-   "title": "feat: Add TransactionProposalCancel & Cosign Ticket reservation",
-   "url": "https://github.com/XRPLF/rippled/pull/8538",
-   "state": "closed",
-   "author": "ckeshava",
-   "createdAt": "2026-10-08T18:56:15Z",
-   "updatedAt": "2026-10-13T21:28:03Z",
-   "closedAt": "2026-10-13T21:28:00Z",
-   "labels": [
-    "Ready to merge"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-08T18:58:11Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8538?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#issuecomment-6066939960"
-    }
-   ],
-   "body": "Implementation of https://github.com/XRPLF/XRPL-Standards/pull/613 (XLS-0103 On-Chain Cosigner). Follow-up to #8205, which introduced the `Cosign` amendment and `TransactionProposalCreate`.\n\n## High Level Overview of Change\n\nAdds `TransactionProposalCancel` (tx type 94, field `ProposalID`), the second transaction of the Cosign proposal lifecycle. It deletes a `TransactionProposal` ledger entry and releases the reserve held by its Owner or reserve sponsor.\n\nWhile a proposal is live, only its Owner, the proposed transaction's `Account`, or the `Delegate` named in it may cancel it. Anyone else gets `tecNO_PERMISSION`. Once the proposal is terminal, anyone may delete it (XLS-0103 §7.2). A proposal is terminal when its `Expiration` has passed, or the ledger is strictly past the proposed transaction's `LastLedgerSequence`.\n\nIntroduces Ticket reservation (XLS-0103 §4.2.1). While a proposal keyed to a Ticket exists, only that proposal's own proposed transaction may consume the Ticket. Any other transaction spending it fails with the new retryable `terTICKET_RESERVED` code. This stops unrelated activity on the target account from invalidating a proposal while signatures are collected.\n\nA reserved Ticket is consumed either by the proposed transaction executing or by `AccountDelete` sweeping the target's Tickets. Either way, the stale proposal is deleted automatically and its reserve released (XLS-0103 §4.5).\n\n`TransactionProposalCreate` now also rejects proposing a `TransactionProposalCancel`. It likewise rejects a proposed `Batch` whose inner transactions include a proposal transaction, a pseudo-transaction, or a nested `Batch`.\n\n## Context of Change\n\nMerges the `ripple/cosign` integration branch into `develop`. The new transactor and Ticket reservation landed there via #7979, and the branch has since been kept current with `develop` (#8324, #8526).\n\nThe `featureCosign` amendment remains `Supported::No`, so none of this is enabled on any network. `TransactionProposalSign` will follow in a later PR.\n\n## API Impact\n\n- [x] `libxrpl` change (amendment-gated new transaction type and the new `terTICKET_RESERVED` result code)\n\n## Test Plan\n\n- `TransactionProposalCancel_test.cpp` covers cancel authorization, terminal boundaries, and the Batch, multisign, and sponsorship interactions. Cases include \"owner cancels live proposal\", \"third party cannot cancel live proposal\", and \"anyone cancels expired proposal\". Others are \"expiration boundary is inclusive\" and \"a cancel cannot itself be proposed\".\n- `TransactionProposalReservedTicket_test.cpp` covers Ticket reservation across the ordinary, Batch, and `AccountDelete` paths. Cases include \"unrelated spend of a reserved ticket is blocked\" and \"matching payload consumes the ticket and cleans up\". Another is \"deleting the target account deletes the proposal\".\n- `TransactionProposalCreate_test.cpp` is extended alongside; its cases include \"proposed batch reserve\" and \"reject proposal targeting a pseudo-account\". The jtx helpers in `src/test/jtx/proposal.h` gain the cancel builder.\n- gtest: `TransactionProposalCancelTests.cpp` (generated transaction tests) and `src/tests/libxrpl/tx/ProposalHelpers.cpp`.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
-   "merged": true,
-   "mergedAt": "2026-10-13T21:28:00Z",
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:ripple/cosign",
-   "additions": 3987,
-   "deletions": 42,
-   "changedFiles": 18,
-   "commits": 36,
-   "reviewComments": 22,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-08T18:58:59Z",
-     "body": "This diff is test-support plumbing for the new TransactionProposalCancel transaction: a jtx helper (`cancel`) to build the JSON for the transaction, an auto-generated protocol test file, and a mechanical rename of `isValidProposal` to `isValidProposalTxnT ype` in existing ProposalHelpers tests (plus one comment fix). All changes are structurally straightforward and consistent with existing patterns in the file (e.g., `create()` in the same file). No logic errors, resource leaks, or security concerns were found in the added lines."
-    },
-    {
-     "author": "Kassaking7",
-     "state": "APPROVED",
-     "date": "2026-10-08T19:17:44Z",
-     "body": "Already Reviewed in feature branch"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-10-08T19:21:03Z",
-     "body": "Signature bypass in preflight - see inline."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-08T19:22:59Z",
-     "body": "### 🟡 Changes recommended\n\nPayload matching accepts undocumented mutable fields, and the stated Sign transaction type is already assigned.\n\n<details open>\n<summary><strong>2 open findings</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Type 93 conflicts with existing MPT holder key update assignment](#discussion_r4223220059) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Payload validation ignores mutable signature fields](#discussion_r4223220132) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds the amendment-gated cancellation phase and Ticket reservation behavior for on-ledger cosigning.\n\n**Changes:**\n- Implements `TransactionProposalCancel`, authorization, reserve release, and terminal handling.\n- Reserves proposal Tickets and automatically cleans proposals when Tickets are consumed.\n- Adds protocol wrappers, TER definitions, jtx helpers, and extensive tests.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​tests/​libxrpl/​tx/​ProposalHelpers.cpp` | Updates proposal-validation helper tests. |\n| `src/​tests/​libxrpl/​protocol_autogen/​transactions/​TransactionProposalCancelTests.cpp` | Tests generated Cancel wrapper and builder. |\n| `src/​test/​jtx/​proposal.h` | Declares Cancel test helper. |\n| `src/​test/​jtx/​impl/​proposal.cpp` | Implements Cancel JSON construction. |\n| `src/​test/​app/​TransactionProposalReservedTicket_test.cpp` | Covers Ticket reservation and cleanup paths. |\n| `src/​test/​app/​TransactionProposalCreate_test.cpp` | Expands nested-payload validation tests. |\n| `src/​test/​app/​TransactionProposalCancel_test.cpp` | Covers Cancel authorization and ledger effects. |\n| `src/​libxrpl/​tx/​transactors/​proposal/​TransactionProposalCreate.cpp` | Uses expanded proposal-type validation. |\n| `src/​libxrpl/​tx/​transactors/​proposal/​TransactionProposalCancel.cpp` | Implements the Cancel transactor. |\n| `src/​libxrpl/​tx/​Transactor.cpp` | Enforces reservations and proposal cleanup. |\n| `src/​libxrpl/​protocol/​TER.cpp` | Registers the reserved-Ticket result message. |\n| `src/​libxrpl/​ledger/​helpers/​ProposalHelpers.cpp` | Adds proposal matching, deletion, and terminal helpers. |\n| `include/​xrpl/​tx/​transactors/​proposal/​TransactionProposalCancel.h` | Declares the Cancel transactor. |\n| `include/​xrpl/​tx/​Transactor.h` | Documents Ticket deletion behavior. |\n| `include/​xrpl/​protocol/​TER.h` | Defines `terTICKET_RESERVED`. |\n| `include/​xrpl/​protocol/​detail/​transactions.macro` | Registers the Cancel transaction format. |\n| `include/​xrpl/​protocol_autogen/​transactions/​TransactionProposalCancel.h` | Adds generated Cancel API types. |\n| `include/​xrpl/​ledger/​helpers/​ProposalHelpers.h` | Exposes proposal lifecycle helpers. |\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-10-08T20:14:29Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-08T20:27:06Z",
-     "body": "This diff is almost entirely test-support plumbing: a new `cancel()` jtx helper for building `TransactionProposalCancel` transactions, its header declaration, a new auto-generated gtest file for the `TransactionProposalCancel` wrapper/builder round-trip, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across the `ProposalHelpers` unit tests to match a rename made elsewhere. All changes are internally consistent (helper signature matches declaration, renamed calls match the new function name) and no logic errors, resource leaks, or security concerns are introduced. No substantive issues found worth flagging."
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-10-08T20:28:19Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-10-08T20:28:21Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-10-08T21:03:29Z",
-     "body": "Critical signature validation bypass in preflight - see inline."
-    },
-    {
-     "author": "shawnxie999",
-     "state": "APPROVED",
-     "date": "2026-10-09T21:24:47Z",
-     "body": "LGTM. also each commit has been reviewed in separate PRs."
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-10-09T21:31:04Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-09T21:38:30Z",
-     "body": "This slice of the diff only touches test infrastructure: a new `cancel()` JTx helper for building TransactionProposalCancel JSON, its header declaration, an auto-generated unit test file for the TransactionProposalCancel wrapper/builder, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across ProposalHelpers.cpp's test cases. All renamed call sites are consistent, the new helper mirrors the existing `create()` helper's structure, and the generated test file follows the same boilerplate pattern as other protocol_autogen transaction tests. No logic errors, resource leaks, or security concerns are introduced in the changed lines."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-12T14:42:10Z",
-     "body": "This diff is low-risk: it adds a jtx `cancel()` helper for building TransactionProposalCancel JSON, an auto-generated gtest file for the new transaction type, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across existing unit tests. No new business logic is introduced in the reviewed hunks, and I don't see correctness, security, or resource-management issues in the changed lines."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-12T14:45:03Z",
-     "body": "### 🟡 Changes recommended\n\nSeveral new comments and public helper docs contradict the implemented expiration and ledger-bound behavior.\n\n<details open>\n<summary><strong>5 open findings</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Clarify expired proposals with signed payloads can still execute](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295671) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Correct Ticket removal terminology and remove duplicate AccountDelete usage](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295737) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Do not claim terminal proposals can never complete](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295785) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Use correct ProposalID terminology and grammar](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295843) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Correct Create boundary claim for LastLedgerSequence equality](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295908) · New\n</details>\n\n<details>\n<summary><strong>2 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Payload validation ignores mutable signature fields](https://github.com/XRPLF/rippled/pull/8538#discussion_r4223220132)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Type 93 conflicts with existing MPT holder key update assignment](https://github.com/XRPLF/rippled/pull/8538#discussion_r4223220059)\n</details>\n\n🧠 **Review effort:** Balanced"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-12T15:02:02Z",
-     "body": "This diff only touches test infrastructure: a new jtx helper `cancel()` for building TransactionProposalCancel transactions, an autogenerated boilerplate test file for the new transaction type, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across existing ProposalHelpers tests. All changes are consistent with existing patterns in the file (mirrors the existing `create()` helper, same builder/getter round-trip pattern as other autogenerated transaction tests), and the rename is purely a call-site update matching a renamed library function. No logic errors, security issues, or resource leaks are introduced in the changed (+) lines."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-12T15:29:00Z",
-     "body": "This diff portion is test-infrastructure only: a new `cancel()` jtx builder for TransactionProposalCancel, its header declaration, a new auto-generated gtest file for the TransactionProposalCancel wrapper/builder round-trip, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across ProposalHelpers.cpp (including its doc comment). All renames are consistent and complete within the shown diff, the new builder function mirrors the existing `create()` pattern, and the generated test file follows the standard boilerplate used for other transaction types. No correctness, security, or resource-management issues found in the changed lines; the actual transactor/ticket-reservation logic described in the MR is not part of this diff slice, so it isn't reviewed here."
-    },
-    {
-     "author": "Kassaking7",
-     "state": "APPROVED",
-     "date": "2026-10-12T16:52:38Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-10-12T17:52:45Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-10-12T17:52:46Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-10-12T17:52:48Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-10-12T17:52:49Z",
-     "body": ""
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-10-12T17:52:51Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-12T17:55:45Z",
-     "body": "Mostly a mechanical rename (isValidProposal → isValidProposalTxnType) plus new test-only jtx helper and auto-generated gtest file. Nothing problematic found in the diff itself — changes are test/helper code with no logic alterations beyond the rename and new TransactionProposalCancel builder helper, which look correct and consistent."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-10-12T18:49:11Z",
-     "body": "Signature validity check bypassed - see inline."
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-10-12T19:24:17Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-12T20:48:59Z",
-     "body": "The visible diff is small: it adds a few include lines and two new test cases to TransactionProposalCreate_test.cpp (one exercising a malformed Batch inner missing TransactionType via STTx construction, another directly exercising isValidProposalTxnType with a hand-built STObject), plus a comment wording fix. The second listed file, TransactionProposalReservedTicket_test.cpp, has no diff content shown (empty diff for a 'new' file), so it could not be reviewed here. No correctness, security, or style issues were found in the visible changes — the new test cases look internally consistent with their stated intent and use the appropriate flags/fields."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-12T21:04:40Z",
-     "body": "### 🔵 Needs a closer look\n\nConsensus-critical Ticket consumption, reserve accounting, and AccountDelete behavior warrant final human review despite broad test coverage.\n\n**0 open findings**\n\n<details>\n<summary><strong>5 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Correct Create boundary claim for LastLedgerSequence equality](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295908)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Use correct ProposalID terminology and grammar](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295843)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Do not claim terminal proposals can never complete](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295785)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Correct Ticket removal terminology and remove duplicate AccountDelete usage](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295737)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Clarify expired proposals with signed payloads can still execute](https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295671)\n</details>\n\n🧠 **Review effort:** Balanced"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-10-13T13:42:20Z",
-     "body": "Security gap in preflight validation - see inline."
-    },
-    {
-     "author": "ckeshava",
-     "state": "COMMENTED",
-     "date": "2026-10-13T17:26:38Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-13T17:30:16Z",
-     "body": "This diff is limited to test infrastructure: a new `cancel` jtx builder helper for `TransactionProposalCancel`, its header declaration, an autogenerated gtest file for the new transaction wrapper/builder, and a mechanical rename of `isValidProposal` to `isValidProposalTxnType` across the ProposalHelpers unit tests. The changes are internally consistent (comment, rename, and call sites all line up) and the new helper/test code follows the same patterns used elsewhere in the test DSL and autogenerated suites. No correctness, security, or resource-management issues were found in the added lines."
-    },
-    {
-     "author": "Kassaking7",
-     "state": "APPROVED",
-     "date": "2026-10-13T18:40:05Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-10-08T19:21:03Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
-     "body": "Missing preflight1/preflight2 wrapping bypasses signature verification:\n```suggestion:-1+9\nNotTEC TransactionProposalCancel::preflight(PreflightContext const& ctx)\n{\n    if (NotTEC const ret = preflight1(ctx); !isTesSuccess(ret))\n        return ret;\n\n    if (ctx.tx[sfProposalID] == beast::kZero)\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCancel: zero ProposalID.\";\n        return temMALFORMED;\n    }\n\n    return preflight2(ctx);\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223202271"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-08T19:22:58Z",
-     "path": "include/xrpl/protocol/detail/transactions.macro",
-     "body": "Type 93 is already assigned to `ttCONFIDENTIAL_MPT_HOLDER_KEY_UPDATE` at line 1155, so it cannot also be reserved for the forthcoming proposal-sign transaction. Assign Sign an unused type or remove/update this reservation before consumers rely on the documented wire value.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223220059"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-08T19:22:59Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "`addWithoutSigningFields` omits every field marked `kNotSigning`, including `sfSignature` and `sfMasterSignature`, not only the five containers listed above. Consequently, for transaction types such as `PaymentChannelClaim` and XChain attestations, a submission with a different `sfSignature` still passes `payloadMatches` and may consume the reserved Ticket, contrary to this helper's documented fixed-payload contract. Compare all fields after explicitly neutralizing only the fields XLS-0103 permits to evolve, or explicitly document and test these additional mutable fields if that behavior is intended.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223220132"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-10-08T20:14:29Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
-     "body": "Not a bypass. In this codebase transactors must not call `preflight1`/`preflight2` themselves: `invoke_preflight` in `include/xrpl/tx/Transactor.h` runs `preflight1`, `preflightUniversal`, `T::preflight`, `preflight2` and `T::preflightSigValidated` in that order for every transaction type, and the `Transactor` docs say \"Do not try to call preflight1 or preflight2 directly.\" `TransactionProposalCreate` follows the same pattern, so signature verification runs for Cancel exactly as it does for every other transactor.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223680316"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-10-08T20:28:19Z",
-     "path": "include/xrpl/protocol/detail/transactions.macro",
-     "body": "Addressed in c656e2670d: the comment no longer pins a number. Type 93 came in with the develop merge (ConfidentialMPTHolderKeyUpdate), so TransactionProposalSign will take the next unassigned type. #8127 needs the same renumber.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223800833"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-10-08T20:28:21Z",
-     "path": "src/libxrpl/ledger/helpers/ProposalHelpers.cpp",
-     "body": "Intentional, and the docs now say so (c656e2670d). payloadMatches compares the signing payload, i.e. exactly what the collected signatures commit to. `Signature` is kNotSigning, so even for an ordinary PaymentChannelClaim or XChain attestation the account's own TxnSignature does not cover it; a proposal cannot bind it more tightly than the signatures it collects do, and those transactors still verify a substituted value themselves in preflight. `MasterSignature` appears in no transaction format. The header and inline comment now list every excluded field and state this rationale.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4223801147"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-10-08T21:03:29Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
-     "body": "Missing preflight1/preflight2 calls bypass signature and field validation. Wrap ProposalID check like other transactors:\n\n```suggestion:-0+9\nTransactionProposalCancel::preflight(PreflightContext const& ctx)\n{\n    if (auto const ret = preflight1(ctx); !isTesSuccess(ret))\n        return ret;\n\n    if (ctx.tx[sfProposalID] == beast::kZero)\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCancel: zero ProposalID.\";\n        return temMALFORMED;\n    }\n\n    return preflight2(ctx);\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4224109391"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-10-09T21:31:03Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
-     "body": "please refer to the rebuttal here: https://github.com/XRPLF/rippled/pull/8538/changes#r4223680316",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4234708973"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-12T14:45:01Z",
-     "path": "include/xrpl/ledger/helpers/ProposalHelpers.h",
-     "body": "This says every terminal proposal can never complete, but `TransactionProposalReservedTicket_test.cpp:691-723` verifies that an already signed payload still executes after proposal expiration. Terminal status stops signature collection and permits cancellation; only a passed payload `LastLedgerSequence` makes execution impossible.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295671"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-12T14:45:02Z",
-     "path": "include/xrpl/tx/Transactor.h",
-     "body": "A consumed or swept Ticket is removed, not “expired,” and the AccountDelete usage is stated twice in this paragraph. Rewording this avoids documenting a Ticket expiration state that does not exist.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295737"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-12T14:45:02Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
-     "body": "An expired proposal's already signed payload may still execute, as covered by `TransactionProposalReservedTicket_test.cpp:691-723`; terminal status only closes signature collection and widens cancellation permission. This rationale should not state that all terminal proposals can never complete.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295785"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-12T14:45:02Z",
-     "path": "src/test/app/TransactionProposalCancel_test.cpp",
-     "body": "Use “A previously cancelled ProposalID”; the current article is ungrammatical, and the field is named `ProposalID`, not `ProposedID`.\n\nThis issue also appears on line 385 of the same file.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295843"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-12T14:45:03Z",
-     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
-     "body": "This newly added description contradicts the established Create boundary: `TransactionProposalCreate_test.cpp:579-588` and `TransactionProposalCreate::preclaim` reject `LastLedgerSequence == view.seq()` with `tecEXPIRED`. This case creates the proposal before the bound and only verifies submission at/past it, so please avoid claiming that Create accepts equality.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4249295908"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-10-12T17:52:45Z",
-     "path": "include/xrpl/ledger/helpers/ProposalHelpers.h",
-     "body": "Addressed in 0ed44ef069: the isTerminal doc now says a terminal proposal stops accepting signatures and may be deleted by anyone, that an already signed payload still executes after Expiration, and that a passed LastLedgerSequence is what stops it.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4250886134"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-10-12T17:52:46Z",
-     "path": "include/xrpl/tx/Transactor.h",
-     "body": "Addressed in 0ed44ef069: the paragraph now says the proposal is deleted because its proposed transaction can never be applied once the Ticket is gone (tefNO_TICKET), and the AccountDelete sentence appears once.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4250886307"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-10-12T17:52:48Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
-     "body": "Addressed in 0ed44ef069: the rationale now says a terminal proposal is closed to new signatures and points to proposal::isTerminal, without claiming it can never complete.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4250886482"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-10-12T17:52:49Z",
-     "path": "src/test/app/TransactionProposalCancel_test.cpp",
-     "body": "Addressed in 0ed44ef069: now \"A previously cancelled ProposalID\". Line 385 carried the same \"can never complete\" claim as the other threads, so it is reworded there too.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4250886645"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-10-12T17:52:50Z",
-     "path": "src/test/app/TransactionProposalReservedTicket_test.cpp",
-     "body": "Addressed in 0ed44ef069: the comment now says Create rejects a LastLedgerSequence at or before the ledger Create itself applies in (tecEXPIRED), and no longer implies Create accepts equality.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4250886816"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-10-12T18:49:10Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
-     "body": "Bypasses signature validity check. Call preflight1 at start, return preflight2 at end, matching other transactors:\n\n```suggestion:-0+10\nNotTEC\nTransactionProposalCancel::preflight(PreflightContext const& ctx)\n{\n    auto const res = preflight1(ctx);\n    if (!isTesSuccess(res))\n        return res;\n\n    if (ctx.tx[sfProposalID] == beast::kZero)\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCancel: zero ProposalID.\";\n        return temMALFORMED;\n    }\n\n    return preflight2(ctx);\n}\n```\n\n```suggestion\nNotTEC\nTransactionProposalCancel::preflight(PreflightContext const& ctx)\n{\n    if (auto const ret = preflight1(ctx); !isTesSuccess(ret))\n        return ret;\n\n    if (ctx.tx[sfProposalID] == beast::kZero)\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCancel: zero ProposalID.\";\n        return temMALFORMED;\n    }\n\n    return preflight2(ctx);\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4251326332"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-10-12T19:24:17Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
-     "body": "In this tree `Transactor::invokePreflight` runs `preflight1` before and `preflight2` after every transactor's own `preflight` (include/xrpl/tx/Transactor.h), and the header says not to call them directly. No transactor on develop calls them, so the signature check is not bypassed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4251590963"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-10-13T13:42:20Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
-     "body": "Missing `preflight1()` and `preflight2()` calls - signature and invariant checks skipped:\n\n```suggestion:-1+9\nNotTEC\nTransactionProposalCancel::preflight(PreflightContext const& ctx)\n{\n    if (NotTEC const ret = preflight1(ctx); !isTesSuccess(ret))\n        return ret;\n\n    if (ctx.tx[sfProposalID] == beast::kZero)\n    {\n        JLOG(ctx.j.debug()) << \"TransactionProposalCancel: zero ProposalID.\";\n        return temMALFORMED;\n    }\n\n    return preflight2(ctx);\n}\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4259383181"
-    },
-    {
-     "author": "ckeshava",
-     "date": "2026-10-13T17:26:38Z",
-     "path": "src/libxrpl/tx/transactors/proposal/TransactionProposalCancel.cpp",
-     "body": "preflight1 and preflight2 run from Transactor::invokePreflight around every regular transactor's own preflight, this one included (include/xrpl/tx/Transactor.h). The header asks transactors not to call them directly, and none under src/libxrpl/tx/transactors does.",
-     "url": "https://github.com/XRPLF/rippled/pull/8538#discussion_r4261859495"
     }
    ]
   },
