@@ -1,10 +1,10 @@
 {
  "name": "Batch",
- "fetchedAt": "2026-10-20T08:01:21.332Z",
+ "fetchedAt": "2026-10-21T08:01:21.075Z",
  "summary": {
   "status": "in development",
   "prs": 11,
-  "open": 8,
+  "open": 9,
   "merged": 1,
   "issues": 1,
   "proposals": 3,
@@ -16,14 +16,15 @@
    "dangell7/batch-db",
    "dangell7/batch-delivermax",
    "dangell7/batch-inner-last-ledger-sequence",
+   "dangell7/batch-txq-weight",
    "dangell7/batch-v2-inner-record",
    "mvadari/batch-multisign-prefix",
    "ripple/custody-old-batch-cmpt"
   ],
-  "lastActivity": "2026-10-19T16:57:51Z",
+  "lastActivity": "2026-10-21T04:45:43Z",
   "lastMerged": "2026-10-06T00:32:15Z",
   "release": "2.5.0",
-  "totalComments": 474
+  "totalComments": 409
  },
  "release": {
   "version": "2.5.0",
@@ -33,106 +34,13 @@
  },
  "prs": [
   {
-   "number": 8558,
-   "title": "fix: Apply DeliverMax to inner Batch Payments, simulate and submit",
-   "url": "https://github.com/XRPLF/rippled/pull/8558",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-10-10T12:53:06Z",
-   "updatedAt": "2026-10-19T16:57:51Z",
-   "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-10T13:00:46Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `96.29630%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/misc/detail/DeliverMax.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL2RldGFpbC9EZWxpdmVyTWF4LmNwcA==) | 95.5% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8558#issuecomment-6097763794"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-19T16:57:50Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8558#issuecomment-6272583692"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nA Payment inside the `RawTransactions` of a Batch now follows the `DeliverMax` rule on output and input, like a top-level Payment. `simulate` and `submit` with `tx_blob` follow it too.\n\n- `insertDeliverMax` applies the rule to each inner Payment of a Batch, so every method that already calls it renders inner Payments with `DeliverMax`. `simulate` and `submit` with `tx_blob` now call it on the `tx_json` they return.\n- `removeDeliverMax` replaces the alias handling in `checkPayment`, maps `DeliverMax` to `Amount` in inner Payments as well, and runs before `checkFee` (and before `autofillTx` in `simulate`).\n\nFixes #8557\n\n## Context of Change\n\n`insertDeliverMax` only acted on a top-level `ttPAYMENT`, and `checkPayment` only aliased a top-level Payment. `DeliverMax` is not an `SField`, so `STParsedJSON` rejected it in an inner Payment as an unknown field. While tracing the callers I found that `simulate` had no `DeliverMax` handling at all, and `doSubmit` rendered `tx_json` without calling `insertDeliverMax`.\n\nThe alias is resolved before `checkFee` because `getTxFee` parses `tx_json` to compute the fee. A Batch fee depends on its inner transactions, so an unresolved inner `DeliverMax` fails that parse and the autofilled fee falls back to the reference fee. `autofillTx` in `simulate` has the same dependency for a multi-signed Payment.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nIn API version 2, inner Payments and the `tx_json` returned by `simulate` and by `submit` with `tx_blob` now carry only `DeliverMax`, not `Amount`, matching every other Payment in v2. API version 1 gains `DeliverMax` next to `Amount`. `DeliverMax` is now accepted where it was rejected. Entries are in `API-CHANGELOG.md`.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:dangell7/batch-delivermax",
-   "additions": 366,
-   "deletions": 25,
-   "changedFiles": 9,
-   "commits": 2,
-   "reviewComments": 3,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-10T12:55:46Z",
-     "body": "This change extends DeliverMax handling to inner Batch Payments and to simulate/submit responses, consolidating the alias logic into insertDeliverMax/removeDeliverMax. The refactor is coherent: removeDeliverMax is correctly short-circuited on a differing Amount/DeliverMax error, is applied before fee autofill (matching the stated rationale), and insertDeliverMax's Batch branch mutates inner RawTransaction objects by reference as needed. Call sites in TransactionSign.cpp, Simulate.cpp, and Submit.cpp appear consistently wired to match the CHANGELOG claims, and the accompanying tests exercise sign/submit/simulate/tx/transaction_entry/ledger/account_tx across API versions. I did not find a confident correctness or security bug introduced by the added lines."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-10T13:11:34Z",
-     "body": "The change plumbs DeliverMax handling into inner Batch Payments and into simulate/submit output rendering, and adds solid coverage for those specific paths (Batch via sign+submit, simulate, submit with tx_blob). The one thing I can't verify from the diff alone is call order in TransactionSign.cpp: checkPayment() had its DeliverMax-alias logic deleted and now only checks `txJson.isMember(jss::Amount)`, while the new `removeDeliverMax()` call is inserted elsewhere in transactionPreProcessImpl/transactionSubmitMultiSigned. If checkPayment still runs before that insertion point, a bare top-level Payment signed via `sign`/`submit_multisigned` with only `DeliverMax` (no `Amount`) would now be rejected with a missing-field error — a regression on exactly the feature this PR adds. None of the new tests catch this because they all route around checkPayment's Amount check (Batch's top-level type isn't Payment so checkPayment short-circuits; simulate and tx_blob submit never call checkPayment at all)."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-10T13:18:54Z",
-     "body": "### 🟡 Changes recommended\n\nNested Payments using wrappers accepted before `fixBatchV1_2` are not normalized.\n\n<details open>\n<summary><strong>1 open finding</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Traverse all RawTransactions object wrappers](https://github.com/XRPLF/rippled/pull/8558#discussion_r4237747708) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nExtends `DeliverMax` alias handling to Batch inner Payments and RPC simulation/submission paths.\n\n**Changes:**\n- Normalizes `DeliverMax` for nested Batch Payments.\n- Applies output conversion to `simulate` and blob-based `submit`.\n- Adds RPC and Batch regression coverage plus changelog entries.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​xrpld/​rpc/​handlers/​transaction/​Submit.cpp` | Converts returned Payment amounts to `DeliverMax`. |\n| `src/​xrpld/​rpc/​handlers/​transaction/​Simulate.cpp` | Normalizes input aliases and simulation output. |\n| `src/​xrpld/​rpc/​detail/​TransactionSign.cpp` | Centralizes input alias removal before fee processing. |\n| `src/​xrpld/​app/​misc/​detail/​DeliverMax.cpp` | Implements nested Batch alias traversal. |\n| `src/​xrpld/​app/​misc/​DeliverMax.h` | Documents and exposes input normalization. |\n| `src/​test/​rpc/​Submit_test.cpp` | Tests blob submission output. |\n| `src/​test/​rpc/​Simulate_test.cpp` | Tests simulation input, output, and fee handling. |\n| `src/​test/​app/​Batch_test.cpp` | Tests Batch signing and RPC representations. |\n| `API-CHANGELOG.md` | Documents API behavior changes. |\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T13:35:50Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-12T13:53:29Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-10-10T13:18:54Z",
-     "path": "src/xrpld/app/misc/detail/DeliverMax.cpp",
-     "body": "This only visits the canonical `RawTransaction` wrapper, but batches accepted before `fixBatchV1_2` can use other object wrappers (see `src/test/app/Batch_test.cpp:5951-6012`), and such transactions may also exist in historical ledgers. Their inner Payments will therefore still be rendered with `Amount`, and `DeliverMax` input remains unrecognized when those rules are active, contradicting the “each inner Payment” behavior. Traverse every object-valued wrapper in each `RawTransactions` entry rather than hard-coding `RawTransaction`.",
-     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4237747708"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T13:35:50Z",
-     "path": "src/test/rpc/Submit_test.cpp",
-     "body": "Isn't this covered by the test in Batch_test.cpp? DO we need both?",
-     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4248623144"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-12T13:53:29Z",
-     "path": "src/xrpld/app/misc/detail/DeliverMax.cpp",
-     "body": "This name implies that it's being removed entirely, not replaced. Can you make it more descriptive?",
-     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4248797220"
-    }
-   ]
-  },
-  {
    "number": 8052,
    "title": "feat: Add batch transactions to TxQ",
    "url": "https://github.com/XRPLF/rippled/pull/8052",
    "state": "open",
    "author": "oleks-rip",
    "createdAt": "2026-08-19T16:48:52Z",
-   "updatedAt": "2026-10-16T15:22:22Z",
+   "updatedAt": "2026-10-21T04:45:43Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -195,7 +103,7 @@
    "deletions": 162,
    "changedFiles": 6,
    "commits": 1,
-   "reviewComments": 48,
+   "reviewComments": 50,
    "reviews": [
     {
      "author": "depthfirst-app[bot]",
@@ -392,6 +300,12 @@
      "author": "oleks-rip",
      "state": "COMMENTED",
      "date": "2026-09-24T18:21:57Z",
+     "body": ""
+    },
+    {
+     "author": "g-ripple",
+     "state": "COMMENTED",
+     "date": "2026-10-21T04:45:42Z",
      "body": ""
     }
    ],
@@ -731,6 +645,160 @@
      "path": "src/xrpld/app/misc/detail/TxQ.cpp",
      "body": "The same check is not possible, as require inner tx to be applied. Added simplified check. Even if some inner transactions of the batch will fail later - this is natural flow for it, not all tx may succeed .  b5fd9a84e38be",
      "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4097010478"
+    },
+    {
+     "author": "g-ripple",
+     "date": "2026-10-21T04:16:05Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "Could end point to one of this Batch's inner transactions? If so, removeInnerTxs would erase that entry and invalidate end before the next it != end comparison.",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4332976829"
+    },
+    {
+     "author": "g-ripple",
+     "date": "2026-10-21T04:33:45Z",
+     "path": "src/xrpld/app/misc/detail/TxQ.cpp",
+     "body": "For tfIndependent and tfOnlyOne, shouldn't an inner transaction with an old sequence number fail on its own and let the Batch try the next transaction, rather than rejecting the whole Batch?",
+     "url": "https://github.com/XRPLF/rippled/pull/8052#discussion_r4333064736"
+    }
+   ]
+  },
+  {
+   "number": 8627,
+   "title": "perf: Avoid memory allocations during Batch preflight checks",
+   "url": "https://github.com/XRPLF/rippled/pull/8627",
+   "state": "open",
+   "author": "nbougalis",
+   "createdAt": "2026-10-21T04:09:44Z",
+   "updatedAt": "2026-10-21T04:19:04Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-21T04:12:15Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8627?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#issuecomment-6307851935"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nRemove the per-insertion heap allocations from `Batch::preflight`. The duplicate-inner-transaction and duplicate-sequence/ticket checks used an `std::unordered_set` and an `std::unordered_map` of `std::unordered_set`s; they are now `std::flat_set`s backed by a `boost::container::small_vector` sized to `kMaxBatchTxCount`, so neither container ever leaves inline storage.\n\n## Context of Change\n\n`Batch::preflight` runs for every submitted and relayed Batch, including those about to be rejected, and the two containers it used allocate per node (and, for the map, per distinct account) to hold at most eight entries. The map of sets is flattened to a set of `(account, sequence-or-ticket)` pairs: pair membership was the only query, and the preceding `temSEQ_AND_TICKET` checks already guarantee exactly one of `Sequence` and `TicketSequence` is set, so the two insert sites collapse into one. Sequences and tickets keep sharing one key space per account, and the checks run at the same point in the per-inner loop, so every result code is unchanged. No amendment is needed.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nThe change is internal to `Batch::preflight`; no `libxrpl` interface changes.\n\n## Before / After\n\n1. Improvement to existing functionality.\n2. Memory allocation behavior of `Batch::preflight`; transaction results are unchanged.\n3. Preflight of Batch transactions on the submit and relay paths (`checkValidity`, `TxQ::apply`, ledger building).\n4. No effect on concurrent processing: no locks, threads, or async work are involved.\n\n## Test Plan\n\nExisting `xrpl.app.Batch` unit tests, which assert the `temREDUNDANT` and `temSEQ_AND_TICKET` results for duplicate inners, sequences, and tickets across all four batch modes.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "nbougalis:batch-mem",
+   "additions": 32,
+   "deletions": 25,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-21T04:19:04Z",
+     "body": "### 🟢 Approval recommended\n\nThe bounded container changes preserve validation behavior, with only an optional comment correction remaining.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nOptimizes `Batch::preflight` duplicate checks by replacing node-based containers with inline-backed flat sets while preserving validation behavior.\n\n**Changes:**\n- Uses inline storage sized to `kMaxBatchTxCount`.\n- Combines account sequence/ticket tracking into a set of pairs.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Replaces allocating duplicate-check containers and consolidates sequence/ticket insertion. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-21T04:19:03Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Optional: remove the extra “when” and correct “exced” to “exceed” in this comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744"
+    }
+   ]
+  },
+  {
+   "number": 8558,
+   "title": "fix: Apply DeliverMax to inner Batch Payments, simulate and submit",
+   "url": "https://github.com/XRPLF/rippled/pull/8558",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-10-10T12:53:06Z",
+   "updatedAt": "2026-10-19T16:57:51Z",
+   "closedAt": null,
+   "labels": [
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-10T13:00:46Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `96.29630%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/misc/detail/DeliverMax.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL2RldGFpbC9EZWxpdmVyTWF4LmNwcA==) | 95.5% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8558?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#issuecomment-6097763794"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-19T16:57:50Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#issuecomment-6272583692"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nA Payment inside the `RawTransactions` of a Batch now follows the `DeliverMax` rule on output and input, like a top-level Payment. `simulate` and `submit` with `tx_blob` follow it too.\n\n- `insertDeliverMax` applies the rule to each inner Payment of a Batch, so every method that already calls it renders inner Payments with `DeliverMax`. `simulate` and `submit` with `tx_blob` now call it on the `tx_json` they return.\n- `removeDeliverMax` replaces the alias handling in `checkPayment`, maps `DeliverMax` to `Amount` in inner Payments as well, and runs before `checkFee` (and before `autofillTx` in `simulate`).\n\nFixes #8557\n\n## Context of Change\n\n`insertDeliverMax` only acted on a top-level `ttPAYMENT`, and `checkPayment` only aliased a top-level Payment. `DeliverMax` is not an `SField`, so `STParsedJSON` rejected it in an inner Payment as an unknown field. While tracing the callers I found that `simulate` had no `DeliverMax` handling at all, and `doSubmit` rendered `tx_json` without calling `insertDeliverMax`.\n\nThe alias is resolved before `checkFee` because `getTxFee` parses `tx_json` to compute the fee. A Batch fee depends on its inner transactions, so an unresolved inner `DeliverMax` fails that parse and the autofilled fee falls back to the reference fee. `autofillTx` in `simulate` has the same dependency for a multi-signed Payment.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nIn API version 2, inner Payments and the `tx_json` returned by `simulate` and by `submit` with `tx_blob` now carry only `DeliverMax`, not `Amount`, matching every other Payment in v2. API version 1 gains `DeliverMax` next to `Amount`. `DeliverMax` is now accepted where it was rejected. Entries are in `API-CHANGELOG.md`.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:dangell7/batch-delivermax",
+   "additions": 366,
+   "deletions": 25,
+   "changedFiles": 9,
+   "commits": 2,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-10T12:55:46Z",
+     "body": "This change extends DeliverMax handling to inner Batch Payments and to simulate/submit responses, consolidating the alias logic into insertDeliverMax/removeDeliverMax. The refactor is coherent: removeDeliverMax is correctly short-circuited on a differing Amount/DeliverMax error, is applied before fee autofill (matching the stated rationale), and insertDeliverMax's Batch branch mutates inner RawTransaction objects by reference as needed. Call sites in TransactionSign.cpp, Simulate.cpp, and Submit.cpp appear consistently wired to match the CHANGELOG claims, and the accompanying tests exercise sign/submit/simulate/tx/transaction_entry/ledger/account_tx across API versions. I did not find a confident correctness or security bug introduced by the added lines."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-10T13:11:34Z",
+     "body": "The change plumbs DeliverMax handling into inner Batch Payments and into simulate/submit output rendering, and adds solid coverage for those specific paths (Batch via sign+submit, simulate, submit with tx_blob). The one thing I can't verify from the diff alone is call order in TransactionSign.cpp: checkPayment() had its DeliverMax-alias logic deleted and now only checks `txJson.isMember(jss::Amount)`, while the new `removeDeliverMax()` call is inserted elsewhere in transactionPreProcessImpl/transactionSubmitMultiSigned. If checkPayment still runs before that insertion point, a bare top-level Payment signed via `sign`/`submit_multisigned` with only `DeliverMax` (no `Amount`) would now be rejected with a missing-field error — a regression on exactly the feature this PR adds. None of the new tests catch this because they all route around checkPayment's Amount check (Batch's top-level type isn't Payment so checkPayment short-circuits; simulate and tx_blob submit never call checkPayment at all)."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-10T13:18:54Z",
+     "body": "### 🟡 Changes recommended\n\nNested Payments using wrappers accepted before `fixBatchV1_2` are not normalized.\n\n<details open>\n<summary><strong>1 open finding</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Traverse all RawTransactions object wrappers](https://github.com/XRPLF/rippled/pull/8558#discussion_r4237747708) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nExtends `DeliverMax` alias handling to Batch inner Payments and RPC simulation/submission paths.\n\n**Changes:**\n- Normalizes `DeliverMax` for nested Batch Payments.\n- Applies output conversion to `simulate` and blob-based `submit`.\n- Adds RPC and Batch regression coverage plus changelog entries.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​xrpld/​rpc/​handlers/​transaction/​Submit.cpp` | Converts returned Payment amounts to `DeliverMax`. |\n| `src/​xrpld/​rpc/​handlers/​transaction/​Simulate.cpp` | Normalizes input aliases and simulation output. |\n| `src/​xrpld/​rpc/​detail/​TransactionSign.cpp` | Centralizes input alias removal before fee processing. |\n| `src/​xrpld/​app/​misc/​detail/​DeliverMax.cpp` | Implements nested Batch alias traversal. |\n| `src/​xrpld/​app/​misc/​DeliverMax.h` | Documents and exposes input normalization. |\n| `src/​test/​rpc/​Submit_test.cpp` | Tests blob submission output. |\n| `src/​test/​rpc/​Simulate_test.cpp` | Tests simulation input, output, and fee handling. |\n| `src/​test/​app/​Batch_test.cpp` | Tests Batch signing and RPC representations. |\n| `API-CHANGELOG.md` | Documents API behavior changes. |\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T13:35:50Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-12T13:53:29Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-10T13:18:54Z",
+     "path": "src/xrpld/app/misc/detail/DeliverMax.cpp",
+     "body": "This only visits the canonical `RawTransaction` wrapper, but batches accepted before `fixBatchV1_2` can use other object wrappers (see `src/test/app/Batch_test.cpp:5951-6012`), and such transactions may also exist in historical ledgers. Their inner Payments will therefore still be rendered with `Amount`, and `DeliverMax` input remains unrecognized when those rules are active, contradicting the “each inner Payment” behavior. Traverse every object-valued wrapper in each `RawTransactions` entry rather than hard-coding `RawTransaction`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4237747708"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T13:35:50Z",
+     "path": "src/test/rpc/Submit_test.cpp",
+     "body": "Isn't this covered by the test in Batch_test.cpp? DO we need both?",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4248623144"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-12T13:53:29Z",
+     "path": "src/xrpld/app/misc/detail/DeliverMax.cpp",
+     "body": "This name implies that it's being removed entirely, not replaced. Can you make it more descriptive?",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4248797220"
     }
    ]
   },
@@ -2891,502 +2959,6 @@
      "url": "https://github.com/XRPLF/rippled/pull/8244#discussion_r4147720397"
     }
    ]
-  },
-  {
-   "number": 6360,
-   "title": "feat: Support lending in batch",
-   "url": "https://github.com/XRPLF/rippled/pull/6360",
-   "state": "closed",
-   "author": "a1q123456",
-   "createdAt": "2026-02-12T16:21:30Z",
-   "updatedAt": "2026-09-30T07:30:54Z",
-   "closedAt": "2026-09-30T07:30:54Z",
-   "labels": [
-    "DraftRunCI",
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "Tapanito",
-     "date": "2026-02-23T18:14:36Z",
-     "body": "Why does this require another amendment? Hey can't we reuse\nfixLendingProtocolV1_1?\n\nOn Mon, Feb 23, 2026, 18:39 Ed Hennis ***@***.***> wrote:\n\n> ***@***.**** requested changes on this pull request.\n>\n> This 100% requires an amendment.\n>\n> —\n> Reply to this email directly, view it on GitHub\n> <https://github.com/XRPLF/rippled/pull/6360#pullrequestreview-3842570383>,\n> or unsubscribe\n> <https://github.com/notifications/unsubscribe-auth/ABMDKU7FH6G2PDPLU7ZUXFD4NM3NFAVCNFSM6AAAAACU5JSXVOVHI2DSMVQWIX3LMV43YUDVNRWFEZLROVSXG5CSMV3GSZLXHMZTQNBSGU3TAMZYGM>\n> .\n> You are receiving this because your review was requested.Message ID:\n> ***@***.***>\n>",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-3946465656"
-    },
-    {
-     "author": "ximinez",
-     "date": "2026-02-24T00:21:31Z",
-     "body": "> Why does this require another amendment? Hey can't we reuse fixLendingProtocolV1_1?\n\nOh man. My bad - partially. I didn't notice that it was based on that new amendment.\n\nHowever, the reason I say \"partially\" is that the changes are not _controlled by / gated on_ the amendment. That's why I missed the base at first glance. I'll update the original comment.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-3948128308"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-03-26T16:25:13Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4136387569"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-03-27T00:11:14Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4139142213"
-    },
-    {
-     "author": "codecov[bot]",
-     "date": "2026-03-27T02:38:13Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `50.00000%` with `1 line` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 81.5%. Comparing base ([`68e4fbd`](https://app.codecov.io/gh/XRPLF/rippled/commit/68e4fbdf2b524a593a20854e3ea17fe8df3e070e?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`2bc11be`](https://app.codecov.io/gh/XRPLF/rippled/commit/2bc11becfc84708556dc613f100d4f40b5268dff?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)).\n:warning: Report is 205 commits behind head on tapanito/lending-fix-amendment.\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/system/Batch.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Ftransactors%2Fsystem%2FBatch.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvc3lzdGVtL0JhdGNoLmNwcA==) | 50.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n<details><summary>Additional details and impacted files</summary>\n\n\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/6360/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n```diff\n@@                      Coverage Diff                       @@\n##           tapanito/lending-fix-amendment   #6360   +/-   ##\n==============================================================\n  Coverage                            81.5%   81.5%           \n==============================================================\n  Files                                 999     999           \n  Lines                               74550   74551    +1     \n  Branches                             7560    7547   -13     \n==============================================================\n+ Hits                                60722   60740   +18     \n+ Misses                              13828   13811   -17     \n```\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Coverage Δ | |\n|---|---|---|\n| [src/libxrpl/tx/transactors/system/Batch.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Ftransactors%2Fsystem%2FBatch.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvc3lzdGVtL0JhdGNoLmNwcA==) | `95.8% <50.0%> (+0.6%)` | :arrow_up: |\n\n... and [6 files with indirect coverage changes](https://app.codecov.io/gh/XRPLF/rippled/pull/6360/indirect-changes?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/6360/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/6360?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n</details>\n<details><summary> :rocket: New features to boost your workflow: </summary>\n\n- :snowflake: [Test Analytics](https://docs.codecov.com/docs/test-analytics): Detect flaky tests, report on failures, and find test suite problems.\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4139723534"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-03-31T08:01:19Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4160684945"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-04-15T15:36:02Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4253395403"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-06-08T09:49:33Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4647549296"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-06-08T09:49:34Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-4647549484"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-09-30T07:30:54Z",
-     "body": "Closing in favour of: https://github.com/XRPLF/rippled/pull/8244",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#issuecomment-5906385679"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nThis PR allows lending transactions to be in a batch and adds unit tests for the scenarios where we put lending related transactions in a batch. \n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [ ] Bug fix (non-breaking change which fixes an issue)\n- [x] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Performance (increase or change in throughput and/or latency)\n- [x] Tests (you added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation update\n- [ ] Chore (no impact to binary, e.g. `.gitignore`, formatting, dropping support for older tooling)\n- [ ] Release\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:a1q123456/support-lending-in-batch",
-   "additions": 2678,
-   "deletions": 1201,
-   "changedFiles": 23,
-   "commits": 70,
-   "reviewComments": 39,
-   "reviews": [
-    {
-     "author": "ximinez",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-02-23T17:39:09Z",
-     "body": "~This 100% requires an amendment.~\n\nThis 100% requires the changes to be gated on the `fixLendingProtocolV1_1` amendment."
-    },
-    {
-     "author": "Tapanito",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-03-05T15:24:50Z",
-     "body": "Partial Review I"
-    },
-    {
-     "author": "Tapanito",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-03-09T13:36:12Z",
-     "body": "Also, @a1q123456 please update the PR description."
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T15:24:16Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T15:39:22Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T16:11:59Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T16:16:43Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T16:22:12Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T16:24:25Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T16:30:28Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T16:33:36Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T16:35:01Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T16:35:24Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T16:37:10Z",
-     "body": ""
-    },
-    {
-     "author": "Tapanito",
-     "state": "COMMENTED",
-     "date": "2026-03-24T16:49:31Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "COMMENTED",
-     "date": "2026-03-24T17:02:36Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-03-27T00:16:04Z",
-     "body": "Two correctness issues flagged inline: a feature-flag scope bug in `Batch.cpp` and a compile-breaking variadic misuse in `LoanBase.h`.\n\n*Review by Claude Opus 4.6* · Prompt: V12"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-03-27T00:27:51Z",
-     "body": "Two correctness issues flagged inline: a logic bug in `Batch.cpp` where the lending feature gate bypasses all disabled tx types (not just lending ones), and a missing `getTxn()` accessor in `batch.cpp` that will cause a compile error.\n\n*Review by Claude Opus 4.6* · Prompt: V12"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-03-27T02:10:44Z",
-     "body": "Went over the changes\n\nLogic gap in the `disabledTxTypes` guard — when `featureLendingProtocolV1_1` is enabled, the entire disabled-type check is bypassed, not just lending types. See inline.\n\n---\n*Review by ReviewBot* 🤖\n\n*Review by Claude Opus 4.6* · Prompt: V12"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-04-15T15:38:23Z",
-     "body": "Good to go\n\n*Review by Claude Opus 4.6* · Prompt: V15"
-    },
-    {
-     "author": "ximinez",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-06-02T16:23:33Z",
-     "body": "It looks like this is basically a two line change with 2000 lines of refactoring tacked on.\n\nPlease split this into two stacked PRs:\n1. Refactoring only. No functional changes.\n2. The functional change that adds lending support to batch. Also any test changes and updates that are relevant to that change, but within the refactored framework."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-01T21:48:10Z",
-     "body": "### 🟡 Changes recommended\n\nThe new `Vault::create` test helper exposes a `.sequence` argument but does not currently encode that sequence into the generated transaction JSON, which can cause keylet/tx mismatches for callers relying on explicit sequencing.\n\n*Once you've addressed the issues Copilot identified, you can request another Copilot review.*\n\n<details>\n<summary>Pull request overview</summary>\n\nThis PR extends the Batch transaction support to allow lending-related (and required vault-related) inner transactions when the new `featureLendingProtocolV1_1` amendment is enabled. It also adds an optional `sfMemoData` field to `VaultDelete` (gated by the same feature) and updates vault invariants/rounding logic with accompanying tests.\n\n**Changes:**\n- Gate Batch inner-transaction type restrictions on `featureLendingProtocolV1_1`, enabling lending/vault transactions to be included in batches.\n- Add optional `sfMemoData` to `VaultDelete` with preflight validation and protocol-autogen builder/wrapper support.\n- Add/refactor extensive unit tests for lending-in-batch scenarios, and adjust vault invariant rounding to handle scale/rounding correctly.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/tests/libxrpl/protocol_autogen/transactions/VaultDeleteTests.cpp | Adds round-trip tests for new optional `sfMemoData` on `VaultDelete`. |\n| src/test/jtx/vault.h | Adds optional sequence override for VaultCreate test helper args. |\n| src/test/jtx/impl/vault.cpp | Uses optional sequence for vault keylet derivation in test helper. |\n| src/test/jtx/impl/batch.cpp | Adds `batch::make(...)` helper to assemble outer+inner batch JSON in tests. |\n| src/test/jtx/batch.h | Declares `batch::make(...)` and adds `<vector>` include. |\n| src/test/app/Vault_test.cpp | Adds VaultDelete memo-data feature-gating/size tests. |\n| src/test/app/LendingHelpers_test.cpp | Removes unused include. |\n| src/test/app/lending/LoanBroker_test.cpp | Adds a small amendment-enabled assertion test. |\n| src/test/app/lending/LoanBatch_test.cpp | New test suite covering multiple lending/vault batch scenarios. |\n| src/test/app/lending/LoanBase.h | New shared base/helper utilities extracted from `Loan_test.cpp`. |\n| src/test/app/lending/Loan_test.cpp | Refactors to use `LoanBase`, adjusts batch-bypass test logic, adds regression test. |\n| src/test/app/Invariants_test.cpp | Adds unit tests for vault invariant scale selection logic. |\n| src/test/app/Batch_test.cpp | Updates lending batch enablement detection to consider `featureLendingProtocolV1_1`. |\n| src/libxrpl/tx/transactors/vault/VaultDelete.cpp | Adds feature-gated `sfMemoData` handling and length validation in preflight. |\n| src/libxrpl/tx/transactors/system/Batch.cpp | Skips `disabledTxTypes` inner-type rejection when `featureLendingProtocolV1_1` is enabled. |\n| src/libxrpl/tx/transactors/lending/LoanBrokerCoverWithdraw.cpp | Adjusts rounding scale selection using new `scale(...)` helper. |\n| src/libxrpl/tx/invariants/VaultInvariant.cpp | Tracks deltas with scale info and rounds consistently to prevent invariant false-positives. |\n| include/xrpl/tx/transactors/lending/LendingHelpers.h | Uses `scale(...)` helper for vault total scale calculation. |\n| include/xrpl/tx/invariants/VaultInvariant.h | Introduces `DeltaInfo` and declares `computeMinScale(...)`. |\n| include/xrpl/protocol/STAmount.h | Makes offset constants `constexpr` and adds `scale(Number, Asset)` helper. |\n| include/xrpl/protocol/detail/transactions.macro | Adds `sfMemoData` as optional field on `VaultDelete`. |\n| include/xrpl/protocol/detail/features.macro | Introduces `XRPL_FEATURE(LendingProtocolV1_1, ...)`. |\n| include/xrpl/protocol_autogen/transactions/VaultDelete.h | Adds memo-data accessors and builder setter for `VaultDelete`. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**src/test/jtx/impl/vault.cpp:25**\n* `Vault::create` computes a custom sequence for the returned keylet but does not write that sequence into the returned transaction JSON. Callers that rely on `.sequence` (e.g. for prebuilt/batched transactions) can end up with a mismatch between the computed keylet and the transaction actually submitted.\n```\nstd::tuple<Json::Value, Keylet>\nVault::create(CreateArgs const& args) const\n{\n    auto sequence = args.sequence ? *args.sequence : env.seq(args.owner);\n    auto keylet = keylet::vault(args.owner.id(), sequence);\n    Json::Value jv;\n    jv[jss::TransactionType] = jss::VaultCreate;\n    jv[jss::Account] = args.owner.human();\n    jv[jss::Asset] = to_json(args.asset);\n    if (args.flags)\n        jv[jss::Flags] = *args.flags;\n    return {jv, keylet};\n```\n\n- **Files reviewed:** 23/23 changed files\n- **Comments generated:** 2\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Tapanito",
-     "date": "2026-03-05T14:02:31Z",
-     "path": "include/xrpl/basics/Number.h",
-     "body": "These changes should not be included, they're part of the old changes to the Number class.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890180430"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-05T14:03:21Z",
-     "path": "src/test/app/lending/Loan_test.cpp",
-     "body": "Please rename the folder name to `loan`, not `Loan` we have agreed to not mix conventions.\n\nIn addition, the folder name should be `lending` to reflect the folder name used in transactions.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890184916"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-05T14:05:39Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "This pattern of iterating over disabled transaction types to to determine if a transaction is supported for Batch is used across multiple places. It would be good to implement a helper functor to not have this repetition.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890197398"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-05T14:21:43Z",
-     "path": "src/test/app/lending/LoanBatch_test.cpp",
-     "body": "This seems to be a recurring pattern across batch transaction tests. \n\n1. Create transactions\n2. Create a batch transaction with manually increased sequence number for inner transactions.\n\n\nCould we simplify this flow with a helper functor to avoid introducing errors into sequence numbers?\n\n\nSomething along the lines of:\n\n```\nmakeBatchTransaction(AccountID const& account, std::uint32_t sequence, XRPAmount const& fee, std::uint32_t batchType, std::vector<Json::Value> txns);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890294266"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-05T14:23:33Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Is this still pending? Can we remove this comment?",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890305469"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-05T14:25:26Z",
-     "path": "src/test/app/lending/LoanBatch_test.cpp",
-     "body": "Please add the expected code, and `THISLINE` to all env calls to make investigating issues easier.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890316880"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-05T14:25:51Z",
-     "path": "src/test/app/lending/LoanBatch_test.cpp",
-     "body": "This comment applies to all occurrences: \n```suggestion\n        auto const brokerInfo = createVaultAndBroker(env, IOU, broker);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890319427"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-05T14:28:04Z",
-     "path": "src/test/app/lending/LoanBatch_test.cpp",
-     "body": "nit: Could you please review the unit-tests and add const qualifiers where necessary",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890334214"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-05T14:29:05Z",
-     "path": "src/test/app/lending/LoanBatch_test.cpp",
-     "body": "The comment above states that the batch outer transaction will consume the first sequence number. In this transaction here we are reusing the same sequence number again. Why?",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2890340725"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-09T13:05:25Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Why is the fix amendment not included here?",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905307940"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-09T13:08:55Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "@ximinez do I remember correctly that you had a fix that replaces this assertion with an exact one?",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905326227"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-09T13:10:09Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Why is this a call to `env.test.expect` where as the other call is to `env.test.BEAST_EXPECT`?",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905332895"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-09T13:12:34Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "nit: Why not invert this check, and exit early? This reduces unnecessary nesting.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905345745"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-09T13:13:26Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Please refactor this code to remove the nesting.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905350496"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-09T13:35:35Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Why is this test part of the LoanBase.h? Shouldn't it live in `Loan_test`?",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2905471939"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T15:24:16Z",
-     "path": "src/test/app/lending/LoanBatch_test.cpp",
-     "body": "I don't think THISLINE is defined?",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982413726"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T15:39:18Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "It's supported::yes so it's included automatically",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982517871"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:11:58Z",
-     "path": "src/test/app/lending/Loan_test.cpp",
-     "body": "Yeah, have renamed it. Thanks, Vito!",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982737179"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:16:43Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Not sure, I just moved it from Loan_test.cpp. Let's use `expect` for all cases",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982765946"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:19:36Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Oops. That was an accident.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982784276"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:21:08Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Removed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982793616"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:21:24Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Have repalced all cases in this file",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982795305"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:21:33Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Done",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982796060"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:21:44Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Moved.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982797078"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:24:25Z",
-     "path": "include/xrpl/basics/Number.h",
-     "body": "Removed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982813429"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:30:28Z",
-     "path": "src/test/app/lending/LoanBatch_test.cpp",
-     "body": "Fixed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982850490"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:33:36Z",
-     "path": "src/test/app/lending/LoanBatch_test.cpp",
-     "body": "```c++\n        // The starting sequence should be brokerSeq + 1 because the batch\n        // outer transaction will consume the first sequence.\n        auto const txns = createVaultAndBrokerTransactions(\n            env, IOU, broker, BrokerParameters::defaults(), brokerSeq + 1);\n```\n\n`createVaultAndBrokerTransactions` doesn't submit a transaction, it asks for the starting sequence number because we need to calculate the broker key, so we're not reusing a sequence.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982869875"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:35:00Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Thanks, Vito! Fixed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982878437"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:35:24Z",
-     "path": "src/test/app/lending/LoanBatch_test.cpp",
-     "body": "Fixed. Thanks, Vito!",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982881060"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T16:37:10Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "It only occurred once here.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982894129"
-    },
-    {
-     "author": "Tapanito",
-     "date": "2026-03-24T16:49:31Z",
-     "path": "src/test/app/lending/LoanBatch_test.cpp",
-     "body": "Yes, I made my comment while `THISLINE` was still a thing. Feel free to ignore.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2982964593"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-03-24T17:02:36Z",
-     "path": "src/test/app/lending/LoanBatch_test.cpp",
-     "body": "have added `batch::make`",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2983038649"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-27T00:16:04Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Feature flag bypasses the **entire** `disabledTxTypes` list, not just lending types. If a non-lending type is ever added, it gets silently unblocked. Scope this guard to lending-specific types only, or document that `disabledTxTypes` is exclusively for lending:\n\n> **Note:** The suggestion above is a no-op (preserves existing code). The real fix is to restructure so that `featureLendingProtocolV1_1` only gates the lending entries in `disabledTxTypes`, not the entire check.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2998353669"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-27T00:16:04Z",
-     "path": "src/test/app/lending/LoanBase.h",
-     "body": "Variadic pack `fN` is incorrectly forwarded to `getTransaction`, which only accepts 2 params — this won't compile when `fN` is non-empty. Remove the forwarding from the `getTransaction` call:\n\n```suggestion\n            auto tx = getTransaction(env, broker);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2998353675"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-27T00:27:51Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Feature flag short-circuits the entire `disabledTxTypes` check, not just lending types.\n\nIf `disabledTxTypes` ever contains (or gains) non-lending entries, they'll be silently bypassed when `featureLendingProtocolV1_1` is active. The guard should be applied per-type inside the lambda, e.g.:\n\n```cpp\nif (std::any_of(\n    disabledTxTypes.begin(), disabledTxTypes.end(),\n    [&ctx, txType](auto const& disabled) {\n        // Skip only lending-specific disabled types when the feature is enabled\n        if (ctx.rules.enabled(featureLendingProtocolV1_1) && isLendingTxType(disabled))\n            return false;\n        return txType == disabled;\n    }))\n```\n\nThis keeps future non-lending entries in `disabledTxTypes` correctly blocked regardless of the lending feature flag.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2998381483"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-27T00:27:52Z",
-     "path": "src/test/jtx/impl/batch.cpp",
-     "body": "`inner::getTxn()` is not declared in `batch.h` — this will fail to compile. Add the accessor to the `inner` class:\n\n```cpp\nJson::Value getTxn() const { return txn_; }\n```\n\nOr rewrite the loop to populate `batchTransaction` via a temporary `JTx` and `inner::operator()`.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2998381485"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-03-27T02:10:44Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "This skips the **entire** `disabledTxTypes` check when `featureLendingProtocolV1_1` is enabled, not just lending-related types. Any non-lending tx types in `disabledTxTypes` would also be silently bypassed in batch. Should this filter only lending tx types out of the disabled check rather than short-circuiting the whole thing?",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r2998609869"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T21:48:09Z",
-     "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
-     "body": "`ValidVault::computeMinScale` does not use its `asset` parameter; in builds that treat warnings as errors this can fail compilation. Either remove the parameter name in the definition or mark it `[[maybe_unused]]`.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r3908729280"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T21:48:09Z",
-     "path": "src/test/jtx/vault.h",
-     "body": "CreateArgs::sequence uses an unqualified `uint32_t` which may rely on non-portable global typedefs from <cstdint> and is inconsistent with the surrounding `std::uint32_t` usage.",
-     "url": "https://github.com/XRPLF/rippled/pull/6360#discussion_r3908729336"
-    }
-   ]
   }
  ],
  "issues": [
@@ -3450,6 +3022,7 @@
   "dangell7/batch-db",
   "dangell7/batch-delivermax",
   "dangell7/batch-inner-last-ledger-sequence",
+  "dangell7/batch-txq-weight",
   "dangell7/batch-v2-inner-record",
   "mvadari/batch-multisign-prefix",
   "ripple/custody-old-batch-cmpt"
