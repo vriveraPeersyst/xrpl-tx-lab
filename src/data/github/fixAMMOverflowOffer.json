@@ -1,6 +1,6 @@
 {
  "name": "fixAMMOverflowOffer",
- "fetchedAt": "2026-10-21T08:08:59.725Z",
+ "fetchedAt": "2026-10-22T08:09:48.066Z",
  "summary": {
   "status": "in development",
   "prs": 1,
@@ -9,9 +9,9 @@
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-09-30T15:56:41Z",
+  "lastActivity": "2026-10-22T00:12:02Z",
   "release": "2.1.1",
-  "totalComments": 58
+  "totalComments": 76
  },
  "release": {
   "version": "2.1.1",
@@ -27,11 +27,9 @@
    "state": "open",
    "author": "TimothyBanks",
    "createdAt": "2026-05-29T15:26:09Z",
-   "updatedAt": "2026-09-30T15:56:41Z",
+   "updatedAt": "2026-10-22T00:12:02Z",
    "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
+   "labels": [],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -110,19 +108,31 @@
      "date": "2026-09-30T15:56:40Z",
      "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
      "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-5914879518"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-21T15:26:26Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-6319697866"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-21T23:08:02Z",
+     "body": "@bthomee updated",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#issuecomment-6328570261"
     }
    ],
-   "body": "## High Level Overview of Change\n\nThis change set retires the AMM amendment and AMMOverflowOffer fix. All tests were updated to work correctly against retirement.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "body": "## High Level Overview of Change\n\nThis change set retires the AMM amendment and AMMOverflowOffer fix. All tests were updated to work correctly against retirement.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
    "merged": false,
    "mergedAt": null,
    "draft": false,
    "base": "develop",
    "head": "TimothyBanks:retire_amm_amendment",
-   "additions": 36,
-   "deletions": 182,
-   "changedFiles": 21,
-   "commits": 22,
-   "reviewComments": 21,
+   "additions": 37,
+   "deletions": 118,
+   "changedFiles": 20,
+   "commits": 27,
+   "reviewComments": 29,
    "reviews": [
     {
      "author": "a1q123456",
@@ -228,7 +238,7 @@
     },
     {
      "author": "pratikmankawde",
-     "state": "CHANGES_REQUESTED",
+     "state": "DISMISSED",
      "date": "2026-08-10T18:07:53Z",
      "body": "Left a-few comments"
     },
@@ -267,6 +277,54 @@
      "state": "COMMENTED",
      "date": "2026-09-03T23:01:20Z",
      "body": "### 🔵 Needs a closer look\n\nIt removes the previously-discussed public `ammEnabled(Rules const&)` API/symbol from installed headers/library, creating an ABI/API breaking change for libxrpl consumers.\n\n<details>\n<summary>Review details</summary>\n\n### Suppressed comments (1)\n\n**include/xrpl/protocol/AMMCore.h:76**\n* Removing `ammEnabled(Rules const&)` from this installed public header is an ABI/API breaking change for libxrpl consumers (existing binaries may link against this symbol). Since AMM is now retired/always-on, consider keeping the function as a deprecated compatibility wrapper (e.g., always returning `true`) and ensure there is still an out-of-line definition in the library to preserve the exported symbol.\n```\n/**\n * Get time slot of the auction slot.\n */\nstd::optional<std::uint8_t>\nammAuctionTimeSlot(std::uint64_t current, STObject const& auctionSlot);\n\n```\n\n- **Files reviewed:** 21/21 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-21T16:01:54Z",
+     "body": "### 🔵 Needs a closer look\n\nTwo unresolved moderate issues remain regarding ABI compatibility and the SingleAssetVault feature gate.\n\n**No open issues** 🎉\n\n<sub>Review effort: Lite</sub>"
+    },
+    {
+     "author": "bthomee",
+     "state": "COMMENTED",
+     "date": "2026-10-21T19:08:47Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-21T22:40:13Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-21T22:41:56Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-21T23:00:02Z",
+     "body": "### 🟡 Changes recommended\n\nPreserve the public `ammEnabled` declaration and out-of-line compatibility definition returning `true` to avoid a critical ABI and downstream link break.\n\n<details open>\n<summary><strong>2 open issues</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Preserve ammEnabled ABI symbol with compatibility implementation](https://github.com/XRPLF/rippled/pull/7357#discussion_r4342850643) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Avoid removing ammEnabled symbol to maintain ABI compatibility](https://github.com/XRPLF/rippled/pull/7357#discussion_r4342850693) · New\n</details>\n\n<sub>Review effort: Lite</sub>"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-21T23:07:21Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-21T23:07:28Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2026-10-22T00:12:02Z",
+     "body": ""
     }
    ],
    "reviewCommentsList": [
@@ -416,6 +474,62 @@
      "path": "src/test/app/AMM_test.cpp",
      "body": "This is pre-existing code, but I can make that change.",
      "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r3929339505"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-21T19:05:15Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "To confirm, `input.lpTokenBalance` is the same as `lpTokenBalance` here?",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r4340820179"
+    },
+    {
+     "author": "bthomee",
+     "date": "2026-10-21T19:08:24Z",
+     "path": "src/libxrpl/tx/transactors/token/TrustSet.cpp",
+     "body": "You can remove the `sleDst &&`, since it's now guaranteed to be valid at this point.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r4340849891"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-21T22:40:13Z",
+     "path": "src/test/app/AMM_test.cpp",
+     "body": "Yes.  This variable is initialized with a lambda above that reads the balance from the input.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r4342703280"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-21T22:41:56Z",
+     "path": "src/libxrpl/tx/transactors/token/TrustSet.cpp",
+     "body": "Nice catch.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r4342714638"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-21T23:00:01Z",
+     "path": "include/xrpl/protocol/AMMCore.h",
+     "body": "This deletion reintroduces the public ABI break identified for `AMMCore.h`: `ammEnabled(Rules const&)` is declared in an installed `include/xrpl` header and has an out-of-line `libxrpl` definition, so removing it breaks consumers that still link against or call it. Keep the declaration and a compatibility implementation (returning `true` after AMM retirement) rather than removing the symbol.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r4342850643"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-21T23:00:02Z",
+     "path": "src/libxrpl/protocol/AMMCore.cpp",
+     "body": "This removes the out-of-line `ammEnabled(Rules const&)` symbol from libxrpl. Existing downstream binaries (and callers compiled against the previous public header) will fail to link, which conflicts with the stated ABI-stability decision in the prior review. Keep the declaration and an out-of-line compatibility definition that returns `true`; retiring the amendment should change its behavior, not remove the exported symbol.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r4342850693"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-21T23:07:21Z",
+     "path": "include/xrpl/protocol/AMMCore.h",
+     "body": "PR has been marked as a breaking change.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r4342897523"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-21T23:07:28Z",
+     "path": "src/libxrpl/protocol/AMMCore.cpp",
+     "body": "PR has been marked as a breaking change.",
+     "url": "https://github.com/XRPLF/rippled/pull/7357#discussion_r4342898284"
     }
    ]
   }

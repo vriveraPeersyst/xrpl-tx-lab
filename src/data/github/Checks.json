@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-10-21T08:01:52.705Z",
+ "fetchedAt": "2026-10-22T08:02:05.463Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-10-21T04:19:04Z",
+  "lastActivity": "2026-10-21T19:03:07Z",
   "lastMerged": "2026-10-20T14:08:01Z",
   "release": "0.90.0",
-  "totalComments": 336
+  "totalComments": 338
  },
  "release": {
   "version": "0.90.0",
@@ -31,7 +31,7 @@
    "state": "open",
    "author": "nbougalis",
    "createdAt": "2026-10-21T04:09:44Z",
-   "updatedAt": "2026-10-21T04:19:04Z",
+   "updatedAt": "2026-10-21T19:03:07Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -52,13 +52,19 @@
    "deletions": 25,
    "changedFiles": 1,
    "commits": 1,
-   "reviewComments": 1,
+   "reviewComments": 2,
    "reviews": [
     {
      "author": "copilot-pull-request-reviewer[bot]",
      "state": "COMMENTED",
      "date": "2026-10-21T04:19:04Z",
      "body": "### 🟢 Approval recommended\n\nThe bounded container changes preserve validation behavior, with only an optional comment correction remaining.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nOptimizes `Batch::preflight` duplicate checks by replacing node-based containers with inline-backed flat sets while preserving validation behavior.\n\n**Changes:**\n- Uses inline storage sized to `kMaxBatchTxCount`.\n- Combines account sequence/ticket tracking into a set of pairs.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Replaces allocating duplicate-check containers and consolidates sequence/ticket insertion. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-21T19:03:07Z",
+     "body": ""
     }
    ],
    "reviewCommentsList": [
@@ -68,6 +74,13 @@
      "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
      "body": "Optional: remove the extra “when” and correct “exced” to “exceed” in this comment.",
      "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-21T19:03:07Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "```suggestion\n            auto const seqOrTicket = stx.getSeqProxy().value();\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4340799392"
     }
    ]
   },
