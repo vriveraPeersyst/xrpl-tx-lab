@@ -1,18 +1,18 @@
 {
  "name": "XRPFees",
- "fetchedAt": "2026-10-22T08:07:31.774Z",
+ "fetchedAt": "2026-10-23T08:06:54.583Z",
  "summary": {
-  "status": "in development",
+  "status": "merged",
   "prs": 4,
-  "open": 1,
-  "merged": 3,
+  "open": 0,
+  "merged": 4,
   "issues": 2,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-10-22T00:11:24Z",
-  "lastMerged": "2023-10-06T18:11:39Z",
+  "lastActivity": "2026-10-22T17:48:25Z",
+  "lastMerged": "2026-10-22T17:48:24Z",
   "release": "2.0.0-b3",
-  "totalComments": 176
+  "totalComments": 188
  },
  "release": {
   "version": "2.0.0-b3",
@@ -25,12 +25,14 @@
    "number": 7349,
    "title": "refactor: Retire XRPFees amendment",
    "url": "https://github.com/XRPLF/rippled/pull/7349",
-   "state": "open",
+   "state": "closed",
    "author": "TimothyBanks",
    "createdAt": "2026-05-28T14:08:23Z",
-   "updatedAt": "2026-10-22T00:11:24Z",
-   "closedAt": null,
-   "labels": [],
+   "updatedAt": "2026-10-22T17:48:25Z",
+   "closedAt": "2026-10-22T17:48:25Z",
+   "labels": [
+    "Ready to merge"
+   ],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -127,19 +129,31 @@
      "date": "2026-10-21T22:44:09Z",
      "body": "@bthomee Updated",
      "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-6328201145"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-22T16:05:14Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-6345344000"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-22T16:21:36Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#issuecomment-6345685232"
     }
    ],
    "body": "## High Level Overview of Change\n\nThis change set is retiring the XRPFees amendment.  The removal of that amendment resulted in various unit tests breaking because of the different ledger hashes being computed with that amendment flag being removed. The hash changes were driven by the new attributes for fee settings being turned on that were sitting behind that amendment.\n\n\n\n### Context of Change\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [x] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
+   "merged": true,
+   "mergedAt": "2026-10-22T17:48:24Z",
    "draft": false,
    "base": "develop",
    "head": "TimothyBanks:retire_xrpfees_amendment",
-   "additions": 203,
-   "deletions": 500,
+   "additions": 198,
+   "deletions": 498,
    "changedFiles": 19,
-   "commits": 27,
-   "reviewComments": 46,
+   "commits": 29,
+   "reviewComments": 50,
    "reviews": [
     {
      "author": "copilot-pull-request-reviewer[bot]",
@@ -367,6 +381,42 @@
      "author": "bthomee",
      "state": "COMMENTED",
      "date": "2026-10-22T00:11:24Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-22T13:41:59Z",
+     "body": ""
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-22T13:54:52Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-22T14:02:05Z",
+     "body": "### 🟡 Changes recommended\n\nThe critical validation-compatibility issue must be resolved before approval.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Retain legacy fee fields in validation template for compatibility](https://github.com/XRPLF/rippled/pull/7349#discussion_r4349266518) · New\n</details>\n\n<sub>Review effort: Lite</sub>"
+    },
+    {
+     "author": "TimothyBanks",
+     "state": "COMMENTED",
+     "date": "2026-10-22T14:19:49Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2026-10-22T14:24:20Z",
+     "body": ""
+    },
+    {
+     "author": "bthomee",
+     "state": "APPROVED",
+     "date": "2026-10-22T17:10:23Z",
      "body": ""
     }
    ],
@@ -692,6 +742,34 @@
      "path": "src/xrpld/app/misc/NetworkOPs.cpp",
      "body": "If we can't remove the `sfBaseFee` etc. fields because we want to still be able to parse old ledgers, should we (i) delete these statements (as you're doing here) now, (ii) wait for a while (e.g. 6 months, or at least one release in which a new amendment is introduced and activated) and only then delete them, or (iii) convert them into their `_drops` equivalents so we can read these old ledgers fully while keeping the new fields only?",
      "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r4343272347"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-22T13:41:59Z",
+     "path": "src/xrpld/app/misc/NetworkOPs.cpp",
+     "body": "If I am understanding the ask here, removing these now seems to be the correct option.  My understanding is that `pubValidation` does not read old ledgers and the amendment was the wait period before removing them here. For (iii), the conversion is happening in `Ledger::setup`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r4349047338"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-22T13:54:52Z",
+     "path": "src/test/rpc/Subscribe_test.cpp",
+     "body": "Addressed.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r4349188285"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-10-22T14:02:05Z",
+     "path": "src/libxrpl/protocol/STValidation.cpp",
+     "body": "Removing the legacy fee fields from `validationFormat()` makes otherwise well-formed pre-retirement validations undecodable: `STObject::applyTemplate()` rejects any non-discardable field that is not in this template, so a validator running an older binary on a ledger without `XRPFees` (which emits `sfBaseFee`/`sfReserveBase`/`sfReserveIncrement`) will cause the new node to throw while parsing its validation. The legacy fields are still retained in the transaction and ledger-entry templates for compatibility; keep them as optional validation fields too and simply stop generating/using them.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r4349266518"
+    },
+    {
+     "author": "TimothyBanks",
+     "date": "2026-10-22T14:19:49Z",
+     "path": "src/libxrpl/protocol/STValidation.cpp",
+     "body": "The scenario requires a network without XRPFees enabled, and this binary can't participate on one regardless: XRPFees is retired, so the code behaves as if it's always on. For example, Change::preflight rejects legacy-format SetFee transactions, so the node would diverge even if it could decode those validations. On networks with XRPFees enabled, no validator emits the legacy fields. The tx and ledger-entry formats keep them because that data is stored in history and must stay parseable; validations aren't stored, so there's no equivalent need here.",
+     "url": "https://github.com/XRPLF/rippled/pull/7349#discussion_r4349487134"
     }
    ]
   },
