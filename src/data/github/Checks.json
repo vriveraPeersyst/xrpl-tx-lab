@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-10-23T08:01:56.783Z",
+ "fetchedAt": "2026-10-24T08:01:44.292Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-10-22T20:14:25Z",
+  "lastActivity": "2026-10-23T16:19:17Z",
   "lastMerged": "2026-10-20T14:08:01Z",
   "release": "0.90.0",
-  "totalComments": 409
+  "totalComments": 410
  },
  "release": {
   "version": "0.90.0",
@@ -24,6 +24,91 @@
   "excerpt": "The `Checks` amendment, which allows users to create deferred payments that can be cancelled or cashed by their intended recipients."
  },
  "prs": [
+  {
+   "number": 8627,
+   "title": "perf: Avoid memory allocations during Batch preflight checks",
+   "url": "https://github.com/XRPLF/rippled/pull/8627",
+   "state": "open",
+   "author": "nbougalis",
+   "createdAt": "2026-10-21T04:09:44Z",
+   "updatedAt": "2026-10-23T16:19:17Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-21T04:12:15Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8627?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#issuecomment-6307851935"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nRemove the per-insertion heap allocations from `Batch::preflight`. The duplicate-inner-transaction and duplicate-sequence/ticket checks used an `std::unordered_set` and an `std::unordered_map` of `std::unordered_set`s; they are now `std::flat_set`s backed by a `boost::container::small_vector` sized to `kMaxBatchTxCount`, so neither container ever leaves inline storage.\n\n## Context of Change\n\n`Batch::preflight` runs for every submitted and relayed Batch, including those about to be rejected, and the two containers it used allocate per node (and, for the map, per distinct account) to hold at most eight entries. The map of sets is flattened to a set of `(account, sequence-or-ticket)` pairs: pair membership was the only query, and the preceding `temSEQ_AND_TICKET` checks already guarantee exactly one of `Sequence` and `TicketSequence` is set, so the two insert sites collapse into one. Sequences and tickets keep sharing one key space per account, and the checks run at the same point in the per-inner loop, so every result code is unchanged. No amendment is needed.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nThe change is internal to `Batch::preflight`; no `libxrpl` interface changes.\n\n## Before / After\n\n1. Improvement to existing functionality.\n2. Memory allocation behavior of `Batch::preflight`; transaction results are unchanged.\n3. Preflight of Batch transactions on the submit and relay paths (`checkValidity`, `TxQ::apply`, ledger building).\n4. No effect on concurrent processing: no locks, threads, or async work are involved.\n\n## Test Plan\n\nExisting `xrpl.app.Batch` unit tests, which assert the `temREDUNDANT` and `temSEQ_AND_TICKET` results for duplicate inners, sequences, and tickets across all four batch modes.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "nbougalis:batch-mem",
+   "additions": 29,
+   "deletions": 25,
+   "changedFiles": 1,
+   "commits": 2,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-21T04:19:04Z",
+     "body": "### 🟢 Approval recommended\n\nThe bounded container changes preserve validation behavior, with only an optional comment correction remaining.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nOptimizes `Batch::preflight` duplicate checks by replacing node-based containers with inline-backed flat sets while preserving validation behavior.\n\n**Changes:**\n- Uses inline storage sized to `kMaxBatchTxCount`.\n- Combines account sequence/ticket tracking into a set of pairs.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Replaces allocating duplicate-check containers and consolidates sequence/ticket insertion. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-21T19:03:07Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2026-10-22T18:12:33Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-22T18:19:28Z",
+     "body": "### 🟢 Approval recommended\n\nThe bounded container replacement preserves duplicate-detection semantics and validation order, with no unresolved findings.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744)\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "dangell7",
+     "state": "APPROVED",
+     "date": "2026-10-23T16:19:17Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-21T04:19:03Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Optional: remove the extra “when” and correct “exced” to “exceed” in this comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-21T19:03:07Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "```suggestion\n            auto const seqOrTicket = stx.getSeqProxy().value();\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4340799392"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2026-10-22T18:12:33Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Nice - I adopted this, in a slightly reworded version.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4351879581"
+    }
+   ]
+  },
   {
    "number": 7029,
    "title": "feat: Add invariant checks to ensure only fields that are expected to be modified are modified",
@@ -814,85 +899,6 @@
      "path": "src/test/app/Invariants_test.cpp",
      "body": "You could initialize `oracleKeylet` with bogus values\n```\nKeylet oracleKeylet{ltAny, beast::kZero};\n```\n(Edit: Because I was confused at first, and having a clearly bogus value will avoid that.)",
      "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3456151692"
-    }
-   ]
-  },
-  {
-   "number": 8627,
-   "title": "perf: Avoid memory allocations during Batch preflight checks",
-   "url": "https://github.com/XRPLF/rippled/pull/8627",
-   "state": "open",
-   "author": "nbougalis",
-   "createdAt": "2026-10-21T04:09:44Z",
-   "updatedAt": "2026-10-22T18:19:29Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-21T04:12:15Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8627?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#issuecomment-6307851935"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nRemove the per-insertion heap allocations from `Batch::preflight`. The duplicate-inner-transaction and duplicate-sequence/ticket checks used an `std::unordered_set` and an `std::unordered_map` of `std::unordered_set`s; they are now `std::flat_set`s backed by a `boost::container::small_vector` sized to `kMaxBatchTxCount`, so neither container ever leaves inline storage.\n\n## Context of Change\n\n`Batch::preflight` runs for every submitted and relayed Batch, including those about to be rejected, and the two containers it used allocate per node (and, for the map, per distinct account) to hold at most eight entries. The map of sets is flattened to a set of `(account, sequence-or-ticket)` pairs: pair membership was the only query, and the preceding `temSEQ_AND_TICKET` checks already guarantee exactly one of `Sequence` and `TicketSequence` is set, so the two insert sites collapse into one. Sequences and tickets keep sharing one key space per account, and the checks run at the same point in the per-inner loop, so every result code is unchanged. No amendment is needed.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nThe change is internal to `Batch::preflight`; no `libxrpl` interface changes.\n\n## Before / After\n\n1. Improvement to existing functionality.\n2. Memory allocation behavior of `Batch::preflight`; transaction results are unchanged.\n3. Preflight of Batch transactions on the submit and relay paths (`checkValidity`, `TxQ::apply`, ledger building).\n4. No effect on concurrent processing: no locks, threads, or async work are involved.\n\n## Test Plan\n\nExisting `xrpl.app.Batch` unit tests, which assert the `temREDUNDANT` and `temSEQ_AND_TICKET` results for duplicate inners, sequences, and tickets across all four batch modes.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "nbougalis:batch-mem",
-   "additions": 29,
-   "deletions": 25,
-   "changedFiles": 1,
-   "commits": 2,
-   "reviewComments": 3,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-21T04:19:04Z",
-     "body": "### 🟢 Approval recommended\n\nThe bounded container changes preserve validation behavior, with only an optional comment correction remaining.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nOptimizes `Batch::preflight` duplicate checks by replacing node-based containers with inline-backed flat sets while preserving validation behavior.\n\n**Changes:**\n- Uses inline storage sized to `kMaxBatchTxCount`.\n- Combines account sequence/ticket tracking into a set of pairs.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Replaces allocating duplicate-check containers and consolidates sequence/ticket insertion. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-21T19:03:07Z",
-     "body": ""
-    },
-    {
-     "author": "nbougalis",
-     "state": "COMMENTED",
-     "date": "2026-10-22T18:12:33Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-22T18:19:28Z",
-     "body": "### 🟢 Approval recommended\n\nThe bounded container replacement preserves duplicate-detection semantics and validation order, with no unresolved findings.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744)\n</details>\n\n<sub>Review effort: Balanced</sub>"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-10-21T04:19:03Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Optional: remove the extra “when” and correct “exced” to “exceed” in this comment.",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-21T19:03:07Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "```suggestion\n            auto const seqOrTicket = stx.getSeqProxy().value();\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4340799392"
-    },
-    {
-     "author": "nbougalis",
-     "date": "2026-10-22T18:12:33Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Nice - I adopted this, in a slightly reworded version.",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4351879581"
     }
    ]
   },

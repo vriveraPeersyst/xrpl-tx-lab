@@ -1,20 +1,65 @@
 {
  "name": "fixCleanup3_5_0",
- "fetchedAt": "2026-10-23T08:10:49.001Z",
+ "fetchedAt": "2026-10-24T08:10:25.112Z",
  "summary": {
-  "status": "merged",
-  "prs": 1,
-  "open": 0,
+  "status": "in development",
+  "prs": 2,
+  "open": 1,
   "merged": 1,
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-10-15T15:33:43Z",
+  "lastActivity": "2026-10-23T14:32:47Z",
   "lastMerged": "2026-09-05T00:53:02Z",
-  "totalComments": 8
+  "totalComments": 11
  },
  "release": {},
  "prs": [
+  {
+   "number": 8634,
+   "title": "fix: Return tecNO_ENTRY for missing MPT holding under fixCleanup3_5_0",
+   "url": "https://github.com/XRPLF/rippled/pull/8634",
+   "state": "open",
+   "author": "Handy4ndy",
+   "createdAt": "2026-10-23T12:43:06Z",
+   "updatedAt": "2026-10-23T14:32:47Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-23T12:43:16Z",
+     "body": "⚠️ This PR contains unsigned commits. To get your PR merged, please sign them. ⚠️\n\nIf only the most recent commit is unsigned, you can run:\n1. Amend the commit: `git commit --amend --no-edit -n -S`\n2. Overwrite the commit: `git push --force-with-lease`\n\nIf multiple commits are unsigned, you can run:\n1. Go into interactive rebase mode: `git rebase --interactive HEAD~<NUM_OF_COMMITS>`, where `NUM_OF_COMMITS` is the number of most recent commits that will be available to edit.\n2. Change \"pick\" to \"edit\" for the commits you need to sign, and then save and exit.\n3. For each commit, run: `git commit --amend --no-edit -n -S`\n4. Continue the rebase: `git rebase --continue`\n5. Overwrite the commit(s): `git push --force-with-lease`\n\nIf you're new to commit signing, there are different ways to set it up:\n\n<details>\n<summary><b>Sign commits with <code>gpg</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `gpg`:\n1. [Generate a GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)\n2. [Add the GPG key to your GitHub account](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)\n3. [Configure `git` to use your GPG key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-gpg-key)\n</details>\n\n<details>\n<summary><b>Sign commits with <code>ssh-agent</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `ssh-agent`:\n1. [Generate an SSH key and add it to `ssh-agent`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)\n2. [Add the SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)\n3. [Configure `git` to use your SSH key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)\n</details>\n\n<details>\n<summary><b>Sign commits with 1Password</b></summary>\n<p></p>\n\nYou can also sign commits using 1Password, which lets you sign commits with biometrics without the signing key leaving the local 1Password process.\nSee [use 1Password to sign your commits](https://developer.1password.com/docs/ssh/git-commit-signing/).\n</details>",
+     "url": "https://github.com/XRPLF/rippled/pull/8634#issuecomment-6365145788"
+    },
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-23T14:32:47Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8634?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8634#issuecomment-6367327805"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nWhen `EscrowFinish` / `EscrowCancel` unlock an MPT escrow and the receiver has no `MPToken`, and the submitter cannot auto-create it, xrpld returns `tecNO_PERMISSION`. The same code is used for FinishAfter / CancelAfter failures, so clients cannot tell a missing holding apart from a timing failure.\n\nUnder `fixCleanup3_5_0`, return `tecNO_ENTRY` for that missing-holding case. Without the fix, keep `tecNO_PERMISSION`. Auto-create rules are unchanged. Only the destination/recipient submitter may create the holding.\n\nOption B for https://github.com/XRPLF/rippled/issues/8587\nOption A (spec documents current `tecNO_PERMISSION`): https://github.com/XRPLF/XRPL-Standards/pull/671\n\n## Context of Change\n\nLive TokenEscrow returns `tecNO_PERMISSION` here (Testnet repro in #8587). XLS-85 originally said `tecNO_ENTRY`. Option A updates the spec to match current code. This PR is the optional cleanup that switches to a holding-specific TEC when `fixCleanup3_5_0` is enabled.\n\nUses the existing `fixCleanup3_5_0` amendment (no new amendment name). IOU missing trust lines still use `tecNO_LINE`.\n\nCode: `escrowUnlockApplyHelper<MPTIssue>` in `include/xrpl/ledger/helpers/EscrowHelpers.h`.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nAfter `fixCleanup3_5_0` is enabled, this failure mode returns `tecNO_ENTRY` instead of `tecNO_PERMISSION`. No new RPC methods/fields. No peer protocol change.\n\n## Before / After\n\nCurrent behavior: third party finishes an MPT escrow whose destination has no `MPToken` → `tecNO_PERMISSION`.\n\nWith `fixCleanup3_5_0` enabled: same case → `tecNO_ENTRY`.\nWith `fixCleanup3_5_0` disabled: still `tecNO_PERMISSION`.\n\nDestination finishing themselves still auto-creates the `MPToken` and returns `tesSUCCESS`.\n\n## Test Plan\n\n- Updated `src/test/app/EscrowToken_test.cpp` (`testMPTFinishDoApply`): on/off loop for `fixCleanup3_5_0`, asserting `tecNO_ENTRY` when enabled and `tecNO_PERMISSION` when disabled.\n- Ran locally: `./.build/xrpld --unittest=EscrowToken` → 0 failures.\n\n## Future Tasks\n\n- If this lands, follow up on XLS-85 for post-amendment `tecNO_ENTRY`.\n- Option A alone (spec sync) is also a valid resolution of #8587. This PR is separable.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "Handy4ndy:fix/escrow-mpt-missing-holding-tec",
+   "additions": 9,
+   "deletions": 3,
+   "changedFiles": 2,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-23T12:58:50Z",
+     "body": "### 🟢 Approval recommended\n\nThe localized change preserves legacy behavior and auto-creation rules, with regression coverage for both amendment states and no unresolved findings.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nThis PR makes missing MPT holdings distinguishable from permission or timing failures during escrow unlocking, addressing the result-code ambiguity described in #8587.\n\n**Changes:**\n- Returns `tecNO_ENTRY` for missing MPT holdings when `fixCleanup3_5_0` is enabled, preserving `tecNO_PERMISSION` otherwise.\n- Leaves holding auto-creation rules unchanged and adds regression assertions for both amendment states.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​test/​app/​EscrowToken_test.cpp` | Tests the missing-holding result with the amendment enabled and disabled. |\n| `include/​xrpl/​ledger/​helpers/​EscrowHelpers.h` | Gates the MPT escrow result-code change behind `fixCleanup3_5_0`. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    }
+   ],
+   "reviewCommentsList": []
+  },
   {
    "number": 8174,
    "title": "feat: Add fixCleanup3_5_0 amendment placeholder",
