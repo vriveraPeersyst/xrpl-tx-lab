@@ -1,15 +1,15 @@
 {
  "name": "fixCleanup3_4_0",
- "fetchedAt": "2026-10-24T08:10:14.766Z",
+ "fetchedAt": "2026-10-25T09:10:16.684Z",
  "summary": {
   "status": "merged",
   "prs": 3,
   "open": 0,
   "merged": 2,
-  "issues": 0,
+  "issues": 1,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-08-17T13:22:38Z",
+  "lastActivity": "2026-10-25T02:29:58Z",
   "lastMerged": "2026-08-17T13:22:35Z",
   "release": "3.4.0",
   "totalComments": 30
@@ -298,7 +298,21 @@
    "reviewCommentsList": []
   }
  ],
- "issues": [],
+ "issues": [
+  {
+   "number": 8641,
+   "title": "AMMDeposit tfLPToken overflow returns tecINTERNAL despite fixCleanup3_4_0 centralized tecAMM_FAILED handler (Version: 3.4.1)",
+   "url": "https://github.com/XRPLF/rippled/issues/8641",
+   "state": "open",
+   "author": "trungkien1992",
+   "createdAt": "2026-10-25T02:29:58Z",
+   "updatedAt": "2026-10-25T02:29:58Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": 0,
+   "body": "## Issue Description\n\nWith `fixCleanup3_4_0` enabled, an `AMMDeposit` in `tfLPToken` mode whose computed deposit amount overflows still returns `tecINTERNAL`, not the intended `tecAMM_FAILED`.\n\nPR #7537 (\"Centralize AMMDeposit overflow guard in applyGuts\") added a handler in `AMMDeposit::applyGuts` that catches `std::runtime_error` from `dispatchToDeposit()` and, under `fixCleanup3_4_0`, returns `tecAMM_FAILED` (`src/libxrpl/tx/transactors/dex/AMMDeposit.cpp`, around lines 500-513 on `develop`). However, `AMMDeposit::equalDepositTokens` still has its own `try { ... } catch (std::exception const& e)` that returns `{tecINTERNAL, STAmount{}}` (around lines 718-748 on `develop`, marked `LCOV_EXCL`). The `std::overflow_error` thrown by `Number::operator rep()` inside `getRoundedAsset` is caught there first, so the centralized handler never sees it in `tfLPToken` mode.\n\nImpact: as far as we can tell, only the result code and logging are affected. The transaction fails as a `tec` (fee charged, no other state change), and each attempt logs `AMMDeposit::equalDepositTokens exception Number::operator rep() overflow` at error level. We did not find any security impact.\n\n## Steps to Reproduce\n\njtx test (added locally to `src/test/app/`), run with `xrpld --unittest=<suite> --unittest-log`:\n\n```cpp\nEnv env{*this, testableAmendments()};   // also tried: testableAmendments() - fixCleanup3_4_0\nAccount const gw(\"gw\"), alice(\"alice\"), carol(\"carol\");\nenv.fund(XRP(100000), gw, alice, carol);\nenv.close();\nenv(trust(alice, gw[\"USD\"](1000000)));\nenv(trust(carol, gw[\"USD\"](1000000)));\nenv.close();\nenv(pay(gw, alice, gw[\"USD\"](100000)));\nenv(pay(gw, carol, gw[\"USD\"](100000)));\nenv.close();\n\nAMM amm(env, alice, XRP(10000), gw[\"USD\"](10000));\nSTAmount const huge{amm.lptIssue(), 1, 20};   // 1e20 LP tokens; 1e40 and 1e80 behave the same\namm.deposit(DepositArg{\n    .account = carol,\n    .tokens = LPToken(huge),\n    .flags = tfLPToken,\n    .err = Ter(std::ignore)});\n// env.ter() == tecINTERNAL\n```\n\n## Expected Result\n\nWith `fixCleanup3_4_0` enabled: `tecAMM_FAILED`, matching the centralized out-of-range handling in `applyGuts` that the other deposit modes reach. Possible fixes: drop the local catch in `equalDepositTokens` (amendment-gated so legacy results are preserved), or have it rethrow under `fixCleanup3_4_0`.\n\n## Actual Result\n\n`tecINTERNAL` for `LPTokenOut` = 1e20, 1e40 and 1e80, both with and without `fixCleanup3_4_0`. The pool's LP-token balance is unchanged. Log:\n\n```\nERR:OpenLedger ... AMMDeposit::equalDepositTokens exception Number::operator rep() overflow\n```\n\n## Environment\n\n- Observed on 3.4.1 (`00e640751460c137636fdb6dae6b4280de355d81`): macOS arm64, Apple clang, Release build with `-Dassert=ON -Dtests=ON`. No assertion fired.\n- `develop` at `1f46f7531850bc1a0870910028abe8b9f9527d4c`: we compared the source and both handlers are unchanged. We did not run the test on `develop`.\n\n## Supporting Files\n\nNone beyond the snippet above."
+  }
+ ],
  "proposals": [],
  "branches": []
 }
