@@ -1,6 +1,6 @@
 {
  "name": "Flow",
- "fetchedAt": "2026-10-26T09:03:48.574Z",
+ "fetchedAt": "2026-10-27T09:03:36.960Z",
  "summary": {
   "status": "merged",
   "prs": 7,
@@ -9,7 +9,7 @@
   "issues": 5,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-08-01T16:33:06Z",
+  "lastActivity": "2026-10-26T16:52:05Z",
   "lastMerged": "2025-11-25T14:21:17Z",
   "release": "0.33.0",
   "totalComments": 280
@@ -2070,10 +2070,10 @@
    "state": "open",
    "author": "YogiBearXRP",
    "createdAt": "2026-07-01T19:33:56Z",
-   "updatedAt": "2026-08-01T16:33:06Z",
+   "updatedAt": "2026-10-26T16:52:05Z",
    "closedAt": null,
    "labels": [],
-   "comments": 2,
+   "comments": 3,
    "body": "Vault value-conservation invariant is a no-op for the entire lending flow (medium). [VaultInvariant.cpp:1049-1054](vscode-webview://17aknepcbefeg16per18g70h2ph7cgf6oe63nneg5uloe1p25jmd/src/libxrpl/tx/invariants/VaultInvariant.cpp#L1049) — ttLOAN_SET / ttLOAN_MANAGE / ttLOAN_PAY are literally // TBD → return true. Loan transactions move real vault assets and mutate sfAssetsAvailable/sfAssetsTotal, yet are exempted from ValidVault. The only \"funds conserved\" / \"pseudo balance agrees\" checks on that path are #if !NDEBUG asserts (no-ops in Release). And unlike LoanBrokerInvariant (which cross-checks its cover pool against the broker pseudo-account's real balance), no production invariant ever ties the vault's sfAssetsAvailable to the vault pseudo-account's held balance. Not a live exploit today, but the last line of defense is switched off for the most complex value flow in the system — any present-or-future loan-accounting desync commits to hashed ledger state undetected. Still // TBD on develop."
   },
   {
