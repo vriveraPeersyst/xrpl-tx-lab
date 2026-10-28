@@ -1,14 +1,15 @@
 {
  "name": "Escrow",
- "fetchedAt": "2026-10-27T09:03:19.834Z",
+ "fetchedAt": "2026-10-28T09:03:32.192Z",
  "summary": {
   "status": "in development",
   "prs": 11,
-  "open": 2,
-  "merged": 6,
+  "open": 3,
+  "merged": 5,
   "issues": 1,
   "proposals": 8,
   "branches": [
+   "dangell7/escrow-gateway-locked",
    "dangell7/fix-token-escrow-v2",
    "mvadari/rearch/mptoken-lockEscrowMPT",
    "mvadari/rearch/mptoken-unlockEscrowMPT",
@@ -20,10 +21,10 @@
    "smart-escrow/versioning",
    "timothybanks/smart-escrow-deletion"
   ],
-  "lastActivity": "2026-10-16T15:37:52Z",
+  "lastActivity": "2026-10-27T15:40:47Z",
   "lastMerged": "2026-10-16T13:37:35Z",
   "release": "0.60.0",
-  "totalComments": 451
+  "totalComments": 424
  },
  "release": {
   "version": "0.60.0",
@@ -32,6 +33,59 @@
   "excerpt": "Escrow**"
  },
  "prs": [
+  {
+   "number": 8646,
+   "title": "fix: Count only own-issued escrows in gateway_balances",
+   "url": "https://github.com/XRPLF/rippled/pull/8646",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-10-27T15:11:40Z",
+   "updatedAt": "2026-10-27T15:40:47Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-27T15:14:23Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8646?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8646#issuecomment-6445754959"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n- `gateway_balances`: `locked` counts only escrows of tokens the queried account issues. An escrow of another issuer's token that the account sends or receives was added to the account's own total under the same currency code.\n- `EscrowCreate::preflight` and `Clawback` MPT preflight: drop `amount.mpt() > MPTAmount{kMaxMpTokenAmount}`, which can never be true.\n\n## Context of Change\n\n`GatewayBalances` walks every entry in the account's owner directory. An `Escrow` sits in the directories of its source, its destination and, through `sfIssuerNode`, its issuer, so the source and destination see escrows of tokens they do not issue. The escrow branch keyed `locked` by currency only, so a gateway that escrows or receives an escrow of another issuer's USD reported it as locked USD of its own. The branch now skips an escrow whose issuer is not the queried account, the same rule the issuer's own `sfIssuerNode` entry already satisfies.\n\n`MPTAmount::value_type` is `std::int64_t` and `kMaxMpTokenAmount` is `INT64_MAX`, so `mpt() > MPTAmount{kMaxMpTokenAmount}` is always false. It is not harmless either: `STAmount::mpt()` negates the mantissa for a negative amount, and a negative-flagged mantissa of 2^63 negates `INT64_MIN`. That input is reachable only without `fixCleanup3_2_0`, since with it `preflightUniversal` rejects it through `isLegalMPT`. Deleting the clause changes no result. Replacing it with `isLegalMPT` would change results on ledgers without the fix and need an amendment.\n\n## API Impact\n\nNo field is added or removed. `gateway_balances` reports corrected `locked` totals; recorded under the 3.5.0 bugfixes in API-CHANGELOG.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:dangell7/escrow-gateway-locked",
+   "additions": 60,
+   "deletions": 7,
+   "changedFiles": 5,
+   "commits": 4,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-27T15:18:54Z",
+     "body": "Found 1 non-blocking issue — see inline."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-27T15:40:47Z",
+     "body": "### 🟢 Approval recommended\n\nStatic review found no blocking issues in the issuer filter, regression coverage, or redundant-check removals; tests were not executed.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nCorrects `gateway_balances` so `locked` totals include only tokens issued by the queried account, preventing other issuers’ escrows from inflating those totals.\n\n**Changes:**\n- Filters out escrows belonging to other token issuers.\n- Adds regression coverage for incoming, outgoing, and own-issued token escrows, and documents the API correction.\n- Removes impossible MPT upper-bound comparisons from escrow and clawback preflight checks.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​xrpld/​rpc/​handlers/​account/​GatewayBalances.cpp` | Restricts locked totals to the queried account’s issued tokens. |\n| `src/​test/​rpc/​GatewayBalances_test.cpp` | Adds regression coverage for escrow issuer filtering. |\n| `src/​libxrpl/​tx/​transactors/​token/​Clawback.cpp` | Removes a redundant MPT comparison and unused includes. |\n| `src/​libxrpl/​tx/​transactors/​escrow/​EscrowCreate.cpp` | Removes a redundant MPT comparison and unused include. |\n| `API-CHANGELOG.md` | Documents corrected `gateway_balances` totals under version 3.5.0. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-27T15:18:55Z",
+     "path": "src/xrpld/rpc/handlers/account/GatewayBalances.cpp",
+     "body": "Issuer check excludes native XRP escrows unintentionally - guard with `!escrow.native()`:\n\n```suggestion\n                if (escrow.holds<MPTIssue>() || (!escrow.native() && escrow.getIssuer() != accountID))\n```\n\nAlso add a test case covering native-XRP escrow to prevent regression.",
+     "url": "https://github.com/XRPLF/rippled/pull/8646#discussion_r4390520203"
+    }
+   ]
+  },
   {
    "number": 6329,
    "title": "feat: Smart Escrows (XLS-100)",
@@ -3003,234 +3057,6 @@
     }
    ],
    "reviewCommentsList": []
-  },
-  {
-   "number": 8228,
-   "title": "Decide the Smart Escrow fee limits from the ledger, not local configuration",
-   "url": "https://github.com/XRPLF/rippled/pull/8228",
-   "state": "closed",
-   "author": "pwang200",
-   "createdAt": "2026-09-14T19:04:58Z",
-   "updatedAt": "2026-09-22T19:34:45Z",
-   "closedAt": "2026-09-22T19:34:45Z",
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-15T02:36:35Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8228?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `96.00000%` with `2 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8228?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/transactors/system/Change.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8228?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvc3lzdGVtL0NoYW5nZS5jcHA=) | 84.6% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8228?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#issuecomment-5673823014"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-21T21:01:58Z",
-     "body": "⚠️ This PR contains unsigned commits. To get your PR merged, please sign them. ⚠️\n\nIf only the most recent commit is unsigned, you can run:\n1. Amend the commit: `git commit --amend --no-edit -n -S`\n2. Overwrite the commit: `git push --force-with-lease`\n\nIf multiple commits are unsigned, you can run:\n1. Go into interactive rebase mode: `git rebase --interactive HEAD~<NUM_OF_COMMITS>`, where `NUM_OF_COMMITS` is the number of most recent commits that will be available to edit.\n2. Change \"pick\" to \"edit\" for the commits you need to sign, and then save and exit.\n3. For each commit, run: `git commit --amend --no-edit -n -S`\n4. Continue the rebase: `git rebase --continue`\n5. Overwrite the commit(s): `git push --force-with-lease`\n\nIf you're new to commit signing, there are different ways to set it up:\n\n<details>\n<summary><b>Sign commits with <code>gpg</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `gpg`:\n1. [Generate a GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)\n2. [Add the GPG key to your GitHub account](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)\n3. [Configure `git` to use your GPG key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-gpg-key)\n</details>\n\n<details>\n<summary><b>Sign commits with <code>ssh-agent</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `ssh-agent`:\n1. [Generate an SSH key and add it to `ssh-agent`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)\n2. [Add the SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)\n3. [Configure `git` to use your SSH key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)\n</details>\n\n<details>\n<summary><b>Sign commits with 1Password</b></summary>\n<p></p>\n\nYou can also sign commits using 1Password, which lets you sign commits with biometrics without the signing key leaving the local 1Password process.\nSee [use 1Password to sign your commits](https://developer.1password.com/docs/ssh/git-commit-signing/).\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#issuecomment-5767459616"
-    }
-   ],
-   "body": "## The defect\n\n`gasLimit`, `bytecodeSizeLimit` and `gasPrice` are voted network parameters,\ncarried in `FeeSettings`. Two paths let a node's own config decide them instead.\n\n`EscrowCreate::preflight` and `EscrowFinish::preflight` read them from\n`ServiceRegistry::getFees()`, i.e. this node's `FeeSetup`. So two nodes with\ndifferent limits admit different transactions from the same ledger; voting a\nlimit to `0` disabled nothing; and after activation gas was nearly free, because\n`gasPrice` came from the ledger (absent, so `0`) while the guard that would have\nrefused execution read a non-zero `gasLimit` from config.\n\nSeparately, `Ledger::setup` assigned a field only when `FeeSettings` carried it,\nleaving an absent one at whatever `fees_` was built with — and every `Ledger` is\nbuilt from the local `FeeSetup`. Genesis is the exception: there, reading config\nis correct.\n\n## The fix\n\n`preflight` has no view, so it bounds against the protocol ceilings\n`kMaxGasLimit` / `kMaxBytecodeSizeLimit`; `preclaim` applies the voted values.\nWASM validation moves to `preclaim` too — a cached `preflight` result outlives the\nvote that invalidates it — and runs last, since compiling is expensive.\n\n`isBytecodeUploadDisabled` / `isBytecodeExecutionDisabled` are two rungs on\npurpose: zeroing `bytecodeSizeLimit` stops new uploads but leaves existing escrows\nfinishable. Zeroing `gasLimit` stops both.\n\n`Ledger::setup` now resolves an absent field to the protocol constants, amendment\ngated; `Change::initializeVMFees` writes them on activation. `getFees()` is\ndeleted rather than fixed — levelization already forbids `libxrpl` from reaching\nconfig, and this accessor was the way around it.\n\n## Test infrastructure\n\nWith `getFees()` gone there is no second fee source to sync.\n`TestServiceRegistry` loses `getFees`/`setFees`; `TxTest` gains `setFees(Fees)`,\nwhich writes into `FeeSettings` at the next `close()`.\n\n`FinishFailures.AnAllowancePastTheGasLimitIsRefused` changed meaning: it finished\na nonexistent escrow, fine while the check was in `preflight`. `preclaim` reads\nthe escrow first and returns `tecNO_TARGET`, so it now creates a real one.\n\n## Notes for reviewers\n\n* `EscrowCreate::preclaim` returns `tem` codes that depend on ledger state.\n  Deliberate: these must not claim a fee, and `preflight` cannot see voted values.",
-   "merged": true,
-   "mergedAt": "2026-09-22T19:34:45Z",
-   "draft": false,
-   "base": "ripple/smart-escrow",
-   "head": "pwang200:se-fees-bugfix",
-   "additions": 523,
-   "deletions": 126,
-   "changedFiles": 24,
-   "commits": 3,
-   "reviewComments": 14,
-   "reviews": [
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-21T19:30:57Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-21T19:31:58Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-21T19:36:56Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-21T19:42:12Z",
-     "body": ""
-    },
-    {
-     "author": "pwang200",
-     "state": "COMMENTED",
-     "date": "2026-09-21T20:31:02Z",
-     "body": ""
-    },
-    {
-     "author": "pwang200",
-     "state": "COMMENTED",
-     "date": "2026-09-21T20:36:27Z",
-     "body": ""
-    },
-    {
-     "author": "pwang200",
-     "state": "COMMENTED",
-     "date": "2026-09-21T20:36:44Z",
-     "body": ""
-    },
-    {
-     "author": "pwang200",
-     "state": "COMMENTED",
-     "date": "2026-09-21T20:36:57Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-21T20:42:38Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-22T13:59:14Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-22T16:14:07Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "COMMENTED",
-     "date": "2026-09-22T16:39:47Z",
-     "body": ""
-    },
-    {
-     "author": "pwang200",
-     "state": "COMMENTED",
-     "date": "2026-09-22T17:41:52Z",
-     "body": ""
-    },
-    {
-     "author": "pwang200",
-     "state": "COMMENTED",
-     "date": "2026-09-22T17:54:16Z",
-     "body": ""
-    },
-    {
-     "author": "TimothyBanks",
-     "state": "APPROVED",
-     "date": "2026-09-22T18:50:13Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-21T19:30:57Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "The way I am interpreting this is that `isBytecodeUploadDisabled` is dependent on `isBytecodeExecutionDisabled` (because they both check `gasLimit == 0`).  Is that true or are they disjoint checks?",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4065660634"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-21T19:31:58Z",
-     "path": "include/xrpl/protocol/Fees.h",
-     "body": "nit:  Can uniform initialization be used?",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4065669292"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-21T19:36:57Z",
-     "path": "src/libxrpl/tx/transactors/system/Change.cpp",
-     "body": "nit\n```suggestion\n    auto feeObject = view().peek(k);\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4065711101"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-21T19:42:12Z",
-     "path": "src/tests/libxrpl/helpers/TestServiceRegistry.h",
-     "body": "These three magic numbers are the new defaulted globals defined in fees.h, should we use those instead?",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4065752071"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-21T20:31:02Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "Yes, that is true. `isBytecodeUploadDisabled` is dependent on `isBytecodeExecutionDisabled`",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4066163566"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-21T20:36:27Z",
-     "path": "include/xrpl/protocol/Fees.h",
-     "body": "thanks, changed",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4066202706"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-21T20:36:44Z",
-     "path": "src/libxrpl/tx/transactors/system/Change.cpp",
-     "body": "thanks, fixed",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4066204746"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-21T20:36:56Z",
-     "path": "src/tests/libxrpl/helpers/TestServiceRegistry.h",
-     "body": "thanks, fixed",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4066206199"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-21T20:42:38Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "One other thing I was thinking about, do we need to check if `gasPrice == 0` anywhere on this path?",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4066249007"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-22T13:59:14Z",
-     "path": "include/xrpl/protocol/Fees.h",
-     "body": "Something that I was starting to look at that touches on these globals and might just be better to be done in this PR is that with wasmi 2.0, the translation code for a wasm module is 7 fuel per byte (whereas pre 2.0 it was 1).  So translating a module at the `kMaxBytecodeSizeLimit` size will cost 1,400,000 units of fuel which is ~70% of the budget.  Should we multiple `kMaxGasLimit`, `kDefaultGasLimit` and `kDefaultGasPrice` by 7 or just increase them to lower how much of the budget that the translation fuel cost take (maybe lower translation to 50%, 40%, 30% of the budget)?",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4072476973"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-22T16:14:07Z",
-     "path": "include/xrpl/protocol/Fees.h",
-     "body": "I can tackle this in a follow on PR, but would definitely appreciate your thoughts on that problem.",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4073823693"
-    },
-    {
-     "author": "TimothyBanks",
-     "date": "2026-09-22T16:39:47Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "Did you want to tackle the `gasPrice == 0` in this PR or a follow on PR?",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4074050254"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-22T17:41:52Z",
-     "path": "include/xrpl/protocol/Fees.h",
-     "body": "Somehow I missed your last comment. Yeah, let's discuss those numbers.",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4074601502"
-    },
-    {
-     "author": "pwang200",
-     "date": "2026-09-22T17:54:15Z",
-     "path": "include/xrpl/ledger/helpers/EscrowHelpers.h",
-     "body": "Let's do it in a separate PR.",
-     "url": "https://github.com/XRPLF/rippled/pull/8228#discussion_r4074704974"
-    }
-   ]
   }
  ],
  "issues": [
@@ -3349,6 +3175,7 @@
   }
  ],
  "branches": [
+  "dangell7/escrow-gateway-locked",
   "dangell7/fix-token-escrow-v2",
   "mvadari/rearch/mptoken-lockEscrowMPT",
   "mvadari/rearch/mptoken-unlockEscrowMPT",
