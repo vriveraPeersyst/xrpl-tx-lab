@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-11-02T09:01:30.948Z",
+ "fetchedAt": "2026-11-03T09:02:00.166Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-10-30T19:30:16Z",
+  "lastActivity": "2026-11-02T19:53:19Z",
   "lastMerged": "2026-10-20T14:08:01Z",
   "release": "0.90.0",
-  "totalComments": 411
+  "totalComments": 414
  },
  "release": {
   "version": "0.90.0",
@@ -31,7 +31,7 @@
    "state": "open",
    "author": "nbougalis",
    "createdAt": "2026-10-21T04:09:44Z",
-   "updatedAt": "2026-10-30T19:30:16Z",
+   "updatedAt": "2026-11-02T19:53:19Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -52,7 +52,7 @@
    "deletions": 25,
    "changedFiles": 1,
    "commits": 2,
-   "reviewComments": 3,
+   "reviewComments": 5,
    "reviews": [
     {
      "author": "copilot-pull-request-reviewer[bot]",
@@ -89,6 +89,12 @@
      "state": "APPROVED",
      "date": "2026-10-30T19:30:02Z",
      "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-11-02T19:53:19Z",
+     "body": "Looks good in general but left some nits, approving."
     }
    ],
    "reviewCommentsList": [
@@ -112,6 +118,20 @@
      "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
      "body": "Nice - I adopted this, in a slightly reworded version.",
      "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4351879581"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-11-02T19:47:19Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Not a blocker but I think `boost::container::static_vector` could be a better choice because we'll never push kMaxBatchTxCount + 1 elements.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4446972423"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-11-02T19:51:25Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Not a blocker: We repeatedly read `sfSequence` and the new code we introduced calls `getSeqProxy` which also reads `sfSequence` again. I think  we can have a variable to cache the data",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4447012265"
     }
    ]
   },

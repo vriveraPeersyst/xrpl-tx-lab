@@ -1,12 +1,12 @@
 {
  "name": "Batch",
- "fetchedAt": "2026-11-02T09:01:10.686Z",
+ "fetchedAt": "2026-11-03T09:01:27.015Z",
  "summary": {
   "status": "in development",
-  "prs": 11,
-  "open": 10,
-  "merged": 0,
-  "issues": 1,
+  "prs": 10,
+  "open": 7,
+  "merged": 1,
+  "issues": 2,
   "proposals": 3,
   "branches": [
    "a1q123456/support-lending-in-batch",
@@ -21,9 +21,10 @@
    "mvadari/batch-multisign-prefix",
    "ripple/custody-old-batch-cmpt"
   ],
-  "lastActivity": "2026-10-30T19:30:16Z",
+  "lastActivity": "2026-11-02T20:41:53Z",
+  "lastMerged": "2023-09-11T22:47:41Z",
   "release": "2.5.0",
-  "totalComments": 528
+  "totalComments": 645
  },
  "release": {
   "version": "2.5.0",
@@ -33,13 +34,1274 @@
  },
  "prs": [
   {
+   "number": 4762,
+   "title": "Don't suspend writes based on batch size. Instead, log if it seems to be too big",
+   "url": "https://github.com/XRPLF/rippled/pull/4762",
+   "state": "closed",
+   "author": "mtrippled",
+   "createdAt": "2023-10-12T17:34:31Z",
+   "updatedAt": "2026-11-02T20:41:53Z",
+   "closedAt": "2024-01-19T21:26:27Z",
+   "labels": [
+    "Ready to merge",
+    "QE test required"
+   ],
+   "comments": [
+    {
+     "author": "HowardHinnant",
+     "date": "2023-11-01T20:02:10Z",
+     "body": "This looks fine to me, but I have a question:  It looks like the code just adds logging.  I don't see code that does the other part of the title: \"Don't suspend writes based on batch size.\"  What am I missing?",
+     "url": "https://github.com/XRPLF/rippled/pull/4762#issuecomment-1789591591"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-11-01T20:54:36Z",
+     "body": "> This looks fine to me, but I have a question: It looks like the code just adds logging. I don't see code that does the other part of the title: \"Don't suspend writes based on batch size.\" What am I missing?\n\nfixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4762#issuecomment-1789669433"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-08T22:41:27Z",
+     "body": "@sophiax851 this may require perf signoff",
+     "url": "https://github.com/XRPLF/rippled/pull/4762#issuecomment-1881935430"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-08T23:18:51Z",
+     "body": "Internal tracker: RPFC-80",
+     "url": "https://github.com/XRPLF/rippled/pull/4762#issuecomment-1881972364"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-16T21:41:35Z",
+     "body": "May be replaced by #4882",
+     "url": "https://github.com/XRPLF/rippled/pull/4762#issuecomment-1894560057"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-18T15:53:43Z",
+     "body": "- What happens when we want to write faster than NuDB is able to write? We have to do something to slow down the write rate.\n- Could we just slow down the writes since there is no rush?\n- Yes, but we don't want to block all threads writing to NuDB. We could add a priority and make online_delete low priority. (That is the only thing that really generates surges of writes; also consider: fetching ledger history; closing a new ledger is a very small surge)\n  - If buffer is somewhat full, pause the low priority writes.\n  - Need to expose the \"progress\" of online_delete since it will take more time.\n- Need to bound memory use so it's not infinite. Current approach allows writes to grow at a certain rate and if writes exceed the rate, we slow down all code that tries to write. It would slow down online_delete which is something we should do; but that would also slow down high-priority code which is advancing the ledger.\n- NuDB tracks its own bytes/sec or objects/sec write rate and can tell if writes are coming in faster than that. It can measure what % of the server's capacity is being used. What should we do with that information? We can slow something down, but what?",
+     "url": "https://github.com/XRPLF/rippled/pull/4762#issuecomment-1898750830"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-18T19:27:18Z",
+     "body": "https://github.com/XRPLF/rippled/pull/4503 writes asynchronously to nudb with a background thread, but it has an upper limit of records that can be in the queue to be written. When reached, writes are blocked. Online deletion copies a ledger and ensures that it writes the entire ledger to nudb. This amount of data being written likely causes further writes to be blocked until the data is written. This includes persisting new records for each new ledger produced, which is synchronous for consensus. This causes desyncs. This PR (#4762) is expected to fix this.\n\nIf #4882 (which just reverts #4503) is merged, then #4503+#4762 (combined) can still be considered for testing+merging in the future.",
+     "url": "https://github.com/XRPLF/rippled/pull/4762#issuecomment-1899079767"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-22T21:45:33Z",
+     "body": "note via @mtrippled : there is no reason to merge this PR. We can consider https://github.com/XRPLF/rippled/pull/4503#issuecomment-1902323779 - tweaking NuDB's write buffer is probably better design. We can design micro-benchmarks to show how it affects NuDB itself. Write prioritization is too much complexity, but if NuDB could write faster, then that was the whole point of #4503.",
+     "url": "https://github.com/XRPLF/rippled/pull/4762#issuecomment-1904875115"
+    }
+   ],
+   "body": "## High Level Overview of Change\nRemoves a limit that blocks nodestore writes. This delays consensus because each new ledger is persisted during consensus processing.\n\n\n\n### Context of Change\nThis removes the check that limits write batch size and blocks when the limit is reached. It also adds logging to indicate when the limit is exceeded. The trade-off is that the pending writes consume memory until they are persisted, so memory can increase without the limit. But since blocking writes result in consensus instability, the existing behavior is a proactive pessimization. Ultimately, pending writes either increase due to increased input (transaction volume), or because of I/O slowdown. If the IO and memory subsystem can't handle the throughput then the process will be unstable regardless.\n\n\n\n### Type of Change\n\n\n\n- [x] Bug fix (non-breaking change which fixes an issue)\n- [ ] New feature (non-breaking change which adds functionality)\n- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)\n- [ ] Refactor (non-breaking change that only restructures code)\n- [ ] Tests (You added tests for code that already exists, or your new feature included in this PR)\n- [ ] Documentation Updates\n- [ ] Performance\n- [ ] Release",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "mtrippled:unlimited",
+   "additions": 20,
+   "deletions": 9,
+   "changedFiles": 4,
+   "commits": 1,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-11-01T20:54:11Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2023-11-01T21:22:20Z",
+     "body": ""
+    },
+    {
+     "author": "seelabs",
+     "state": "APPROVED",
+     "date": "2023-11-21T23:15:34Z",
+     "body": ":+1: This patch fixes a potential deadlock as well. Needs to be reformatted before merging though. Nice job Mark!"
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2023-11-29T00:14:28Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "mtrippled",
+     "date": "2023-11-01T20:54:11Z",
+     "path": "src/ripple/nodestore/impl/BatchWriter.cpp",
+     "body": "@HowardHinnant Here's the logic change.",
+     "url": "https://github.com/XRPLF/rippled/pull/4762#discussion_r1379322640"
+    }
+   ]
+  },
+  {
+   "number": 4504,
+   "title": "Apply transaction batches in periodic intervals.",
+   "url": "https://github.com/XRPLF/rippled/pull/4504",
+   "state": "closed",
+   "author": "mtrippled",
+   "createdAt": "2023-04-21T02:06:38Z",
+   "updatedAt": "2026-11-02T20:41:48Z",
+   "closedAt": "2023-09-11T22:47:41Z",
+   "labels": [
+    "Ready to merge",
+    "API Change",
+    "Will Need Documentation",
+    "Clio Reviewed",
+    "Reverted",
+    "QE test required"
+   ],
+   "comments": [
+    {
+     "author": "ximinez",
+     "date": "2023-04-24T19:30:33Z",
+     "body": "Roughly how much slower is it for the client if they submit with `wait`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1520715365"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-04-24T19:32:39Z",
+     "body": "> Roughly how much slower is it for the client if they submit with `wait`?\n\nEach batch takes place 100ms after the preceding. So the average additional wait time should be about 50ms.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1520717556"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-04-25T19:52:42Z",
+     "body": "> Each batch takes place 100ms after the preceding. So the average additional wait time should be about 50ms.\n\nYeah, duh. I should have realized that. But anyway, the reason I ask is that I suspect most clients aren't going to notice an extra 50ms (or maybe less because they're already paying the overhead of preparing the open ledger). Why not make the default behavior to `wait`? Or is that something planned for the future once we have data about how well it works in the real world?\n\nAnd while I'm talking about ideas for the future, it might be worthwhile to make the default configurable, and even to disallow certain modes for non-admin connections. I'm thinking about public nodes who might want to reduce their load by not letting _anybody_ submit with `sync`.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1522334627"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-04-25T20:24:46Z",
+     "body": "> > Each batch takes place 100ms after the preceding. So the average additional wait time should be about 50ms.\n> \n> Yeah, duh. I should have realized that. But anyway, the reason I ask is that I suspect most clients aren't going to notice an extra 50ms (or maybe less because they're already paying the overhead of preparing the open ledger). Why not make the default behavior to `wait`? Or is that something planned for the future once we have data about how well it works in the real world?\n> \n> And while I'm talking about ideas for the future, it might be worthwhile to make the default configurable, and even to disallow certain modes for non-admin connections. I'm thinking about public nodes who might want to reduce their load by not letting _anybody_ submit with `sync`.\n\nI want to keep \"sync\" the default for now to not surprise anybody. The necessity to phase this out and to either use \"wait\" or \"async\" will happen as volumes increase to well over 2000/s based on the testing I've done. Consider that if a current tx submission takes 10ms from the client's perspective, then adding 50ms to that will decrease throughput from 100/s to about 17/s.  That's for somebody doing a lot of transaction submission.\n\nI think the idea of allowing administrators to disable certain modes is a good idea--I can see somebody like XRPLF wanting to do that, as well as Ripple. But in practice would also mean updating clients to be wise to this change. Maybe refinements such as this can be something the broad community can debate also?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1522369974"
+    },
+    {
+     "author": "justinr1234",
+     "date": "2023-06-21T01:33:50Z",
+     "body": "> async: This returns immediately, and is actually faster for the client. However, transaction submission errors that occur only once the transaction is applied will be unknown to the client. This should be used for performance testing.\n\nIs it possible to asynchronously send an error message to the websocket connection that the client program can still handle later?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1599939088"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-26T23:11:18Z",
+     "body": "> \n\nI created an issue for this so it can be considered in a future project: https://github.com/XRPLF/rippled/issues/4587",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1608446117"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-06-30T03:54:50Z",
+     "body": "note: @ximinez will re-review this soon",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1614078178"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-07-13T14:03:37Z",
+     "body": "I wonder if this transaction result makes sense for clients:\n```\nMAKE_ERROR(terSUBMITTED,              \"Transaction has been submitted.\"),\n```\n\nWould something like `tesSUBMITTED` make more sense? Just thinking aloud. Thoughts @mDuo13 @mvadari @WietseWind?\n\n\n### Context: [ter Codes](https://xrpl.org/ter-codes.html)\n> These codes indicate that the transaction failed, but it could apply successfully in the future, usually if some other hypothetical transaction applies first.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1634305759"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-07-14T15:36:40Z",
+     "body": "> Would something like `tesSUBMITTED` make more sense? Just thinking aloud.\n\nI don't think a `tes` code is appropriate, because that means that the transaction was successfully applied to the open ledger. It hasn't applied yet, so we really don't know.\n\n> > These codes indicate that the transaction failed, but it could apply successfully in the future, usually if some other hypothetical transaction applies first.\n\nI think `ter` or [`tel`](https://github.com/XRPLF/rippled/pull/4504#discussion_r1229969370) make the most sense.\n* `ter`: Arguably, the submit has returned without the transaction being applied to the open ledger. It hasn't actually \"failed\", but it hasn't succeeded either. It will definitely be (re)tried later so `ter` makes sense.\n* `tel` implies that the transaction has not been applied because of a local node decision. The `sync_mode` param results in a local decision. However, `tel` more likely to be a final error (though it can be retried), so `ter` is still probably better.\n* I wouldn't rule out a new prefix, but that has its own consequences.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1636035600"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-14T21:18:54Z",
+     "body": "> > Would something like `tesSUBMITTED` make more sense? Just thinking aloud.\n> \n> I don't think a `tes` code is appropriate, because that means that the transaction was successfully applied to the open ledger. It hasn't applied yet, so we really don't know.\n> \n> > > These codes indicate that the transaction failed, but it could apply successfully in the future, usually if some other hypothetical transaction applies first.\n> \n> I think `ter` or [`tel`](https://github.com/XRPLF/rippled/pull/4504#discussion_r1229969370) make the most sense.\n> \n> * `ter`: Arguably, the submit has returned without the transaction being applied to the open ledger. It hasn't actually \"failed\", but it hasn't succeeded either. It will definitely be (re)tried later so `ter` makes sense.\n> * `tel` implies that the transaction has not been applied because of a local node decision. The `sync_mode` param results in a local decision. However, `tel` more likely to be a final error (though it can be retried), so `ter` is still probably better.\n> * I wouldn't rule out a new prefix, but that has its own consequences.\n\nI like the idea of tesSUBMITTED because the others generally indicate a problem. Regarding\nwhich particular category we decide upon, the definition of the code type will need to be modified slightly to include asynchronously submitted transactions. I think slightly modifying the definition of the code type is preferable to having a brand new category of 1.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1636455318"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-15T03:52:15Z",
+     "body": "I'd vote for a `ter` code; it will be retried.  And `ter` codes don't necessarily indicate \"problems\", sometimes it's just things getting out of order.  I think a `tes` code would be misleading -- we simply don't know yet.  And I agree with @mtrippled, let's not make a brand new category of 1.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1636645736"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-07-18T05:03:15Z",
+     "body": "I'm ok with `terSUBMITTED` if we are willing to rewrite [the docs](https://xrpl.org/ter-codes.html) so that it is clear that a transaction with that result has not really failed, but just hasn't succeeded yet. \n\nAlso, the interaction with `fail_hard` is ambiguous and unintuitive. What happens if I use `sync_mode: `async`, fail_hard: true`?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1639478758"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-07-18T05:15:30Z",
+     "body": "Proposed docs update: https://github.com/XRPLF/xrpl-dev-portal/pull/2006",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1639486728"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-19T01:07:03Z",
+     "body": "> I'm ok with `terSUBMITTED` if we are willing to rewrite [the docs](https://xrpl.org/ter-codes.html) so that it is clear that a transaction with that result has not really failed, but just hasn't succeeded yet.\n> \n> Also, the interaction with `fail_hard` is ambiguous and unintuitive. What happens if I use `sync_mode: `async`, fail_hard: true`?\n\nfail_hard is treated the same for each sync_mode setting: those parameters are handled distinctly. They don't depend on one another either way.\n@mDuo13 the interface for the submit API call is changing as part of this PR. New field \"sync_mode\". It's documented in the source code, but should be on the web, too, right?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1641220509"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-19T01:59:48Z",
+     "body": "> \n\n@intelliot I just pushed an update with the new comments you made for tes codes.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1641271390"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-07-19T17:02:31Z",
+     "body": "@mtrippled could you resolve conflicts (preferably with a merge commit)?\n\n@HowardHinnant could you review the changes that have made to this PR after your earlier review?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1642445586"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-28T03:45:50Z",
+     "body": "> \n\nThe new modes \"async\" and \"wait\" are intended not only for testing but for when the ledger has high traffic volume. In testing, it's >2500 when it becomes an issue, but submitting tx's as \"sync\" will then tend to cause rippled to become unstable because the improvement made by this PR is essentially bypassed. I think that most use cases such as individual wallets should probably use the \"wait\" mode because the extra 50ms on average is inconsequential when submitting transactions that way. Having these modes available now means they'll be available for developers to quickly adapt in the future.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1654950931"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-31T19:22:08Z",
+     "body": "Thanks for the explanation @mtrippled.\n\n> The new modes \"async\" and \"wait\" are intended not only for testing but for when the ledger has high traffic volume. In testing, it's >2500 when it becomes an issue, but submitting tx's as \"sync\" will then tend to cause rippled to become unstable because the improvement made by this PR is essentially bypassed.\n\n`sync` mode is the default now.  So, assuming traffic volume goes up over time, we'll eventually switch the default over to `async` to keep the network stable?  If that were to happen then individual wallets would benefit from (explicitly) switching over to `wait`.  And they _could_ preemptively switch to `wait` once this change is on the network.\n\nIs that the expected use model?  Or am I still missing stuff?\n\nWhatever the intended use model, it seems like the docs folks should be in on the intended changes so they know what's going on.  @mDuo13?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1658998598"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-31T22:02:11Z",
+     "body": "> Thanks for the explanation @mtrippled.\n> \n> > The new modes \"async\" and \"wait\" are intended not only for testing but for when the ledger has high traffic volume. In testing, it's >2500 when it becomes an issue, but submitting tx's as \"sync\" will then tend to cause rippled to become unstable because the improvement made by this PR is essentially bypassed.\n> \n> `sync` mode is the default now. So, assuming traffic volume goes up over time, we'll eventually switch the default over to `async` to keep the network stable? If that were to happen then individual wallets would benefit from (explicitly) switching over to `wait`. And they _could_ preemptively switch to `wait` once this change is on the network.\n> \n> Is that the expected use model? Or am I still missing stuff?\n> \n> Whatever the intended use model, it seems like the docs folks should be in on the intended changes so they know what's going on. @mDuo13?\n\nEventually, I imagine that most use cases will use \"wait,\" with the exception of some using \"async\" only for some cases of sending transactions in parallel. And I can even envision high volume transaction sending to use \"wait\" depending on how the developer wants to implement things. When the time comes, such as consistently high transaction volumes > 1000/s or so, the community will probably need to prioritize this type of consideration. For node operators, it will likely be beneficial to change the default as you suggested from \"sync\", but I think \"wait\" would probably work better for most cases. And even perhaps provide config options such as to disallow \"sync.\" I don't think this needs to be resolved now, but the groundwork is in place for when the time comes.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1659250495"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-08-02T05:42:44Z",
+     "body": "(note: hold on merging until @HowardHinnant has reviewed and approved https://github.com/XRPLF/rippled/pull/4505)",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1661528238"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-09-01T05:12:09Z",
+     "body": "Since this was reverted in 1.12.0-rc3, this PR is being reopened for additional review, testing, and potential improvements, with the expectation that it will be merged again soon (e.g. for the 1.13 or 2.0 release).",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1702168592"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-09-07T22:28:39Z",
+     "body": "note: blocked until https://github.com/XRPLF/rippled/pull/4505 is ready to merge",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1710840858"
+    },
+    {
+     "author": "mDuo13",
+     "date": "2023-09-15T19:34:08Z",
+     "body": "Proposed release notes blurb:\n\n> - Changed transaction processing so that the initial processing happens in batches every 100ms, which allows for much higher transaction throughput. However, this adds latency of up to 100ms (50ms on average) to processing of transactions from the peer-to-peer network. If you are connected to multiple servers and sending transactions less than 100ms apart, be sure to track your sequence numbers manually; otherwise, autofilling may use the same sequence number for different transactions, resulting in one of those transactions never being confirmed by consensus. (When this happens, you may get the result code `tefPAST_SEQ` from submitting transactions, but even transactions with an initial result of `tesSUCCESS` may fail to reach a consensus due to a conflict of sequence numbers.)\n> - Added a new `sync_mode` parameter to the `submit` command to control batch processing of submitted transactions. The default value, `sync`, is the same as current behavior, to process each transaction individually. Other values allow transactions to be processed in batches every 100ms. Use `async` to return immediately with a `terSUBMITTED` result code, or `wait` to return only after the transaction batch has been processed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1721748375"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-09-15T22:13:40Z",
+     "body": "> Proposed release notes blurb:\n> \n> > * Changed transaction processing so that the initial processing happens in batches every 100ms, which allows for much higher transaction throughput. However, this adds latency of up to 100ms (50ms on average) to processing of transactions from the peer-to-peer network. If you are connected to multiple servers and sending transactions less than 100ms apart, be sure to track your sequence numbers manually; otherwise, autofilling may use the same sequence number for different transactions, resulting in one of those transactions never being confirmed by consensus. (When this happens, you may get the result code `tefPAST_SEQ` from submitting transactions, but even transactions with an initial result of `tesSUCCESS` may fail to reach a consensus due to a conflict of sequence numbers.)\n\nGood. Perhaps reiterate that this is only a potential problem if people use multiple rippled servers for the same sending account and rapidly send transactions. Up to you. Otherwise, thanks @mDuo13 \n\n> > * Added a new `sync_mode` parameter to the `submit` command to control batch processing of submitted transactions. The default value, `sync`, is the same as current behavior, to process each transaction individually. Other values allow transactions to be processed in batches every 100ms. Use `async` to return immediately with a `terSUBMITTED` result code, or `wait` to return only after the transaction batch has been processed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1721931389"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-10T18:41:36Z",
+     "body": "Open question: How would this perform if the transaction rebroadcast interval is reduced?\n- Retransmit more often, so txs are stuck on one server for less time?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1885418828"
+    },
+    {
+     "author": "intelliot",
+     "date": "2024-01-25T07:01:44Z",
+     "body": "- Requires additional testing (and possibly debugging)",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#issuecomment-1909465499"
+    }
+   ],
+   "body": "Add new transaction submission API field, \"sync_mode\", which determines behavior of the server while submitting transactions: 1) sync (default): Process transactions in a batch immediately,\n   and return only once the transaction has been processed.\n2) async: Put transaction into the batch for the next processing\n   interval and return immediately.\n3) wait: Put transaction into the batch for the next processing\n   interval and return only after it is processed.\n\nThis PR is related to 2 others that, when combined, increase throughput significantly:\nhttps://github.com/XRPLF/rippled/pull/4503\nhttps://github.com/XRPLF/rippled/pull/4505\n\n\n\n## High Level Overview of Change\nThis improves transaction throughput. For background, transactions are applied to the open ledger in batches. Only one batch is applied at a time. As they are received from either a client or a peer, transactions are added to a batch. If no batches are being processed, then the current batch is processed immediately. Otherwise, it will be processed once the current batch completes. Batches are applied continuously until no more transactions are queued this way. This pattern optimizes both throughput and latency, but only if applying batches does not contend with other activities.\n\nHowever, the problem is that batch application contends with numerous other activities for the MasterLock and the LedgerMaster lock. As transaction volume increases, so does lock contention. Analysis under heavy transaction load shows that a large amount of time is spent in each transaction batch setting up the open ledger for modification. However, each individual transaction takes a very small amount of time. More importantly, duration preparing to modify the ledger is not affected by the size of the batch! Instead, this duration is related to the amount of transactions in the current open ledger--as transaction volume increases, so does the time it takes to apply each batch.\n\nFor example, assume it takes 5ms to prepare the ledger for each batch, and 50us per transaction. Minimizing wall clock time, and therefore lock contention, means minimizing the number of batches. To put in perspective, single transactions submitted just under 5ms apart would consume all available wall clock time, with the vast majority simply preparing the open ledger for modification! That's not a problem if our only workload is applying transactions. But other things need to use the lock, also.\n\nThe solution implemented instead attempts to apply batches approximately every 100ms, or 10 times per second. To contrast with the above example, reducing the number of batches this way would reduce open ledger preparation time from nearly 1 full second to only 50ms, while actual transaction processing is a trivial 10ms. That's a 94% reduction in lock contention! That's a contrived example, of course, but it plays out in testing--as transaction volume increases, lock contention decreases and the server is able to process significantly higher volume.\n\nAlong with this fix is an enhancement to the submission API. Namely, the existing behavior is to immediately process transactions as they are submitted by the client (but not the peer). However, this tends to diminish the effectiveness of the fix as volume submitted directly to the server increases. This is because more batches are being applied. The problem exhibits itself only under very high volume, but if not addressed will cause problems as livenet volume increases. The API enhancement creates an optional new field called \"sync_mode\" with the following possible settings:\n    1) sync (default): Process transactions in a batch immediately,\n       and return only once the transaction has been processed.\n    2) async: Put transaction into the batch for the next processing\n       interval and return immediately. If successful, return a new code: terSUBMITTED.\n    3) wait: Put transaction into the batch for the next processing\n       interval and return only after it is processed.\n\nTrade-offs for each option are as follows:\n* sync: This is identical to existing behavior, so no users will be suprised by this as long as this stays the default. However, it will lead to instability of the server as described above.\n* async: This returns immediately, and is actually faster for the client. However, transaction submission errors that occur only once the transaction is applied will be unknown to the client. This should be used for performance testing.\n* wait: This is the slowest for the client, but it allows the server to keep up with the network as if the transaction had been submitted \"async\".\n\n\n\n### Context of Change\n\n\n\n### Type of Change\n\n\n\n- [x] New feature (non-breaking change which adds functionality)\n- [x] Tests (You added tests for code that already exists, or your new feature included in this PR)",
+   "merged": true,
+   "mergedAt": "2023-09-11T22:47:41Z",
+   "draft": false,
+   "base": "develop",
+   "head": "mtrippled:periodic",
+   "additions": 398,
+   "deletions": 163,
+   "changedFiles": 24,
+   "commits": 2,
+   "reviewComments": 84,
+   "reviews": [
+    {
+     "author": "a-noni-mousse",
+     "state": "COMMENTED",
+     "date": "2023-05-05T06:24:01Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2023-05-09T17:08:51Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2023-05-09T17:18:10Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2023-05-09T17:32:34Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2023-05-09T17:46:11Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2023-05-09T19:53:37Z",
+     "body": "Left a few comments, but no blockers."
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2023-05-10T23:54:15Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-05-11T00:46:16Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-05-11T00:48:57Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-05-11T00:50:07Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-05-11T00:50:33Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-05-11T19:02:50Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-05-11T19:03:29Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-05-11T19:03:40Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "COMMENTED",
+     "date": "2023-05-11T20:52:28Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-05-11T21:17:31Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-05-11T21:19:45Z",
+     "body": ""
+    },
+    {
+     "author": "intelliot",
+     "state": "COMMENTED",
+     "date": "2023-05-11T21:20:06Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2023-06-14T23:38:26Z",
+     "body": "I left several suggestions, but I like the changes overall."
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:09:01Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:11:24Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:11:34Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:11:47Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:12:05Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:12:15Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:12:40Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:13:10Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:13:21Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:13:33Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:14:12Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:14:22Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:14:58Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:15:27Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:16:42Z",
+     "body": ""
+    },
+    {
+     "author": "justinr1234",
+     "state": "COMMENTED",
+     "date": "2023-06-21T01:31:04Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-06-22T22:19:46Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-06-23T02:01:47Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-06-23T02:02:19Z",
+     "body": ""
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "COMMENTED",
+     "date": "2023-06-23T02:58:22Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-06-23T17:38:44Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-06-23T18:46:18Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "CHANGES_REQUESTED",
+     "date": "2023-06-23T19:02:33Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-26T22:01:03Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-26T22:01:32Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-26T22:02:04Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-06-26T23:04:11Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-07-10T21:02:43Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "COMMENTED",
+     "date": "2023-07-10T21:06:57Z",
+     "body": ""
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2023-07-10T21:20:50Z",
+     "body": "There's a trivial merge conflict to resolve in the cmake files, but otherwise, this looks good to go."
+    },
+    {
+     "author": "ximinez",
+     "state": "APPROVED",
+     "date": "2023-07-20T22:53:28Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "COMMENTED",
+     "date": "2023-07-26T21:12:45Z",
+     "body": "Nice pull request!  The changes were easy to follow.  You added unit testing for the new `sync_mode` argument.  Good stuff all the way around.  But, because I'm picky, I still left a number of comments for you to consider.\n\nBeyond that, I want to make sure I understand the purpose of the three new `sync_mode`s:\n\n- `sync` does exactly what we've been doing all along.  And it's the default behavior we get if the argument is omitted.  Perfect.\n- `async` is a new mode that is being introduced for load testing.  The way I understand this, the only folks we _expect_ to see using this mode are people doing performance testing (like you).  Ledger throughput benefits from this mode, but it is strictly more awkward for the user since a `terSUBMITTED` is _always_ returned.\n- That leaves `wait`.  I think I get what this mode is intended to do.  But I'm not sure who we expect to use this mode.\n\nMy spidey sense suggests that `wait` is a feature that was added because \"it might be useful\" and \"it's easy to implement\".  Is that a correct understanding?  Or am I missing something and `wait` is a mode you actually intend to use in testing?\n\nIf we really don't know who would be using the `wait` sync mode, then I'd prefer that it not be added."
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-07-28T03:35:50Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-07-28T03:36:44Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-07-28T03:37:00Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-07-28T03:37:12Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-07-28T03:37:40Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-07-28T03:37:52Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-07-28T03:38:41Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-07-28T03:38:54Z",
+     "body": ""
+    },
+    {
+     "author": "mtrippled",
+     "state": "COMMENTED",
+     "date": "2023-07-28T03:39:11Z",
+     "body": ""
+    },
+    {
+     "author": "scottschurr",
+     "state": "APPROVED",
+     "date": "2023-07-31T21:11:44Z",
+     "body": "Latest changes look great.  Thanks for accommodating my picky review."
+    },
+    {
+     "author": "HowardHinnant",
+     "state": "APPROVED",
+     "date": "2023-08-02T14:21:17Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "a-noni-mousse",
+     "date": "2023-05-05T06:04:47Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "I think there is bug here if the addJob returns false because then you never set again another timer!",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1185726193"
+    },
+    {
+     "author": "a-noni-mousse",
+     "date": "2023-05-05T06:06:41Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "Why have a return here but you never check it unless its the unit test? It confuses people",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1185727459"
+    },
+    {
+     "author": "a-noni-mousse",
+     "date": "2023-05-05T06:14:38Z",
+     "path": "src/ripple/rpc/impl/RPCHelpers.cpp",
+     "body": "There is no necessity to break!",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1185731343"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2023-05-09T17:08:51Z",
+     "path": "src/ripple/app/misc/NetworkOPs.h",
+     "body": "*nitpick*:  When passing by value, a `const` qualifier is an implementation detail.  It has use in the definition (this parameter will not change within the definition).  But it is just noise in the declaration.  The caller knows the definition won't change the value the caller sees because it is passed by value.\n\nRecommendation:  Remove `const` only from the declaration, but not the definition.  Here and line 289 of NetworkOPs.cpp.\n\n_Note:_ This is a lone exception to the rule that the prototype of the declaration and definition must be the same.  Name manglers know this rule.  The `const` qualifier on a by-value parameter has no impact on the mangling of the function name, and thus the presence/absence can not be overloaded on.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1188900228"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2023-05-09T17:18:10Z",
+     "path": "src/ripple/core/Config.h",
+     "body": "*nitpick:*  My dyslexia prefers `10'000` to make it easier to count the zeroes. :-)",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1188909644"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2023-05-09T17:32:34Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "If I am correct that this becomes part of our client-facing API, we should make sure this is the name we want.  I find myself wondering if another name, such as `submit` or maybe `submit_mode` would be better.  I'm not the right person to answer this question.  I'm simply trying to make this decision more visible.  If `sync` is the best name, I'm fine with that.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1188925809"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2023-05-09T17:46:11Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "_nitpick:_ Even better:  `auto constexpr batchInterval = 100ms;`\n\nThe code generation will be identical.  But the reader doesn't have to know that the compiler is optimizing away the \"once flag\" that usually hides under the hood of function local statics.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1188940992"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2023-05-10T23:54:15Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "Wowza, that's a _good_ catch.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1190484334"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-05-11T00:46:16Z",
+     "path": "src/ripple/app/misc/NetworkOPs.h",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1190513508"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-05-11T00:48:57Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "@intelliot what's the best way to define this new API field? I like it as is, since the behavior has to do with being synchronous. But I also don't care enough either way. How should we handle this?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1190514602"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-05-11T00:50:07Z",
+     "path": "src/ripple/core/Config.h",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1190515054"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-05-11T00:50:33Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1190515535"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-05-11T19:02:50Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1191582267"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-05-11T19:03:29Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "I made comments above the declaration explaining this.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1191582869"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-05-11T19:03:39Z",
+     "path": "src/ripple/rpc/impl/RPCHelpers.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1191583012"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-05-11T20:52:28Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "1. Can you (re)explain the purpose and meaning of the field?\n2. Why does it need to be user-facing? \n3. How should users decide what value to set in the field?\n\nOnce we have simplified and accurate answers to the above, then we should collect feedback from API users like @justinr1234, @mvadari, @mDuo13 to get a recommendation for how to define and introduce the field.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1191678457"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-05-11T21:17:31Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "@mDuo13 can you please review the proposed API change, described at the top of this PR?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1191697885"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-05-11T21:19:45Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "@mvadari ^",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1191699536"
+    },
+    {
+     "author": "intelliot",
+     "date": "2023-05-11T21:20:06Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "Confirmed with Mark:\n\n1. The purpose of the proposed `sync` field in the `submit` API is to allow users to control whether the server processes transactions immediately, or defers their processing to a later time.\n2. It's user-facing because we are keeping the behavior the same for existing users. New implementations should use \"async\" or \"wait\" for overall improved throughput. \"sync\" can still be used since it is not a problem at current tx volumes; there does not seem to be any need to rush a change.\n3. Users should choose:\n  a. **\"wait\"** if they want to know about certain transaction submission errors that occur when a transaction is being applied. Compared to \"sync\", transaction application may be slightly delayed (up to 100ms), but this makes it easier for the server to keep up with the network.\n  b. **\"async\"** in order to maximize throughput. The server responds as quickly as possible, but since the transaction hasn't been applied yet, the client won't know about certain errors during transaction processing, if they occur.\n\n\"sync\" may be a confusing name for the field since it is also one of its potential values (\"sync\"). Perhaps @mDuo13, @mvadari, or someone else could suggest a better name (if they are convinced that it makes sense to add the field at all, of course).",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1191699765"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T17:45:33Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "First, sorry, I don't understand this comment. Since this function is returning right away with the `terSUBMITTED` result, wouldn't that mean the `tx` object is returned before being processed?\n\nSecond, in addition to `setResult`, I think it would make sense to set some more of the flags so that the `submit` response will be more accurate.\n```\ntransaction->setStatus(HELD);\ntransaction->setKept();\n```\n\nAs an aside, while digging around about whether this is the best return code prefix (it probably is, though an argument could be made for `tel`), I noticed that `LedgerMaster::applyHeldTransactions` will incur the overhead of preparing the open ledger for transactions even if there aren't any being held locally to retry. I bet checking `if (!mHeldTransactions.empty())` first would save some time, too.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1229969370"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T17:54:27Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "Why remove these `assert`s? I don't see anything (yet) that would intentionally make them false.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1229978095"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T21:02:51Z",
+     "path": "src/ripple/app/misc/NetworkOPs.h",
+     "body": "This include is unnecessary, since you pre-declare `SubmitSync` below and the file is already included in NetworkOPs.cpp.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230167793"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T22:06:10Z",
+     "path": "src/ripple/core/Config.h",
+     "body": "Not much of a configuration option if you can't actually change it in the config. 😀 \n\nI suggest setting MAX to 100,000 and MIN to 1,000. If someone wants to tweak their server one way or another, I think an order of magnitude in each direction is fair.\n\nAlso, whatever values you use, you'll need to change the documentation in rippled-example.cfg and rippled-reporting.cfg.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230221460"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T22:13:20Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "This include violates levelization. It looks like you need it for `SubmitSync`. This level (\"overlay\") is \"lowest\" level that uses `SubmitSync`. I know it seems a little odd to define `SubmitSync` maybe in `overlay/Peer.h`(?), but that will avoid making the cyclical dependencies worse. Another option is an even lower level like \"protocol\" or \"basics\".\n\nRegardless of whether you move the definition, you'll need to run `Builds/levelization/levelization.sh` and commit the resulting changes. It only takes about 30 seconds on my Linux box.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230226334"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T22:15:37Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "I don't think this #include is needed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230227640"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T22:33:13Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "I don't think this #include is needed either.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230237807"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T22:33:35Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "I don't think this #include is needed either.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230237978"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T22:33:52Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "Nor is this #include needed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230238129"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T23:02:57Z",
+     "path": "src/ripple/rpc/handlers/Submit.cpp",
+     "body": "I don't like using the string value instead of the `jss` to get the param, but in addition, it's being done 3 times. How about:\n```\n        auto const syncParam = context.params[jss::sync].asString();\n        if (syncParam == \"async\")\n            sync = RPC::SubmitSync::async;\n        else if (syncParam == \"wait\")\n            sync = RPC::SubmitSync::wait;\n        else if (syncParam != \"sync\")\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230254049"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T23:04:27Z",
+     "path": "src/ripple/rpc/handlers/SubmitMultiSigned.cpp",
+     "body": "Same here as above:\n```\n        auto const syncParam = context.params[jss::sync].asString();\n        if (syncParam == \"async\")\n            sync = RPC::SubmitSync::async;\n        else if (syncParam == \"wait\")\n            sync = RPC::SubmitSync::wait;\n        else if (syncParam != \"sync\")\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230254827"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T23:05:53Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "I like `submit_mode` or maybe  just `mode` (since it would be a param to a \"submit\" command, it would be a \"submit mode\" either way).",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230255464"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T23:12:15Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "You're making a copy (`req = payment`) just to move the copy (`std::move(req)`). Why not just pass the original? Maybe pass as a `const&` instead of an r-value.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230258898"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T23:18:29Z",
+     "path": "src/test/app/Transaction_ordering_test.cpp",
+     "body": "Suggestion: `BEAST_EXPECT(env.app().getOPs().transactionBatch(false));`",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230262046"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-14T23:18:51Z",
+     "path": "src/test/app/Transaction_ordering_test.cpp",
+     "body": "Suggestion: `BEAST_EXPECT(env.app().getOPs().transactionBatch(true));`",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1230262236"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:09:01Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "@ximinez what about \"sync_mode\"?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236158703"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:11:24Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "I changed the comment--please let me know if it's still not clear. I don't think it makes sense to add the HELD or Kept flags. I don't think they're relevant until after the tx is attempted, and the async interface is before that happens.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236161286"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:11:34Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236161565"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:11:47Z",
+     "path": "src/ripple/core/Config.h",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236161686"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:12:05Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236161865"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:12:15Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236161937"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:12:40Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "That file uses LedgerIndex which is defined in Protocol.h",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236162117"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:13:10Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "That file has lots of std::chrono usage.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236162320"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:13:20Z",
+     "path": "src/ripple/rpc/handlers/Submit.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236162401"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:13:33Z",
+     "path": "src/ripple/rpc/handlers/SubmitMultiSigned.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236162488"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:14:12Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236162837"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:14:21Z",
+     "path": "src/test/app/Transaction_ordering_test.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236162903"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:14:58Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236163144"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:15:27Z",
+     "path": "src/test/app/Transaction_ordering_test.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236163358"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-21T01:16:42Z",
+     "path": "src/ripple/app/misc/NetworkOPs.h",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236164101"
+    },
+    {
+     "author": "justinr1234",
+     "date": "2023-06-21T01:31:04Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "Sync mode sounds confusing to me. I prefer mode or submit_mode.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1236176791"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-22T20:06:32Z",
+     "path": "src/ripple/basics/SubmitSync.h",
+     "body": "Nice. Since this file is in `basics`, it should probably also be included in `RippledCore.cmake` under \"main/core headers installation\" (around line 150).",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1238978713"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-22T21:02:10Z",
+     "path": "src/ripple/app/ledger/impl/LedgerMaster.cpp",
+     "body": "Only problem with an early return is that `mHeldTransactions` gets reset with the `parentHash` at the end of this function, which is used to salt the account ID, and thus affects the ordering of later held transactions. I wasn't explicit that my thinking was that the `openLedger().modify` would be wrapped in `if (mHeldTransactions.size()) {}`.\n\nTo be fair, I don't know how important the ordering is in the context of held transactions, but in the absence of other information, I have to assume it was done intentionally.\n\nAnother option is:\n```\nvoid\nLedgerMaster::applyHeldTransactions()\n{\n    auto const held = [&]() {\n        std::lock_guard sl(m_mutex);\n        auto const result = mHeldTransactions;\n\n        // VFALCO TODO recreate the CanonicalTxSet object instead of resetting\n        // it.\n        // VFALCO NOTE The hash for an open ledger is undefined so we use\n        // something that is a reasonable substitute.\n        mHeldTransactions.reset(app_.openLedger().current()->info().parentHash);\n\n        return result;\n    }();\n    if (!held.size())\n        return;\n\n    app_.openLedger().modify([&](OpenView& view, beast::Journal j) {\n        bool any = false;\n        for (auto const& it : held)\n        {\n            ApplyFlags flags = tapNONE;\n            auto const result =\n                app_.getTxQ().apply(app_, view, it.second, flags, j);\n            if (result.second)\n                any = true;\n        }\n        return any;\n    });\n}\n```\n`OpenLedger` has it's own lock, so this should be safe, though I haven't tested it or anything.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1239028198"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-22T22:19:45Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "Thanks. The new comment makes a lot more sense. I'm fine with not changing the flags.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1239082654"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-23T02:01:47Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "Ok. I tried removing the include, and rippled built fine (non-unity), so `LedgerIndex` already being brought in through some other dependency. I would say this include not necessary, but it doesn't hurt. Your call. I'm fine with leaving it.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1239246722"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-23T02:02:19Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "Same as with `Protocol.h`. Builds fine without it, but doesn't hurt to have it, since it is used. Your call.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1239246916"
+    },
+    {
+     "author": "HowardHinnant",
+     "date": "2023-06-23T02:58:22Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "If a source uses objects declared in `<foo>` I prefer it explicitly includes `<foo>`, even if it already implicitly does so via a transitive include.  This makes the code more robust in the face of changes to includes via the transitive path.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1239269929"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-23T17:38:43Z",
+     "path": "src/ripple/overlay/impl/PeerImp.cpp",
+     "body": "Agreed.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1240100646"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-23T18:46:18Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "I could see the value in `sync_mode`. Like I said earlier, we already know that it's related to submit, but what happens if down the road there's some _other_ processing option that needs a separate mode. I have no idea what that would be, but you never know. If we do `sync_mode` now, then it'll be less confusing to add `foo_mode` later.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1240181557"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-06-23T18:53:55Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "`req` is now unused.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1240191976"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-26T22:01:03Z",
+     "path": "src/ripple/basics/SubmitSync.h",
+     "body": "fixed. Is this to support the library build?",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1242861964"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-26T22:01:32Z",
+     "path": "src/ripple/app/ledger/impl/LedgerMaster.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1242862292"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-26T22:02:04Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1242862666"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-06-26T23:04:11Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "\"sync_mode\" means that the particular mode defines the behavior having to do with synchronicity.\n\"mode\" can be anything and \"submit_mode\" is redundant. On the other hand, the interface is something that strikes everybody differently. What do you guys think at this point? @justinr1234 @ximinez",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1242901741"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-07-10T21:02:43Z",
+     "path": "src/ripple/basics/SubmitSync.h",
+     "body": "Yes",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1258912439"
+    },
+    {
+     "author": "ximinez",
+     "date": "2023-07-10T21:06:56Z",
+     "path": "src/ripple/protocol/jss.h",
+     "body": "`sync_mode` works for me.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1258916363"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-24T23:30:19Z",
+     "path": "src/ripple/app/ledger/impl/LedgerMaster.cpp",
+     "body": "Not your problem, but this VFALCO TODO is eight years old.  I think it's never gonna happen.  Consider removing the TODO while you're in here.  But I totally get it if you don't want to.  Your call.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1272852339"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-25T00:00:39Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "Nice to get rid of these!  Fewer options for folks to consider.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1272865905"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-25T00:03:29Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "Nit: typo in comment -- \"for for\".",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1272867222"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-25T18:39:13Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "I think it's important to add comments that document why `setBatchApplyTimer()` has a delay between applying batches.\n\nIt would also be very useful to document how 100ms was chosen for the interval.  I could easily imagine some future maintainer making the interval smaller in the hopes of increasing throughput.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1273941838"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-25T19:02:11Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "I'm not too keen on the double `unlock(); setBatchApplyTimer()` calls.  I think the following restructure is simpler and equivalent to what you have:\n```\nvoid\nNetworkOPsImp::setBatchApplyTimer()\n{\n    using namespace std::chrono_literals;\n    auto constexpr batchInterval = 100ms;\n\n    setTimer(\n        batchApplyTimer_,\n        batchInterval,\n        [this]() {\n            {\n                std::lock_guard lock(mMutex);\n                // Only do the job if there's work to do and it's not currently\n                // being done.\n                if (mTransactions.size() &&\n                    mDispatchState == DispatchState::none)\n                {\n                    if (m_job_queue.addJob(\n                            jtBATCH, \"transactionBatch\", [this]() {\n                                transactionBatch(false);\n                            }))\n                    {\n                        mDispatchState = DispatchState::scheduled;\n                    }\n                    return;\n                }\n            }\n            setBatchApplyTimer();\n        },\n        [this]() { setBatchApplyTimer(); });\n}\n```\nBut please check my work.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1273967666"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-25T19:23:58Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "Optionally, you can make the constant names on the `case:` statements shorter like this:\n```\n        using enum RPC::SubmitSync;\n        case sync:\n            ...\n        case async:\n            ...\n        case wait:\n            ...\n        default:\n            ...\n```\nPurely at your discretion.  Both approaches are equally legit.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1273988538"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-25T19:39:30Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "Micro nit: remove trailing \"s\" on \"transactions\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1274002424"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-26T00:44:49Z",
+     "path": "src/ripple/rpc/handlers/SubmitMultiSigned.cpp",
+     "body": "The handling of the `sync_mode` parameter is identical between here and `doSubmit`.  Code duplication like that makes maintenance harder.  I'd like to suggest that you make a helper function to do this work and put it in the RPCHelpers files.  The implementation might look like this:\n```\n...\n#include <ripple/basics/SubmitSync.h>\n...\nripple::Expected<RPC::SubmitSync, Json::Value>\ngetSubmitSyncMode(Json::Value const& params)\n{\n    using enum RPC::SubmitSync;\n    if (params.isMember(jss::sync_mode))\n    {\n        std::string const syncMode = params[jss::sync_mode].asString();\n        if (syncMode == \"async\")\n            return async;\n        else if (syncMode == \"wait\")\n            return wait;\n        else if (syncMode != \"sync\")\n            return Unexpected(RPC::make_error(\n                rpcINVALID_PARAMS,\n                \"sync_mode parameter must be one of \\\"sync\\\", \\\"async\\\", or \"\n                \"\\\"wait\\\".\"));\n    }\n    return sync;\n}\n```\nYou'd use it like this:\n```\n    auto const sync = RPC::getSubmitSyncMode(context.params);\n    if (!sync)\n        return sync.error();\n\n    return RPC::transactionSubmitMultiSigned(\n        context.params,\n        failType,\n        context.role,\n        context.ledgerMaster.getValidatedLedgerAge(),\n        context.app,\n        RPC::getProcessTxnFn(context.netOps),\n        *sync);\n```\nLet me know what you think.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1274249118"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-26T01:18:04Z",
+     "path": "src/ripple/app/misc/NetworkOPs.h",
+     "body": "It might be nice to add the sentence, \"The drain parameter should be false for all non-unit test usage.\"",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1274265806"
+    },
+    {
+     "author": "scottschurr",
+     "date": "2023-07-26T20:14:33Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "Thanks for this unit test!  I noticed that you exercised all three of the new `sync_mode` arguments and verified that you got the expected behavior.\n\nIt would be great to expand the test just a bit by passing an invalid string for the `sync_mode`.  That will improve the test coverage and you can also verify that the returned error is what we should expect.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1275440392"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-28T03:35:50Z",
+     "path": "src/ripple/app/ledger/impl/LedgerMaster.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1277056634"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-28T03:36:44Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1277056929"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-28T03:36:59Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1277057001"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-28T03:37:12Z",
+     "path": "src/ripple/rpc/handlers/SubmitMultiSigned.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1277057065"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-28T03:37:39Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1277057221"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-28T03:37:52Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1277057299"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-28T03:38:40Z",
+     "path": "src/ripple/app/misc/NetworkOPs.h",
+     "body": "Then again, somebody may want to drain it for some other reason.",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1277057593"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-28T03:38:53Z",
+     "path": "src/test/jtx/Env_test.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1277057678"
+    },
+    {
+     "author": "mtrippled",
+     "date": "2023-07-28T03:39:11Z",
+     "path": "src/ripple/app/misc/NetworkOPs.cpp",
+     "body": "fixed",
+     "url": "https://github.com/XRPLF/rippled/pull/4504#discussion_r1277057810"
+    }
+   ]
+  },
+  {
    "number": 8627,
    "title": "perf: Avoid memory allocations during Batch preflight checks",
    "url": "https://github.com/XRPLF/rippled/pull/8627",
    "state": "open",
    "author": "nbougalis",
    "createdAt": "2026-10-21T04:09:44Z",
-   "updatedAt": "2026-10-30T19:30:16Z",
+   "updatedAt": "2026-11-02T19:53:19Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -60,7 +1322,7 @@
    "deletions": 25,
    "changedFiles": 1,
    "commits": 2,
-   "reviewComments": 3,
+   "reviewComments": 5,
    "reviews": [
     {
      "author": "copilot-pull-request-reviewer[bot]",
@@ -97,6 +1359,12 @@
      "state": "APPROVED",
      "date": "2026-10-30T19:30:02Z",
      "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-11-02T19:53:19Z",
+     "body": "Looks good in general but left some nits, approving."
     }
    ],
    "reviewCommentsList": [
@@ -120,6 +1388,20 @@
      "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
      "body": "Nice - I adopted this, in a slightly reworded version.",
      "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4351879581"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-11-02T19:47:19Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Not a blocker but I think `boost::container::static_vector` could be a better choice because we'll never push kMaxBatchTxCount + 1 elements.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4446972423"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-11-02T19:51:25Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Not a blocker: We repeatedly read `sfSequence` and the new code we introduced calls `getSeqProxy` which also reads `sfSequence` again. I think  we can have a variable to cache the data",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4447012265"
     }
    ]
   },
@@ -3177,539 +4459,24 @@
      "url": "https://github.com/XRPLF/rippled/pull/8127#discussion_r4009468325"
     }
    ]
-  },
-  {
-   "number": 8532,
-   "title": "feat: Record Batch inner results in a BatchResult pseudo-transaction (BatchV2)",
-   "url": "https://github.com/XRPLF/rippled/pull/8532",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-10-07T17:49:45Z",
-   "updatedAt": "2026-10-09T22:36:10Z",
-   "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-07T17:55:49Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8532?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8532#issuecomment-6043690621"
-    },
-    {
-     "author": "sublimator",
-     "date": "2026-10-08T05:33:57Z",
-     "body": "> The alternative was a field in the outer's metadata, but the outer's leaf is inserted before its inner transactions run and OpenView::rawTxInsert does not replace a leaf.\n\nInteresting \n\nYeah, conceptually if the outer transaction's only effect is to add/queue the inners, then backtracking and updating the metadata is a little murky and sets a precedent. \n\nOn the other hand, you have a result attached to the the known outer txn id, which is more easy to consume than having to retrieve and parse the whole ledger's transactions which is the naive consequence barring updating rpc handlers to do the scan, potentially using indexes. \n\nUsing metadata would probably also save some bytes, reusing existing txn/serialization instead of a new key/leaf. \n\nMurky 🤔 \n\nThen again, maybe transactions are just the atoms, and batches, as long as they are comprised of contiguous atoms, can be thought of some bigger unit: transactions / batches / ledgers.",
-     "url": "https://github.com/XRPLF/rippled/pull/8532#issuecomment-6053093333"
-    },
-    {
-     "author": "sublimator",
-     "date": "2026-10-09T03:25:20Z",
-     "body": "I'm sure there's some reason, but why isn't the outer txn part of the atomic unit? It seems to lead to strange things like tesSUCCESS instead of a tec when the batch failed and was rolled back? And it makes it awkward conceptually to do things like put the results into the outer's meta? \n\nIt's like the outer queues an atomic unit that unpacks into transactions, vs being the atomic unit (which could also unpack)\n\nAfter reading the discussion to get up to speed, I can see exposing the results in meta looks like an unresolved question raised by @tequdev:\nhttps://github.com/XRPLF/XRPL-Standards/discussions/162#discussioncomment-8673792",
-     "url": "https://github.com/XRPLF/rippled/pull/8532#issuecomment-6073639991"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-09T07:46:34Z",
-     "body": "What are the performance implications of this change?",
-     "url": "https://github.com/XRPLF/rippled/pull/8532#issuecomment-6076736223"
-    },
-    {
-     "author": "sublimator",
-     "date": "2026-10-09T09:50:22Z",
-     "body": "[How the twists of fate split the Batch atom in two](https://gist.github.com/sublimator/7d8dedaa36bfbf5300eea4ce9593eecb)\n\nDug into the #5060 history: the original design had the outer as the unit (tec on failure, results in the outer's meta). \n\nWrite up of how it got split, plus a prototype of putting it back together.",
-     "url": "https://github.com/XRPLF/rippled/pull/8532#issuecomment-6078531156"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-09T22:36:09Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8532#issuecomment-6090408858"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nAdds the `BatchV2` amendment and a `ttBATCH_RESULT` (`BatchResult`) pseudo-transaction. When a `Batch` applies with `tesSUCCESS` in a closed ledger, `applyTransaction` inserts a `BatchResult` right after the batch's inner transactions. It carries the outer's ID in `sfParentBatchID` and lists every inner transaction the batch attempted, in order, as `sfTransactionHash` and `sfEngineResultCode`.\n\n## Context of Change\n\nAn inner transaction that fails with a `tem`, `tef` or `ter` code leaves nothing in the ledger, and neither does any inner transaction of a rolled-back `tfAllOrNothing` batch. The outer's metadata covers only its own fee and sequence, so the only record of what a batch did is the `BatchTrace` log line on the node that applied it. #8164 keeps those results in a node-local table; this puts them in the ledger, so every node, Clio and explorer reads the same answer.\n\nThe record cannot be agreed in the transaction set like `ttFEE` or `ttAMENDMENT`, because its content exists only after execution. It is generated during the ledger build, as the inner transactions already are, from the outer ID and the inner IDs and results only, so every node produces the same leaf. It is inserted into the view the outer applied to, after the batch view is committed or dropped, so a rollback cannot remove it. The alternative was a field in the outer's metadata, but the outer's leaf is inserted before its inner transactions run and `OpenView::rawTxInsert` does not replace a leaf.\n\nAn entry was applied when its result is `tes` or `tec` and the batch was not rolled back; an inner transaction missing from `sfBatchResults` was never attempted. `sfEngineResultCode` is `INT32` because `tem`, `tef` and `ter` codes are negative.\n\n`isPseudoTx` covers the new type, so it cannot be submitted or relayed, and `Change` preflight rejects it with `temINVALID` on any view, including from a proposed transaction set. Ledger replay skips it, and replaying the outer regenerates it.\n\n## API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n`tx`, `ledger` and the transaction streams return the new `BatchResult` transaction type once `BatchV2` is enabled.\n\n## Future Tasks\n\n- Amend XLS-0056 to specify `BatchResult`.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:dangell7/batch-v2-inner-record",
-   "additions": 862,
-   "deletions": 4,
-   "changedFiles": 15,
-   "commits": 3,
-   "reviewComments": 2,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-07T18:00:32Z",
-     "body": "### 🟡 Changes recommended\n\nThe required public API changelog entry is missing.\n\n<details open>\n<summary><strong>1 open finding</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document new BatchResult transaction fields in API changelog](#discussion_r4210234572) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds the amendment-gated `BatchResult` pseudo-transaction to preserve attempted inner Batch outcomes on-ledger.\n\n**Changes:**\n- Generates deterministic `BatchResult` records after successful Batch transactions.\n- Adds replay, rejection, protocol-format, and amendment support.\n- Adds coverage for rollback, execution modes, retrieval, and replay.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​xrpld/​app/​ledger/​detail/​BuildLedger.cpp` | Regenerates records during replay. |\n| `src/​tests/​libxrpl/​protocol_autogen/​transactions/​BatchResultTests.cpp` | Tests generated wrappers. |\n| `src/​test/​app/​PseudoTx_test.cpp` | Tests submission rejection. |\n| `src/​test/​app/​LedgerReplay_test.cpp` | Tests deterministic replay. |\n| `src/​test/​app/​Batch_test.cpp` | Tests record contents and ordering. |\n| `src/​libxrpl/​tx/​transactors/​system/​Change.cpp` | Rejects direct application. |\n| `src/​libxrpl/​tx/​apply.cpp` | Collects results and inserts records. |\n| `src/​libxrpl/​protocol/​STTx.cpp` | Classifies the type as pseudo. |\n| `src/​libxrpl/​protocol/​InnerObjectFormats.cpp` | Defines result entry format. |\n| `include/​xrpl/​tx/​transactors/​system/​Change.h` | Maps the generated transactor type. |\n| `include/​xrpl/​protocol/​detail/​transactions.macro` | Defines `BatchResult`. |\n| `include/​xrpl/​protocol/​detail/​sfields.macro` | Adds result fields. |\n| `include/​xrpl/​protocol/​detail/​features.macro` | Registers `BatchV2`. |\n| `include/​xrpl/​protocol_autogen/​transactions/​BatchResult.h` | Adds generated typed API. |\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-07T18:03:01Z",
-     "body": "The core change wires a new BatchResult pseudo-transaction into applyTransaction, inserted directly via rawTxInsert after a successful Batch. The implementation is well tested for the closed-ledger / ledger-build path (rollback, independent, until-failure, only-one modes, replay skipping, Change preflight rejection). The one concern worth checking before merge is that the insertion is gated only by an internal assert rather than an explicit check on view.open(), despite the stated design intent that this only ever happens in a closed ledger view."
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-10-07T20:29:16Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-07T20:34:32Z",
-     "body": "This is a well-scoped, carefully-designed change: the BatchV2 amendment and ttBATCH_RESULT pseudo-tx are gated correctly (isPseudoTx, Change preflight rejection, BuildLedger replay skip), the per-inner result list is built from exactly the transactions actually attempted (matching the tfUntilFailure/tfOnlyOne/tfAllOrNothing semantics), and the new behavior is exercised by solid tests in Batch_test.cpp, LedgerReplay_test.cpp, and PseudoTx_test.cpp covering both BatchV2-enabled and disabled paths. I did not find any correctness, security, or resource-leak issues in the changed lines. The one thing worth a second look is noted below, but it's a defense-in-depth question rather than a confirmed bug."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-07T20:42:16Z",
-     "body": "### 🔵 Needs a closer look\n\nConsensus-critical ledger serialization and replay behavior warrants final human validation despite comprehensive coverage.\n\n**0 open findings**\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document new BatchResult transaction fields in API changelog](#discussion_r4210234572)\n</details>\n\n🧠 **Review effort:** Balanced"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-08T04:54:16Z",
-     "body": "The core change adds a BatchResult pseudo-transaction inserted after a successful Batch's inner transactions, gated by the new BatchV2 amendment. The field/transaction-format wiring (sfields.macro, transactions.macro, features.macro, InnerObjectFormats.cpp, STTx::isPseudoTx) is consistent and the Change transactor correctly rejects a submitted/proposed BatchResult. The main concern is in src/libxrpl/tx/apply.cpp: insertBatchResult() asserts it is only ever called against a closed-ledger view, but the call site that invokes it only checks whether the BatchV2 amendment is enabled -- it never checks view.open() before calling it, even though applyTransaction/applyBatchTransactions is also the function used to apply a Batch to the current (open) ledger for local checking/relay. If that path is reachable with a successful Batch, this precondition is violated on essentially every submission once BatchV2 is live."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-08T05:00:33Z",
-     "body": "### 🔵 Needs a closer look\n\nIt changes consensus-critical transaction generation and ledger hashing behavior, requiring final human validation.\n\n**0 open findings**\n\n🧠 **Review effort:** Balanced\n\n---\n\nGive feedback about Copilot approvals in [this survey](https://survey.alchemer.com/s3/9011660/CCR-Public-Preview-Autoapprove-feedback-survey) to enter a drawing for a $150 gift card."
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-10-07T18:00:32Z",
-     "path": "include/xrpl/protocol/detail/transactions.macro",
-     "body": "This new transaction is exposed through public `tx`/`ledger` responses, transaction streams, and `server_definitions`, but `API-CHANGELOG.md` has no Unreleased entry. Please document the new `BatchResult` type and fields there; `src/xrpld/rpc/AGENTS.md:5` requires a changelog entry for public RPC behavior changes.",
-     "url": "https://github.com/XRPLF/rippled/pull/8532#discussion_r4210234572"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-07T20:29:16Z",
-     "path": "include/xrpl/protocol/detail/transactions.macro",
-     "body": "Done, added the BatchResult entry under Additions in 3.5.0, which is the file's unreleased section (API-CHANGELOG.md has no Unreleased heading). It names the tx, ledger and transactions stream exposure, the Account, ParentBatchID and BatchResults fields with TransactionHash and EngineResultCode, and the server_definitions additions. resolved: https://github.com/XRPLF/rippled/commit/1d9e0def400e7e44e93543724f9c50916d637438",
-     "url": "https://github.com/XRPLF/rippled/pull/8532#discussion_r4211643103"
-    }
-   ]
-  },
-  {
-   "number": 8281,
-   "title": "test: Cover LastLedgerSequence on Batch inner transactions",
-   "url": "https://github.com/XRPLF/rippled/pull/8281",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-09-23T22:42:02Z",
-   "updatedAt": "2026-10-09T22:34:04Z",
-   "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-23T22:44:02Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8281?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8281#issuecomment-5804178314"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-09T22:34:04Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8281#issuecomment-6090379669"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\n`inner last ledger sequence` in `Batch_test`: an inner transaction's own `LastLedgerSequence` is honoured. An inner whose value is ahead of the ledger applies; one whose value has passed fails `tefMAX_LEDGER` in preclaim, so under `tfAllOrNothing` no inner applies and under `tfIndependent` only that inner fails.\n\n## Context of Change\n\n`Transactor::checkPriorTxAndLastLedger` runs for every Batch inner in preclaim, but no test exercised `LastLedgerSequence` on an inner. Client libraries currently forbid the field on inners, and this is the behaviour they would be relaxing to.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nN/A",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:dangell7/batch-inner-last-ledger-sequence",
-   "additions": 124,
-   "deletions": 0,
-   "changedFiles": 1,
-   "commits": 2,
-   "reviewComments": 0,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-23T22:42:51Z",
-     "body": "Test-only addition to Batch_test.cpp covering LastLedgerSequence handling for Batch inner transactions (ahead-of-ledger success, expired-inner failure under tfAllOrNothing, and partial failure under tfIndependent). The three scenarios are internally consistent with the described preclaim/tefMAX_LEDGER behavior, follow existing jtx/Batch test DSL conventions (submitBatch, validateClosedLedger, TestLedgerData), and the sequence/balance assertions in each block match the expected inner-application outcomes. No correctness, security, or resource issues found in the added code."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-23T23:00:00Z",
-     "body": "## Copilot review overview\n\n### 🟢 Approval recommended\n\nThe reviewed test coverage is complete with no unresolved blocking issues.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds Batch tests covering inner `LastLedgerSequence` behavior in atomic and independent execution modes.\n\n**Changes:**\n- Tests valid future ledger sequences.\n- Tests expired inners under `tfAllOrNothing` and `tfIndependent`.\n- Verifies resulting ledger state.\n\n| File | Description |\n|---|---|\n| `src/​test/​app/​Batch_test.cpp` | Adds inner `LastLedgerSequence` Batch test coverage. |\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-03T00:27:20Z",
-     "body": "Test-only addition to Batch_test.cpp introducing testInnerLastLedgerSequence, which exercises LastLedgerSequence handling for Batch inner transactions under tfAllOrNothing and tfIndependent. The three sub-cases (ahead-of-ledger success, all-or-nothing rollback on tefMAX_LEDGER, and independent partial failure) are internally consistent: fee calculations match the inner count, expected sequence deltas align with which transactions actually apply, and the validateClosedLedger expectations match the described all-or-nothing vs independent semantics. No production code is touched, consistent with the stated goal of covering existing preclaim behavior (checkPriorTxAndLastLedger) that was previously untested for Batch inners. No correctness, security, or style issues were found in the added lines."
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-10-03T20:36:06Z",
-     "body": "Test-only change: adds testInnerLastLedgerSequence to Batch_test (src/test/app/Batch_test.cpp:5899-6020, registered at 6061), which exercises sfLastLedgerSequence on an inner Batch transaction against Transactor::checkPriorTxAndLastLedger in preclaim (src/libxrpl/tx/Transactor.cpp:781-783), reached through applyBatchTransactions (src/libxrpl/tx/apply.cpp:202-262): an inner ahead of the ledger applies, an expired one fails tefMAX_LEDGER, under tfAllOrNothing nothing applies and under tfIndependent only the expired inner fails. No source under src/libxrpl or src/xrpld changes. The one changed file matches the *_test.cpp and src/test/** exclusions in repo.yaml, so no finding was drafted and nothing is carried. The head built with the repo.yaml commands (build.log, rc 0) and ./xrpld --unittest=Batch --unittest-jobs 4 ran 50 cases, 4080 tests, 0 failures with the new case included (unittest.log), so there was no failure to check at the merge base. Toolchain note for ENGINEERING: the prebuilt protoc and grpc_cpp_plugin from conan.xrplf.org are Nix-built and request a /nix/store ELF loader this host lacks, so I ran them through /lib64/ld-linux-x86-64.so.2 via wrappers under $BUILD/toolwrap seeded into the cmake cache; nothing outside the build directory was touched and every session on this host needs the same until the host or the packages change.\n\n0 inline comment(s), 0 finding(s) in this body, 0 held."
-    }
-   ],
-   "reviewCommentsList": []
-  },
-  {
-   "number": 8164,
-   "title": "feat: Record Batch inner results for validated ledgers and return them from tx",
-   "url": "https://github.com/XRPLF/rippled/pull/8164",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-09-02T19:29:12Z",
-   "updatedAt": "2026-10-09T11:08:54Z",
-   "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-02T19:31:26Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `89.79592%` with `10 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/apply.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvYXBwbHkuY3Bw) | 79.3% | [6 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [src/xrpld/app/rdb/backend/detail/Node.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9yZGIvYmFja2VuZC9kZXRhaWwvTm9kZS5jcHA=) | 94.6% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n| [...rc/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9yZGIvYmFja2VuZC9kZXRhaWwvU1FMaXRlRGF0YWJhc2UuY3Bw) | 77.8% | [2 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8164?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-5515195579"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-02T19:43:15Z",
-     "body": "⚠️ This PR contains unsigned commits. To get your PR merged, please sign them. ⚠️\n\nIf only the most recent commit is unsigned, you can run:\n1. Amend the commit: `git commit --amend --no-edit -n -S`\n2. Overwrite the commit: `git push --force-with-lease`\n\nIf multiple commits are unsigned, you can run:\n1. Go into interactive rebase mode: `git rebase --interactive HEAD~<NUM_OF_COMMITS>`, where `NUM_OF_COMMITS` is the number of most recent commits that will be available to edit.\n2. Change \"pick\" to \"edit\" for the commits you need to sign, and then save and exit.\n3. For each commit, run: `git commit --amend --no-edit -n -S`\n4. Continue the rebase: `git rebase --continue`\n5. Overwrite the commit(s): `git push --force-with-lease`\n\nIf you're new to commit signing, there are different ways to set it up:\n\n<details>\n<summary><b>Sign commits with <code>gpg</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `gpg`:\n1. [Generate a GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)\n2. [Add the GPG key to your GitHub account](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)\n3. [Configure `git` to use your GPG key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-gpg-key)\n</details>\n\n<details>\n<summary><b>Sign commits with <code>ssh-agent</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `ssh-agent`:\n1. [Generate an SSH key and add it to `ssh-agent`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)\n2. [Add the SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)\n3. [Configure `git` to use your SSH key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)\n</details>\n\n<details>\n<summary><b>Sign commits with 1Password</b></summary>\n<p></p>\n\nYou can also sign commits using 1Password, which lets you sign commits with biometrics without the signing key leaving the local 1Password process.\nSee [use 1Password to sign your commits](https://developer.1password.com/docs/ssh/git-commit-signing/).\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-5515341844"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-09-03T19:17:22Z",
-     "body": "How does this handle transactions that occur during downtime?",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-5530876400"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-03T22:21:49Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-5532901360"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-02T18:08:42Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-5958403602"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-04T01:26:31Z",
-     "body": "It doesn't record them. The collector only runs inside buildLedger, so a ledger that comes in through InboundLedgers::acquire after downtime saves with an empty batchInnerResults() and tx omits inner_results for every Batch in it. With [ledger_replay] on, the gap between the published and validated ledger is rebuilt by LedgerDeltaAcquire::tryBuild through the replay overload of buildLedger, and those ledgers do get rows. Backfilling a fully acquired ledger means replaying it, which I left out of this PR; the absent field is the signal that this node didn't build that ledger.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-5975382863"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-07T19:57:40Z",
-     "body": "Backfill means replay, and whether that goes in this PR is still my call. An inner that failed or was rolled back never reaches batchView (perTxBatchView.apply runs only when ret.applied, and wholeBatchView.apply only when applyBatchTransactions returns true), so it is not in the acquired ledger's txMap and nothing but applying the Batch again produces its result. That is a replay of every ledger a node acquires instead of builds, which is why I have not just added it. Until then the API-CHANGELOG entry stands: the field is absent for a ledger this node did not build.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6045734864"
-    },
-    {
-     "author": "sublimator",
-     "date": "2026-10-08T04:38:04Z",
-     "body": "> How does this handle transactions that occur during downtime?\n\nCould these outcomes live in the outer Batch’s metadata, perhaps as an array aligned with `RawTransactions`, with a defined encoding for negative engine results and applied/skipped status?\n\nThis is a useful replacement for scraping logs, but feels weak for a client-facing historical API if a server must replay ledgers it has already acquired to recover those results. Recording the receipts in the outer metadata would let normal ledger sync bring them along and give Clio, explorers, and other indexers a common ledger-backed source for those outcomes.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6052359644"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-08T09:03:33Z",
-     "body": "> > How does this handle transactions that occur during downtime?\n> \n> Could these outcomes live in the outer Batch’s metadata, perhaps as an array aligned with `RawTransactions`, with a defined encoding for negative engine results and applied/skipped status?\n\nThe outer Batch tx is already processed and validated by the time the inner transactions are processed, so it can't be part of the metadata.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6056479624"
-    },
-    {
-     "author": "sublimator",
-     "date": "2026-10-08T09:17:25Z",
-     "body": "> The outer Batch tx is already processed and validated by the time the inner transactions are processed, so it can't be part of the metadata.\n\nIs there an actual technical reason here, or it's a conceptual objection to walking back and modifying the metadata of a transaction? It's not actually been released as validated data or any thing, right? It's buffered as part of an apply view?\n\nIt's a perfectly valid objection to a new precedent but if these are supposed to be some kind of atomic unit you could make a case that's it's mentally reckonable\n\nAll else aside, it's the obvious convenient place for it as you get outer txn id lookup",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6056702961"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-08T09:25:51Z",
-     "body": "Yes, this would be setting a new precedent and would require updating the plumbing in a rather sensitive area of the code to support this sort of update. It's also a bigger precedent breaking of later txs can update earlier txs in the closed ledger.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6056840852"
-    },
-    {
-     "author": "sublimator",
-     "date": "2026-10-08T09:33:29Z",
-     "body": "> Yes, this would be setting a new precedent and would require updating the plumbing in a rather sensitive area of the code to support this sort of update. \n\nFair enough\n\n> It's also a bigger precedent breaking of later txs can update earlier txs in the closed ledger.\n\nYep, you would have to create new definitions/constraints for batching/atomicity and it's possible to get it wrong\n\nUsing a pseudo this way is breaking new ground too, I guess",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6056964363"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-09T11:08:54Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#issuecomment-6079677621"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nA validated `Batch` can have inner transactions that did nothing. An inner transaction that fails with a `ter`, `tem` or `tef` code is never applied, so it has no metadata and is not in the ledger at all. Under `tfAllOrNothing` the rollback also discards the inner transaction that had succeeded. The only record of either case today is the `BatchTrace` debug log line in `apply.cpp`, which is a log line, not something a client can query.\n\nThis PR records each inner transaction's outcome while the node builds a validated ledger and returns it from `tx`:\n\n```json\n\"inner_results\": [\n  { \"hash\": \"F137AEA3…\", \"result\": \"tesSUCCESS\", \"applied\": false },\n  { \"hash\": \"A056A319…\", \"result\": \"terPRE_SEQ\", \"applied\": false }\n]\n```\n\nThe array is in `RawTransactions` order. `applied` is whether the inner transaction's changes ended up in the ledger, so `tesSUCCESS` with `applied: false` is the rolled-back case.\n\n### Context of Change\n\n`applyBatchTransactions` gets an optional collector and pushes a `BatchInnerResult` (`parentBatchId`, `innerTxId`, `index`, `ter`, `applied`) per inner transaction it runs. When a `tfAllOrNothing` batch rolls back it marks everything it recorded as not applied. Only `BuildLedger` (consensus build and replay) passes a collector; the open ledger never does, so trial applies are not recorded. The results ride on the built `Ledger` as side data that is not part of the hash, and `saveValidatedLedger` writes them to a new `BatchInnerResults` table in `transaction.db`, in the same SQLite transaction as `Transactions` and `AccountTransactions`. The table is gated by `use_tx_tables` and pruned with the other tx tables by `online_delete`.\n\nRecording at validated-ledger save rather than on the apply path is deliberate. An earlier version of this wrote rows from inside `applyBatchTransactions` on every pass, so an open-ledger trial apply and the consensus apply of the same inner transaction overwrote each other, and every inner transaction cost a synchronous SQLite commit in the apply path. Here the apply path only appends to a vector.\n\nOne limitation: a node that acquired a ledger from the network instead of building it has no rows for that ledger, and `tx` omits the field. Rows are keyed by `LedgerSeq`, so the gap is visible rather than silently wrong.\n\n### API Impact\n\n- [x] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n`tx` gains `inner_results` (API-CHANGELOG updated in this PR). In `libxrpl`, `applyTransaction` takes an optional trailing `std::vector<BatchInnerResult>*`, and `Ledger` gains `setBatchInnerResults` / `batchInnerResults`. Existing callers are unchanged.\n\n## Test Plan\n\n`Batch_test` gains `inner results`: a `tfAllOrNothing` batch with a future-sequence inner returns two entries, `tesSUCCESS` and `terPRE_SEQ`, both `applied: false`, and the rolled-back inner is `txnNotFound`; a `tfIndependent` batch returns both `applied: true` in order; inner transactions and non-Batch transactions have no field. The full `Batch` suite and the ledger, tx and rpc suites pass; levelization results are unchanged.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:dangell7/batch-db",
-   "additions": 403,
-   "deletions": 27,
-   "changedFiles": 16,
-   "commits": 12,
-   "reviewComments": 13,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-02T19:32:49Z",
-     "body": "This PR wires up recording of Batch inner-transaction outcomes end-to-end (apply → Ledger side-data → SQLite → tx RPC) and is well scoped: the collector is optional and only threaded through BuildLedger's consensus/replay paths, existing callers of applyTransaction/applyBatchTransactions are unaffected, and the tfAllOrNothing rollback correctly retro-marks all entries recorded during that batch as not applied. The new BatchInnerResults table is deleted-and-reinserted per LedgerSeq on save and pruned alongside the other tx tables, consistent with existing patterns for Transactions/AccountTransactions. I could not find a correctness, security, or resource-leak bug with confidence in the changed lines — the main soft spot is that getBatchInnerResults() in Node.cpp silently drops a row on a parseHex failure with no logging, which would hide a data problem rather than surface it, but this is a defensive/edge-case path rather than a functional bug."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-02T19:50:32Z",
-     "body": "### 🟢 Approval recommended\n\nThe implementation and tests align with the stated behavior, with only a minor changelog wording tweak suggested.\n\n<details>\n<summary>Pull request overview</summary>\n\nAdds node-local persistence and RPC surfacing of per-inner-transaction outcomes for validated `Batch` transactions, so clients can query inner failures and `tfAllOrNothing` rollbacks that otherwise leave no on-ledger metadata.\n\n**Changes:**\n- Plumbs an optional `std::vector<BatchInnerResult>*` collector through `applyTransaction`/`applyBatchTransactions` and uses it during validated ledger build/replay.\n- Persists collected results to a new `BatchInnerResults` table in `transaction.db` (gated by tx tables) and prunes it alongside other tx tables.\n- Extends `tx` RPC with `inner_results`, updates changelog, and adds a `Batch_test` coverage case.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/rpc/handlers/transaction/Tx.cpp | Fetches and returns `inner_results` for validated `Batch` transactions. |\n| src/xrpld/app/rdb/backend/SQLiteDatabase.h | Adds `getBatchInnerResults` API to the SQLite relational DB implementation. |\n| src/xrpld/app/rdb/backend/detail/SQLiteDatabase.cpp | Implements `getBatchInnerResults` and prunes `BatchInnerResults` during online delete. |\n| src/xrpld/app/rdb/backend/detail/Node.h | Extends `TableType` and declares the DB helper to read batch inner results. |\n| src/xrpld/app/rdb/backend/detail/Node.cpp | Implements read/query logic and persists batch inner results in `saveValidatedLedger`. |\n| src/xrpld/app/ledger/detail/BuildLedger.cpp | Collects batch inner results during ledger build and attaches them to the built `Ledger`. |\n| src/test/app/Batch_test.cpp | Adds tests validating `tx.inner_results` behavior for rollback vs independent batches. |\n| src/libxrpl/tx/apply.cpp | Records per-inner outcomes during batch apply and marks them not-applied on all-or-nothing rollback. |\n| include/xrpl/tx/apply.h | Extends `applyTransaction` signature with optional collector parameter. |\n| include/xrpl/rdb/RelationalDatabase.h | Adds `getBatchInnerResults` to the relational DB interface. |\n| include/xrpl/rdb/DBInit.h | Creates the new `BatchInnerResults` table and index in tx DB initialization. |\n| include/xrpl/protocol/jss.h | Adds `inner_results` JSON field name. |\n| include/xrpl/protocol/BatchInnerResult.h | Introduces `BatchInnerResult` struct definition. |\n| include/xrpl/ledger/Ledger.h | Stores `BatchInnerResult` side-data on `Ledger` and exposes setters/getters. |\n| API-CHANGELOG.md | Documents the new `tx.inner_results` field. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 15/15 changed files\n- **Comments generated:** 1\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-02T19:52:14Z",
-     "body": "The change is well-scoped and the design deliberately avoids the write-amplification and overwrite bugs called out in the PR description (collecting BatchInnerResult in a vector on the apply path, writing only once at saveValidatedLedger, gating by useTxTables_, and using the same SQLite transaction as Transactions/AccountTransactions). The apply.cpp rollback logic correctly marks all entries recorded since the start of the current batch's inner loop as not-applied on a tfAllOrNothing failure, and the SQL binding/order in Node.cpp's getBatchInnerResults matches the SELECT column order. Two smaller items are worth a look: a new pure-virtual method added to the RelationalDatabase interface (verify no other backend implementation is left unimplemented), and a documentation line in jss.h that now reads as if it describes the wrong field."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-02T20:05:29Z",
-     "body": "Overall the design is sound: apply-path only appends to a vector, and the DB write happens once at validated-ledger save time inside the existing transaction. Two things worth checking before merge: whether a Batch can legally contain two inner transactions with the same hash (which would silently collide on the new BatchInnerResults primary key), and a silent data-drop path in the new read helper."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-02T18:12:56Z",
-     "body": "The core addition (BatchInnerResult plumbing, new BatchInnerResults table, and the tx RPC field) is well-scoped and the design rationale (recording at ledger-save time, not on every apply pass) is sound. One correctness concern worth confirming before merge: the inner-result's `applied` flag is captured from `apply()`'s return value before the existing oversize-metadata-cap logic (immediately below, unchanged in this diff) gets to decide whether the inner transaction's changes actually get merged into the whole-batch view."
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-10-02T22:37:24Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-02T22:41:59Z",
-     "body": "This is a well-scoped, carefully implemented feature. The apply-path hook into `applyBatchTransactions`/`applyTransaction` is a clean append-only vector, the rollback-marking logic correctly scopes itself to the current batch's own entries via `firstResult`, and the SQLite table/guard wiring (`useTxTables_`, `online_delete` pruning, `kTableTypeCount`) is consistent with existing tables. Two smaller points worth a look: a silently-swallowed parse failure in the read path, and a primary key that assumes inner-transaction hashes are unique within a single batch."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-02T23:03:58Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nThe lookup can return stale results across ledger sequences, and the API documentation should clarify skipped inner transactions.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (2)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Filter inner results by ledger sequence](#discussion_r4170538214) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document or represent skipped inner transactions](#discussion_r4170538235) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (1)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [The changelog text says the array has &quot;one entry per inner transaction the node applied&quot;, but…](#discussion_r3918036648)\n</details>"
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-10-03T07:39:31Z",
-     "body": ""
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-10-03T07:39:33Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-03T07:43:03Z",
-     "body": "Well-structured feature: BatchInnerResult plumbing from applyBatchTransactions through BuildLedger into a new BatchInnerResults table and the tx RPC response. Logic for tfAllOrNothing rollback marking, index tracking, table pruning wiring (TableType count, delete-by/before-ledger-seq), and the RPC gating (only populated for validated ttBATCH) all check out correctly against the stated design. Only minor, non-blocking observations below."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-03T08:01:38Z",
-     "body": "## Copilot review overview\n\n### 🟡 Changes recommended\n\nA critical exception-safety issue can leave partial inner results recorded after an exceptional batch failure.\n\n**Review effort:** Lite  \n**Findings:** 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> · 1 <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture>\n\n<details open>\n<summary><strong>Open (2)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Prevent stale applied results after exceptional batch abort](#discussion_r4172244440) · New\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Clarify tfOnlyOne stops only after inner tesSUCCESS](#discussion_r4172244452) · New\n</details>\n\n<details>\n<summary><strong>Resolved since last review (2)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Filter inner results by ledger sequence](#discussion_r4170538214)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document or represent skipped inner transactions](#discussion_r4170538235)\n</details>"
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-10-03T13:39:27Z",
-     "body": ""
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-10-03T13:39:28Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-03T13:45:02Z",
-     "body": "The core inner_results plumbing (BatchInnerResult struct, Ledger side-data, BatchInnerResults table, RelationalDatabase/SQLiteDatabase accessors, Tx.cpp wiring) looks consistent and matches the PR description — column bindings line up, the ledger-scoped query matches the documented isolation guarantee, and the rollback marking for tfAllOrNothing correctly scopes to entries pushed during that batch. The one thing worth a closer look is the new try/catch wrapped around inner-transaction application in applyBatchTransactions, which is not mentioned in the PR description and changes behavior beyond the stated feature."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-03T14:11:56Z",
-     "body": "## Copilot review overview\n\n### 🔵 Needs a closer look\n\nAdd RPC assertions covering `tfOnlyOne` and `tfUntilFailure` stop modes.\n\n**Review effort:** Lite  \n**Findings:** None\n\n<details>\n<summary><strong>Resolved since last review (2)</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Prevent stale applied results after exceptional batch abort](#discussion_r4172244440)\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Clarify tfOnlyOne stops only after inner tesSUCCESS](#discussion_r4172244452)\n</details>"
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-03T18:36:46Z",
-     "body": "The core feature (recording Batch inner-transaction outcomes and surfacing them via `tx`) is implemented consistently across the apply path, ledger storage, SQLite schema, and RPC handler, and the rollback/record-truncation logic for `tfAllOrNothing`/`tfOnlyOne`/`tfUntilFailure` looks correct. Two things worth a second look: a new exception-swallowing path was added to `applyBatchTransactions` that wasn't there before and isn't mentioned in the PR description, and the new `BatchInnerResults` table's primary key doesn't include `LedgerSeq` even though the PR text describes rows as \"keyed by LedgerSeq\"."
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-10-04T02:15:49Z",
-     "body": "Records each inner transaction's outcome while a Batch is applied during ledger build (applyBatchTransactions in src/libxrpl/tx/apply.cpp, the inner-application step that runs after the outer Batch's own preflight, preclaim and doApply returned tesSUCCESS), stores the records on the built Ledger (Ledger::setBatchInnerResults, set from both buildLedger overloads in BuildLedger.cpp), persists them to a new BatchInnerResults table in transaction.db when a validated ledger is saved (detail::saveValidatedLedger in Node.cpp, schema in DBInit.h, deletion added to deleteTransactionByLedgerSeq and deleteTransactionsBeforeLedgerSeq), and returns them from the tx RPC as inner_results for a validated Batch (Tx.cpp). The inner loop also gains a try/catch that turns an exception in one inner transaction into a discarded whole-batch view, with the same ledger outcome as before. Subsystems: transactors, ledger, sql, rpc, protocol. Head built with zero warnings; the touched suites Batch, Apply, Transaction, LedgerReplay, LedgerLoad and SHAMapStore (11 suites matched by prefix, 24437 tests) pass at the head, so nothing needed checking at the merge base. One MEDIUM finding, proven with a test: saving a ledger sequence again from a Ledger object reloaded from the node store (ledger_cleaner with fix_txns, or the missing-metadata recovery in getAccountTxs and the account_tx pagers) deletes that sequence's BatchInnerResults rows and writes none back, and nothing can regenerate them. Four candidates were rejected on reading and stay in the file with their reasons. Toolchain: the conan.xrplf.org protoc 33.5 and grpc_cpp_plugin binaries are linked with a /nix/store glibc-2.31 ELF interpreter the host lacks (exec fails with 'required file not found'); the build ran them through /lib64/ld-linux-x86-64.so.2 via two wrapper scripts in the build directory (tools/protoc, tools/grpc_cpp_plugin), passed to cmake as PROTOC_PROGRAM, Protobuf_PROTOC_EXECUTABLE and GRPC_CPP_PLUGIN_PROGRAM; nothing outside the build directory was changed for it.\n\n1 inline comment(s), 0 finding(s) in this body, 4 held."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-08T02:48:10Z",
-     "body": "The core design (BatchInnerResult plumbing, Ledger side-data, SQLite table gated by use_tx_tables, Tx.cpp surfacing) looks consistent and well-scoped to the stated goal. Two things in the apply-path/schema design deserve a second look: a newly-added broad exception catch that changes failure semantics for inner Batch application, and a primary key on the new table that doesn't account for a possible duplicate inner-transaction hash within a single Batch."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-08T03:44:20Z",
-     "body": "The core of this PR (threading an optional BatchInnerResult collector through applyBatchTransactions/applyTransaction, persisting to a new BatchInnerResults table, and surfacing it via tx) is sound and the schema/DB wiring (table creation, delete-by-seq, delete-before-seq, useTxTables_ gating) looks consistent with the existing Transactions/AccountTransactions patterns. The one thing worth a hard look before merge is the newly-added try/catch around each inner transaction's apply in applyBatchTransactions: it silently converts any std::exception into a full-batch failure (discarding the whole-batch view) for every Batch mode, not just tfAllOrNothing, which is a transaction-processing behavior change that isn't called out in the description and isn't gated by an amendment."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-08T04:02:40Z",
-     "body": "### 🟡 Changes recommended\n\nA critical exception-handling regression and persistence loss on local ledger reload must be addressed.\n\n<details open>\n<summary><strong>1 open finding</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Propagate inner apply failures instead of reporting successful rollback](#discussion_r4214459524) · New\n</details>\n\n🧠 **Review effort:** Lite\n\n---\n\nGive feedback about Copilot approvals in [this survey](https://survey.alchemer.com/s3/9011660/CCR-Public-Preview-Autoapprove-feedback-survey) to enter a drawing for a $150 gift card."
-    },
-    {
-     "author": "dangell7",
-     "state": "COMMENTED",
-     "date": "2026-10-08T04:12:52Z",
-     "body": ""
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-08T04:17:56Z",
-     "body": "This is a well-structured PR that records Batch inner-transaction outcomes during validated-ledger building and exposes them via `tx`. I traced the full data path: `applyBatchTransactions` → `BuildLedger.cpp` → `Ledger::setBatchInnerResults` → `saveValidatedLedger` → `getBatchInnerResults` → `Tx.cpp` RPC response. The tfAllOrNothing rollback marking, the primary-key design (ParentBatchID, InnerTxnID) that lets INSERT OR REPLACE self-heal stale LedgerSeq values across forks/retries, the use_tx_tables gating, and the pruning hookup in deleteByLedgerSeq/deleteBeforeLedgerSeq all check out as correct. The new try/catch in applyBatchTransactions correctly discards only the current outer batch's partial records before rethrowing. I did not find any clear correctness or security bugs in the added/changed lines that I'm confident warrant flagging."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-08T04:22:01Z",
-     "body": "### 🔵 Needs a closer look\n\nAdd an unconditional test assertion verifying `inner_results` is present for the independent Batch case.\n\n**0 open findings**\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Propagate inner apply failures instead of reporting successful rollback](#discussion_r4214459524)\n</details>\n\n🧠 **Review effort:** Lite\n\n---\n\nGive feedback about Copilot approvals in [this survey](https://survey.alchemer.com/s3/9011660/CCR-Public-Preview-Autoapprove-feedback-survey) to enter a drawing for a $150 gift card."
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-09-02T19:50:31Z",
-     "path": "API-CHANGELOG.md",
-     "body": "The changelog text says the array has \"one entry per inner transaction the node applied\", but `inner_results` includes failures and rolled-back inner transactions as well. This wording is likely to confuse API consumers about whether unsuccessful/rolled-back inner transactions are included.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r3918036648"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-02T22:37:24Z",
-     "path": "API-CHANGELOG.md",
-     "body": "Fixed in 775759eddf18f6cf9f8dfa4189bc324e0d083b3b: the bullet now reads \"one entry per inner transaction, whether or not it was applied\" instead of \"the node applied\", so it no longer contradicts the terPRE_SEQ/rolled-back cases the same sentence describes.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4170399655"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-02T23:03:57Z",
-     "path": "src/xrpld/app/rdb/backend/detail/Node.cpp",
-     "body": "This query is keyed only by `ParentBatchID`, even though rows also carry `LedgerSeq` and `saveValidatedLedger` deletes only the current sequence. If a previously saved Batch transaction is later represented at a different ledger sequence without new inner-result rows (for example, when that ledger was acquired from the network), the old row is still returned and `tx` exposes stale results instead of omitting the field as documented. Pass the transaction's ledger sequence through this API and constrain the query, or otherwise remove/ignore rows for older sequences.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4170538214"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-02T23:03:58Z",
-     "path": "API-CHANGELOG.md",
-     "body": "The API contract here overstates the result count: `applyBatchTransactions` stops collecting after the first successful inner for `tfOnlyOne` and after the first failure for `tfUntilFailure`, so later `RawTransactions` are not represented at all. Please either add an explicit representation for skipped inners or document that `inner_results` contains only inner transactions that were executed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4170538235"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-03T07:39:31Z",
-     "path": "src/xrpld/app/rdb/backend/detail/Node.cpp",
-     "body": "Good catch. getBatchInnerResults now takes the ledger sequence and the query constrains `WHERE ParentBatchID = :parent AND LedgerSeq = :seq`, so a row from any other sequence never comes back; Tx.cpp passes `ledger->header().seq` through at the call site. Fixed in d0dbd1527a4f037030e9a21fbe2388b7981dbcbc, with a test that writes rows at one sequence and checks the lookup is empty one sequence over.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4172187915"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-03T07:39:33Z",
-     "path": "API-CHANGELOG.md",
-     "body": "Right, `tfOnlyOne` breaks out of the loop in applyBatchTransactions after the first inner that applies and `tfUntilFailure` breaks after the first failure, so later RawTransactions entries never reach innerResults. Reworded the bullet in d0dbd1527a4f037030e9a21fbe2388b7981dbcbc to say inner_results covers inner transactions that were evaluated, not every RawTransactions entry, and named both stop conditions.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4172187984"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-03T08:01:37Z",
-     "path": "src/libxrpl/tx/apply.cpp",
-     "body": "If applying a later inner transaction throws, this lambda has already appended earlier entries but `applyBatchTransactions` unwinds before the `tfAllOrNothing` rollback block can clear them. `applyTransaction` catches that exception and returns `Fail`, while the batch view is discarded, so the collector can still persist `applied: true` results for a batch that never entered the ledger (and can omit the throwing inner). Make collection exception-safe by removing or marking the entries recorded for this batch whenever inner application aborts exceptionally.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4172244440"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-03T08:01:38Z",
-     "path": "API-CHANGELOG.md",
-     "body": "The `tfOnlyOne` behavior described here is not what the implementation does for applied `tec` results: `applyBatchTransactions` only breaks in the `isTesSuccess(result.ter)` branch, while `tecKILLED`/other `tec` claim results are applied and evaluation continues (the existing `Batch_test` `tfOnlyOne` case at lines 2000-2048 covers this). Please say that evaluation stops after the first inner returning `tesSUCCESS`, or change the apply logic and its tests if `tec` claims are intended to stop it.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4172244452"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-03T13:39:26Z",
-     "path": "src/libxrpl/tx/apply.cpp",
-     "body": "Fixed in a99ee034b90bc43ba7a799352f7d63833e1f0b89. applyBatchTransactions now wraps each inner apply in a try/catch; on an exception it resizes innerResults back to the batch's first entry and returns false, so a throw after earlier inner transactions already pushed results no longer leaves them marked applied once the whole-batch view is discarded.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4173392491"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-03T13:39:28Z",
-     "path": "API-CHANGELOG.md",
-     "body": "Fixed in a99ee034b90bc43ba7a799352f7d63833e1f0b89. tfOnlyOne only breaks the loop in applyBatchTransactions' tesSUCCESS branch (src/libxrpl/tx/apply.cpp), so an applied tec, like the tecKILLED case in Batch_test's tfOnlyOne coverage, doesn't stop it. Reworded the changelog to say tesSUCCESS instead of applies.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4173392587"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-04T02:15:49Z",
-     "path": "src/xrpld/app/rdb/backend/detail/Node.cpp",
-     "body": "This delete runs before the loop below writes the ledger's own rows, so saving the same sequence again from a Ledger object this node did not build (ledger_cleaner with fix_txns, or the missing-metadata recovery in getAccountTxs and the account_tx pagers, which all hand pendSaveValidated a fresh object loaded from the node store once the built one has left the LedgerHistory cache) deletes the rows the first save recorded and writes nothing back. Transactions and AccountTransactions are intact after that path because they are rebuilt from the ledger right after, but nothing can rebuild these, and tx then stops returning inner_results for every Batch in that ledger. I'd skip the delete when batchInnerResults() is empty, or scope it to the ParentBatchIDs this save is about to write. A test that saves the closed ledger again through loadByIndex shows the rows go from two to zero.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4175803621"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-10-08T04:02:40Z",
-     "path": "src/libxrpl/tx/apply.cpp",
-     "body": "Returning `false` here is interpreted by `applyTransaction` as a normal Batch rollback, so it reaches line 342 and reports `Success`; the outer Batch has already been applied to `view` and can therefore be committed even though an inner application threw. Before this catch was added, the exception propagated to `applyTransaction`'s failure handler. After trimming the collector, rethrow (or otherwise propagate an explicit failure) instead of converting an exceptional apply into a successful outer transaction.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4214459524"
-    },
-    {
-     "author": "dangell7",
-     "date": "2026-10-08T04:12:52Z",
-     "path": "src/libxrpl/tx/apply.cpp",
-     "body": "Fixed in 6cb72aa5e07bb550c985343d145e7b5765cb9bee. The catch now trims innerResults back to firstResult and rethrows, so the exception reaches applyTransaction's own catch and the outer Batch comes back as Fail with wholeBatchView never applied, the same path as before the catch existed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8164#discussion_r4214537236"
-    }
-   ]
   }
  ],
  "issues": [
+  {
+   "number": 8666,
+   "title": "Support Batch (XLS-56) transactions in simulate (XLS-69) (Version: 3.4.1)",
+   "url": "https://github.com/XRPLF/rippled/issues/8666",
+   "state": "open",
+   "author": "yuval99g",
+   "createdAt": "2026-11-02T09:45:01Z",
+   "updatedAt": "2026-11-02T09:45:01Z",
+   "closedAt": null,
+   "labels": [
+    "Feature Request"
+   ],
+   "comments": 0,
+   "body": "## Summary\n\n`simulate` currently rejects `Batch` transactions with `notImpl`. As Batch (BatchV1_1) becomes usable on mainnet, there is no way for wallets, signing UIs or other tooling to preview what a Batch will do before it is signed. This issue proposes extending `simulate` to support Batch.\n\n## Motivation\n\n`simulate` is the main way XRPL clients can show users what a transaction will actually do before they sign it: balance changes, created or deleted objects, and the final result. Batch is the transaction type where that preview matters most:\n\n- **One signature authorizes up to 8 actions.** A user signing a Batch is approving every inner transaction at once, possibly including transactions from other accounts. Without simulation, the signing UI can only show the raw inner transactions, not their combined effect.\n- **The combined effect differs from each part.** Inner transactions run in sequence against shared state, so the result of the whole batch can't be read from any single inner transaction.\n- **Blind signing is a known attack vector.** Bundling a legitimate-looking action with a harmful one (an unexpected payment, a trust line, an offer) is easier to hide in a Batch than in a single transaction. A dry run is the most reliable way to surface it.\n- **Atomic-swap and multi-party flows rely on it.** These are the main motivating use cases for Batch, and participants need to verify what they receive before adding their `BatchSigners` signature.\n\nWithout `simulate` support, every wallet and tool has to build its own approximation, and those approximations are inconsistent and often wrong (see Paths Not Taken).\n\n### Current behavior\n\n- `simulate` with a `Batch` returns `notImpl` (blocked in `Simulate.cpp` since #5060).\n- The Batch concept docs note that `simulate` only dry-runs a single transaction and can't model adding inner transactions to the consensus set.\n- The underlying reason: the outer Batch is applied to the open ledger, while inner transactions are only applied in `applyTransaction` during the ledger build. A dry run on the open ledger would show only the outer layer (fee and sequence), which would be misleading.\n\n## Solution\n\nAllow `simulate` to accept an unsigned `Batch` (with empty `TxnSignature` and empty `BatchSigners` signatures, consistent with how simulate treats signing fields today) and:\n\n1. Apply the outer transaction and its inner transactions in a sandboxed view on top of the current open ledger, using the same `applyBatchTransactions` logic the ledger build uses, and never commit it.\n2. Respect the batch mode flag.\n3. Return the outer result plus an ordered result for each inner transaction, for example:\n\n```json\n{\n  \"applied\": false,\n  \"engine_result\": \"tesSUCCESS\",\n  \"tx_json\": { \"TransactionType\": \"Batch\", \"...\": \"...\" },\n  \"meta\": { \"...\": \"outer metadata\" },\n  \"inner_results\": [\n    {\n      \"hash\": \"...\",\n      \"engine_result\": \"tesSUCCESS\",\n      \"applied\": true,\n      \"tx_json\": { \"...\": \"...\" },\n      \"meta\": { \"ParentBatchID\": \"...\", \"AffectedNodes\": [\"...\"] }\n    },\n    {\n      \"hash\": \"...\",\n      \"engine_result\": \"tecUNFUNDED_PAYMENT\",\n      \"applied\": false\n    }\n  ]\n}\n```\n\nThis mirrors what ends up in a closed ledger (outer, then inners linked by `ParentBatchID`) and would line up with the per-inner outcomes that BatchV2's `BatchResult` (#8532) records. It would also give developers a way to see inner failure results without the debug stream (see #5882).\n\n### Open questions\n\n- Is the `notImpl` a permanent scope decision, or would a PR along these lines be considered?\n- Is a sandboxed apply on the open ledger the right approach, or is there a better way to reuse the ledger-build path?\n- Autofill: should `simulate` autofill inner `Sequence` values (respecting tickets) the way client libraries do, or require them to be set?\n\n## Paths Not Taken\n\nThe obvious client-side workaround is to strip `tfInnerBatchTxn` from each inner transaction and simulate them individually. This gives incorrect results:\n\n1. **No shared state.** Each simulation runs against the current ledger, so inner #2 doesn't see inner #1's effects. Chained flows such as a swap followed by a payment of the proceeds, or funding a new account and then transacting from it, fail or produce wrong results.\n2. **Batch modes aren't modeled.** Whether the batch succeeds depends on `tfAllOrNothing` / `tfOnlyOne` / `tfUntilFailure` / `tfIndependent`, which clients would have to reimplement.\n3. **Authorization differs.** Inner transactions are authorized through the outer signature and `BatchSigners`, not their own signing fields, so standalone simulations don't reflect the real checks.\n4. **Inner transactions can't be sent as-is.** Sending them with `tfInnerBatchTxn` is unsupported, and this path was the source of an assertion crash fixed in BatchV1_1.\n\n## Additional context\n\n- Batch PR: #5060 (adds the `Simulate.cpp` block)\n- Related: #5882 (inner Batch failures only visible in the debug stream), #7210 (Batch check ordering in simulate)\n- XLS-69 discussion: XRPLF/XRPL-Standards#199\n- XLS-56 discussion: XRPLF/XRPL-Standards#162"
+  },
   {
    "number": 8557,
    "title": "DeliverMax is not applied to Payments inside a Batch's RawTransactions (Version: 3.4.1)",
