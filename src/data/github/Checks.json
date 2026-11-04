@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-11-03T09:02:00.166Z",
+ "fetchedAt": "2026-11-04T09:01:53.293Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-11-02T19:53:19Z",
+  "lastActivity": "2026-11-04T04:43:38Z",
   "lastMerged": "2026-10-20T14:08:01Z",
   "release": "0.90.0",
-  "totalComments": 414
+  "totalComments": 429
  },
  "release": {
   "version": "0.90.0",
@@ -25,165 +25,20 @@
  },
  "prs": [
   {
-   "number": 8627,
-   "title": "perf: Avoid memory allocations during Batch preflight checks",
-   "url": "https://github.com/XRPLF/rippled/pull/8627",
-   "state": "open",
-   "author": "nbougalis",
-   "createdAt": "2026-10-21T04:09:44Z",
-   "updatedAt": "2026-11-02T19:53:19Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-21T04:12:15Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8627?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#issuecomment-6307851935"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nRemove the per-insertion heap allocations from `Batch::preflight`. The duplicate-inner-transaction and duplicate-sequence/ticket checks used an `std::unordered_set` and an `std::unordered_map` of `std::unordered_set`s; they are now `std::flat_set`s backed by a `boost::container::small_vector` sized to `kMaxBatchTxCount`, so neither container ever leaves inline storage.\n\n## Context of Change\n\n`Batch::preflight` runs for every submitted and relayed Batch, including those about to be rejected, and the two containers it used allocate per node (and, for the map, per distinct account) to hold at most eight entries. The map of sets is flattened to a set of `(account, sequence-or-ticket)` pairs: pair membership was the only query, and the preceding `temSEQ_AND_TICKET` checks already guarantee exactly one of `Sequence` and `TicketSequence` is set, so the two insert sites collapse into one. Sequences and tickets keep sharing one key space per account, and the checks run at the same point in the per-inner loop, so every result code is unchanged. No amendment is needed.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nThe change is internal to `Batch::preflight`; no `libxrpl` interface changes.\n\n## Before / After\n\n1. Improvement to existing functionality.\n2. Memory allocation behavior of `Batch::preflight`; transaction results are unchanged.\n3. Preflight of Batch transactions on the submit and relay paths (`checkValidity`, `TxQ::apply`, ledger building).\n4. No effect on concurrent processing: no locks, threads, or async work are involved.\n\n## Test Plan\n\nExisting `xrpl.app.Batch` unit tests, which assert the `temREDUNDANT` and `temSEQ_AND_TICKET` results for duplicate inners, sequences, and tickets across all four batch modes.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "nbougalis:batch-mem",
-   "additions": 29,
-   "deletions": 25,
-   "changedFiles": 1,
-   "commits": 2,
-   "reviewComments": 5,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-21T04:19:04Z",
-     "body": "### 🟢 Approval recommended\n\nThe bounded container changes preserve validation behavior, with only an optional comment correction remaining.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nOptimizes `Batch::preflight` duplicate checks by replacing node-based containers with inline-backed flat sets while preserving validation behavior.\n\n**Changes:**\n- Uses inline storage sized to `kMaxBatchTxCount`.\n- Combines account sequence/ticket tracking into a set of pairs.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Replaces allocating duplicate-check containers and consolidates sequence/ticket insertion. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-21T19:03:07Z",
-     "body": ""
-    },
-    {
-     "author": "nbougalis",
-     "state": "COMMENTED",
-     "date": "2026-10-22T18:12:33Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-22T18:19:28Z",
-     "body": "### 🟢 Approval recommended\n\nThe bounded container replacement preserves duplicate-detection semantics and validation order, with no unresolved findings.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744)\n</details>\n\n<sub>Review effort: Balanced</sub>"
-    },
-    {
-     "author": "dangell7",
-     "state": "APPROVED",
-     "date": "2026-10-23T16:19:17Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "APPROVED",
-     "date": "2026-10-30T19:30:02Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "APPROVED",
-     "date": "2026-11-02T19:53:19Z",
-     "body": "Looks good in general but left some nits, approving."
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-10-21T04:19:03Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Optional: remove the extra “when” and correct “exced” to “exceed” in this comment.",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-21T19:03:07Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "```suggestion\n            auto const seqOrTicket = stx.getSeqProxy().value();\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4340799392"
-    },
-    {
-     "author": "nbougalis",
-     "date": "2026-10-22T18:12:33Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Nice - I adopted this, in a slightly reworded version.",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4351879581"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-11-02T19:47:19Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Not a blocker but I think `boost::container::static_vector` could be a better choice because we'll never push kMaxBatchTxCount + 1 elements.",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4446972423"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-11-02T19:51:25Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Not a blocker: We repeatedly read `sfSequence` and the new code we introduced calls `getSeqProxy` which also reads `sfSequence` again. I think  we can have a variable to cache the data",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4447012265"
-    }
-   ]
-  },
-  {
-   "number": 8617,
-   "title": "ci: Add more checks for PRs",
-   "url": "https://github.com/XRPLF/rippled/pull/8617",
-   "state": "closed",
-   "author": "mathbunnyru",
-   "createdAt": "2026-10-16T16:58:42Z",
-   "updatedAt": "2026-10-29T17:59:50Z",
-   "closedAt": "2026-10-29T17:59:50Z",
-   "labels": [],
-   "comments": [],
-   "body": "## High Level Overview of Change\n\nThis adds 2 non-required checks.\nThey will show up as red in CI, but won't prevent merging.\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "mathbunnyru:check_more_prs",
-   "additions": 57,
-   "deletions": 0,
-   "changedFiles": 1,
-   "commits": 1,
-   "reviewComments": 0,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-16T17:19:49Z",
-     "body": "### 🟢 Approval recommended\n\nThe workflow is narrowly scoped, with no identified blocking issues.\n\n**0 open findings**\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds two advisory CI checks for pull requests in private repositories.\n\n**Changes:**\n- Flags PR titles beginning with `fix: `.\n- Flags changes to test files, including renames out of test directories and file-type changes.\n\n| File | Description |\n| ---- | ----------- |\n| `.github/​workflows/​check-private-pr.yml` | Adds private-repository title and test-file checks with read-only permissions. |\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    }
-   ],
-   "reviewCommentsList": []
-  },
-  {
    "number": 7029,
    "title": "feat: Add invariant checks to ensure only fields that are expected to be modified are modified",
    "url": "https://github.com/XRPLF/rippled/pull/7029",
    "state": "open",
    "author": "mvadari",
    "createdAt": "2026-04-27T13:02:37Z",
-   "updatedAt": "2026-10-22T20:14:25Z",
+   "updatedAt": "2026-11-04T03:32:59Z",
    "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
+   "labels": [],
    "comments": [
     {
      "author": "codecov[bot]",
      "date": "2026-04-27T13:26:46Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `94.54545%` with `3 lines` in your changes missing coverage. Please review.\n:white_check_mark: Project coverage is 81.9%. Comparing base ([`ff02269`](https://app.codecov.io/gh/XRPLF/rippled/commit/ff02269c0dd1707b38ae783fdf9ba05b07037af7?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)) to head ([`ca635c0`](https://app.codecov.io/gh/XRPLF/rippled/commit/ca635c09afdff8b88477e559d50e428c86f5e917?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)).\n:warning: Report is 23 commits behind head on develop.\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/invariants/InvariantCheck.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Finvariants%2FInvariantCheck.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvaW52YXJpYW50cy9JbnZhcmlhbnRDaGVjay5jcHA=) | 92.7% | [3 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n<details><summary>Additional details and impacted files</summary>\n\n\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/7029/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n```diff\n@@            Coverage Diff            @@\n##           develop   #7029     +/-   ##\n=========================================\n- Coverage     82.0%   81.9%   -0.0%     \n=========================================\n  Files         1007    1007             \n  Lines        76873   76913     +40     \n  Branches      8973    9002     +29     \n=========================================\n+ Hits         63012   63013      +1     \n- Misses       13852   13891     +39     \n  Partials         9       9             \n```\n\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Coverage Δ | |\n|---|---|---|\n| [include/xrpl/protocol/SOTemplate.h](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2FSOTemplate.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1NPVGVtcGxhdGUuaA==) | `97.6% <100.0%> (+1.0%)` | :arrow_up: |\n| [include/xrpl/protocol/STObject.h](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2FSTObject.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL1NUT2JqZWN0Lmg=) | `94.6% <ø> (ø)` | |\n| [include/xrpl/protocol/detail/ledger\\_entries.macro](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol%2Fdetail%2Fledger_entries.macro&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sL2RldGFpbC9sZWRnZXJfZW50cmllcy5tYWNybw==) | `100.0% <ø> (ø)` | |\n| [...ude/xrpl/protocol\\_autogen/LedgerEntryBuilderBase.h](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol_autogen%2FLedgerEntryBuilderBase.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sX2F1dG9nZW4vTGVkZ2VyRW50cnlCdWlsZGVyQmFzZS5o) | `100.0% <ø> (ø)` | |\n| [...ude/xrpl/protocol\\_autogen/TransactionBuilderBase.h](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&filepath=include%2Fxrpl%2Fprotocol_autogen%2FTransactionBuilderBase.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3Byb3RvY29sX2F1dG9nZW4vVHJhbnNhY3Rpb25CdWlsZGVyQmFzZS5o) | `100.0% <ø> (ø)` | |\n| [include/xrpl/tx/invariants/InvariantCheck.h](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&filepath=include%2Fxrpl%2Ftx%2Finvariants%2FInvariantCheck.h&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-aW5jbHVkZS94cnBsL3R4L2ludmFyaWFudHMvSW52YXJpYW50Q2hlY2suaA==) | `100.0% <ø> (ø)` | |\n| [src/libxrpl/protocol/InnerObjectFormats.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&filepath=src%2Flibxrpl%2Fprotocol%2FInnerObjectFormats.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvSW5uZXJPYmplY3RGb3JtYXRzLmNwcA==) | `100.0% <100.0%> (ø)` | |\n| [src/libxrpl/protocol/LedgerFormats.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&filepath=src%2Flibxrpl%2Fprotocol%2FLedgerFormats.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvTGVkZ2VyRm9ybWF0cy5jcHA=) | `100.0% <ø> (ø)` | |\n| [src/libxrpl/protocol/STTakesAsset.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&filepath=src%2Flibxrpl%2Fprotocol%2FSTTakesAsset.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvcHJvdG9jb2wvU1RUYWtlc0Fzc2V0LmNwcA==) | `100.0% <ø> (ø)` | |\n| [...ibxrpl/tx/transactors/token/MPTokenIssuanceSet.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&filepath=src%2Flibxrpl%2Ftx%2Ftransactors%2Ftoken%2FMPTokenIssuanceSet.cpp&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvdHJhbnNhY3RvcnMvdG9rZW4vTVBUb2tlbklzc3VhbmNlU2V0LmNwcA==) | `97.4% <ø> (ø)` | |\n| ... and [1 more](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | |\n\n... and [6 files with indirect coverage changes](https://app.codecov.io/gh/XRPLF/rippled/pull/7029/indirect-changes?src=pr&el=tree-more&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n\n[![Impacted file tree graph](https://app.codecov.io/gh/XRPLF/rippled/pull/7029/graphs/tree.svg?width=650&height=150&src=pr&token=i2RPGI5xGF&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF)\n</details>\n<details><summary> :rocket: New features to boost your workflow: </summary>\n\n- :snowflake: [Test Analytics](https://docs.codecov.com/docs/test-analytics): Detect flaky tests, report on failures, and find test suite problems.\n</details>",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `97.77778%` with `1 line` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/libxrpl/tx/invariants/InvariantCheck.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL2xpYnhycGwvdHgvaW52YXJpYW50cy9JbnZhcmlhbnRDaGVjay5jcHA=) | 97.0% | [1 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/7029?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
      "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4327339494"
     },
     {
@@ -299,19 +154,25 @@
      "date": "2026-06-27T02:11:38Z",
      "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
      "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-4814687882"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-11-03T19:20:16Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#issuecomment-6613283798"
     }
    ],
-   "body": "## High Level Overview of Change\n\nThis PR updates `NoModifiedUnmodifiableFields` to be more general and handle all ledger entries. To make this better-documented, it also updates `ledger_entries.macro` (and `SOTemplate`) to take an optional `SOEConstant` parameter, which determines if the field is allowed to be updated or not.\n\nThis change is amendment-gated, with a fix amendment (this can be changed to a feature amendment if needed).\n\n### Context of Change\n\nImproving invariants\n\n### API Impact\n\nN/A",
+   "body": "## High Level Overview of Change\n\nThis PR renames `NoModifiedUnmodifiableFields` to `NoModifiedImmutableFields` and makes it check all ledger entries. Each field in `ledger_entries.macro` (and each common field in `LedgerFormats.cpp`) now has an `SOEMutability` value:\n\n- `SoeMutable`: the field can change.\n- `SoeImmutable`: the field can never change.\n- `SoeImmutableSetOnce`: the field can be set once, then can never change.\n\nThe invariant uses these values to check every modified ledger entry. The old hardcoded checks stay in place.\n\nThis change is gated by `fixCleanup3_5_0`.\n\n### Context of Change\n\nImproving invariants\n\n### API Impact\n\nN/A\n\n### Performance\n\nThe template check runs on every modified ledger entry when `fixCleanup3_5_0` is enabled. A 4h load test (mixed payment load, 9000 TPM, both sides built from source, `fixCleanup3_5_0` enabled on both) compared this PR at `823221b` with `develop` at `f5ec9aa`. It showed no throughput or validator-side regression:\n\n| Metric | `develop` | This PR | Δ |\n| --- | --- | --- | --- |\n| TPM | 8959.4 | 8959.2 | 0.0% |\n| Success rate | 99.709% | 99.710% | +0.001pp |\n| Validator apply time / tx (avg) | 0.9997 ms | 0.9834 ms | −1.6% |\n| Validator apply time / tx (P99) | 1.275 ms | 1.242 ms | −2.6% |\n| Ledger close time (P80, avg) | 3955 ms | 3860 ms | −2.4% |\n| Client latency (avg) | 34.4 ms | 39.6 ms | +14.9% |\n\nClient latency was 4-8 ms higher for all transaction types, including simple XRP payments. The invariant runs during transaction apply, and validator apply time did not increase. Thus the latency difference is probably from cluster or network variance, but no `develop`-vs-`develop` control run was done to confirm this.",
    "merged": false,
    "mergedAt": null,
    "draft": false,
    "base": "develop",
    "head": "XRPLF:mvadari/constant-field-invariant",
-   "additions": 606,
-   "deletions": 353,
-   "changedFiles": 13,
-   "commits": 29,
-   "reviewComments": 49,
+   "additions": 617,
+   "deletions": 368,
+   "changedFiles": 19,
+   "commits": 32,
+   "reviewComments": 55,
    "reviews": [
     {
      "author": "xrplf-ai-reviewer[bot]",
@@ -612,6 +473,54 @@
      "state": "APPROVED",
      "date": "2026-06-23T17:51:56Z",
      "body": "No issues.\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-11-03T19:25:23Z",
+     "body": "Found 1 blocking issue — see inline."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-11-03T20:57:11Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-11-03T20:57:13Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-11-03T20:57:16Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-11-03T20:57:19Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-11-03T20:57:22Z",
+     "body": ""
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-03T21:03:17Z",
+     "body": "No issues found."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-03T21:47:29Z",
+     "body": "No issues found."
     }
    ],
    "reviewCommentsList": [
@@ -957,8 +866,193 @@
      "path": "src/test/app/Invariants_test.cpp",
      "body": "You could initialize `oracleKeylet` with bogus values\n```\nKeylet oracleKeylet{ltAny, beast::kZero};\n```\n(Edit: Because I was confused at first, and having a clearly bogus value will avoid that.)",
      "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r3456151692"
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-11-03T19:25:23Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "LedgerStateFix exemption broken: enforce uses useTemplate instead of checkTemplate. Use checkTemplate:\n\n```suggestion\n        bool const enforce = checkTemplate || view.rules().enabled(featureLendingProtocol);\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r4459441292"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-11-03T20:57:10Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Went with a small helper that returns `nullptr` for an absent field, since the pointer can already be null.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r4460347246"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-11-03T20:57:13Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Yes: the `BookExchangeRate` fix rewrites `sfExchangeRate` on a `DirectoryNode`, and that field is `SoeImmutable`.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r4460347683"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-11-03T20:57:16Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "No longer applies after the develop merge. Develop added Loan, LoanBroker and Vault flag checks to the old path that the template can't express, so the template check now runs alongside the old path instead of replacing it.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r4460348143"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-11-03T20:57:19Z",
+     "path": "src/test/app/Invariants_test.cpp",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r4460348662"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-11-03T20:57:22Z",
+     "path": "src/libxrpl/tx/invariants/InvariantCheck.cpp",
+     "body": "Done.",
+     "url": "https://github.com/XRPLF/rippled/pull/7029#discussion_r4460349158"
     }
    ]
+  },
+  {
+   "number": 8627,
+   "title": "perf: Avoid memory allocations during Batch preflight checks",
+   "url": "https://github.com/XRPLF/rippled/pull/8627",
+   "state": "open",
+   "author": "nbougalis",
+   "createdAt": "2026-10-21T04:09:44Z",
+   "updatedAt": "2026-11-02T19:53:19Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-21T04:12:15Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8627?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#issuecomment-6307851935"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nRemove the per-insertion heap allocations from `Batch::preflight`. The duplicate-inner-transaction and duplicate-sequence/ticket checks used an `std::unordered_set` and an `std::unordered_map` of `std::unordered_set`s; they are now `std::flat_set`s backed by a `boost::container::small_vector` sized to `kMaxBatchTxCount`, so neither container ever leaves inline storage.\n\n## Context of Change\n\n`Batch::preflight` runs for every submitted and relayed Batch, including those about to be rejected, and the two containers it used allocate per node (and, for the map, per distinct account) to hold at most eight entries. The map of sets is flattened to a set of `(account, sequence-or-ticket)` pairs: pair membership was the only query, and the preceding `temSEQ_AND_TICKET` checks already guarantee exactly one of `Sequence` and `TicketSequence` is set, so the two insert sites collapse into one. Sequences and tickets keep sharing one key space per account, and the checks run at the same point in the per-inner loop, so every result code is unchanged. No amendment is needed.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nThe change is internal to `Batch::preflight`; no `libxrpl` interface changes.\n\n## Before / After\n\n1. Improvement to existing functionality.\n2. Memory allocation behavior of `Batch::preflight`; transaction results are unchanged.\n3. Preflight of Batch transactions on the submit and relay paths (`checkValidity`, `TxQ::apply`, ledger building).\n4. No effect on concurrent processing: no locks, threads, or async work are involved.\n\n## Test Plan\n\nExisting `xrpl.app.Batch` unit tests, which assert the `temREDUNDANT` and `temSEQ_AND_TICKET` results for duplicate inners, sequences, and tickets across all four batch modes.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "nbougalis:batch-mem",
+   "additions": 29,
+   "deletions": 25,
+   "changedFiles": 1,
+   "commits": 2,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-21T04:19:04Z",
+     "body": "### 🟢 Approval recommended\n\nThe bounded container changes preserve validation behavior, with only an optional comment correction remaining.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nOptimizes `Batch::preflight` duplicate checks by replacing node-based containers with inline-backed flat sets while preserving validation behavior.\n\n**Changes:**\n- Uses inline storage sized to `kMaxBatchTxCount`.\n- Combines account sequence/ticket tracking into a set of pairs.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Replaces allocating duplicate-check containers and consolidates sequence/ticket insertion. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-21T19:03:07Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2026-10-22T18:12:33Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-22T18:19:28Z",
+     "body": "### 🟢 Approval recommended\n\nThe bounded container replacement preserves duplicate-detection semantics and validation order, with no unresolved findings.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744)\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "dangell7",
+     "state": "APPROVED",
+     "date": "2026-10-23T16:19:17Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2026-10-30T19:30:02Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-11-02T19:53:19Z",
+     "body": "Looks good in general but left some nits, approving."
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-21T04:19:03Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Optional: remove the extra “when” and correct “exced” to “exceed” in this comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-21T19:03:07Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "```suggestion\n            auto const seqOrTicket = stx.getSeqProxy().value();\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4340799392"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2026-10-22T18:12:33Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Nice - I adopted this, in a slightly reworded version.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4351879581"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-11-02T19:47:19Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Not a blocker but I think `boost::container::static_vector` could be a better choice because we'll never push kMaxBatchTxCount + 1 elements.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4446972423"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-11-02T19:51:25Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Not a blocker: We repeatedly read `sfSequence` and the new code we introduced calls `getSeqProxy` which also reads `sfSequence` again. I think  we can have a variable to cache the data",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4447012265"
+    }
+   ]
+  },
+  {
+   "number": 8617,
+   "title": "ci: Add more checks for PRs",
+   "url": "https://github.com/XRPLF/rippled/pull/8617",
+   "state": "closed",
+   "author": "mathbunnyru",
+   "createdAt": "2026-10-16T16:58:42Z",
+   "updatedAt": "2026-10-29T17:59:50Z",
+   "closedAt": "2026-10-29T17:59:50Z",
+   "labels": [],
+   "comments": [],
+   "body": "## High Level Overview of Change\n\nThis adds 2 non-required checks.\nThey will show up as red in CI, but won't prevent merging.\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "mathbunnyru:check_more_prs",
+   "additions": 57,
+   "deletions": 0,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-16T17:19:49Z",
+     "body": "### 🟢 Approval recommended\n\nThe workflow is narrowly scoped, with no identified blocking issues.\n\n**0 open findings**\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nAdds two advisory CI checks for pull requests in private repositories.\n\n**Changes:**\n- Flags PR titles beginning with `fix: `.\n- Flags changes to test files, including renames out of test directories and file-type changes.\n\n| File | Description |\n| ---- | ----------- |\n| `.github/​workflows/​check-private-pr.yml` | Adds private-repository title and test-file checks with read-only permissions. |\n</details>\n\n🧠 **Review effort:** Balanced\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    }
+   ],
+   "reviewCommentsList": []
   },
   {
    "number": 8620,
@@ -3047,7 +3141,7 @@
    "isPr": true,
    "author": "bigcjat",
    "createdAt": "2026-09-26T20:04:52Z",
-   "updatedAt": "2026-10-10T04:06:54Z",
+   "updatedAt": "2026-11-04T04:43:38Z",
    "comments": 0,
    "labels": []
   }

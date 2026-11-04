@@ -1,6 +1,6 @@
 {
  "name": "AMM",
- "fetchedAt": "2026-11-03T09:01:03.551Z",
+ "fetchedAt": "2026-11-04T09:01:04.407Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -18,7 +18,7 @@
    "mvadari/rearch/mptoken-deleteAMMMPToken",
    "xrplf/amm-curves"
   ],
-  "lastActivity": "2026-10-23T00:29:45Z",
+  "lastActivity": "2026-11-03T20:41:29Z",
   "lastMerged": "2026-10-22T16:02:59Z",
   "release": "1.12.0",
   "totalComments": 475
@@ -30,6 +30,76 @@
   "excerpt": "`AMM`"
  },
  "prs": [
+  {
+   "number": 6605,
+   "title": "feat(clamm): implement XLS-99 Concentrated Liquidity AMM",
+   "url": "https://github.com/XRPLF/rippled/pull/6605",
+   "state": "open",
+   "author": "RomThpt",
+   "createdAt": "2026-03-20T13:56:47Z",
+   "updatedAt": "2026-11-03T20:41:29Z",
+   "closedAt": null,
+   "labels": [
+    "Amendment",
+    "PR: has conflicts"
+   ],
+   "comments": [
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-03-26T00:44:27Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/6605#issuecomment-4130769154"
+    },
+    {
+     "author": "godexsoft",
+     "date": "2026-05-04T14:24:53Z",
+     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -v   # should show 'upstream' among others; if not:\n# git remote set-url upstream git@github.com:XRPLF/rippled.git\ngit fetch upstream\ngit checkout upstream/develop -- .clang-tidy\n```\n\n**2. Reconfigure conan/cmake so `compile_commands.json` is fresh.**\n\n**3. Apply renames for the files modified in your PR:**\n\n```bash\ngit diff --name-only $(git merge-base HEAD upstream/develop) HEAD \\\n  | grep -E '\\.(cpp|h|hpp|ipp)$' \\\n  | xargs run-clang-tidy -p build -fix -allow-no-checks\n# or -p .build, or whatever your build dir is called\n```\n\n**4. Build + test, then commit as a single dedicated commit:**\n\n```bash\ncmake --build build -j8\ngit commit -am \"refactor: Align identifier naming with develop\"\n```\n\n**5. Now merge develop:**\n\n```bash\ngit merge upstream/develop\n```\n\n## Extra\n\nRun clang-tidy once more after the merge to catch any stragglers introduced from develop's side:\n\n```bash\nrun-clang-tidy -p build -fix -allow-no-checks src tests\n# or -p .build, or whatever your build dir is called\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/6605#issuecomment-4371838750"
+    }
+   ],
+   "body": "## Summary\n\nImplement a Concentrated Liquidity Automated Market Maker (CLAMM) for the XRP Ledger, as specified in [XLS-99](https://github.com/XRPLF/XRPL-Standards/pull/498). Unlike XLS-30 which distributes liquidity uniformly, CLAMM allows LPs to concentrate capital within specific price ranges for up to 4000x capital efficiency improvement.\n\n### Ledger Entries (4 new)\n\n- **CLAMM** (`0x008A`): Pool state -- current tick, sqrt price, active liquidity, fee tier, auction slot\n- **CLAMMTick** (`0x008B`): Per-tick liquidity boundaries and fee growth tracking (sparse storage)\n- **CLAMMPosition** (`0x008C`): LP position linked to NFToken (XLS-20) -- tick range, liquidity, uncollected fees\n- **CLAMMTickBitmap** (`0x008D`): Compressed 256-bit bitmap for efficient initialized tick lookup\n\n### Transactions (9 new)\n\n| Type | ID | Description |\n|------|----|-------------|\n| CLAMMCreate | 85 | Create pool with asset pair, fee tier, initial price |\n| CLAMMDeposit | 86 | Add liquidity within a price range, mint position NFToken |\n| CLAMMWithdraw | 87 | Remove liquidity, burn NFToken on full withdrawal |\n| CLAMMSwap | 88 | Direct swap through a pool |\n| CLAMMCollectFees | 89 | Collect accumulated fees without removing liquidity |\n| CLAMMVote | 90 | Vote on trading fee parameters (liquidity-weighted) |\n| CLAMMBid | 91 | Bid for auction slot (discounted fees, MEV protection) |\n| CLAMMDelete | 92 | Remove empty pools from ledger (multi-call for large pools) |\n| CLAMMClawback | 93 | Issuer clawback of tokens from holder CLAMM positions |\n\n### RPCs (4 new)\n\n- `clamm_info`: Pool information (by pool_id or asset/asset2/fee_tier)\n- `clamm_positions`: Query positions by account or nftoken_id\n- `clamm_ticks`: Query tick data within a range\n- `clamm_quote`: Swap quote simulation\n\n### Key Design Decisions\n\n- **Fee tiers**: 4 predefined tiers (0.01%, 0.05%, 0.30%, 1.00%) linked to tick spacing, preventing scam pools\n- **NFToken positions**: Reuses XLS-20 infrastructure for unique, tradeable LP positions\n- **Payment engine integration**: CLAMMLiquidity/CLAMMOffer enable automatic routing through CLAMM pools alongside DEX and XLS-30 AMM\n- **Continuous auction**: Adapted from XLS-30 for MEV protection\n- **Math precision**: Q64.96 fixed-point with boost::multiprecision (uint128/uint256/uint512)\n\n### Amendment\n\nFeature flag: `featureCLAMM`\n\n## Test Plan\n\n- [x] Unit tests: pool lifecycle, deposits, withdrawals, swaps, fees, voting, bidding (`CLAMM_test.cpp` -- 4881 lines)\n- [x] Payment routing tests (`CLAMMPayment_test.cpp`)\n- [x] Tick bitmap navigation tests (`CLAMMBitmap_test.cpp`)\n- [x] Fuzz tests: random deposit/withdraw/swap sequences (`CLAMMFuzz_test.cpp`)\n- [x] Invariant tests (ValidCLAMM)\n- [x] Cross-feature tests (NFToken transfer, freeze, clawback)\n\n## Related\n\n- Spec: https://github.com/XRPLF/XRPL-Standards/pull/498\n- Discussion: https://github.com/XRPLF/XRPL-Standards/discussions/427",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "RomThpt:feature/clamm-xls99-squashed",
+   "additions": 15130,
+   "deletions": 46,
+   "changedFiles": 57,
+   "commits": 1,
+   "reviewComments": 3,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-09-01T21:33:15Z",
+     "body": "## Pull request overview\n\nImplements a new Concentrated Liquidity AMM (CLAMM) feature (XLS-99) across the XRPL server stack: new ledger entry types/keylets, new transaction types/transactors, payment-engine routing integration, and RPC surfaces for querying/simulation, guarded by `featureCLAMM`.\n\n**Changes:**\n- Adds CLAMM ledger model primitives (pool, tick, position, tick bitmap) with new keylets/namespaces and supporting protocol helpers/constants.\n- Introduces core CLAMM transactions (create/deposit/withdraw/swap/collect fees/vote/bid/delete/clawback) plus a CLAMM invariant and NFT integration for position ownership/burn constraints.\n- Integrates CLAMM liquidity as a synthetic offer source into the payment engine (alongside CLOB and XLS-30 AMM) and adds CLAMM RPC endpoints + test utilities/tests.\n\n### Reviewed changes\n\nCopilot reviewed 56 out of 57 changed files in this pull request and generated 3 comments.\n\n<details>\n<summary>Show a summary per file</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/rpc/handlers/LedgerEntry.cpp | Adds ledger_entry parsing for CLAMM-related keylets. |\n| src/xrpld/rpc/handlers/Handlers.h | Declares new CLAMM RPC handlers. |\n| src/xrpld/rpc/handlers/CLAMMInfo.cpp | Implements `clamm_info`, `clamm_positions`, `clamm_ticks`, `clamm_quote` RPC handlers. |\n| src/xrpld/rpc/handlers/AccountObjects.cpp | Extends account_objects filtering to include CLAMM objects. |\n| src/xrpld/rpc/detail/Handler.cpp | Registers new CLAMM RPC methods. |\n| src/xrpld/app/paths/detail/PaySteps.cpp | Threads `CLAMMContext` through strand construction. |\n| src/xrpld/app/paths/detail/CLAMMOffer.cpp | Implements synthetic CLAMM offer consumption (swap execution) for pathfinding. |\n| src/xrpld/app/paths/detail/CLAMMLiquidity.cpp | Discovers CLAMM pools and sizes synthetic offers via simulation. |\n| src/xrpld/app/paths/detail/BookStep.cpp | Integrates CLAMM synthetic offers into book crossing/tipping logic. |\n| src/xrpld/app/paths/CLAMMOffer.h | Declares the CLAMM synthetic offer type used by BookStep. |\n| src/xrpld/app/paths/CLAMMLiquidity.h | Declares CLAMM pool discovery/offer selection utilities for BookStep. |\n| src/test/jtx/CLAMM.h | Adds jtx helpers for CLAMM transactions and test setup. |\n| src/test/app/TheoreticalQuality_test.cpp | Updates payment tests to include `CLAMMContext`. |\n| src/test/app/PayStrand_test.cpp | Updates payment strand tests to include `CLAMMContext`. |\n| src/test/app/CLAMMBitmap_test.cpp | Adds tests covering tick bitmap lifecycle and lookup. |\n| src/libxrpl/tx/transactors/nft/NFTokenBurn.cpp | Prevents burning CLAMM position NFTs while positions exist. |\n| src/libxrpl/tx/transactors/nft/NFTokenAcceptOffer.cpp | Updates CLAMMPosition ownership/dir state and fee snapshots on NFT transfer. |\n| src/libxrpl/tx/transactors/dex/CLAMMWithdraw.cpp | Implements CLAMM withdraw logic (including optional auto-delete). |\n| src/libxrpl/tx/transactors/dex/CLAMMVote.cpp | Implements CLAMM liquidity-weighted voting for trading fee. |\n| src/libxrpl/tx/transactors/dex/CLAMMSwap.cpp | Implements direct swaps against CLAMM pools. |\n| src/libxrpl/tx/transactors/dex/CLAMMDeposit.cpp | Implements deposits (new and add-to-position) with tick/bitmap updates and NFT minting. |\n| src/libxrpl/tx/transactors/dex/CLAMMDelete.cpp | Implements deletion of empty pools (paged cleanup). |\n| src/libxrpl/tx/transactors/dex/CLAMMCreate.cpp | Implements pool creation and pseudo-account setup. |\n| src/libxrpl/tx/transactors/dex/CLAMMCollectFees.cpp | Implements fee collection from positions with optional caps. |\n| src/libxrpl/tx/transactors/dex/CLAMMBid.cpp | Implements auction slot bidding and discounted fee assignment. |\n| src/libxrpl/tx/paths/Flow.cpp | Instantiates/updates `CLAMMContext` for payment execution. |\n| src/libxrpl/tx/invariants/FreezeInvariant.cpp | Generalizes override-freeze logging semantics (not CLAMM-specific). |\n| src/libxrpl/tx/invariants/CLAMMInvariant.cpp | Adds a CLAMM invariant enforcing structural/value constraints. |\n| src/libxrpl/protocol/Indexes.cpp | Adds CLAMM namespaces and keylet builders. |\n| src/libxrpl/protocol/CLAMMCore.cpp | Adds amendment gate + fee tier/tick validation helpers. |\n| include/xrpl/tx/transactors/dex/CLAMMWithdraw.h | Declares CLAMMWithdraw transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMVote.h | Declares CLAMMVote transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMSwap.h | Declares CLAMMSwap transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMHelpers.h | Declares CLAMM math/bitmap/simulation/applySwap helpers and pool-id resolver. |\n| include/xrpl/tx/transactors/dex/CLAMMDeposit.h | Declares CLAMMDeposit transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMDelete.h | Declares CLAMMDelete transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMCreate.h | Declares CLAMMCreate transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMContext.h | Introduces `CLAMMContext` for offer-iteration limiting and multipath mode. |\n| include/xrpl/tx/transactors/dex/CLAMMCollectFees.h | Declares CLAMMCollectFees transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMClawback.h | Declares CLAMMClawback transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMBid.h | Declares CLAMMBid transactor. |\n| include/xrpl/tx/paths/detail/StrandFlow.h | Threads `CLAMMContext` into strand-flow and iteration updates. |\n| include/xrpl/tx/paths/detail/Steps.h | Extends strand construction/context to carry `CLAMMContext`. |\n| include/xrpl/tx/invariants/InvariantCheck.h | Registers the CLAMM invariant check. |\n| include/xrpl/tx/invariants/CLAMMInvariant.h | Declares the CLAMM invariant check. |\n| include/xrpl/protocol/TxFlags.h | Adds flags mask entry for CLAMMClawback. |\n| include/xrpl/protocol/Indexes.h | Declares CLAMM keylets. |\n| include/xrpl/protocol/detail/transactions.macro | Registers new CLAMM transaction types and field requirements/privileges. |\n| include/xrpl/protocol/detail/sfields.macro | Adds new SFields required by CLAMM objects/txns. |\n| include/xrpl/protocol/detail/ledger_entries.macro | Registers new CLAMM ledger entry formats. |\n| include/xrpl/protocol/detail/features.macro | Adds `featureCLAMM` (and adjusts supported-ness for some existing features). |\n| include/xrpl/protocol/CLAMMCore.h | Declares CLAMM constants and core helper APIs. |\n</details>\n\n\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:33:14Z",
+     "path": "src/xrpld/rpc/handlers/CLAMMInfo.cpp",
+     "body": "Pagination marker is set to the first item *after* the returned page (`lastNFTokenID = nftID` in the lookahead branch). Since the next request starts *after* the marker, that position is skipped and never returned. Also, the lookahead should only trigger after pool filtering so the marker reflects additional matching results.",
+     "url": "https://github.com/XRPLF/rippled/pull/6605#discussion_r3908631736"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:33:15Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "`fee_tier` is cast to `std::uint8_t` without bounds validation, so values >255 will truncate (e.g. 257 becomes 1) and values outside the supported tier set will compute an unintended pool key. Reject out-of-range tiers before casting.",
+     "url": "https://github.com/XRPLF/rippled/pull/6605#discussion_r3908631797"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-09-01T21:33:15Z",
+     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
+     "body": "`word_position` is truncated to `std::int16_t` without range checking, so large inputs silently wrap and compute the wrong bitmap key. Validate the value fits in int16 before casting.",
+     "url": "https://github.com/XRPLF/rippled/pull/6605#discussion_r3908631854"
+    }
+   ]
+  },
   {
    "number": 5012,
    "title": "Fix AMM missing XRP Asset Metadata",
@@ -1431,75 +1501,6 @@
      "path": "src/test/app/Vault_test.cpp",
      "body": "The opening bullet claims that clearing lsfMPTCanTransfer “freezes every holder's funds in the vault until the issuer re-enables the flag”, but later in this same test (step 3b) a holder can still withdraw successfully by setting Destination=issuer (because `canTransfer` short-circuits when `to == issuer`). Please adjust the comment to reflect that CanTransfer blocks holder<->non-issuer vault I/O, but withdrawals to the issuer remain possible.",
      "url": "https://github.com/XRPLF/rippled/pull/7044#discussion_r3163119042"
-    }
-   ]
-  },
-  {
-   "number": 6605,
-   "title": "feat(clamm): implement XLS-99 Concentrated Liquidity AMM",
-   "url": "https://github.com/XRPLF/rippled/pull/6605",
-   "state": "open",
-   "author": "RomThpt",
-   "createdAt": "2026-03-20T13:56:47Z",
-   "updatedAt": "2026-09-01T21:33:16Z",
-   "closedAt": null,
-   "labels": [
-    "PR: has conflicts"
-   ],
-   "comments": [
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-03-26T00:44:27Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/6605#issuecomment-4130769154"
-    },
-    {
-     "author": "godexsoft",
-     "date": "2026-05-04T14:24:53Z",
-     "body": "We recently merged a refactor to `develop` that enables clang-tidy's `readability-identifier-naming`. Your branch now has heavy conflicts that are largely mechanical. Below is a workflow that aligns your branch's naming with develop _before_ merging, which should minimize the merge conflicts.\n\n## One-time setup\n\nIf you don't already have clang-tidy working in your env, on macOS:\n\n```bash\nbrew install llvm@21\n# Follow brew's hint to put $(brew --prefix llvm@21)/bin on PATH so run-clang-tidy is found.\n```\n\n## Workflow on your branch (before merging develop)\n\n**1. Grab the new `.clang-tidy` from develop without pulling anything else.** Sync your fork on GitHub first, then:\n\n```bash\ngit remote -v   # should show 'upstream' among others; if not:\n# git remote set-url upstream git@github.com:XRPLF/rippled.git\ngit fetch upstream\ngit checkout upstream/develop -- .clang-tidy\n```\n\n**2. Reconfigure conan/cmake so `compile_commands.json` is fresh.**\n\n**3. Apply renames for the files modified in your PR:**\n\n```bash\ngit diff --name-only $(git merge-base HEAD upstream/develop) HEAD \\\n  | grep -E '\\.(cpp|h|hpp|ipp)$' \\\n  | xargs run-clang-tidy -p build -fix -allow-no-checks\n# or -p .build, or whatever your build dir is called\n```\n\n**4. Build + test, then commit as a single dedicated commit:**\n\n```bash\ncmake --build build -j8\ngit commit -am \"refactor: Align identifier naming with develop\"\n```\n\n**5. Now merge develop:**\n\n```bash\ngit merge upstream/develop\n```\n\n## Extra\n\nRun clang-tidy once more after the merge to catch any stragglers introduced from develop's side:\n\n```bash\nrun-clang-tidy -p build -fix -allow-no-checks src tests\n# or -p .build, or whatever your build dir is called\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/6605#issuecomment-4371838750"
-    }
-   ],
-   "body": "## Summary\n\nImplement a Concentrated Liquidity Automated Market Maker (CLAMM) for the XRP Ledger, as specified in [XLS-99](https://github.com/XRPLF/XRPL-Standards/pull/498). Unlike XLS-30 which distributes liquidity uniformly, CLAMM allows LPs to concentrate capital within specific price ranges for up to 4000x capital efficiency improvement.\n\n### Ledger Entries (4 new)\n\n- **CLAMM** (`0x008A`): Pool state -- current tick, sqrt price, active liquidity, fee tier, auction slot\n- **CLAMMTick** (`0x008B`): Per-tick liquidity boundaries and fee growth tracking (sparse storage)\n- **CLAMMPosition** (`0x008C`): LP position linked to NFToken (XLS-20) -- tick range, liquidity, uncollected fees\n- **CLAMMTickBitmap** (`0x008D`): Compressed 256-bit bitmap for efficient initialized tick lookup\n\n### Transactions (9 new)\n\n| Type | ID | Description |\n|------|----|-------------|\n| CLAMMCreate | 85 | Create pool with asset pair, fee tier, initial price |\n| CLAMMDeposit | 86 | Add liquidity within a price range, mint position NFToken |\n| CLAMMWithdraw | 87 | Remove liquidity, burn NFToken on full withdrawal |\n| CLAMMSwap | 88 | Direct swap through a pool |\n| CLAMMCollectFees | 89 | Collect accumulated fees without removing liquidity |\n| CLAMMVote | 90 | Vote on trading fee parameters (liquidity-weighted) |\n| CLAMMBid | 91 | Bid for auction slot (discounted fees, MEV protection) |\n| CLAMMDelete | 92 | Remove empty pools from ledger (multi-call for large pools) |\n| CLAMMClawback | 93 | Issuer clawback of tokens from holder CLAMM positions |\n\n### RPCs (4 new)\n\n- `clamm_info`: Pool information (by pool_id or asset/asset2/fee_tier)\n- `clamm_positions`: Query positions by account or nftoken_id\n- `clamm_ticks`: Query tick data within a range\n- `clamm_quote`: Swap quote simulation\n\n### Key Design Decisions\n\n- **Fee tiers**: 4 predefined tiers (0.01%, 0.05%, 0.30%, 1.00%) linked to tick spacing, preventing scam pools\n- **NFToken positions**: Reuses XLS-20 infrastructure for unique, tradeable LP positions\n- **Payment engine integration**: CLAMMLiquidity/CLAMMOffer enable automatic routing through CLAMM pools alongside DEX and XLS-30 AMM\n- **Continuous auction**: Adapted from XLS-30 for MEV protection\n- **Math precision**: Q64.96 fixed-point with boost::multiprecision (uint128/uint256/uint512)\n\n### Amendment\n\nFeature flag: `featureCLAMM`\n\n## Test Plan\n\n- [x] Unit tests: pool lifecycle, deposits, withdrawals, swaps, fees, voting, bidding (`CLAMM_test.cpp` -- 4881 lines)\n- [x] Payment routing tests (`CLAMMPayment_test.cpp`)\n- [x] Tick bitmap navigation tests (`CLAMMBitmap_test.cpp`)\n- [x] Fuzz tests: random deposit/withdraw/swap sequences (`CLAMMFuzz_test.cpp`)\n- [x] Invariant tests (ValidCLAMM)\n- [x] Cross-feature tests (NFToken transfer, freeze, clawback)\n\n## Related\n\n- Spec: https://github.com/XRPLF/XRPL-Standards/pull/498\n- Discussion: https://github.com/XRPLF/XRPL-Standards/discussions/427",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "RomThpt:feature/clamm-xls99-squashed",
-   "additions": 15130,
-   "deletions": 46,
-   "changedFiles": 57,
-   "commits": 1,
-   "reviewComments": 3,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-01T21:33:15Z",
-     "body": "## Pull request overview\n\nImplements a new Concentrated Liquidity AMM (CLAMM) feature (XLS-99) across the XRPL server stack: new ledger entry types/keylets, new transaction types/transactors, payment-engine routing integration, and RPC surfaces for querying/simulation, guarded by `featureCLAMM`.\n\n**Changes:**\n- Adds CLAMM ledger model primitives (pool, tick, position, tick bitmap) with new keylets/namespaces and supporting protocol helpers/constants.\n- Introduces core CLAMM transactions (create/deposit/withdraw/swap/collect fees/vote/bid/delete/clawback) plus a CLAMM invariant and NFT integration for position ownership/burn constraints.\n- Integrates CLAMM liquidity as a synthetic offer source into the payment engine (alongside CLOB and XLS-30 AMM) and adds CLAMM RPC endpoints + test utilities/tests.\n\n### Reviewed changes\n\nCopilot reviewed 56 out of 57 changed files in this pull request and generated 3 comments.\n\n<details>\n<summary>Show a summary per file</summary>\n\n| File | Description |\n| ---- | ----------- |\n| src/xrpld/rpc/handlers/LedgerEntry.cpp | Adds ledger_entry parsing for CLAMM-related keylets. |\n| src/xrpld/rpc/handlers/Handlers.h | Declares new CLAMM RPC handlers. |\n| src/xrpld/rpc/handlers/CLAMMInfo.cpp | Implements `clamm_info`, `clamm_positions`, `clamm_ticks`, `clamm_quote` RPC handlers. |\n| src/xrpld/rpc/handlers/AccountObjects.cpp | Extends account_objects filtering to include CLAMM objects. |\n| src/xrpld/rpc/detail/Handler.cpp | Registers new CLAMM RPC methods. |\n| src/xrpld/app/paths/detail/PaySteps.cpp | Threads `CLAMMContext` through strand construction. |\n| src/xrpld/app/paths/detail/CLAMMOffer.cpp | Implements synthetic CLAMM offer consumption (swap execution) for pathfinding. |\n| src/xrpld/app/paths/detail/CLAMMLiquidity.cpp | Discovers CLAMM pools and sizes synthetic offers via simulation. |\n| src/xrpld/app/paths/detail/BookStep.cpp | Integrates CLAMM synthetic offers into book crossing/tipping logic. |\n| src/xrpld/app/paths/CLAMMOffer.h | Declares the CLAMM synthetic offer type used by BookStep. |\n| src/xrpld/app/paths/CLAMMLiquidity.h | Declares CLAMM pool discovery/offer selection utilities for BookStep. |\n| src/test/jtx/CLAMM.h | Adds jtx helpers for CLAMM transactions and test setup. |\n| src/test/app/TheoreticalQuality_test.cpp | Updates payment tests to include `CLAMMContext`. |\n| src/test/app/PayStrand_test.cpp | Updates payment strand tests to include `CLAMMContext`. |\n| src/test/app/CLAMMBitmap_test.cpp | Adds tests covering tick bitmap lifecycle and lookup. |\n| src/libxrpl/tx/transactors/nft/NFTokenBurn.cpp | Prevents burning CLAMM position NFTs while positions exist. |\n| src/libxrpl/tx/transactors/nft/NFTokenAcceptOffer.cpp | Updates CLAMMPosition ownership/dir state and fee snapshots on NFT transfer. |\n| src/libxrpl/tx/transactors/dex/CLAMMWithdraw.cpp | Implements CLAMM withdraw logic (including optional auto-delete). |\n| src/libxrpl/tx/transactors/dex/CLAMMVote.cpp | Implements CLAMM liquidity-weighted voting for trading fee. |\n| src/libxrpl/tx/transactors/dex/CLAMMSwap.cpp | Implements direct swaps against CLAMM pools. |\n| src/libxrpl/tx/transactors/dex/CLAMMDeposit.cpp | Implements deposits (new and add-to-position) with tick/bitmap updates and NFT minting. |\n| src/libxrpl/tx/transactors/dex/CLAMMDelete.cpp | Implements deletion of empty pools (paged cleanup). |\n| src/libxrpl/tx/transactors/dex/CLAMMCreate.cpp | Implements pool creation and pseudo-account setup. |\n| src/libxrpl/tx/transactors/dex/CLAMMCollectFees.cpp | Implements fee collection from positions with optional caps. |\n| src/libxrpl/tx/transactors/dex/CLAMMBid.cpp | Implements auction slot bidding and discounted fee assignment. |\n| src/libxrpl/tx/paths/Flow.cpp | Instantiates/updates `CLAMMContext` for payment execution. |\n| src/libxrpl/tx/invariants/FreezeInvariant.cpp | Generalizes override-freeze logging semantics (not CLAMM-specific). |\n| src/libxrpl/tx/invariants/CLAMMInvariant.cpp | Adds a CLAMM invariant enforcing structural/value constraints. |\n| src/libxrpl/protocol/Indexes.cpp | Adds CLAMM namespaces and keylet builders. |\n| src/libxrpl/protocol/CLAMMCore.cpp | Adds amendment gate + fee tier/tick validation helpers. |\n| include/xrpl/tx/transactors/dex/CLAMMWithdraw.h | Declares CLAMMWithdraw transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMVote.h | Declares CLAMMVote transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMSwap.h | Declares CLAMMSwap transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMHelpers.h | Declares CLAMM math/bitmap/simulation/applySwap helpers and pool-id resolver. |\n| include/xrpl/tx/transactors/dex/CLAMMDeposit.h | Declares CLAMMDeposit transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMDelete.h | Declares CLAMMDelete transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMCreate.h | Declares CLAMMCreate transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMContext.h | Introduces `CLAMMContext` for offer-iteration limiting and multipath mode. |\n| include/xrpl/tx/transactors/dex/CLAMMCollectFees.h | Declares CLAMMCollectFees transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMClawback.h | Declares CLAMMClawback transactor. |\n| include/xrpl/tx/transactors/dex/CLAMMBid.h | Declares CLAMMBid transactor. |\n| include/xrpl/tx/paths/detail/StrandFlow.h | Threads `CLAMMContext` into strand-flow and iteration updates. |\n| include/xrpl/tx/paths/detail/Steps.h | Extends strand construction/context to carry `CLAMMContext`. |\n| include/xrpl/tx/invariants/InvariantCheck.h | Registers the CLAMM invariant check. |\n| include/xrpl/tx/invariants/CLAMMInvariant.h | Declares the CLAMM invariant check. |\n| include/xrpl/protocol/TxFlags.h | Adds flags mask entry for CLAMMClawback. |\n| include/xrpl/protocol/Indexes.h | Declares CLAMM keylets. |\n| include/xrpl/protocol/detail/transactions.macro | Registers new CLAMM transaction types and field requirements/privileges. |\n| include/xrpl/protocol/detail/sfields.macro | Adds new SFields required by CLAMM objects/txns. |\n| include/xrpl/protocol/detail/ledger_entries.macro | Registers new CLAMM ledger entry formats. |\n| include/xrpl/protocol/detail/features.macro | Adds `featureCLAMM` (and adjusts supported-ness for some existing features). |\n| include/xrpl/protocol/CLAMMCore.h | Declares CLAMM constants and core helper APIs. |\n</details>\n\n\n\n\n\n\n\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T21:33:14Z",
-     "path": "src/xrpld/rpc/handlers/CLAMMInfo.cpp",
-     "body": "Pagination marker is set to the first item *after* the returned page (`lastNFTokenID = nftID` in the lookahead branch). Since the next request starts *after* the marker, that position is skipped and never returned. Also, the lookahead should only trigger after pool filtering so the marker reflects additional matching results.",
-     "url": "https://github.com/XRPLF/rippled/pull/6605#discussion_r3908631736"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T21:33:15Z",
-     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
-     "body": "`fee_tier` is cast to `std::uint8_t` without bounds validation, so values >255 will truncate (e.g. 257 becomes 1) and values outside the supported tier set will compute an unintended pool key. Reject out-of-range tiers before casting.",
-     "url": "https://github.com/XRPLF/rippled/pull/6605#discussion_r3908631797"
-    },
-    {
-     "author": "Copilot",
-     "date": "2026-09-01T21:33:15Z",
-     "path": "src/xrpld/rpc/handlers/LedgerEntry.cpp",
-     "body": "`word_position` is truncated to `std::int16_t` without range checking, so large inputs silently wrap and compute the wrong bitmap key. Validate the value fits in int16 before casting.",
-     "url": "https://github.com/XRPLF/rippled/pull/6605#discussion_r3908631854"
     }
    ]
   },
