@@ -1,10 +1,10 @@
 {
  "name": "Escrow",
- "fetchedAt": "2026-11-04T09:03:37.270Z",
+ "fetchedAt": "2026-11-05T09:03:56.080Z",
  "summary": {
   "status": "in development",
   "prs": 11,
-  "open": 3,
+  "open": 4,
   "merged": 5,
   "issues": 1,
   "proposals": 8,
@@ -21,10 +21,10 @@
    "smart-escrow/versioning",
    "timothybanks/smart-escrow-deletion"
   ],
-  "lastActivity": "2026-11-03T20:41:34Z",
+  "lastActivity": "2026-11-04T23:14:09Z",
   "lastMerged": "2026-10-16T13:37:35Z",
   "release": "0.60.0",
-  "totalComments": 424
+  "totalComments": 426
  },
  "release": {
   "version": "0.60.0",
@@ -33,6 +33,125 @@
   "excerpt": "Escrow**"
  },
  "prs": [
+  {
+   "number": 8646,
+   "title": "fix: Count only own-issued escrows in gateway_balances",
+   "url": "https://github.com/XRPLF/rippled/pull/8646",
+   "state": "open",
+   "author": "dangell7",
+   "createdAt": "2026-10-27T15:11:40Z",
+   "updatedAt": "2026-11-04T23:14:09Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-27T15:14:23Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8646?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8646#issuecomment-6445754959"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n- `gateway_balances`: `locked` counts only escrows of tokens the queried account issues. An escrow of another issuer's token that the account sends or receives was added to the account's own total under the same currency code.\n- `EscrowCreate::preflight` and `Clawback` MPT preflight: drop `amount.mpt() > MPTAmount{kMaxMpTokenAmount}`, which can never be true.\n\n## Context of Change\n\n`GatewayBalances` walks every entry in the account's owner directory. An `Escrow` sits in the directories of its source, its destination and, through `sfIssuerNode`, its issuer, so the source and destination see escrows of tokens they do not issue. The escrow branch keyed `locked` by currency only, so a gateway that escrows or receives an escrow of another issuer's USD reported it as locked USD of its own. The branch now skips an escrow whose issuer is not the queried account, the same rule the issuer's own `sfIssuerNode` entry already satisfies.\n\n`MPTAmount::value_type` is `std::int64_t` and `kMaxMpTokenAmount` is `INT64_MAX`, so `mpt() > MPTAmount{kMaxMpTokenAmount}` is always false. It is not harmless either: `STAmount::mpt()` negates the mantissa for a negative amount, and a negative-flagged mantissa of 2^63 negates `INT64_MIN`. That input is reachable only without `fixCleanup3_2_0`, since with it `preflightUniversal` rejects it through `isLegalMPT`. Deleting the clause changes no result. Replacing it with `isLegalMPT` would change results on ledgers without the fix and need an amendment.\n\n## API Impact\n\nNo field is added or removed. `gateway_balances` reports corrected `locked` totals; recorded under the 3.5.0 bugfixes in API-CHANGELOG.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:dangell7/escrow-gateway-locked",
+   "additions": 60,
+   "deletions": 7,
+   "changedFiles": 5,
+   "commits": 4,
+   "reviewComments": 5,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-27T15:18:54Z",
+     "body": "Found 1 non-blocking issue — see inline."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-27T15:40:47Z",
+     "body": "### 🟢 Approval recommended\n\nStatic review found no blocking issues in the issuer filter, regression coverage, or redundant-check removals; tests were not executed.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nCorrects `gateway_balances` so `locked` totals include only tokens issued by the queried account, preventing other issuers’ escrows from inflating those totals.\n\n**Changes:**\n- Filters out escrows belonging to other token issuers.\n- Adds regression coverage for incoming, outgoing, and own-issued token escrows, and documents the API correction.\n- Removes impossible MPT upper-bound comparisons from escrow and clawback preflight checks.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​xrpld/​rpc/​handlers/​account/​GatewayBalances.cpp` | Restricts locked totals to the queried account’s issued tokens. |\n| `src/​test/​rpc/​GatewayBalances_test.cpp` | Adds regression coverage for escrow issuer filtering. |\n| `src/​libxrpl/​tx/​transactors/​token/​Clawback.cpp` | Removes a redundant MPT comparison and unused includes. |\n| `src/​libxrpl/​tx/​transactors/​escrow/​EscrowCreate.cpp` | Removes a redundant MPT comparison and unused include. |\n| `API-CHANGELOG.md` | Documents corrected `gateway_balances` totals under version 3.5.0. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "mvadari",
+     "state": "CHANGES_REQUESTED",
+     "date": "2026-11-04T23:14:09Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "date": "2026-10-27T15:18:55Z",
+     "path": "src/xrpld/rpc/handlers/account/GatewayBalances.cpp",
+     "body": "Issuer check excludes native XRP escrows unintentionally - guard with `!escrow.native()`:\n\n```suggestion\n                if (escrow.holds<MPTIssue>() || (!escrow.native() && escrow.getIssuer() != accountID))\n```\n\nAlso add a test case covering native-XRP escrow to prevent regression.",
+     "url": "https://github.com/XRPLF/rippled/pull/8646#discussion_r4390520203"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-11-04T23:13:07Z",
+     "path": "src/libxrpl/tx/transactors/escrow/EscrowCreate.cpp",
+     "body": "Why is this removed?",
+     "url": "https://github.com/XRPLF/rippled/pull/8646#discussion_r4474531142"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-11-04T23:13:13Z",
+     "path": "src/libxrpl/tx/transactors/token/Clawback.cpp",
+     "body": "Ditto here",
+     "url": "https://github.com/XRPLF/rippled/pull/8646#discussion_r4474531793"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-11-04T23:13:56Z",
+     "path": "src/xrpld/rpc/handlers/account/GatewayBalances.cpp",
+     "body": "This should make sure to exclude XRP escrows",
+     "url": "https://github.com/XRPLF/rippled/pull/8646#discussion_r4474537655"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-11-04T23:14:05Z",
+     "path": "API-CHANGELOG.md",
+     "body": "This will need to be moved to 3.6",
+     "url": "https://github.com/XRPLF/rippled/pull/8646#discussion_r4474538969"
+    }
+   ]
+  },
+  {
+   "number": 8689,
+   "title": "test: Add Smart Escrow tests as Batch inners",
+   "url": "https://github.com/XRPLF/rippled/pull/8689",
+   "state": "open",
+   "author": "pwang200",
+   "createdAt": "2026-11-04T20:04:37Z",
+   "updatedAt": "2026-11-04T20:07:11Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-11-04T20:07:11Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8689?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8689#issuecomment-6640870157"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds `src/test/app/EscrowSmartBatch_test.cpp`, which tests Smart Escrow transactions (EscrowCreate with `Bytecode`, EscrowFinish with `Gas`) as Batch inners. Tests only; no behavior change.\n\n## Context of Change\n\nBatch already accepts Smart Escrow inners, and the outer fee already includes each inner's own fee, but nothing tested either. The new suite covers:\n\n- The SmartEscrow amendment still gates `Bytecode` and `Gas` inside a Batch (`temINVALID_INNER_BATCH`).\n- One batch can create a smart escrow and finish it.\n- An inner finish runs its contract, and the batch mode acts on the answer: approve, reject under independent, reject under all-or-nothing.\n- The outer fee covers the inners' Gas and Bytecode charges: one drop short is refused, the exact fee is accepted. A flat per-inner fee in `Batch::calculateBaseFee` fails this test (checked by temporarily making that change).\n\nThese are Beast tests rather than gtest because gtest's `TxTest` does not apply a Batch's inners.\n\n## API Impact\n\nNone (tests only).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "ripple/smart-escrow",
+   "head": "pwang200:se-batch-wasm-tests",
+   "additions": 497,
+   "deletions": 0,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [],
+   "reviewCommentsList": []
+  },
   {
    "number": 7121,
    "title": "feat: Token Escrow - Allow Blackholed Accounts",
@@ -1338,59 +1457,6 @@
      "path": "crates/xrpl-wasm-vm/src/vm.rs",
      "body": "🟡 **Severity: MEDIUM**\n\n`LazyTranslation` defers function-body translation until first call, charging 7 fuel/byte from the guest's gas. However, validation at compile time walks the entire module without metering, and runs twice per escrow finish — once in `preflightEscrowWasm` and once in `runEscrowWasm`. A 200KB adversarial module forces ~400KB of unmetered validation work on every validator that processes the transaction, with no gas or fee proportional to this CPU cost.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** This is a resource accounting gap where WASM module validation during `Module::new()` runs without fuel metering, and happens twice per escrow transaction (once in `check`/preflight and once in `run`). Several mitigations should be considered:\n\n1. **Add an explicit WASM bytecode size cap in the `compile()` function** (line 310-312 in vm.rs) before calling `Module::new()`. This would bound the unmetered validation work. For example, add a check like `if wasm.len() > MAX_WASM_BYTES { return Err(...) }` with a constant tighter than the 1MB transaction size limit.\n\n2. **Cache the compiled `Module`** between the preflight check and the run phase to avoid double validation/compilation. Currently `check()` in `preflight/mod.rs` (line 77) calls `compile(&wasm_engine(), wasm)` and discards the module, then `run()` in `vm.rs` (line 323) compiles it again. Passing the already-compiled module from preflight to run would halve the unmetered work.\n\n3. **Ensure the transaction fee is proportional to WASM size**, not just the gas allowance, so that the cost of unmetered validation is covered by the fee charged to the submitter.\n\nThe simplest immediate mitigation is option (1): adding a WASM size cap in `compile()` before `Module::new()` is called.\n\n</details>",
      "url": "https://github.com/XRPLF/rippled/pull/6329#discussion_r4261113352"
-    }
-   ]
-  },
-  {
-   "number": 8646,
-   "title": "fix: Count only own-issued escrows in gateway_balances",
-   "url": "https://github.com/XRPLF/rippled/pull/8646",
-   "state": "open",
-   "author": "dangell7",
-   "createdAt": "2026-10-27T15:11:40Z",
-   "updatedAt": "2026-10-27T15:40:47Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-27T15:14:23Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8646?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8646#issuecomment-6445754959"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\n- `gateway_balances`: `locked` counts only escrows of tokens the queried account issues. An escrow of another issuer's token that the account sends or receives was added to the account's own total under the same currency code.\n- `EscrowCreate::preflight` and `Clawback` MPT preflight: drop `amount.mpt() > MPTAmount{kMaxMpTokenAmount}`, which can never be true.\n\n## Context of Change\n\n`GatewayBalances` walks every entry in the account's owner directory. An `Escrow` sits in the directories of its source, its destination and, through `sfIssuerNode`, its issuer, so the source and destination see escrows of tokens they do not issue. The escrow branch keyed `locked` by currency only, so a gateway that escrows or receives an escrow of another issuer's USD reported it as locked USD of its own. The branch now skips an escrow whose issuer is not the queried account, the same rule the issuer's own `sfIssuerNode` entry already satisfies.\n\n`MPTAmount::value_type` is `std::int64_t` and `kMaxMpTokenAmount` is `INT64_MAX`, so `mpt() > MPTAmount{kMaxMpTokenAmount}` is always false. It is not harmless either: `STAmount::mpt()` negates the mantissa for a negative amount, and a negative-flagged mantissa of 2^63 negates `INT64_MIN`. That input is reachable only without `fixCleanup3_2_0`, since with it `preflightUniversal` rejects it through `isLegalMPT`. Deleting the clause changes no result. Replacing it with `isLegalMPT` would change results on ledgers without the fix and need an amendment.\n\n## API Impact\n\nNo field is added or removed. `gateway_balances` reports corrected `locked` totals; recorded under the 3.5.0 bugfixes in API-CHANGELOG.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "XRPLF:dangell7/escrow-gateway-locked",
-   "additions": 60,
-   "deletions": 7,
-   "changedFiles": 5,
-   "commits": 4,
-   "reviewComments": 1,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-27T15:18:54Z",
-     "body": "Found 1 non-blocking issue — see inline."
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-27T15:40:47Z",
-     "body": "### 🟢 Approval recommended\n\nStatic review found no blocking issues in the issuer filter, regression coverage, or redundant-check removals; tests were not executed.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nCorrects `gateway_balances` so `locked` totals include only tokens issued by the queried account, preventing other issuers’ escrows from inflating those totals.\n\n**Changes:**\n- Filters out escrows belonging to other token issuers.\n- Adds regression coverage for incoming, outgoing, and own-issued token escrows, and documents the API correction.\n- Removes impossible MPT upper-bound comparisons from escrow and clawback preflight checks.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​xrpld/​rpc/​handlers/​account/​GatewayBalances.cpp` | Restricts locked totals to the queried account’s issued tokens. |\n| `src/​test/​rpc/​GatewayBalances_test.cpp` | Adds regression coverage for escrow issuer filtering. |\n| `src/​libxrpl/​tx/​transactors/​token/​Clawback.cpp` | Removes a redundant MPT comparison and unused includes. |\n| `src/​libxrpl/​tx/​transactors/​escrow/​EscrowCreate.cpp` | Removes a redundant MPT comparison and unused include. |\n| `API-CHANGELOG.md` | Documents corrected `gateway_balances` totals under version 3.5.0. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "date": "2026-10-27T15:18:55Z",
-     "path": "src/xrpld/rpc/handlers/account/GatewayBalances.cpp",
-     "body": "Issuer check excludes native XRP escrows unintentionally - guard with `!escrow.native()`:\n\n```suggestion\n                if (escrow.holds<MPTIssue>() || (!escrow.native() && escrow.getIssuer() != accountID))\n```\n\nAlso add a test case covering native-XRP escrow to prevent regression.",
-     "url": "https://github.com/XRPLF/rippled/pull/8646#discussion_r4390520203"
     }
    ]
   },
@@ -3005,57 +3071,6 @@
      "state": "APPROVED",
      "date": "2026-09-22T21:42:55Z",
      "body": "This is a merge of develop into the smart-escrow branch. The substantive change adds amendment-gated (featureConfidentialMPTKeyRotation) staleness checks to ConfidentialMPTConvert, ConfidentialMPTConvertBack, and ConfidentialMPTSend, rejecting operations with tecNO_PERMISSION when a holder's homomorphic mirrors are encrypted under a rotated-out key, plus corresponding mirror-epoch initialization in doApply. The logic is consistent across the three transactors (each correctly checks the mirrors relevant to its operation: single holder for Convert/ConvertBack, both sender and destination for Send), is properly amendment-gated, and is paired with extensive new test coverage in ConfidentialMPTKeyRotation_test.cpp exercising first-time initialization, partial/full key rotation, and auditor-only rotation scenarios. No correctness, security, or resource issues stood out in the changed lines."
-    }
-   ],
-   "reviewCommentsList": []
-  },
-  {
-   "number": 8256,
-   "title": "chore: Merge develop into ripple/smart-escrow",
-   "url": "https://github.com/XRPLF/rippled/pull/8256",
-   "state": "closed",
-   "author": "TimothyBanks",
-   "createdAt": "2026-09-21T21:05:45Z",
-   "updatedAt": "2026-09-22T22:02:43Z",
-   "closedAt": "2026-09-22T22:02:43Z",
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-21T21:07:59Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8256?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8256#issuecomment-5767537378"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\n\n\n## Context of Change\n\n\n\n## API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "ripple/smart-escrow",
-   "head": "XRPLF:timothybanks/merge-upstream",
-   "additions": 109,
-   "deletions": 72,
-   "changedFiles": 8,
-   "commits": 3,
-   "reviewComments": 0,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-21T21:13:01Z",
-     "body": "This diff adds new test cases to ConfidentialMPTKeyRotation_test.cpp covering mirror-epoch behavior for convert, send, convertBack, and clawback operations under key rotation. The added code is test-only, follows existing patterns in the file, and no production code is modified. No correctness, security, or resource issues were found in the new test code."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-22T00:54:40Z",
-     "body": "This diff is a merge of develop into ripple/smart-escrow, and the changes shown are entirely within test files: a terminology rename (Accrual → InstantRecognition / whole-life → instant-recognition) across LendingHelpers_test.cpp, LoanCashBasis_test.cpp, and LoanTestBase.h, plus additive test coverage in InvariantsVault_test.cpp (new ValidLoan invariant cases for TotalValueOutstanding), LoanRounding_test.cpp (refactored setup via createVaultAndBroker/BrokerParameters plus a new featureLendingProtocolV1_1 run), and LoanSet_test.cpp (new testLoanSetOriginationFeeTwoMptCreates). No production/library code is touched. The test logic in the new/changed blocks appears internally consistent (seed values, expected invariant messages, and dispatcher assertions line up), and per review policy, naming/rename-only changes and test style are not flagged. I did not find any correctness, security, or resource-leak issues introduced by this diff."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-22T21:36:22Z",
-     "body": "This is a bug-fix merge from develop into the smart-escrow branch. The two functional changes are correct: `calculateAdditionalReserve` now does proper ceiling division (with an explicit size==0 guard, since ceiling-div-by-subtracting-one would otherwise yield 0), and `normalizeCacheIndex` now validates the raw index before decrementing rather than after, which also avoids doing arithmetic on an out-of-range value before the bounds check. The WasmBench README/`.cpp` changes correct a variable-name mismatch (`suggested_gas` → `implied_gas`) consistently, and the new `BytecodeReserve` test locks in explicit expected values instead of re-deriving them from the same formula being tested. The remaining changes are mechanical duplicate `[[nodiscard]]` removals and a doc typo fix. No new bugs, security issues, or correctness problems were introduced by this diff."
     }
    ],
    "reviewCommentsList": []
