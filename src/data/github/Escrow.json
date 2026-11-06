@@ -1,6 +1,6 @@
 {
  "name": "Escrow",
- "fetchedAt": "2026-11-05T09:03:56.080Z",
+ "fetchedAt": "2026-11-06T09:03:37.478Z",
  "summary": {
   "status": "in development",
   "prs": 11,
@@ -21,10 +21,10 @@
    "smart-escrow/versioning",
    "timothybanks/smart-escrow-deletion"
   ],
-  "lastActivity": "2026-11-04T23:14:09Z",
+  "lastActivity": "2026-11-05T14:23:26Z",
   "lastMerged": "2026-10-16T13:37:35Z",
   "release": "0.60.0",
-  "totalComments": 426
+  "totalComments": 427
  },
  "release": {
   "version": "0.60.0",
@@ -33,6 +33,45 @@
   "excerpt": "Escrow**"
  },
  "prs": [
+  {
+   "number": 8689,
+   "title": "test: Add Smart Escrow tests as Batch inners",
+   "url": "https://github.com/XRPLF/rippled/pull/8689",
+   "state": "open",
+   "author": "pwang200",
+   "createdAt": "2026-11-04T20:04:37Z",
+   "updatedAt": "2026-11-05T14:23:26Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-11-04T20:07:11Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8689?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8689#issuecomment-6640870157"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nAdds `src/test/app/EscrowSmartBatch_test.cpp`, which tests Smart Escrow transactions (EscrowCreate with `Bytecode`, EscrowFinish with `Gas`) as Batch inners. Tests only; no behavior change.\n\n## Context of Change\n\nBatch already accepts Smart Escrow inners, and the outer fee already includes each inner's own fee, but nothing tested either. The new suite covers:\n\n- The SmartEscrow amendment still gates `Bytecode` and `Gas` inside a Batch (`temINVALID_INNER_BATCH`).\n- One batch can create a smart escrow and finish it.\n- An inner finish runs its contract, and the batch mode acts on the answer: approve, reject under independent, reject under all-or-nothing.\n- The outer fee covers the inners' Gas and Bytecode charges: one drop short is refused, the exact fee is accepted. A flat per-inner fee in `Batch::calculateBaseFee` fails this test (checked by temporarily making that change).\n\nThese are Beast tests rather than gtest because gtest's `TxTest` does not apply a Batch's inners.\n\n## API Impact\n\nNone (tests only).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "ripple/smart-escrow",
+   "head": "pwang200:se-batch-wasm-tests",
+   "additions": 497,
+   "deletions": 0,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "TimothyBanks",
+     "state": "APPROVED",
+     "date": "2026-11-05T14:23:26Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": []
+  },
   {
    "number": 8646,
    "title": "fix: Count only own-issued escrows in gateway_balances",
@@ -119,38 +158,6 @@
      "url": "https://github.com/XRPLF/rippled/pull/8646#discussion_r4474538969"
     }
    ]
-  },
-  {
-   "number": 8689,
-   "title": "test: Add Smart Escrow tests as Batch inners",
-   "url": "https://github.com/XRPLF/rippled/pull/8689",
-   "state": "open",
-   "author": "pwang200",
-   "createdAt": "2026-11-04T20:04:37Z",
-   "updatedAt": "2026-11-04T20:07:11Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-11-04T20:07:11Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8689?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8689#issuecomment-6640870157"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nAdds `src/test/app/EscrowSmartBatch_test.cpp`, which tests Smart Escrow transactions (EscrowCreate with `Bytecode`, EscrowFinish with `Gas`) as Batch inners. Tests only; no behavior change.\n\n## Context of Change\n\nBatch already accepts Smart Escrow inners, and the outer fee already includes each inner's own fee, but nothing tested either. The new suite covers:\n\n- The SmartEscrow amendment still gates `Bytecode` and `Gas` inside a Batch (`temINVALID_INNER_BATCH`).\n- One batch can create a smart escrow and finish it.\n- An inner finish runs its contract, and the batch mode acts on the answer: approve, reject under independent, reject under all-or-nothing.\n- The outer fee covers the inners' Gas and Bytecode charges: one drop short is refused, the exact fee is accepted. A flat per-inner fee in `Batch::calculateBaseFee` fails this test (checked by temporarily making that change).\n\nThese are Beast tests rather than gtest because gtest's `TxTest` does not apply a Batch's inners.\n\n## API Impact\n\nNone (tests only).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "ripple/smart-escrow",
-   "head": "pwang200:se-batch-wasm-tests",
-   "additions": 497,
-   "deletions": 0,
-   "changedFiles": 1,
-   "commits": 1,
-   "reviewComments": 0,
-   "reviews": [],
-   "reviewCommentsList": []
   },
   {
    "number": 7121,
