@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-11-09T09:01:30.901Z",
+ "fetchedAt": "2026-11-10T09:02:10.963Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-11-04T23:15:41Z",
+  "lastActivity": "2026-11-10T03:25:01Z",
   "lastMerged": "2026-10-20T14:08:01Z",
   "release": "0.90.0",
-  "totalComments": 432
+  "totalComments": 436
  },
  "release": {
   "version": "0.90.0",
@@ -24,6 +24,93 @@
   "excerpt": "The `Checks` amendment, which allows users to create deferred payments that can be cancelled or cashed by their intended recipients."
  },
  "prs": [
+  {
+   "number": 8424,
+   "title": "refactor: Use RippleStateEntry checks in nft trust line helpers",
+   "url": "https://github.com/XRPLF/rippled/pull/8424",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-09-30T13:32:10Z",
+   "updatedAt": "2026-11-10T03:25:01Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-30T13:33:45Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8424?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5912368592"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-05T14:52:31Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5996966375"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-05T14:52:46Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5996970626"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-11-09T21:25:39Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-6751869815"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-11-10T03:08:23Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-6757844361"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n`nft::checkTrustlineAuthorized` and `nft::checkTrustlineDeepFrozen` test the same line flags as `RippleStateEntry::isAuthorized` (#8391) and `isDeepFrozen` (#8386), so they now call those members. The functions stay free and keep their names and callers: they also read the issuer AccountRoot, check `fixEnforceNFTokenTrustlineV2`/`featureDeepFreeze`, and handle a missing line, so they do not fit on a single entry. The old deep-freeze check read `sfFlags` with a mask; `isDeepFrozen()` tests the same two single-bit flags with `isFlag`.\n\n## Context of Change\n\nPart of the Wrapped SLEs migration (design: step 2/3 of https://github.com/XRPLF/rippled/pull/7886). Trust line flag logic has one home on the typed wrapper instead of a copy in the NFToken helpers. Pure refactor: no amendment, no behavior change; any observable difference is a bug.\n\nStacked on #8422; review only the last commit.\n\nThis PR was fully written by AI (Claude Code) under human direction; the human author reviewed the diff.\n\n## API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nCompile-checked (`clang++ -fsyntax-only`) all 28 .cpp files that include `RippleStateEntry.h` or `RippleStateHelpers.h` or that this PR changes; clang-tidy and pre-commit clean on the changed files. No new tests (moved members get tests in a later pass). CI runs the full unit test suite.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "mvadari/rearch/ripplestate-removeEmptyHolding",
+   "head": "XRPLF:mvadari/rearch/ripplestate-nftCheckTrustline",
+   "additions": 2,
+   "deletions": 5,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-30T13:33:47Z",
+     "body": "Two-hunk refactor replacing manual trust-line flag checks with new RippleStateEntry helper calls (isAuthorized, isDeepFrozen). The deep-freeze replacement is a straightforward, verifiably equivalent simplification (OR of two single-bit flags matches the original bitmask check). The authorization replacement collapses a ternary flag selection into a two-argument call whose internal semantics aren't visible in this diff, so I can't independently confirm the argument order preserves the original id-vs-issue.account comparison — flagging as a verification item rather than an asserted bug, since a swap here would silently affect an authorization gate."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-30T18:02:47Z",
+     "body": "Clean, mechanical refactor: two call sites in NFTokenHelpers.cpp now delegate to RippleStateEntry::isAuthorized and RippleStateEntry::isDeepFrozen instead of doing the flag math inline. The replaced logic reads consistent with the original (side-selection via id > issue.account for auth; either-side flag for deep freeze), and the PR explicitly scopes this to a pure refactor stacked on prior PRs that already added/tested these members. No changed lines exhibit new bugs, resource issues, or security concerns."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-05T14:53:16Z",
+     "body": "This is a small, well-scoped refactor that replaces manual trust-line flag checks with the existing `RippleStateEntry::isAuthorized`/`isDeepFrozen` helper methods. Both replaced blocks appear semantically equivalent to the removed logic (same flags for deep freeze; same canonical-ordering concern for authorization, now encapsulated in `isAuthorized`). No correctness, security, or style issues found in the changed lines; the lack of new tests is already explicitly acknowledged in the PR description as deferred to a later pass."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-09T21:31:33Z",
+     "body": "No issues found."
+    },
+    {
+     "author": "xrplf-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-10T03:25:00Z",
+     "body": "No issues found."
+    }
+   ],
+   "reviewCommentsList": []
+  },
   {
    "number": 8627,
    "title": "perf: Avoid memory allocations during Batch preflight checks",
@@ -2599,69 +2686,6 @@
      "url": "https://github.com/XRPLF/rippled/pull/6517#discussion_r4218587963"
     }
    ]
-  },
-  {
-   "number": 8424,
-   "title": "refactor: Use RippleStateEntry checks in nft trust line helpers",
-   "url": "https://github.com/XRPLF/rippled/pull/8424",
-   "state": "open",
-   "author": "mvadari",
-   "createdAt": "2026-09-30T13:32:10Z",
-   "updatedAt": "2026-10-05T14:53:16Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-30T13:33:45Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8424?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5912368592"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-05T14:52:31Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5996966375"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-05T14:52:46Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5996970626"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\n`nft::checkTrustlineAuthorized` and `nft::checkTrustlineDeepFrozen` test the same line flags as `RippleStateEntry::isAuthorized` (#8391) and `isDeepFrozen` (#8386), so they now call those members. The functions stay free and keep their names and callers: they also read the issuer AccountRoot, check `fixEnforceNFTokenTrustlineV2`/`featureDeepFreeze`, and handle a missing line, so they do not fit on a single entry. The old deep-freeze check read `sfFlags` with a mask; `isDeepFrozen()` tests the same two single-bit flags with `isFlag`.\n\n## Context of Change\n\nPart of the Wrapped SLEs migration (design: step 2/3 of https://github.com/XRPLF/rippled/pull/7886). Trust line flag logic has one home on the typed wrapper instead of a copy in the NFToken helpers. Pure refactor: no amendment, no behavior change; any observable difference is a bug.\n\nStacked on #8422; review only the last commit.\n\nThis PR was fully written by AI (Claude Code) under human direction; the human author reviewed the diff.\n\n## API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nCompile-checked (`clang++ -fsyntax-only`) all 28 .cpp files that include `RippleStateEntry.h` or `RippleStateHelpers.h` or that this PR changes; clang-tidy and pre-commit clean on the changed files. No new tests (moved members get tests in a later pass). CI runs the full unit test suite.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "mvadari/rearch/ripplestate-removeEmptyHolding",
-   "head": "XRPLF:mvadari/rearch/ripplestate-nftCheckTrustline",
-   "additions": 2,
-   "deletions": 5,
-   "changedFiles": 1,
-   "commits": 1,
-   "reviewComments": 0,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-30T13:33:47Z",
-     "body": "Two-hunk refactor replacing manual trust-line flag checks with new RippleStateEntry helper calls (isAuthorized, isDeepFrozen). The deep-freeze replacement is a straightforward, verifiably equivalent simplification (OR of two single-bit flags matches the original bitmask check). The authorization replacement collapses a ternary flag selection into a two-argument call whose internal semantics aren't visible in this diff, so I can't independently confirm the argument order preserves the original id-vs-issue.account comparison — flagging as a verification item rather than an asserted bug, since a swap here would silently affect an authorization gate."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-30T18:02:47Z",
-     "body": "Clean, mechanical refactor: two call sites in NFTokenHelpers.cpp now delegate to RippleStateEntry::isAuthorized and RippleStateEntry::isDeepFrozen instead of doing the flag math inline. The replaced logic reads consistent with the original (side-selection via id > issue.account for auth; either-side flag for deep freeze), and the PR explicitly scopes this to a pure refactor stacked on prior PRs that already added/tested these members. No changed lines exhibit new bugs, resource issues, or security concerns."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-05T14:53:16Z",
-     "body": "This is a small, well-scoped refactor that replaces manual trust-line flag checks with the existing `RippleStateEntry::isAuthorized`/`isDeepFrozen` helper methods. Both replaced blocks appear semantically equivalent to the removed logic (same flags for deep freeze; same canonical-ordering concern for authorization, now encapsulated in `isAuthorized`). No correctness, security, or style issues found in the changed lines; the lack of new tests is already explicitly acknowledged in the PR description as deferred to a later pass."
-    }
-   ],
-   "reviewCommentsList": []
   },
   {
    "number": 6141,
