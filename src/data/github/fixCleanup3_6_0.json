@@ -1,6 +1,6 @@
 {
  "name": "fixCleanup3_6_0",
- "fetchedAt": "2026-11-10T09:11:25.591Z",
+ "fetchedAt": "2026-11-11T09:11:15.416Z",
  "summary": {
   "status": "in development",
   "prs": 2,
@@ -9,9 +9,9 @@
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-11-10T04:19:03Z",
+  "lastActivity": "2026-11-10T16:48:10Z",
   "lastMerged": "2026-11-04T00:03:39Z",
-  "totalComments": 6
+  "totalComments": 8
  },
  "release": {},
  "prs": [
@@ -22,7 +22,7 @@
    "state": "open",
    "author": "muhammadsalah",
    "createdAt": "2026-11-09T17:30:44Z",
-   "updatedAt": "2026-11-10T04:19:03Z",
+   "updatedAt": "2026-11-10T16:48:10Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -43,7 +43,7 @@
    "deletions": 20,
    "changedFiles": 8,
    "commits": 3,
-   "reviewComments": 0,
+   "reviewComments": 1,
    "reviews": [
     {
      "author": "copilot-pull-request-reviewer[bot]",
@@ -56,9 +56,23 @@
      "state": "COMMENTED",
      "date": "2026-11-10T04:19:03Z",
      "body": "Thanks for picking this back up. The exact integer path, the gate and the zero-payout check all look right to me. I also checked that the rounded-up deposit charge can never exceed the amount offered: the share count is floored from the amount, so the ceiling of its value is at most the amount. Two things:\n\n**1. Clawback still rounds to nearest.**\n`VaultClawback.cpp:307`, `:327` and `:349` still use the legacy conversion. The description notes this, and it leaves the same dilution in place.\n\nExample: a vault holds 100 units with 3 shares outstanding. Clawing back 67 from a holder with 2 shares burns both shares and recovers 67, although they were worth 66⅔. The remaining share drops from 33⅓ to 33. The 3_4_0 truncation bounds recovery by the requested amount, and the `AssetsAvailable` clamp bounds it by what's available, but neither bounds it by fair value.\n\nChanging just those three calls to `FavorVault` isn't quite enough. A recovery that floors to zero would burn shares without moving the vault balance, and the clawback invariant rejects that for a non-empty vault (`VaultInvariant.cpp:1445-1449`). So it needs explicit zero-recovery handling, like the new withdraw guard. I'm fine with it as a follow-up under the same amendment, or a sentence in the description on why it's out of scope. It would be nice to settle before 3_6_0 ships, so it doesn't need another amendment later.\n\n**2. Helper tests with nonzero unrealized loss.**\nEvery `FavorVault` helper case uses `makeVaultAndIssuance`, which sets `sfLossUnrealized` to 0 (`VaultHelpers_test.cpp:603`), and `WaiveUnrealizedLoss::No`. Both withdraw helpers feed `AssetsTotal − LossUnrealized` into the integer path, so it has to be a whole number. Could you add XRP/MPT helper cases with `LossUnrealized > 0`, a non-zero payout, and both `WaiveUnrealizedLoss` values? `LoanRounding_test` already covers the impaired zero-payout and fully-impaired cases through the transactors, so those don't need repeating.\n\nFYI: #8358 changes these helpers to take `VaultEntryR const&`, which needs a view to construct. Whichever PR lands second will need a small rebase, including the helper tests that pass raw SLEs.\n\nHappy to approve once item 2 is in and item 1 is either handled or noted as a follow-up."
+    },
+    {
+     "author": "BraedonKlock",
+     "state": "COMMENTED",
+     "date": "2026-11-10T16:48:10Z",
+     "body": ""
     }
    ],
-   "reviewCommentsList": []
+   "reviewCommentsList": [
+    {
+     "author": "BraedonKlock",
+     "date": "2026-11-10T16:48:10Z",
+     "path": "src/libxrpl/ledger/helpers/VaultHelpers.cpp",
+     "body": "Would it make sense to declare `rounding` as `const` ? Although it's passed by value and modifying it wouldn't affect the original, using `const` would explicitly communicate that the parameter isn't intended to be modified. I think this would improve maintainability, since readers wouldn't need to inspect the function to determine whether it's reassigned.",
+     "url": "https://github.com/XRPLF/rippled/pull/8708#discussion_r4527769944"
+    }
+   ]
   },
   {
    "number": 8681,
