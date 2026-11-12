@@ -1,11 +1,11 @@
 {
  "name": "Batch",
- "fetchedAt": "2026-11-11T09:01:27.013Z",
+ "fetchedAt": "2026-11-12T09:01:25.779Z",
  "summary": {
   "status": "in development",
   "prs": 12,
-  "open": 10,
-  "merged": 1,
+  "open": 9,
+  "merged": 2,
   "issues": 0,
   "proposals": 3,
   "branches": [
@@ -21,10 +21,10 @@
    "mvadari/batch-multisign-prefix",
    "ripple/custody-old-batch-cmpt"
   ],
-  "lastActivity": "2026-11-11T03:22:07Z",
-  "lastMerged": "2026-11-03T20:12:06Z",
+  "lastActivity": "2026-11-12T05:27:29Z",
+  "lastMerged": "2026-11-11T23:46:18Z",
   "release": "2.5.0",
-  "totalComments": 423
+  "totalComments": 434
  },
  "release": {
   "version": "2.5.0",
@@ -40,7 +40,7 @@
    "state": "open",
    "author": "dangell7",
    "createdAt": "2026-10-10T12:53:06Z",
-   "updatedAt": "2026-11-11T03:22:07Z",
+   "updatedAt": "2026-11-12T05:27:29Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -69,20 +69,20 @@
    "draft": false,
    "base": "develop",
    "head": "XRPLF:dangell7/batch-delivermax",
-   "additions": 880,
+   "additions": 885,
    "deletions": 49,
    "changedFiles": 16,
-   "commits": 35,
-   "reviewComments": 10,
+   "commits": 37,
+   "reviewComments": 12,
    "reviews": [
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-10-10T12:55:46Z",
      "body": "This change extends DeliverMax handling to inner Batch Payments and to simulate/submit responses, consolidating the alias logic into insertDeliverMax/removeDeliverMax. The refactor is coherent: removeDeliverMax is correctly short-circuited on a differing Amount/DeliverMax error, is applied before fee autofill (matching the stated rationale), and insertDeliverMax's Batch branch mutates inner RawTransaction objects by reference as needed. Call sites in TransactionSign.cpp, Simulate.cpp, and Submit.cpp appear consistently wired to match the CHANGELOG claims, and the accompanying tests exercise sign/submit/simulate/tx/transaction_entry/ledger/account_tx across API versions. I did not find a confident correctness or security bug introduced by the added lines."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-10-10T13:11:34Z",
      "body": "The change plumbs DeliverMax handling into inner Batch Payments and into simulate/submit output rendering, and adds solid coverage for those specific paths (Batch via sign+submit, simulate, submit with tx_blob). The one thing I can't verify from the diff alone is call order in TransactionSign.cpp: checkPayment() had its DeliverMax-alias logic deleted and now only checks `txJson.isMember(jss::Amount)`, while the new `removeDeliverMax()` call is inserted elsewhere in transactionPreProcessImpl/transactionSubmitMultiSigned. If checkPayment still runs before that insertion point, a bare top-level Payment signed via `sign`/`submit_multisigned` with only `DeliverMax` (no `Amount`) would now be rejected with a missing-field error — a regression on exactly the feature this PR adds. None of the new tests catch this because they all route around checkPayment's Amount check (Batch's top-level type isn't Payment so checkPayment short-circuits; simulate and tx_blob submit never call checkPayment at all)."
@@ -112,7 +112,7 @@
      "body": ""
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-10-25T04:21:28Z",
      "body": "No issues found."
@@ -136,7 +136,7 @@
      "body": "### 🟡 Changes recommended\n\nSupported numeric transaction-type representations bypass alias normalization, leaving valid Batch requests using `DeliverMax` rejected.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Accept numeric transaction types when validating DeliverMax](https://github.com/XRPLF/rippled/pull/8558#discussion_r4369711617) · New\n</details>\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Traverse all RawTransactions object wrappers](https://github.com/XRPLF/rippled/pull/8558#discussion_r4237747708)\n</details>\n\n<sub>Review effort: Balanced</sub>"
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-10-25T05:01:01Z",
      "body": "No issues found."
@@ -148,7 +148,7 @@
      "body": ""
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-10-25T05:38:02Z",
      "body": "No issues found."
@@ -160,127 +160,127 @@
      "body": "### 🔵 Needs a closer look\n\nRemoving `Amount` from existing API version 2 response paths warrants human compatibility sign-off.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Accept numeric transaction types when validating DeliverMax](https://github.com/XRPLF/rippled/pull/8558#discussion_r4369711617)\n</details>\n\n<sub>Review effort: Balanced</sub>"
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-10-26T12:56:59Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-10-27T14:28:20Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-03T17:51:29Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-03T20:25:00Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-03T21:04:02Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-03T21:42:03Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-03T22:11:24Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-03T22:54:29Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-03T23:56:20Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-04T00:38:33Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-04T01:43:57Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-04T15:21:53Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-04T16:28:12Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-04T16:57:20Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-05T14:41:08Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-05T15:25:55Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-05T21:08:13Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-06T17:56:39Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-09T11:24:03Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-09T14:53:22Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-09T16:47:03Z",
      "body": "No issues found."
@@ -292,7 +292,7 @@
      "body": "### 🔵 Needs a closer look\n\nRemoving Amount from existing API v2 Batch, simulate, and submit responses requires maintainer confirmation that this qualifies as a bugfix under the API-stability policy rather than requiring a new API version.\n\n**No open issues** 🎉\n\n<sub>Review effort: Balanced</sub>"
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-10T16:20:12Z",
      "body": "No issues found."
@@ -304,13 +304,13 @@
      "body": "### 🟢 Approval recommended\n\nNo active review issues are recorded for the DeliverMax handling changes.\n\n**No open issues** 🎉\n\n<sub>Review effort: Balanced</sub>"
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-10T17:28:15Z",
      "body": "No issues found."
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "CHANGES_REQUESTED",
      "date": "2026-11-10T19:47:52Z",
      "body": "Found 1 blocking issue — see inline."
@@ -322,9 +322,39 @@
      "body": "### 🟡 Changes recommended\n\nFour public API changes are documented under 3.5.0 bugfixes instead of the required Unreleased section.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document API changes under Unreleased](https://github.com/XRPLF/rippled/pull/8558#discussion_r4529845687) · New\n</details>\n\n<sub>Review effort: Balanced</sub>"
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "state": "APPROVED",
      "date": "2026-11-11T03:22:07Z",
+     "body": "No issues found."
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-11-12T04:47:18Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-11-12T04:47:20Z",
+     "body": ""
+    },
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-12T04:51:57Z",
+     "body": "No issues found."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-11-12T04:58:54Z",
+     "body": "### 🟢 Approval recommended\n\nNo active review issues block approval of the DeliverMax consistency changes.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Document API changes under Unreleased](https://github.com/XRPLF/rippled/pull/8558#discussion_r4529845687)\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-12T05:27:29Z",
      "body": "No issues found."
     }
    ],
@@ -386,7 +416,7 @@
      "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4369793923"
     },
     {
-     "author": "xrplf-ai-reviewer[bot]",
+     "author": "ripple-ai-reviewer[bot]",
      "date": "2026-11-10T19:47:51Z",
      "path": "src/libxrpl/protocol/STParsedJSON.cpp",
      "body": "Missing `sfGeneric` → `sfTransaction` rename for string TransactionType names. Re-add the reassignment:\n\n```suggestion:-0+1\n            if (*name == sfGeneric)\n                name = &sfTransaction;\n            return detail::makeStvar<STResult>(\n                field, safeCast<typename STResult::value_type>(*txType));\n```",
@@ -398,6 +428,165 @@
      "path": "API-CHANGELOG.md",
      "body": "These API changes are recorded under `Bugfixes in 3.5.0`, but `src/xrpld/rpc/AGENTS.md:5` requires publicly visible behavior changes to be documented under `## Unreleased`, creating that section above the latest server-version heading when absent. Please move these four entries into that section rather than attributing them to 3.5.0.",
      "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4529845687"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-11-12T04:47:18Z",
+     "path": "src/libxrpl/protocol/STParsedJSON.cpp",
+     "body": "I'm not re-adding it, because assigning `name` there cannot change which template applies. `name` is a by-value copy of the pointer (STParsedJSON.cpp:254, :378), parseObject passes `&inName` at :1082 and reads its own `inName` for `applyTemplateFromSField` at :1095, and InnerObjectFormats.cpp has no template for `sfGeneric` or `sfTransaction` anyway. I applied your two lines in a throwaway build and parsed a TransactionType of `\"Payment\"`, `\"0\"` and `0`, plus a Batch holding an inner Payment: the parsed JSON was byte-identical to the build without them.",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4546430613"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-11-12T04:47:20Z",
+     "path": "API-CHANGELOG.md",
+     "body": "Done, the four #8558 entries now sit under a new `## Unreleased` section with a `### Bugfixes` heading above the 3.6.0 heading, as `src/xrpld/rpc/AGENTS.md:5` asks, in 603d9909bfcf1f9e3f4f9acd0fa00ba684436ba7.",
+     "url": "https://github.com/XRPLF/rippled/pull/8558#discussion_r4546430773"
+    }
+   ]
+  },
+  {
+   "number": 8627,
+   "title": "perf: Avoid memory allocations during Batch preflight checks",
+   "url": "https://github.com/XRPLF/rippled/pull/8627",
+   "state": "closed",
+   "author": "nbougalis",
+   "createdAt": "2026-10-21T04:09:44Z",
+   "updatedAt": "2026-11-11T23:46:19Z",
+   "closedAt": "2026-11-11T23:46:18Z",
+   "labels": [
+    "Ready to merge"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-10-21T04:12:15Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8627?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#issuecomment-6307851935"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-11-04T23:15:41Z",
+     "body": "@nbougalis is this ready to merge?",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#issuecomment-6644714433"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nRemove the per-insertion heap allocations from `Batch::preflight`. The duplicate-inner-transaction and duplicate-sequence/ticket checks used an `std::unordered_set` and an `std::unordered_map` of `std::unordered_set`s; they are now `std::flat_set`s backed by a `boost::container::small_vector` sized to `kMaxBatchTxCount`, so neither container ever leaves inline storage.\n\n## Context of Change\n\n`Batch::preflight` runs for every submitted and relayed Batch, including those about to be rejected, and the two containers it used allocate per node (and, for the map, per distinct account) to hold at most eight entries. The map of sets is flattened to a set of `(account, sequence-or-ticket)` pairs: pair membership was the only query, and the preceding `temSEQ_AND_TICKET` checks already guarantee exactly one of `Sequence` and `TicketSequence` is set, so the two insert sites collapse into one. Sequences and tickets keep sharing one key space per account, and the checks run at the same point in the per-inner loop, so every result code is unchanged. No amendment is needed.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nThe change is internal to `Batch::preflight`; no `libxrpl` interface changes.\n\n## Before / After\n\n1. Improvement to existing functionality.\n2. Memory allocation behavior of `Batch::preflight`; transaction results are unchanged.\n3. Preflight of Batch transactions on the submit and relay paths (`checkValidity`, `TxQ::apply`, ledger building).\n4. No effect on concurrent processing: no locks, threads, or async work are involved.\n\n## Test Plan\n\nExisting `xrpl.app.Batch` unit tests, which assert the `temREDUNDANT` and `temSEQ_AND_TICKET` results for duplicate inners, sequences, and tickets across all four batch modes.",
+   "merged": true,
+   "mergedAt": "2026-11-11T23:46:18Z",
+   "draft": false,
+   "base": "develop",
+   "head": "nbougalis:batch-mem",
+   "additions": 29,
+   "deletions": 25,
+   "changedFiles": 1,
+   "commits": 2,
+   "reviewComments": 7,
+   "reviews": [
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-21T04:19:04Z",
+     "body": "### 🟢 Approval recommended\n\nThe bounded container changes preserve validation behavior, with only an optional comment correction remaining.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nOptimizes `Batch::preflight` duplicate checks by replacing node-based containers with inline-backed flat sets while preserving validation behavior.\n\n**Changes:**\n- Uses inline storage sized to `kMaxBatchTxCount`.\n- Combines account sequence/ticket tracking into a set of pairs.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Replaces allocating duplicate-check containers and consolidates sequence/ticket insertion. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-10-21T19:03:07Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2026-10-22T18:12:33Z",
+     "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-10-22T18:19:28Z",
+     "body": "### 🟢 Approval recommended\n\nThe bounded container replacement preserves duplicate-detection semantics and validation order, with no unresolved findings.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744)\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "dangell7",
+     "state": "APPROVED",
+     "date": "2026-10-23T16:19:17Z",
+     "body": ""
+    },
+    {
+     "author": "mvadari",
+     "state": "APPROVED",
+     "date": "2026-10-30T19:30:02Z",
+     "body": ""
+    },
+    {
+     "author": "a1q123456",
+     "state": "APPROVED",
+     "date": "2026-11-02T19:53:19Z",
+     "body": "Looks good in general but left some nits, approving."
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2026-11-11T19:54:05Z",
+     "body": ""
+    },
+    {
+     "author": "nbougalis",
+     "state": "COMMENTED",
+     "date": "2026-11-11T19:55:10Z",
+     "body": ""
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-10-21T04:19:03Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Optional: remove the extra “when” and correct “exced” to “exceed” in this comment.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-10-21T19:03:07Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "```suggestion\n            auto const seqOrTicket = stx.getSeqProxy().value();\n```",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4340799392"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2026-10-22T18:12:33Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Nice - I adopted this, in a slightly reworded version.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4351879581"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-11-02T19:47:19Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Not a blocker but I think `boost::container::static_vector` could be a better choice because we'll never push kMaxBatchTxCount + 1 elements.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4446972423"
+    },
+    {
+     "author": "a1q123456",
+     "date": "2026-11-02T19:51:25Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Not a blocker: We repeatedly read `sfSequence` and the new code we introduced calls `getSeqProxy` which also reads `sfSequence` again. I think  we can have a variable to cache the data",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4447012265"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2026-11-11T19:54:05Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "I don't think I can easily use `getSeqProxy` for these checks without requiring an amendment:\n\n```\n        // Check that Sequence and TicketSequence are not both present\n        if (stx.isFieldPresent(sfTicketSequence) && stx.getFieldU32(sfSequence) != 0)\n        {\n            JLOG(ctx.j.debug()) << \"BatchTrace[\" << parentBatchId << \"]: \"\n                                << \"inner txn must have exactly one of Sequence and \"\n                                   \"TicketSequence. \"\n                                << \"txID: \" << hash;\n            return temSEQ_AND_TICKET;\n        }\n\n        // Verify that either Sequence or TicketSequence is present\n        if (!stx.isFieldPresent(sfTicketSequence) && stx.getFieldU32(sfSequence) == 0)\n        {\n            JLOG(ctx.j.debug()) << \"BatchTrace[\" << parentBatchId << \"]: \"\n                                << \"inner txn must have either Sequence or \"\n                                   \"TicketSequence. \"\n                                << \"txID: \" << hash;\n            return temSEQ_AND_TICKET;\n        }\n```\n\nI am happy leaving this as is.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4542607150"
+    },
+    {
+     "author": "nbougalis",
+     "date": "2026-11-11T19:55:10Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "~This is a fair point. There should be no performance gain and, as you say, no problem since we'll never push `kMaxBatchTxCount + 1` elements. I'll make this change.~\n\nI don't think we can do this: libstdc++ `std::flat_set` hard-requires `is_nothrow_swappable_v<_KeyContainer>` (at least as of `gcc 15.3.0` which is what I'm using locally), and `boost::container::static_vector::swap` is not declared `noexcept`.",
+     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4542617250"
     }
    ]
   },
@@ -408,14 +597,14 @@
    "state": "open",
    "author": "oleks-rip",
    "createdAt": "2026-08-19T16:48:52Z",
-   "updatedAt": "2026-11-10T19:03:26Z",
+   "updatedAt": "2026-11-11T16:23:54Z",
    "closedAt": null,
    "labels": [],
    "comments": [
     {
      "author": "codecov[bot]",
      "date": "2026-08-19T16:51:06Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `94.50549%` with `25 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/misc/detail/TxQ.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL2RldGFpbC9UeFEuY3Bw) | 94.5% | [25 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:x: Patch coverage is `93.99586%` with `29 lines` in your changes missing coverage. Please review.\n| [Files with missing lines](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?dropdown=coverage&src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) | Patch % | Lines |\n|---|---|---|\n| [src/xrpld/app/misc/detail/TxQ.cpp](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF#diff-c3JjL3hycGxkL2FwcC9taXNjL2RldGFpbC9UeFEuY3Bw) | 94.0% | [29 Missing :warning: ](https://app.codecov.io/gh/XRPLF/rippled/pull/8052?src=pr&el=tree&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) |\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
      "url": "https://github.com/XRPLF/rippled/pull/8052#issuecomment-5345276319"
     },
     {
@@ -467,11 +656,11 @@
    "draft": false,
    "base": "develop",
    "head": "oleks-rip:txq_sponsor",
-   "additions": 3626,
-   "deletions": 181,
+   "additions": 3720,
+   "deletions": 183,
    "changedFiles": 4,
-   "commits": 2,
-   "reviewComments": 132,
+   "commits": 3,
+   "reviewComments": 135,
    "reviews": [
     {
      "author": "depthfirst-app[bot]",
@@ -2618,123 +2807,6 @@
     }
    ],
    "reviewCommentsList": []
-  },
-  {
-   "number": 8627,
-   "title": "perf: Avoid memory allocations during Batch preflight checks",
-   "url": "https://github.com/XRPLF/rippled/pull/8627",
-   "state": "open",
-   "author": "nbougalis",
-   "createdAt": "2026-10-21T04:09:44Z",
-   "updatedAt": "2026-11-04T23:15:41Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-10-21T04:12:15Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8627?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#issuecomment-6307851935"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-11-04T23:15:41Z",
-     "body": "@nbougalis is this ready to merge?",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#issuecomment-6644714433"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nRemove the per-insertion heap allocations from `Batch::preflight`. The duplicate-inner-transaction and duplicate-sequence/ticket checks used an `std::unordered_set` and an `std::unordered_map` of `std::unordered_set`s; they are now `std::flat_set`s backed by a `boost::container::small_vector` sized to `kMaxBatchTxCount`, so neither container ever leaves inline storage.\n\n## Context of Change\n\n`Batch::preflight` runs for every submitted and relayed Batch, including those about to be rejected, and the two containers it used allocate per node (and, for the map, per distinct account) to hold at most eight entries. The map of sets is flattened to a set of `(account, sequence-or-ticket)` pairs: pair membership was the only query, and the preceding `temSEQ_AND_TICKET` checks already guarantee exactly one of `Sequence` and `TicketSequence` is set, so the two insert sites collapse into one. Sequences and tickets keep sharing one key space per account, and the checks run at the same point in the per-inner loop, so every result code is unchanged. No amendment is needed.\n\n## API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\nThe change is internal to `Batch::preflight`; no `libxrpl` interface changes.\n\n## Before / After\n\n1. Improvement to existing functionality.\n2. Memory allocation behavior of `Batch::preflight`; transaction results are unchanged.\n3. Preflight of Batch transactions on the submit and relay paths (`checkValidity`, `TxQ::apply`, ledger building).\n4. No effect on concurrent processing: no locks, threads, or async work are involved.\n\n## Test Plan\n\nExisting `xrpl.app.Batch` unit tests, which assert the `temREDUNDANT` and `temSEQ_AND_TICKET` results for duplicate inners, sequences, and tickets across all four batch modes.",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "nbougalis:batch-mem",
-   "additions": 29,
-   "deletions": 25,
-   "changedFiles": 1,
-   "commits": 2,
-   "reviewComments": 5,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-21T04:19:04Z",
-     "body": "### 🟢 Approval recommended\n\nThe bounded container changes preserve validation behavior, with only an optional comment correction remaining.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nOptimizes `Batch::preflight` duplicate checks by replacing node-based containers with inline-backed flat sets while preserving validation behavior.\n\n**Changes:**\n- Uses inline storage sized to `kMaxBatchTxCount`.\n- Combines account sequence/ticket tracking into a set of pairs.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Replaces allocating duplicate-check containers and consolidates sequence/ticket insertion. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
-    },
-    {
-     "author": "mvadari",
-     "state": "COMMENTED",
-     "date": "2026-10-21T19:03:07Z",
-     "body": ""
-    },
-    {
-     "author": "nbougalis",
-     "state": "COMMENTED",
-     "date": "2026-10-22T18:12:33Z",
-     "body": ""
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-10-22T18:19:28Z",
-     "body": "### 🟢 Approval recommended\n\nThe bounded container replacement preserves duplicate-detection semantics and validation order, with no unresolved findings.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Fix typo and remove redundant “when” in comment](https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744)\n</details>\n\n<sub>Review effort: Balanced</sub>"
-    },
-    {
-     "author": "dangell7",
-     "state": "APPROVED",
-     "date": "2026-10-23T16:19:17Z",
-     "body": ""
-    },
-    {
-     "author": "mvadari",
-     "state": "APPROVED",
-     "date": "2026-10-30T19:30:02Z",
-     "body": ""
-    },
-    {
-     "author": "a1q123456",
-     "state": "APPROVED",
-     "date": "2026-11-02T19:53:19Z",
-     "body": "Looks good in general but left some nits, approving."
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "Copilot",
-     "date": "2026-10-21T04:19:03Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Optional: remove the extra “when” and correct “exced” to “exceed” in this comment.",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4332991744"
-    },
-    {
-     "author": "mvadari",
-     "date": "2026-10-21T19:03:07Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "```suggestion\n            auto const seqOrTicket = stx.getSeqProxy().value();\n```",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4340799392"
-    },
-    {
-     "author": "nbougalis",
-     "date": "2026-10-22T18:12:33Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Nice - I adopted this, in a slightly reworded version.",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4351879581"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-11-02T19:47:19Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Not a blocker but I think `boost::container::static_vector` could be a better choice because we'll never push kMaxBatchTxCount + 1 elements.",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4446972423"
-    },
-    {
-     "author": "a1q123456",
-     "date": "2026-11-02T19:51:25Z",
-     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
-     "body": "Not a blocker: We repeatedly read `sfSequence` and the new code we introduced calls `getSeqProxy` which also reads `sfSequence` again. I think  we can have a variable to cache the data",
-     "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4447012265"
-    }
-   ]
   },
   {
    "number": 8281,

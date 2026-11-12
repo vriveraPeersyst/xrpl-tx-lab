@@ -1,6 +1,6 @@
 {
  "name": "fixCleanup3_6_0",
- "fetchedAt": "2026-11-11T09:11:15.416Z",
+ "fetchedAt": "2026-11-12T09:11:02.425Z",
  "summary": {
   "status": "in development",
   "prs": 2,
@@ -9,9 +9,9 @@
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-11-10T16:48:10Z",
+  "lastActivity": "2026-11-11T21:02:39Z",
   "lastMerged": "2026-11-04T00:03:39Z",
-  "totalComments": 8
+  "totalComments": 14
  },
  "release": {},
  "prs": [
@@ -22,7 +22,7 @@
    "state": "open",
    "author": "muhammadsalah",
    "createdAt": "2026-11-09T17:30:44Z",
-   "updatedAt": "2026-11-10T16:48:10Z",
+   "updatedAt": "2026-11-11T21:02:39Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -31,19 +31,25 @@
      "date": "2026-11-09T17:39:17Z",
      "body": "@mvadari PR is reopened here\n@hmalinski Thank you for the hint for the tests, I am open to any review or recommendations for sure!\n\nPlease let me know if anything else I should be doing to ship this.",
      "url": "https://github.com/XRPLF/rippled/pull/8708#issuecomment-6747053111"
+    },
+    {
+     "author": "muhammadsalah",
+     "date": "2026-11-11T15:45:44Z",
+     "body": "@hmalinski thank you for the feedback, I have honored it\n@BraedonKlock thank you for the review, I have honored it",
+     "url": "https://github.com/XRPLF/rippled/pull/8708#issuecomment-6800316750"
     }
    ],
-   "body": "## High Level Overview of Change\n\nSupersedes #7824, which was closed and can't be reopened. The earlier review discussion is there.\n\nUnder the `fixCleanup3_6_0` amendment, the vault's share/asset conversions for XRP and MPT vaults are computed exactly and rounded in the vault's favor, so a single depositor or withdrawer can no longer dilute the other shareholders through round-to-nearest:\n\n- **Deposit**: the shares minted round down and the assets charged for them round up, so the depositor pays at least the fair value of the shares.\n- **Withdraw**: the shares burned (withdraw by amount) round down and the assets paid for them round down, so the withdrawer receives at most the fair value of the shares.\n\n### Context of Change\n\nThe conversions computed `assetsTotal * shares / sharesTotal` in `Number` and quantized to the asset with round-to-nearest. On a vault holding an integral asset at a non-unit share price:\n\n- a deposit could be charged up to half a unit less than the shares are worth, and\n- a withdrawal could be paid up to half a unit more than the shares are worth.\n\nEither way, the remaining shareholders cover the difference.\n\nRounding each `Number` step up or down is not enough. `Number` keeps 19 digits, so with large totals a directed rounding mode can move an exact result by a whole unit. With `AssetsTotal = SharesTotal = 1,000,000,000,000,007` (price exactly 1), a deposit of 123,456,789 has to charge 123,456,789, but `AssetsTotal * shares` needs 24 digits, and rounding up at every step charges 123,456,790. The deposit then fails with `tecINTERNAL` (\"would take more than offered\"). For XRP and MPT every operand is an integer, so the conversions now compute `a * b / c` in 128 bits and round once.\n\nChanges, all behind `fixCleanup3_6_0` (`fixCleanup3_5_0` is already in 3.5.0-rc1):\n\n- The four conversion helpers take a `VaultRounding` argument (`Legacy` by default). `FavorVault` uses the exact integer path for XRP and MPT. IOU conversions keep the existing arithmetic, since an IOU result is not exact anyway and the `fixCleanup3_4_0` scale clamps already round IOU amounts in the vault's favor.\n- `VaultWithdraw` truncates the withdraw-by-amount share count under the new gate too, so it no longer depends on `fixCleanup3_4_0` being enabled.\n- When a share is worth less than one unit, a non-final `VaultWithdraw` whose rounded-down payout is zero, while the vault still has withdrawable value, fails with `tecPRECISION_LOSS` instead of burning shares for nothing. The final withdrawal is unaffected.\n- `VaultWithdraw::preclaim` uses the same rounding so the withdrawal-limit check estimates the amount `doApply` will pay.\n- Clawback is unchanged.\n\nThese address findings from [Common Prefix](https://www.commonprefix.com/)'s public formal verification of the XRPL vault and lending protocol ([`testVaultDepositOvervaluedShares`](https://github.com/commonprefix/rippled-formal-verification/blob/lending-protocol-fv/src/test/formal_verification/tx/vault/LeanVaultDeposit_test.cpp#L466)). The withdraw payout is the symmetric case.\n\nThanks to @hmalinski for finding the large-totals edge case and proposing the exact integer approach, the new gate, the share truncation, and the zero-payout check.\n\n### API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change: `assetsToSharesDeposit`, `sharesToAssetsDeposit`, `assetsToSharesWithdraw` and `sharesToAssetsWithdraw` in `include/xrpl/ledger/helpers/VaultHelpers.h` each gain a defaulted `VaultRounding` parameter (source-compatible; the default preserves prior behavior).\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n## Before / After\n\nPool of 100 assets and 3 shares (MPT):\n\n| Operation | Fair value | Before | After (`fixCleanup3_6_0`) |\n|---|---|---|---|\n| Deposit 34, mints 1 share | 33.33 | charged 33 | charged 34 |\n| Withdraw 2 shares | 66.67 | paid 67 | paid 66 |\n| Withdraw 50 assets without `fixCleanup3_4_0` | | burns 2 shares, pays 67 | burns 1 share, pays 33 |\n\nExact rates, and cases where round-to-nearest already rounds the safe way, are unchanged.\n\n## Test Plan\n\nThe test scenarios for the large-totals edge case, the zero-payout rejection and the `fixCleanup3_6_0` gating come from @hmalinski, who found the edge case and described these tests in #7824.\n\n- `VaultRounding_test` (new): transaction-level tests on CashBasis and FixedPrecision MPT vaults, each with and without `fixCleanup3_6_0`: the deposit and withdraw dilution cases (by shares and by amount), the large-totals deposit and withdrawal, the zero-payout rejection on both withdraw branches (and with `fixCleanup3_4_0` off), and share truncation without `fixCleanup3_4_0`.\n- `VaultHelpers_test`: helper-level tests for MPT and XRP, including the large-totals case and a check that `FavorVault` leaves IOU conversions unchanged.\n- `VaultBugs_test` and `LoanRounding_test`: two pre-`fixCleanup3_4_0` bug repros now also disable `fixCleanup3_6_0`, which fixes them on its own; each gains a run showing that.\n\nLocal run (Release, asserts on): all `Vault*` suites, `xrpl.tx.Loan*`, `xrpl.app.LoanBroker*` and `xrpl.app.Invariants*` pass (38 suites, 186,832 tests, 0 failures).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+   "body": "## High Level Overview of Change\n\nSupersedes #7824, which was closed and can't be reopened. The earlier review discussion is there.\n\nUnder the `fixCleanup3_6_0` amendment, the vault's share/asset conversions for XRP and MPT vaults are computed exactly and rounded in the vault's favor, so a single depositor or withdrawer can no longer dilute the other shareholders through round-to-nearest:\n\n- **Deposit**: the shares minted round down and the assets charged for them round up, so the depositor pays at least the fair value of the shares.\n- **Withdraw**: the shares burned (withdraw by amount) round down and the assets paid for them round down, so the withdrawer receives at most the fair value of the shares.\n- **Clawback**: the same as withdraw, so the issuer recovers at most the fair value of the shares it burns.\n\n### Context of Change\n\nThe conversions computed `assetsTotal * shares / sharesTotal` in `Number` and quantized to the asset with round-to-nearest. On a vault holding an integral asset at a non-unit share price:\n\n- a deposit could be charged up to half a unit less than the shares are worth, and\n- a withdrawal or clawback could recover up to half a unit more than the shares are worth.\n\nEither way, the remaining shareholders cover the difference.\n\nRounding each `Number` step up or down is not enough. `Number` keeps 19 digits, so with large totals a directed rounding mode can move an exact result by a whole unit. With `AssetsTotal = SharesTotal = 1,000,000,000,000,007` (price exactly 1), a deposit of 123,456,789 has to charge 123,456,789, but `AssetsTotal * shares` needs 24 digits, and rounding up at every step charges 123,456,790. The deposit then fails with `tecINTERNAL` (\"would take more than offered\"). For XRP and MPT every operand is an integer, so the conversions now compute `a * b / c` in 128 bits and round once.\n\nChanges, all behind `fixCleanup3_6_0` (`fixCleanup3_5_0` is already in 3.5.0-rc1):\n\n- The four conversion helpers take a `VaultRounding` argument (`Legacy` by default). `FavorVault` uses the exact integer path for XRP and MPT. IOU conversions keep the existing arithmetic, since an IOU result is not exact anyway and the `fixCleanup3_4_0` scale clamps already round IOU amounts in the vault's favor.\n- `VaultWithdraw` and `VaultClawback` truncate the by-amount share count under the new gate too, so it no longer depends on `fixCleanup3_4_0` being enabled.\n- When a share is worth less than one unit, a non-final `VaultWithdraw` whose rounded-down payout is zero, while the vault still has withdrawable value, fails with `tecPRECISION_LOSS` instead of burning shares for nothing. The final withdrawal is unaffected.\n- `VaultClawback` gets the same guard: a recovery that rounds down to zero from a non-empty vault fails with `tecPRECISION_LOSS`. Without it, burning shares while the vault balance stays the same would fail the clawback invariant.\n- `VaultWithdraw::preclaim` uses the same rounding so the withdrawal-limit check estimates the amount `doApply` will pay.\n- Clawback by the vault owner of an empty vault (burning shares only) is unchanged.\n\nThese address findings from [Common Prefix](https://www.commonprefix.com/)'s public formal verification of the XRPL vault and lending protocol ([`testVaultDepositOvervaluedShares`](https://github.com/commonprefix/rippled-formal-verification/blob/lending-protocol-fv/src/test/formal_verification/tx/vault/LeanVaultDeposit_test.cpp#L466)). The withdraw payout is the symmetric case.\n\nThanks to @hmalinski for finding the large-totals edge case and proposing the exact integer approach, the new gate, the share truncation, and the zero-payout check.\n\n### API Impact\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [x] `libxrpl` change: `assetsToSharesDeposit`, `sharesToAssetsDeposit`, `assetsToSharesWithdraw` and `sharesToAssetsWithdraw` in `include/xrpl/ledger/helpers/VaultHelpers.h` each gain a defaulted `VaultRounding` parameter (source-compatible; the default preserves prior behavior).\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)\n\n## Before / After\n\nPool of 100 assets and 3 shares (MPT):\n\n| Operation | Fair value | Before | After (`fixCleanup3_6_0`) |\n|---|---|---|---|\n| Deposit 34, mints 1 share | 33.33 | charged 33 | charged 34 |\n| Withdraw 2 shares | 66.67 | paid 67 | paid 66 |\n| Withdraw 50 assets without `fixCleanup3_4_0` | | burns 2 shares, pays 67 | burns 1 share, pays 33 |\n| Claw back 2 shares (or 67 assets) | 66.67 | recovers 67 | recovers 66 |\n\nExact rates, and cases where round-to-nearest already rounds the safe way, are unchanged.\n\n## Test Plan\n\nThe test scenarios for the large-totals edge case, the zero-payout rejection and the `fixCleanup3_6_0` gating come from @hmalinski, who found the edge case and described these tests in #7824.\n\n- `VaultRounding_test` (new): transaction-level tests on CashBasis and FixedPrecision MPT vaults, each with and without `fixCleanup3_6_0`: the deposit and withdraw dilution cases (by shares and by amount), the large-totals deposit and withdrawal, the zero-payout rejection on both withdraw branches (and with `fixCleanup3_4_0` off), and share truncation without `fixCleanup3_4_0`. Clawback has the same coverage: the recovery rounding (all shares and by amount), the zero-recovery rejection, and share truncation without `fixCleanup3_4_0`.\n- `VaultHelpers_test`: helper-level tests for MPT and XRP, including the large-totals case, withdraw conversions with a non-zero `LossUnrealized` under both `WaiveUnrealizedLoss` values, and a check that `FavorVault` leaves IOU conversions unchanged.\n- `VaultBugs_test` and `LoanRounding_test`: two pre-`fixCleanup3_4_0` bug repros now also disable `fixCleanup3_6_0`, which fixes them on its own; each gains a run showing that.\n\nLocal run (Release, asserts on): all `Vault*` suites, `xrpl.tx.Loan*`, `xrpl.app.LoanBroker*` and `xrpl.app.Invariants*` pass (38 suites, 186,832 tests, 0 failures).\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
    "merged": false,
    "mergedAt": null,
    "draft": false,
    "base": "develop",
    "head": "muhammadsalah:ci/fix-vault-deposit-rounding",
-   "additions": 857,
-   "deletions": 20,
-   "changedFiles": 8,
-   "commits": 3,
-   "reviewComments": 1,
+   "additions": 1136,
+   "deletions": 30,
+   "changedFiles": 10,
+   "commits": 7,
+   "reviewComments": 3,
    "reviews": [
     {
      "author": "copilot-pull-request-reviewer[bot]",
@@ -62,6 +68,24 @@
      "state": "COMMENTED",
      "date": "2026-11-10T16:48:10Z",
      "body": ""
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-11-11T16:02:14Z",
+     "body": "### 🟡 Changes recommended\n\nThe API-visible rounding changes and new tecPRECISION_LOSS outcomes for withdrawals and clawbacks lack the required API-CHANGELOG.md entry under Unreleased.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Add API changelog entry for amendment-gated rounding changes](https://github.com/XRPLF/rippled/pull/8708#discussion_r4540173894) · New\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-11-11T17:23:26Z",
+     "body": "### 🟡 Changes recommended\n\nThe all-shares clawback path uses legacy rounding when fixCleanup3_6_0 is enabled and fixCleanup3_1_3 is disabled, recovering excess assets and diluting the remaining holder.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Use configured rounding in the all-shares clawback branch](https://github.com/XRPLF/rippled/pull/8708#discussion_r4541075907) · New\n</details>\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Add API changelog entry for amendment-gated rounding changes](https://github.com/XRPLF/rippled/pull/8708#discussion_r4540173894)\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-11-11T21:02:39Z",
+     "body": "### 🟢 Approval recommended\n\nNo active review issues were identified for the amendment-gated vault rounding changes.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Use configured rounding in the all-shares clawback branch](https://github.com/XRPLF/rippled/pull/8708#discussion_r4541075907)\n</details>\n\n<sub>Review effort: Balanced</sub>"
     }
    ],
    "reviewCommentsList": [
@@ -71,6 +95,20 @@
      "path": "src/libxrpl/ledger/helpers/VaultHelpers.cpp",
      "body": "Would it make sense to declare `rounding` as `const` ? Although it's passed by value and modifying it wouldn't affect the original, using `const` would explicitly communicate that the parameter isn't intended to be modified. I think this would improve maintainability, since readers wouldn't need to inspect the function to determine whether it's reassigned.",
      "url": "https://github.com/XRPLF/rippled/pull/8708#discussion_r4527769944"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-11-11T16:02:14Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultWithdraw.cpp",
+     "body": "Please add an `API-CHANGELOG.md` entry under `## Unreleased` covering the amendment-gated rounding changes and the new `tecPRECISION_LOSS` outcomes for withdrawals and clawbacks. These change transaction behavior exposed through the API, which explicitly requires a changelog entry under `src/libxrpl/tx/AGENTS.md:15` and `src/xrpld/rpc/AGENTS.md:5`; currently the change is documented only in the PR description and source comments.",
+     "url": "https://github.com/XRPLF/rippled/pull/8708#discussion_r4540173894"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-11-11T17:23:25Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "When `fixCleanup3_6_0` is enabled but `fixCleanup3_1_3` is disabled, the zero-amount/all-shares branch at line 276 still calls `sharesToAssetsWithdraw` with default `Legacy` rounding. An MPT vault with 100 assets and 3 shares therefore recovers 67 assets for a holder's 2 shares instead of 66, diluting the remaining holder. Pass `WaiveUnrealizedLoss::No, rounding` as the final arguments to that call, and cover this amendment combination in the clawback tests.",
+     "url": "https://github.com/XRPLF/rippled/pull/8708#discussion_r4541075907"
     }
    ]
   },
