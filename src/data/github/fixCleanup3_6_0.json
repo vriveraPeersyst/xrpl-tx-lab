@@ -1,6 +1,6 @@
 {
  "name": "fixCleanup3_6_0",
- "fetchedAt": "2026-11-16T09:10:38.401Z",
+ "fetchedAt": "2026-11-17T09:10:44.810Z",
  "summary": {
   "status": "in development",
   "prs": 2,
@@ -9,9 +9,9 @@
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-11-14T15:32:48Z",
+  "lastActivity": "2026-11-16T17:02:32Z",
   "lastMerged": "2026-11-04T00:03:39Z",
-  "totalComments": 16
+  "totalComments": 20
  },
  "release": {},
  "prs": [
@@ -22,7 +22,7 @@
    "state": "open",
    "author": "muhammadsalah",
    "createdAt": "2026-11-09T17:30:44Z",
-   "updatedAt": "2026-11-14T15:32:48Z",
+   "updatedAt": "2026-11-16T17:02:32Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -61,7 +61,7 @@
    "deletions": 30,
    "changedFiles": 10,
    "commits": 7,
-   "reviewComments": 3,
+   "reviewComments": 5,
    "reviews": [
     {
      "author": "copilot-pull-request-reviewer[bot]",
@@ -98,6 +98,18 @@
      "state": "COMMENTED",
      "date": "2026-11-11T21:02:39Z",
      "body": "### 🟢 Approval recommended\n\nNo active review issues were identified for the amendment-gated vault rounding changes.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/high-v2-light.png\" alt=\"High severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Use configured rounding in the all-shares clawback branch](https://github.com/XRPLF/rippled/pull/8708#discussion_r4541075907)\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "BraedonKlock",
+     "state": "COMMENTED",
+     "date": "2026-11-16T15:09:39Z",
+     "body": ""
+    },
+    {
+     "author": "BraedonKlock",
+     "state": "COMMENTED",
+     "date": "2026-11-16T17:02:32Z",
+     "body": ""
     }
    ],
    "reviewCommentsList": [
@@ -121,6 +133,20 @@
      "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
      "body": "When `fixCleanup3_6_0` is enabled but `fixCleanup3_1_3` is disabled, the zero-amount/all-shares branch at line 276 still calls `sharesToAssetsWithdraw` with default `Legacy` rounding. An MPT vault with 100 assets and 3 shares therefore recovers 67 assets for a holder's 2 shares instead of 66, diluting the remaining holder. Pass `WaiveUnrealizedLoss::No, rounding` as the final arguments to that call, and cover this amendment combination in the clawback tests.",
      "url": "https://github.com/XRPLF/rippled/pull/8708#discussion_r4541075907"
+    },
+    {
+     "author": "BraedonKlock",
+     "date": "2026-11-16T15:09:39Z",
+     "path": "src/libxrpl/ledger/helpers/VaultHelpers.cpp",
+     "body": "Consider using more descriptive parameter names instead of a, b, and c. Since all three parameters are Number, passing them in the wrong order would compile but could produce an incorrect calculation. More descriptive names would make the intended argument order easier to verify and help prevent mistakes during future maintenance.",
+     "url": "https://github.com/XRPLF/rippled/pull/8708#discussion_r4587478942"
+    },
+    {
+     "author": "BraedonKlock",
+     "date": "2026-11-16T17:02:32Z",
+     "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
+     "body": "@mvadari  I noticed that this sharesToAssetsWithdraw() call is outside the try/catch. With the addition of favorVaultMulDiv() inside sharesToAssetsWithdraw(), which can throw std::overflow_error, an overflow could propagate up the stack instead of being handled locally as tecPATH_DRY. Should this call also be covered by the try/catch for consistency with the other conversion paths?",
+     "url": "https://github.com/XRPLF/rippled/pull/8708#discussion_r4588850905"
     }
    ]
   },
