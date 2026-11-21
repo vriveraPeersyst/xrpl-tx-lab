@@ -1,18 +1,18 @@
 {
   "network": "devnet",
   "rpc": "https://s.devnet.rippletest.net:51234/",
-  "fetchedAt": "2026-11-20T09:00:09.631Z",
-  "buildVersion": "3.4.1",
+  "fetchedAt": "2026-11-21T09:00:13.173Z",
+  "buildVersion": "3.5.0-rc5",
   "networkId": 2,
   "validatedLedger": {
-    "age": 1,
+    "age": 2,
     "base_fee_xrp": 0.000001,
-    "hash": "EAD693838712AD2DE44713B234D9378E9C9FC370367DAA9A6F5319261BD79F5F",
+    "hash": "66599302719BF616810E5CC0B6344546BDF99FD37AE29ADB45EC053C61170A1D",
     "reserve_base_xrp": 1,
     "reserve_inc_xrp": 0.2,
-    "seq": 7098334
+    "seq": 7125392
   },
-  "completeLedgers": "6371980-7098334",
+  "completeLedgers": "6242942-7125392",
   "amendmentBlocked": false,
   "reserves": {
     "baseXrp": 1,
@@ -300,6 +300,12 @@
     {
       "id": "98433DD001A5737F773D74F8CA2A25A065089C73B2E611C760BAF369E4FECA76",
       "name": "fixCleanup3_4_0",
+      "enabled": true,
+      "supported": true
+    },
+    {
+      "id": "7300E10109D19BF1E87ACE63D3A79CD4ED6B9851C37D93ED94DE9BD41CF56835",
+      "name": "fixCleanup3_5_0",
       "enabled": true,
       "supported": true
     },
@@ -665,7 +671,7 @@
     }
   ],
   "definitions": {
-    "hash": "1EA05B0FC11101F7C500BD0DAC794A8BC746A7FBA6250B75489603EB820E0FF5",
+    "hash": "E4538EC5BCAC8A5811C7DB7311A426E108C6545E7481652DE8F2A8FDC7425191",
     "TYPES": {
       "AccountID": 8,
       "Amount": 6,
@@ -1309,6 +1315,69 @@
         "nth": 76,
         "type": "UInt32"
       },
+      "IssuerKeyEpoch": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 77,
+        "type": "UInt32"
+      },
+      "AuditorKeyEpoch": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 78,
+        "type": "UInt32"
+      },
+      "IssuerKeyMirrorEpoch": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 79,
+        "type": "UInt32"
+      },
+      "AuditorKeyMirrorEpoch": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 80,
+        "type": "UInt32"
+      },
+      "GasLimit": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 81,
+        "type": "UInt32"
+      },
+      "BytecodeSizeLimit": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 82,
+        "type": "UInt32"
+      },
+      "GasPrice": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 83,
+        "type": "UInt32"
+      },
+      "Gas": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 84,
+        "type": "UInt32"
+      },
+      "GasUsed": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 85,
+        "type": "UInt32"
+      },
       "IndexNext": {
         "isSerialized": true,
         "isSigningField": true,
@@ -1755,6 +1824,13 @@
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 41,
+        "type": "Hash256"
+      },
+      "ProposalID": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 42,
         "type": "Hash256"
       },
       "hash": {
@@ -2268,6 +2344,34 @@
         "nth": 46,
         "type": "Blob"
       },
+      "Bytecode": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": true,
+        "nth": 47,
+        "type": "Blob"
+      },
+      "RecoveryKey": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": true,
+        "nth": 48,
+        "type": "Blob"
+      },
+      "InitialIssuerEncryptionKey": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": true,
+        "nth": 49,
+        "type": "Blob"
+      },
+      "IssuerMirrorEncryptionKey": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": true,
+        "nth": 50,
+        "type": "Blob"
+      },
       "Account": {
         "isSerialized": true,
         "isSigningField": true,
@@ -2443,6 +2547,13 @@
         "nth": 31,
         "type": "AccountID"
       },
+      "SigningFor": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": true,
+        "nth": 32,
+        "type": "AccountID"
+      },
       "Number": {
         "isSerialized": true,
         "isSigningField": true,
@@ -2562,6 +2673,20 @@
         "nth": 17,
         "type": "Number"
       },
+      "YieldUnrealized": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 18,
+        "type": "Number"
+      },
+      "AssetsDeployed": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 19,
+        "type": "Number"
+      },
       "LoanScale": {
         "isSerialized": true,
         "isSigningField": true,
@@ -2574,6 +2699,13 @@
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 2,
+        "type": "Int32"
+      },
+      "VMReturnCode": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 3,
         "type": "Int32"
       },
       "TransactionMetaData": {
@@ -2784,6 +2916,13 @@
         "isSigningField": false,
         "isVLEncoded": false,
         "nth": 38,
+        "type": "STObject"
+      },
+      "ProposedTransaction": {
+        "isSerialized": true,
+        "isSigningField": true,
+        "isVLEncoded": false,
+        "nth": 39,
         "type": "STObject"
       },
       "Signers": {
@@ -3218,7 +3357,9 @@
       "ConfidentialMPTClawback": 89,
       "ConfidentialMPTConvert": 85,
       "ConfidentialMPTConvertBack": 87,
+      "ConfidentialMPTHolderKeyUpdate": 93,
       "ConfidentialMPTMergeInbox": 86,
+      "ConfidentialMPTMirrorUpdate": 92,
       "ConfidentialMPTSend": 88,
       "CredentialAccept": 59,
       "CredentialCreate": 58,
@@ -3268,6 +3409,8 @@
       "SponsorshipSet": 91,
       "SponsorshipTransfer": 90,
       "TicketCreate": 10,
+      "TransactionProposalCancel": 94,
+      "TransactionProposalCreate": 95,
       "TrustSet": 20,
       "UNLModify": 102,
       "VaultClawback": 70,
@@ -3315,6 +3458,7 @@
       "SignerList": 83,
       "Sponsorship": 144,
       "Ticket": 84,
+      "TransactionProposal": 145,
       "Vault": 132,
       "XChainOwnedClaimID": 113,
       "XChainOwnedCreateAccountClaimID": 116
@@ -3330,6 +3474,7 @@
       "tecARRAY_TOO_LARGE": 191,
       "tecBAD_CREDENTIALS": 193,
       "tecBAD_PROOF": 199,
+      "tecBYTECODE_REJECTED": 202,
       "tecCANT_ACCEPT_OWN_NFTOKEN_OFFER": 158,
       "tecCLAIM": 100,
       "tecCRYPTOCONDITION_ERROR": 146,
@@ -3373,6 +3518,7 @@
       "tecNO_SUITABLE_NFTOKEN_PAGE": 155,
       "tecNO_TARGET": 138,
       "tecOBJECT_NOT_FOUND": 160,
+      "tecOUT_OF_GAS": 201,
       "tecOVERSIZE": 145,
       "tecOWNERS": 132,
       "tecPATH_DRY": 128,
@@ -3412,7 +3558,9 @@
       "tefBAD_PATH_COUNT": -176,
       "tefBAD_QUORUM": -185,
       "tefBAD_SIGNATURE": -186,
+      "tefBYTECODE_NOT_INCLUDED": -174,
       "tefCREATED": -194,
+      "tefEXCEEDS_LIMIT": -172,
       "tefEXCEPTION": -193,
       "tefFAILURE": -199,
       "tefINTERNAL": -192,
@@ -3423,9 +3571,11 @@
       "tefNFTOKEN_IS_NOT_TRANSFERABLE": -179,
       "tefNOT_MULTI_SIGNING": -184,
       "tefNO_AUTH_REQUIRED": -191,
+      "tefNO_BYTECODE": -175,
       "tefNO_DST_PARTIAL": -177,
       "tefNO_TICKET": -180,
       "tefPAST_SEQ": -190,
+      "tefTEMP_DISABLED": -173,
       "tefTOO_BIG": -181,
       "tefWRONG_PRIOR": -189,
       "telBAD_DOMAIN": -398,
@@ -3482,6 +3632,7 @@
       "temEMPTY_DID": -254,
       "temINVALID": -277,
       "temINVALID_ACCOUNT_ID": -268,
+      "temINVALID_BYTECODE": -247,
       "temINVALID_COUNT": -266,
       "temINVALID_FLAG": -276,
       "temINVALID_INNER_BATCH": -250,
@@ -3514,6 +3665,7 @@
       "terPRE_TICKET": -88,
       "terQUEUED": -89,
       "terRETRY": -99,
+      "terTICKET_RESERVED": -82,
       "tesSUCCESS": 0
     },
     "TRANSACTION_FORMATS": {
@@ -3855,9 +4007,53 @@
           "optionality": 0
         }
       ],
+      "ConfidentialMPTHolderKeyUpdate": [
+        {
+          "name": "MPTokenIssuanceID",
+          "optionality": 0
+        },
+        {
+          "name": "HolderEncryptionKey",
+          "optionality": 1
+        },
+        {
+          "name": "ConfidentialBalanceSpending",
+          "optionality": 1
+        },
+        {
+          "name": "ConfidentialBalanceInbox",
+          "optionality": 1
+        },
+        {
+          "name": "ZKProof",
+          "optionality": 1
+        }
+      ],
       "ConfidentialMPTMergeInbox": [
         {
           "name": "MPTokenIssuanceID",
+          "optionality": 0
+        }
+      ],
+      "ConfidentialMPTMirrorUpdate": [
+        {
+          "name": "MPTokenIssuanceID",
+          "optionality": 0
+        },
+        {
+          "name": "Holder",
+          "optionality": 1
+        },
+        {
+          "name": "IssuerEncryptedAmount",
+          "optionality": 1
+        },
+        {
+          "name": "AuditorEncryptedAmount",
+          "optionality": 1
+        },
+        {
+          "name": "ZKProof",
           "optionality": 0
         }
       ],
@@ -4018,6 +4214,10 @@
           "optionality": 0
         },
         {
+          "name": "DestinationTag",
+          "optionality": 1
+        },
+        {
           "name": "Amount",
           "optionality": 0
         },
@@ -4034,7 +4234,11 @@
           "optionality": 1
         },
         {
-          "name": "DestinationTag",
+          "name": "Bytecode",
+          "optionality": 1
+        },
+        {
+          "name": "Data",
           "optionality": 1
         }
       ],
@@ -4057,6 +4261,10 @@
         },
         {
           "name": "CredentialIDs",
+          "optionality": 1
+        },
+        {
+          "name": "Gas",
           "optionality": 1
         }
       ],
@@ -4149,6 +4357,10 @@
         },
         {
           "name": "CoverRateLiquidation",
+          "optionality": 1
+        },
+        {
+          "name": "DomainID",
           "optionality": 1
         }
       ],
@@ -4628,6 +4840,18 @@
         {
           "name": "ReserveIncrementDrops",
           "optionality": 1
+        },
+        {
+          "name": "GasLimit",
+          "optionality": 1
+        },
+        {
+          "name": "BytecodeSizeLimit",
+          "optionality": 1
+        },
+        {
+          "name": "GasPrice",
+          "optionality": 1
         }
       ],
       "SetRegularKey": [
@@ -4681,6 +4905,22 @@
       "TicketCreate": [
         {
           "name": "TicketCount",
+          "optionality": 0
+        }
+      ],
+      "TransactionProposalCancel": [
+        {
+          "name": "ProposalID",
+          "optionality": 0
+        }
+      ],
+      "TransactionProposalCreate": [
+        {
+          "name": "ProposedTransaction",
+          "optionality": 0
+        },
+        {
+          "name": "Expiration",
           "optionality": 0
         }
       ],
@@ -5578,6 +5818,14 @@
           "optionality": 1
         },
         {
+          "name": "Bytecode",
+          "optionality": 1
+        },
+        {
+          "name": "Data",
+          "optionality": 1
+        },
+        {
           "name": "SourceTag",
           "optionality": 1
         },
@@ -5637,6 +5885,18 @@
         },
         {
           "name": "ReserveIncrementDrops",
+          "optionality": 1
+        },
+        {
+          "name": "GasLimit",
+          "optionality": 1
+        },
+        {
+          "name": "BytecodeSizeLimit",
+          "optionality": 1
+        },
+        {
+          "name": "GasPrice",
           "optionality": 1
         },
         {
@@ -5840,6 +6100,10 @@
         {
           "name": "CoverRateLiquidation",
           "optionality": 2
+        },
+        {
+          "name": "DomainID",
+          "optionality": 1
         }
       ],
       "MPToken": [
@@ -5892,7 +6156,23 @@
           "optionality": 1
         },
         {
+          "name": "IssuerKeyMirrorEpoch",
+          "optionality": 1
+        },
+        {
+          "name": "AuditorKeyMirrorEpoch",
+          "optionality": 1
+        },
+        {
+          "name": "IssuerMirrorEncryptionKey",
+          "optionality": 1
+        },
+        {
           "name": "HolderEncryptionKey",
+          "optionality": 1
+        },
+        {
+          "name": "RecoveryKey",
           "optionality": 1
         }
       ],
@@ -5959,6 +6239,18 @@
         },
         {
           "name": "AuditorEncryptionKey",
+          "optionality": 1
+        },
+        {
+          "name": "IssuerKeyEpoch",
+          "optionality": 1
+        },
+        {
+          "name": "AuditorKeyEpoch",
+          "optionality": 1
+        },
+        {
+          "name": "InitialIssuerEncryptionKey",
           "optionality": 1
         },
         {
@@ -6372,6 +6664,32 @@
           "optionality": 0
         }
       ],
+      "TransactionProposal": [
+        {
+          "name": "PreviousTxnID",
+          "optionality": 0
+        },
+        {
+          "name": "PreviousTxnLgrSeq",
+          "optionality": 0
+        },
+        {
+          "name": "Owner",
+          "optionality": 0
+        },
+        {
+          "name": "ProposedTransaction",
+          "optionality": 0
+        },
+        {
+          "name": "Expiration",
+          "optionality": 0
+        },
+        {
+          "name": "OwnerNode",
+          "optionality": 0
+        }
+      ],
       "Vault": [
         {
           "name": "PreviousTxnID",
@@ -6419,6 +6737,14 @@
         },
         {
           "name": "LossUnrealized",
+          "optionality": 2
+        },
+        {
+          "name": "YieldUnrealized",
+          "optionality": 2
+        },
+        {
+          "name": "AssetsDeployed",
           "optionality": 2
         },
         {
@@ -6572,9 +6898,17 @@
         "tfOnlyOne": 131072,
         "tfUntilFailure": 262144
       },
+      "ConfidentialMPTHolderKeyUpdate": {
+        "tfCancelRecovery": 262144,
+        "tfHolderKeyRecovery": 131072,
+        "tfHolderKeyRotation": 65536
+      },
       "EnableAmendment": {
         "tfGotMajority": 65536,
         "tfLostMajority": 131072
+      },
+      "LoanBrokerSet": {
+        "tfLoanBrokerPrivate": 65536
       },
       "LoanManage": {
         "tfLoanDefault": 65536,
@@ -6719,6 +7053,9 @@
         "lsfLoanImpaired": 131072,
         "lsfLoanOverpayment": 262144
       },
+      "LoanBroker": {
+        "lsfLoanBrokerPrivate": 65536
+      },
       "MPToken": {
         "lsfMPTAMM": 4,
         "lsfMPTAuthorized": 2,
@@ -6767,5 +7104,5 @@
       }
     }
   },
-  "sourceRef": "3.4.1"
+  "sourceRef": "develop"
 }

@@ -1,6 +1,6 @@
 {
  "name": "fixBatchV1_2",
- "fetchedAt": "2026-11-20T09:09:43.346Z",
+ "fetchedAt": "2026-11-21T09:09:44.365Z",
  "summary": {
   "status": "in development",
   "prs": 8,
@@ -19,12 +19,13 @@
    "dangell7/batch-txq-weight",
    "dangell7/batch-v2-inner-record",
    "mvadari/batch-multisign-prefix",
+   "mvadari/batch-signer-check-cleanup",
    "ripple/custody-old-batch-cmpt"
   ],
-  "lastActivity": "2026-11-17T15:37:36Z",
+  "lastActivity": "2026-11-20T17:42:30Z",
   "lastMerged": "2026-11-11T23:46:18Z",
   "release": "3.4.1",
-  "totalComments": 420
+  "totalComments": 418
  },
  "release": {
   "version": "3.4.1",
@@ -33,6 +34,61 @@
   "excerpt": "This release introduces a new amendment, **fixBatchV1_2**, with the default vote set to \"Yes\". The amendment also contains other fixes for security and stability."
  },
  "prs": [
+  {
+   "number": 8743,
+   "title": "refactor: Remove redundant BatchSigner checks from Batch preflight",
+   "url": "https://github.com/XRPLF/rippled/pull/8743",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-11-20T17:16:00Z",
+   "updatedAt": "2026-11-20T17:42:30Z",
+   "closedAt": null,
+   "labels": [
+    "Trivial"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-11-20T17:18:52Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8743?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8743#issuecomment-7045918835"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nRemove the separate duplicate, unsorted, and outer-account checks from the BatchSigner loop in `Batch::preflightSigValidated`. The required-signer membership check after them already rejects all three cases.\n\n## Context of Change\n\nThe membership walk requires each signer to be the next entry in the sorted, de-duplicated list of required signers. That list never contains the outer account. An unsorted signer, a duplicate signer, or the outer account therefore fails the walk with the same `temBAD_SIGNER` result. The removed checks only added specific log messages.\n\nNo result code changes, so no amendment is needed.\n\n## API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nExisting `xrpl.app.Batch` tests for unsorted signers, duplicate signers, and the outer account as signer expect `temBAD_SIGNER`. I did not build or run them locally; CI covers them.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:mvadari/batch-signer-check-cleanup",
+   "additions": 4,
+   "deletions": 25,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-20T17:17:06Z",
+     "body": "No issues found."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-11-20T17:42:30Z",
+     "body": "### 🟡 Changes recommended\n\nRemoving the zero-initialized sentinel allows a zero delegate with a matching BatchSigner to bypass the expected temBAD_SIGNER rejection, requiring an explicit zero-signer check and a regression test.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject zero-valued delegate signers in batch preflight](https://github.com/XRPLF/rippled/pull/8743#discussion_r4645743144) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nSimplifies Batch signer validation in `libxrpl` by relying on the existing required-signer membership check instead of separate validation checks.\n\n**Changes:**\n- Removes explicit duplicate, ordering, and outer-account checks and their debug messages.\n- Updates the comment to explain how exact membership matching handles these cases.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Simplifies the signer loop in `Batch::preflightSigValidated` and documents the remaining validation. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-11-20T17:42:29Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Removing the zero-initialized sentinel also removes the `temBAD_SIGNER` rejection for account ID zero. An inner transaction with an explicit zero `sfDelegate` puts zero in `requiredSigners`, allowing a matching BatchSigner through this preflight; cryptographic verification does not reject the account/key mismatch. Keep an explicit zero-signer rejection and add a regression test for a zero delegate with a matching signer to preserve result-code compatibility.",
+     "url": "https://github.com/XRPLF/rippled/pull/8743#discussion_r4645743144"
+    }
+   ]
+  },
   {
    "number": 8505,
    "title": "feat: Accept a JSON-RPC 2.0 batch from API version 3",
@@ -2861,69 +2917,6 @@
     }
    ],
    "reviewCommentsList": []
-  },
-  {
-   "number": 8219,
-   "title": "fix: Mask secrets in batch RPC errors",
-   "url": "https://github.com/XRPLF/rippled/pull/8219",
-   "state": "open",
-   "author": "joshuahamsa",
-   "createdAt": "2026-09-13T01:47:06Z",
-   "updatedAt": "2026-11-06T20:42:14Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-09-13T01:47:16Z",
-     "body": "⚠️ This PR contains unsigned commits. To get your PR merged, please sign them. ⚠️\n\nIf only the most recent commit is unsigned, you can run:\n1. Amend the commit: `git commit --amend --no-edit -n -S`\n2. Overwrite the commit: `git push --force-with-lease`\n\nIf multiple commits are unsigned, you can run:\n1. Go into interactive rebase mode: `git rebase --interactive HEAD~<NUM_OF_COMMITS>`, where `NUM_OF_COMMITS` is the number of most recent commits that will be available to edit.\n2. Change \"pick\" to \"edit\" for the commits you need to sign, and then save and exit.\n3. For each commit, run: `git commit --amend --no-edit -n -S`\n4. Continue the rebase: `git rebase --continue`\n5. Overwrite the commit(s): `git push --force-with-lease`\n\nIf you're new to commit signing, there are different ways to set it up:\n\n<details>\n<summary><b>Sign commits with <code>gpg</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `gpg`:\n1. [Generate a GPG key](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)\n2. [Add the GPG key to your GitHub account](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)\n3. [Configure `git` to use your GPG key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-gpg-key)\n</details>\n\n<details>\n<summary><b>Sign commits with <code>ssh-agent</code></b></summary>\n<p></p>\n\nFollow the steps below to set up commit signing with `ssh-agent`:\n1. [Generate an SSH key and add it to `ssh-agent`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)\n2. [Add the SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)\n3. [Configure `git` to use your SSH key for commit signing](https://docs.github.com/en/authentication/managing-commit-signature-verification/telling-git-about-your-signing-key#telling-git-about-your-ssh-key)\n</details>\n\n<details>\n<summary><b>Sign commits with 1Password</b></summary>\n<p></p>\n\nYou can also sign commits using 1Password, which lets you sign commits with biometrics without the signing key leaving the local 1Password process.\nSee [use 1Password to sign your commits](https://developer.1password.com/docs/ssh/git-commit-signing/).\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/8219#issuecomment-5650037499"
-    },
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-13T18:03:35Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8219?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8219#issuecomment-5655069273"
-    },
-    {
-     "author": "bthomee",
-     "date": "2026-11-06T20:42:14Z",
-     "body": "@joshuahamsa I had been working on a stack of RPC-related changes over the last few months, and one of them (#8488) has the same objective as this PR.\n\nMy PR has some differences with yours:\n- One shared module `src/xrpld/rpc/detail/MaskSecrets.{h,cpp}` with `maskSecrets`, `hasSecret` and `loggable`. It replaces both inline blocks and is used at every echo site, including the eight batch paths.\n- The field list grows from four names to sixteen. The twelve new names are `admin_password`, `admin_user`, `master_key`, `master_seed`, `master_seed_hex`, `password`, `url_password`, `url_username`, `username`, `validation_key`, `validation_private_key`, `validation_seed`.\n- Masks and caps every request or reply written to the log at ten thousand characters. Sites covered: `fillHandler`, the four `transactionSign*` functions, `RPCSub`, the WebSocket receive trace, the duration line, both internal-error lines, the HTTP reply dump, and the `[rpc_startup]` command and result.\n- The slow-request duration line no longer lifts the request body to warn or error.\n- The command line client masks `request_sent`, which carries the config's `admin_password`. It logs the parsed and masked request and reply instead of the raw text.\n- The libxrpl `httpReply` trace logs the status only. The HTTPClient header trace stops at the header delimiter.\n- An unparsed WebSocket frame is answered with its size instead of its body. An unparsable `[rpc_startup]` line is reported by position and skipped.\n- Tests: a new `MaskSecrets_test.cpp` suite with eleven cases, plus seven new cases in `ServerStatus_test.cpp`.\n\nAs your PR had some nice tests, they inspired me to add a few more cases to my PR. If you don't mind, I propose that we consider my PR instead, as I think it addresses the secret masking more comprehensively. If you have time, please take a look and provide a review, which would be much appreciated!",
-     "url": "https://github.com/XRPLF/rippled/pull/8219#issuecomment-6695035101"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\nMask `secret`, `seed`, `seed_hex`, and `passphrase` fields when HTTP batch RPC requests are rejected before handler execution. Masking traverses nested objects and arrays so sensitive values are not echoed in error responses or debug reply logs.\n\nCloses #7461.\n\n## Context of Change\n\nThe normal RPC handler-error path masks sensitive fields before attaching request data to an error response. Eight early-error paths in HTTP batch processing instead copied the request item directly into the response, bypassing that masking.\n\nThis change applies masking only to the copied request data used by those error paths. It leaves the original request available to subsequent processing and does not sanitize successful handler output, which can legitimately contain generated wallet credentials.\n\n## API Impact\n\nThis is a non-breaking public API bug fix. The affected error responses preserve their existing structure, codes, messages, IDs, and non-sensitive request fields; only sensitive field values are replaced with `<masked>`. `API-CHANGELOG.md` documents the change.\n\n## Before / After\n\nBefore, an early failure such as an invalid `api_version`, forbidden method, overload, malformed method, malformed `ripplerpc`, or non-object batch item could echo sensitive request values verbatim.\n\nAfter, sensitive fields in the echoed request copy are masked recursively. Other batch items continue to execute normally unless the client is already over the resource limit.\n\n## Test Plan\n\n- Verified the regression tests fail against the original handler with the sensitive sentinels present.\n- Built the standard `xrpld` target in the repository's Nix CI environment with GCC 15.2.\n- Ran all automatic RPC and server suites: 51 suites, 341 cases, 78,050 assertions, zero failures.\n- Ran explicit `clang-tidy` on the changed C++ files.\n- Ran applicable pre-commit checks, including the pinned formatter, include-style checks, spelling, and Markdown formatting.\n\nDrafted by GPT 6 Astra: Light, Reviewed by GPT 6 Astra: High",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "develop",
-   "head": "joshuahamsa:fix/7461-batch-error-masking",
-   "additions": 234,
-   "deletions": 0,
-   "changedFiles": 4,
-   "commits": 2,
-   "reviewComments": 0,
-   "reviews": [
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-13T02:03:10Z",
-     "body": "### 🟢 Approval recommended\n\nNo unresolved review comments; all reviewed changes are assessed as ready.\n\n<details>\n<summary>Pull request overview</summary>\n\nFixes secret leakage in HTTP batch RPC errors by recursively masking sensitive fields.\n\n**Changes:**\n- Masks secrets in early batch-error responses.\n- Adds regression tests.\n- Documents the API fix.\n</details>\n\n<details>\n<summary>File summaries</summary>\n\n| File | Description |\n|---|---|\n| `src/xrpld/rpc/detail/ServerHandler.cpp` | Masks sensitive fields in batch errors. |\n| `src/test/server/ServerStatus_test.cpp` | Tests recursive masking and request preservation. |\n| `API-CHANGELOG.md` | Documents the bug fix. |\n</details>\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 3/3 changed files\n- **Comments generated:** 0\n- **Review effort level:** Lite\n</details>\n\n---\n\n💡 <a href=\"/XRPLF/rippled/new/develop?filename=.github/skills/code-review/SKILL.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add a `code-review` agent skill</a> or configure MCP servers for context-aware, tailored reviews. <a href=\"https://docs.github.com/copilot/how-tos/use-copilot-agents/request-a-code-review/use-code-review?tool=webui#mcp-servers-and-agent-skills\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn more in the docs.</a>"
-    },
-    {
-     "author": "copilot-pull-request-reviewer[bot]",
-     "state": "COMMENTED",
-     "date": "2026-09-13T20:38:56Z",
-     "body": "### 🟢 Approval recommended\n\nThe secret-masking fix includes regression coverage and documentation with no unresolved blocking issues.\n\n<details>\n<summary>Review details</summary>\n\n- **Files reviewed:** 4/4 changed files\n- **Comments generated:** 0 new\n- **Review effort level:** Lite\n</details>"
-    },
-    {
-     "author": "mvadari",
-     "state": "CHANGES_REQUESTED",
-     "date": "2026-11-04T22:45:57Z",
-     "body": "This logic already exists inline in ServerHandler.cpp:560-570 and ServerHandler.cpp:974-985 - please use the same logic/helper across those locations as well, so that we don't have duplicated logic."
-    }
-   ],
-   "reviewCommentsList": []
   }
  ],
  "issues": [],
@@ -2976,6 +2969,7 @@
   "dangell7/batch-txq-weight",
   "dangell7/batch-v2-inner-record",
   "mvadari/batch-multisign-prefix",
+  "mvadari/batch-signer-check-cleanup",
   "ripple/custody-old-batch-cmpt"
  ]
 }

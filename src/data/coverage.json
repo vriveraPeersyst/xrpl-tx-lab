@@ -1,6 +1,26 @@
 {
   "ok": false,
   "errors": [
+    "tx ConfidentialMPTHolderKeyUpdate: missing in src/lib/tx/registry.ts (needed by devnet)",
+    "tx ConfidentialMPTMirrorUpdate: missing in src/lib/tx/registry.ts (needed by devnet)",
+    "tx TransactionProposalCancel: missing in src/lib/tx/registry.ts (needed by devnet)",
+    "tx TransactionProposalCreate: missing in src/lib/tx/registry.ts (needed by devnet)",
+    "[devnet] tx XChainAccountCreateCommit: exists on the network but not in the source (develop)",
+    "[devnet] tx XChainAddAccountCreateAttestation: exists on the network but not in the source (develop)",
+    "[devnet] tx XChainAddClaimAttestation: exists on the network but not in the source (develop)",
+    "[devnet] tx XChainClaim: exists on the network but not in the source (develop)",
+    "[devnet] tx XChainCommit: exists on the network but not in the source (develop)",
+    "[devnet] tx XChainCreateBridge: exists on the network but not in the source (develop)",
+    "[devnet] tx XChainCreateClaimID: exists on the network but not in the source (develop)",
+    "[devnet] tx XChainModifyBridge: exists on the network but not in the source (develop)",
+    "[devnet] object Bridge: on the network but not in the source",
+    "[devnet] object XChainOwnedClaimID: on the network but not in the source",
+    "[devnet] object XChainOwnedCreateAccountClaimID: on the network but not in the source",
+    "flag ConfidentialMPTHolderKeyUpdate.tfCancelRecovery: no description in content/flags.json (needed by devnet)",
+    "flag ConfidentialMPTHolderKeyUpdate.tfHolderKeyRecovery: no description in content/flags.json (needed by devnet)",
+    "flag ConfidentialMPTHolderKeyUpdate.tfHolderKeyRotation: no description in content/flags.json (needed by devnet)",
+    "flag LoanBrokerSet.tfLoanBrokerPrivate: no description in content/flags.json (needed by devnet)",
+    "flag LoanBroker.lsfLoanBrokerPrivate: no description in content/flags.json (needed by devnet)",
     "[wasm-devnet] tx XChainAccountCreateCommit: exists on the network but not in the source (develop)",
     "[wasm-devnet] tx XChainAddAccountCreateAttestation: exists on the network but not in the source (develop)",
     "[wasm-devnet] tx XChainAddClaimAttestation: exists on the network but not in the source (develop)",
@@ -17,8 +37,14 @@
   "warnings": [
     "[amm-devnet] amendment MPTokensV2: in the source but not on the network (Supported::No)",
     "[amm-devnet] TER tecNO_DELEGATE_PERMISSION: in the source but not on the network",
+    "[devnet] amendment fixCleanup3_6_0: in the source but not on the network (Supported::Yes)",
+    "[devnet] amendment Cosign: in the source but not on the network (Supported::No)",
+    "[devnet] amendment SmartEscrow: in the source but not on the network (Supported::No)",
+    "[devnet] amendment LendingProtocolV1_2: in the source but not on the network (Supported::No)",
+    "[devnet] amendment ConfidentialMPTKeyRotation: in the source but not on the network (Supported::No)",
     "[devnet] amendment MPTokensV2: in the source but not on the network (Supported::No)",
     "[devnet] TER tecNO_DELEGATE_PERMISSION: in the source but not on the network",
+    "[devnet] version: rippled source undefined (82217fbd) vs network 3.5.0-rc5",
     "[mainnet] amendment MPTokensV2: in the source but not on the network (Supported::No)",
     "[mainnet] TER tecNO_DELEGATE_PERMISSION: in the source but not on the network",
     "[testnet] amendment MPTokensV2: in the source but not on the network (Supported::No)",
@@ -331,22 +357,38 @@
     "[wasm-devnet] TER tecNO_SPONSOR_PERMISSION: in the source but not on the network",
     "[wasm-devnet] TER tecOUT_OF_GAS: in the source but not on the network",
     "[wasm-devnet] TER tecBYTECODE_REJECTED: in the source but not on the network",
-    "[wasm-devnet] version: rippled source undefined (81878aa5) vs network 3.2.0-b0"
+    "[wasm-devnet] version: rippled source undefined (82217fbd) vs network 3.2.0-b0"
   ],
   "report": {
     "missingTxDocs": [],
     "missingObjectDocs": [],
     "missingAmendmentDocs": [],
-    "missingRegistry": [],
+    "missingRegistry": [
+      "ConfidentialMPTHolderKeyUpdate",
+      "ConfidentialMPTMirrorUpdate",
+      "TransactionProposalCancel",
+      "TransactionProposalCreate"
+    ],
     "missingRenderers": [],
-    "missingFlagDocs": [],
+    "missingFlagDocs": [
+      "ConfidentialMPTHolderKeyUpdate.tfCancelRecovery",
+      "ConfidentialMPTHolderKeyUpdate.tfHolderKeyRecovery",
+      "ConfidentialMPTHolderKeyUpdate.tfHolderKeyRotation",
+      "LoanBroker.lsfLoanBrokerPrivate",
+      "LoanBrokerSet.tfLoanBrokerPrivate"
+    ],
     "missingResultDocs": [
       "temTEMP_DISABLED"
     ],
     "sourceAhead": [
       "amm-devnet:amendment:MPTokensV2",
       "amm-devnet:ter:tecNO_DELEGATE_PERMISSION",
+      "devnet:amendment:ConfidentialMPTKeyRotation",
+      "devnet:amendment:Cosign",
+      "devnet:amendment:LendingProtocolV1_2",
       "devnet:amendment:MPTokensV2",
+      "devnet:amendment:SmartEscrow",
+      "devnet:amendment:fixCleanup3_6_0",
       "devnet:ter:tecNO_DELEGATE_PERMISSION",
       "mainnet:amendment:MPTokensV2",
       "mainnet:ter:tecNO_DELEGATE_PERMISSION",
@@ -658,6 +700,17 @@
       "wasm-devnet:tx:TransactionProposalCreate"
     ],
     "networkAhead": [
+      "devnet:le:Bridge",
+      "devnet:le:XChainOwnedClaimID",
+      "devnet:le:XChainOwnedCreateAccountClaimID",
+      "devnet:tx:XChainAccountCreateCommit",
+      "devnet:tx:XChainAddAccountCreateAttestation",
+      "devnet:tx:XChainAddClaimAttestation",
+      "devnet:tx:XChainClaim",
+      "devnet:tx:XChainCommit",
+      "devnet:tx:XChainCreateBridge",
+      "devnet:tx:XChainCreateClaimID",
+      "devnet:tx:XChainModifyBridge",
       "wasm-devnet:le:Bridge",
       "wasm-devnet:le:XChainOwnedClaimID",
       "wasm-devnet:le:XChainOwnedCreateAccountClaimID",
@@ -686,12 +739,11 @@
       "sourceVersion": "3.4.0"
     },
     "devnet": {
-      "version": "3.4.1",
-      "tx": 82,
-      "objects": 31,
-      "amendments": 107,
-      "sourceRef": "3.4.1",
-      "sourceVersion": "3.4.1"
+      "version": "3.5.0-rc5",
+      "tx": 86,
+      "objects": 32,
+      "amendments": 108,
+      "sourceRef": "develop"
     },
     "mainnet": {
       "version": "3.4.1",
@@ -717,5 +769,5 @@
       "sourceRef": "develop"
     }
   },
-  "checkedAt": "2026-11-20T09:15:28.807Z"
+  "checkedAt": "2026-11-21T09:59:14.798Z"
 }

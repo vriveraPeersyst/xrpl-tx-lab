@@ -1,10 +1,10 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-11-20T09:01:36.762Z",
+ "fetchedAt": "2026-11-21T09:01:43.456Z",
  "summary": {
   "status": "in development",
   "prs": 12,
-  "open": 5,
+  "open": 6,
   "merged": 3,
   "issues": 0,
   "proposals": 1,
@@ -12,7 +12,7 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-11-17T13:34:46Z",
+  "lastActivity": "2026-11-20T17:42:30Z",
   "lastMerged": "2026-11-11T23:46:18Z",
   "release": "0.90.0",
   "totalComments": 440
@@ -24,6 +24,61 @@
   "excerpt": "The `Checks` amendment, which allows users to create deferred payments that can be cancelled or cashed by their intended recipients."
  },
  "prs": [
+  {
+   "number": 8743,
+   "title": "refactor: Remove redundant BatchSigner checks from Batch preflight",
+   "url": "https://github.com/XRPLF/rippled/pull/8743",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-11-20T17:16:00Z",
+   "updatedAt": "2026-11-20T17:42:30Z",
+   "closedAt": null,
+   "labels": [
+    "Trivial"
+   ],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-11-20T17:18:52Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8743?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8743#issuecomment-7045918835"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\nRemove the separate duplicate, unsorted, and outer-account checks from the BatchSigner loop in `Batch::preflightSigValidated`. The required-signer membership check after them already rejects all three cases.\n\n## Context of Change\n\nThe membership walk requires each signer to be the next entry in the sorted, de-duplicated list of required signers. That list never contains the outer account. An unsorted signer, a duplicate signer, or the outer account therefore fails the walk with the same `temBAD_SIGNER` result. The removed checks only added specific log messages.\n\nNo result code changes, so no amendment is needed.\n\n## API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nExisting `xrpl.app.Batch` tests for unsorted signers, duplicate signers, and the outer account as signer expect `temBAD_SIGNER`. I did not build or run them locally; CI covers them.",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "develop",
+   "head": "XRPLF:mvadari/batch-signer-check-cleanup",
+   "additions": 4,
+   "deletions": 25,
+   "changedFiles": 1,
+   "commits": 1,
+   "reviewComments": 1,
+   "reviews": [
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-20T17:17:06Z",
+     "body": "No issues found."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-11-20T17:42:30Z",
+     "body": "### 🟡 Changes recommended\n\nRemoving the zero-initialized sentinel allows a zero delegate with a matching BatchSigner to bypass the expected temBAD_SIGNER rejection, requiring an explicit zero-signer check and a regression test.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject zero-valued delegate signers in batch preflight](https://github.com/XRPLF/rippled/pull/8743#discussion_r4645743144) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nSimplifies Batch signer validation in `libxrpl` by relying on the existing required-signer membership check instead of separate validation checks.\n\n**Changes:**\n- Removes explicit duplicate, ordering, and outer-account checks and their debug messages.\n- Updates the comment to explain how exact membership matching handles these cases.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Simplifies the signer loop in `Batch::preflightSigValidated` and documents the remaining validation. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    }
+   ],
+   "reviewCommentsList": [
+    {
+     "author": "Copilot",
+     "date": "2026-11-20T17:42:29Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Removing the zero-initialized sentinel also removes the `temBAD_SIGNER` rejection for account ID zero. An inner transaction with an explicit zero `sfDelegate` puts zero in `requiredSigners`, allowing a matching BatchSigner through this preflight; cryptographic verification does not reject the account/key mismatch. Keep an explicit zero-signer rejection and add a regression test for a zero delegate with a matching signer to preserve result-code compatibility.",
+     "url": "https://github.com/XRPLF/rippled/pull/8743#discussion_r4645743144"
+    }
+   ]
+  },
   {
    "number": 8627,
    "title": "perf: Avoid memory allocations during Batch preflight checks",
@@ -3144,59 +3199,6 @@
      "path": "src/libxrpl/tx/invariants/MPTInvariant.cpp",
      "body": "This new restriction classifies a deleted holding using only the post-transaction account's `sfVaultID`. A corrupt VaultDelete can retag another vault pseudo-account (for example, replace `sfVaultID` with `sfLoanBrokerID` for a live broker) while deleting its holding; the existing pseudo-account invariant only requires one designator field, so `isVaultPseudo` then returns false and this check accepts the unrelated deletion. Track the account's pre-transaction pseudo-account type (as the MPT transfer invariant does) or otherwise bind the deleted holding to the VaultID/account being deleted instead of relying only on the post-state field.",
      "url": "https://github.com/XRPLF/rippled/pull/8183#discussion_r4027975712"
-    }
-   ]
-  },
-  {
-   "number": 7822,
-   "title": "feat: Add invariant checks and invariant check tests for LoanAccept",
-   "url": "https://github.com/XRPLF/rippled/pull/7822",
-   "state": "closed",
-   "author": "a1q123456",
-   "createdAt": "2026-07-17T00:01:10Z",
-   "updatedAt": "2026-09-24T16:40:42Z",
-   "closedAt": "2026-09-24T16:40:42Z",
-   "labels": [],
-   "comments": [],
-   "body": "## High Level Overview of Change\n\nThis PR adds invariant checks and invariant check tests for LoanAccept with all related fields, flags, and a `LoanAccept` transactor that does nothing.\n\n\n\n### Context of Change\n\nThis PR defines what invariant checks should be performed before the actual development starts to ensure everything will work properly.\n\n\n\n### API Impact\n\n\n\n- [ ] Public API: New feature (new methods and/or new fields)\n- [ ] Public API: Breaking change (in general, breaking changes should only impact the next api_version)\n- [ ] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n- [ ] Peer protocol change (must be backward compatible or bump the peer protocol version)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "a1q123456/split-loan-set-and-loan-accept-temp",
-   "head": "XRPLF:a1q123456/split-loan-set-and-loan-accept",
-   "additions": 935,
-   "deletions": 14,
-   "changedFiles": 5,
-   "commits": 1,
-   "reviewComments": 2,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-07-17T00:06:18Z",
-     "body": "Ship it\n\n*Review by Claude Sonnet 4.6* · Prompt: V15"
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "state": "COMMENTED",
-     "date": "2026-07-17T00:20:03Z",
-     "body": ""
-    }
-   ],
-   "reviewCommentsList": [
-    {
-     "author": "depthfirst-app[bot]",
-     "date": "2026-07-17T00:20:03Z",
-     "path": "src/libxrpl/tx/invariants/VaultInvariant.cpp",
-     "body": "🟠 **Severity: HIGH**\n\nWhen `isPendingLoan` is true and the vault balance is unchanged, `maybeVaultDeltaAssets` is `nullopt` but the guard no longer returns early. The subsequent dereference on line 1140 (`*maybeVaultDeltaAssets`) and line 1149 (`maybeVaultDeltaAssets->delta`) is undefined behavior—crashing the node or potentially corrupting memory. Compare with `ttLOAN_DELETE` at line 1560 which correctly uses `value_or()`.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Follow the safe-access pattern already used at lines 1227-1229 and 1559-1561 in this file: after the existing early-return guard, add a `value_or()` call to safely unwrap `maybeVaultDeltaAssets`, and then use the unwrapped value instead of direct dereferences.\n\nSpecifically:\n1. After the closing brace of the guard block (after line 1137), insert:\n```cpp\nauto const vaultDelta = maybeVaultDeltaAssets.value_or(\n    DeltaInfo{.delta = kZero, .scale = scale(afterVault.assetsTotal, vaultAsset)});\n```\n2. On line 1140, change `computeVaultMinScale(*maybeVaultDeltaAssets, view.rules())` to `computeVaultMinScale(vaultDelta, view.rules())`.\n3. On line 1149, change `maybeVaultDeltaAssets->delta` to `vaultDelta.delta`.\n\nThis mirrors exactly how `ttLOAN_DELETE` (line 1560) and `ttLOAN_IMPAIR`/`ttLOAN_UNIMPAIR` (line 1228) handle the same optional safely.\n\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/7822#discussion_r3599577775"
-    },
-    {
-     "author": "depthfirst-app[bot]",
-     "date": "2026-07-17T00:20:03Z",
-     "path": "src/libxrpl/tx/invariants/LoanInvariant.cpp",
-     "body": "⚪ **Severity: LOW**\n\nThe Borrower authorization check reads from `after` (post-modification state) instead of `before` (pre-modification state). A buggy or malicious transactor that overwrites `sfBorrower` to match the submitter during execution would bypass this invariant, defeating its purpose as a last-line-of-defense authorization check.\nHelpful? Add 👍 / 👎\n\n<details>\n<summary>💡 Fix Suggestion</summary>\n\n**Suggestion:** Change `after->getAccountID(sfBorrower)` to `before->getAccountID(sfBorrower)` on line 132. The invariant check should read the `sfBorrower` field from the pre-modification state (`before`) rather than the post-modification state (`after`). This ensures that even if a buggy transactor overwrites `sfBorrower` during execution to match the submitter's account, the invariant will still catch the unauthorized access by comparing against the original, unmodified value. The `before` variable is already available in scope (the code is inside the `if (before)` block starting at line 77).\n\n> **⚠️ Experimental Feature**: This code suggestion is automatically generated. Please review carefully.\n\n```suggestion\n                if (before->getAccountID(sfBorrower) != tx.getAccountID(sfAccount))\n```\n\n</details>",
-     "url": "https://github.com/XRPLF/rippled/pull/7822#discussion_r3599577780"
     }
    ]
   }
