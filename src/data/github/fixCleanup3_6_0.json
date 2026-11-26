@@ -1,6 +1,6 @@
 {
  "name": "fixCleanup3_6_0",
- "fetchedAt": "2026-11-25T09:10:29.014Z",
+ "fetchedAt": "2026-11-26T09:11:00.625Z",
  "summary": {
   "status": "in development",
   "prs": 2,
@@ -9,9 +9,9 @@
   "issues": 0,
   "proposals": 0,
   "branches": [],
-  "lastActivity": "2026-11-23T19:52:44Z",
+  "lastActivity": "2026-11-25T10:42:53Z",
   "lastMerged": "2026-11-04T00:03:39Z",
-  "totalComments": 23
+  "totalComments": 25
  },
  "release": {},
  "prs": [
@@ -22,7 +22,7 @@
    "state": "open",
    "author": "muhammadsalah",
    "createdAt": "2026-11-09T17:30:44Z",
-   "updatedAt": "2026-11-23T19:52:44Z",
+   "updatedAt": "2026-11-25T10:42:53Z",
    "closedAt": null,
    "labels": [],
    "comments": [
@@ -69,11 +69,11 @@
    "draft": false,
    "base": "develop",
    "head": "muhammadsalah:ci/fix-vault-deposit-rounding",
-   "additions": 1212,
+   "additions": 1264,
    "deletions": 43,
    "changedFiles": 10,
-   "commits": 9,
-   "reviewComments": 5,
+   "commits": 11,
+   "reviewComments": 6,
    "reviews": [
     {
      "author": "copilot-pull-request-reviewer[bot]",
@@ -128,6 +128,12 @@
      "state": "COMMENTED",
      "date": "2026-11-18T16:21:18Z",
      "body": "### 🔵 Needs a closer look\n\nConsensus-critical vault arithmetic changes span independent amendment combinations and persisted versions, requiring human validation of replay compatibility and financial invariants because native tests could not be run.\n\n**No open issues** 🎉\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-11-25T10:42:52Z",
+     "body": "### 🟡 Changes recommended\n\nThe new vault rounding suite splits coverage already handled by existing vault tests, contrary to repository guidance to extend those suites instead.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/low-v2-light.png\" alt=\"Low severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Add vault rounding regressions to the existing test suites](https://github.com/XRPLF/rippled/pull/8708#discussion_r4693708060) · New\n</details>\n\n<sub>Review effort: Balanced</sub>"
     }
    ],
    "reviewCommentsList": [
@@ -165,6 +171,13 @@
      "path": "src/libxrpl/tx/transactors/vault/VaultClawback.cpp",
      "body": "@mvadari  I noticed that this sharesToAssetsWithdraw() call is outside the try/catch. With the addition of favorVaultMulDiv() inside sharesToAssetsWithdraw(), which can throw std::overflow_error, an overflow could propagate up the stack instead of being handled locally as tecPATH_DRY. Should this call also be covered by the try/catch for consistency with the other conversion paths?",
      "url": "https://github.com/XRPLF/rippled/pull/8708#discussion_r4588850905"
+    },
+    {
+     "author": "Copilot",
+     "date": "2026-11-25T10:42:52Z",
+     "path": "src/test/app/vault/VaultRounding_test.cpp",
+     "body": "The new suite splits vault rounding regression coverage that already exists in `VaultBugs_test.cpp`, including the withdrawal and clawback round-trip scenarios updated by this PR. The repository's testing guidance requires extending an existing suite when it covers the same feature or code path. Please move these scenarios into the existing vault suites, sharing the fixture setup where needed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8708#discussion_r4693708060"
     }
    ]
   },

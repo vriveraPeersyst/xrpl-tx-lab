@@ -1,6 +1,6 @@
 {
  "name": "Checks",
- "fetchedAt": "2026-11-25T09:01:35.063Z",
+ "fetchedAt": "2026-11-26T09:02:02.670Z",
  "summary": {
   "status": "in development",
   "prs": 12,
@@ -12,10 +12,10 @@
    "a1q123456/tighten-vault-and-loan-delete-invariant-checks",
    "pratik/Add_checks_db_objects"
   ],
-  "lastActivity": "2026-11-20T17:42:30Z",
+  "lastActivity": "2026-11-25T22:20:50Z",
   "lastMerged": "2026-11-11T23:46:18Z",
   "release": "0.90.0",
-  "totalComments": 440
+  "totalComments": 450
  },
  "release": {
   "version": "0.90.0",
@@ -25,17 +25,108 @@
  },
  "prs": [
   {
+   "number": 8424,
+   "title": "refactor: Use RippleStateEntry checks in nft trust line helpers",
+   "url": "https://github.com/XRPLF/rippled/pull/8424",
+   "state": "open",
+   "author": "mvadari",
+   "createdAt": "2026-09-30T13:32:10Z",
+   "updatedAt": "2026-11-25T22:20:50Z",
+   "closedAt": null,
+   "labels": [],
+   "comments": [
+    {
+     "author": "codecov[bot]",
+     "date": "2026-09-30T13:33:45Z",
+     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8424?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
+     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5912368592"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-05T14:52:31Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5996966375"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-10-05T14:52:46Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5996970626"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-11-09T21:25:39Z",
+     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
+     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-6751869815"
+    },
+    {
+     "author": "github-actions[bot]",
+     "date": "2026-11-10T03:08:23Z",
+     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
+     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-6757844361"
+    }
+   ],
+   "body": "## High Level Overview of Change\n\n`nft::checkTrustlineAuthorized` and `nft::checkTrustlineDeepFrozen` test the same line flags as `RippleStateEntry::isAuthorized` (#8391) and `isDeepFrozen` (#8386), so they now call those members. The functions stay free and keep their names and callers: they also read the issuer AccountRoot, check `fixEnforceNFTokenTrustlineV2`/`featureDeepFreeze`, and handle a missing line, so they do not fit on a single entry. The old deep-freeze check read `sfFlags` with a mask; `isDeepFrozen()` tests the same two single-bit flags with `isFlag`.\n\n## Context of Change\n\nPart of the Wrapped SLEs migration (design: step 2/3 of https://github.com/XRPLF/rippled/pull/7886). Trust line flag logic has one home on the typed wrapper instead of a copy in the NFToken helpers. Pure refactor: no amendment, no behavior change; any observable difference is a bug.\n\nStacked on #8422; review only the last commit.\n\nThis PR was fully written by AI (Claude Code) under human direction; the human author reviewed the diff.\n\n## API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nCompile-checked (`clang++ -fsyntax-only`) all 28 .cpp files that include `RippleStateEntry.h` or `RippleStateHelpers.h` or that this PR changes; clang-tidy and pre-commit clean on the changed files. No new tests (moved members get tests in a later pass). CI runs the full unit test suite.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
+   "merged": false,
+   "mergedAt": null,
+   "draft": false,
+   "base": "mvadari/rearch/ripplestate-removeEmptyHolding",
+   "head": "XRPLF:mvadari/rearch/ripplestate-nftCheckTrustline",
+   "additions": 2,
+   "deletions": 5,
+   "changedFiles": 1,
+   "commits": 2,
+   "reviewComments": 0,
+   "reviews": [
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-30T13:33:47Z",
+     "body": "Two-hunk refactor replacing manual trust-line flag checks with new RippleStateEntry helper calls (isAuthorized, isDeepFrozen). The deep-freeze replacement is a straightforward, verifiably equivalent simplification (OR of two single-bit flags matches the original bitmask check). The authorization replacement collapses a ternary flag selection into a two-argument call whose internal semantics aren't visible in this diff, so I can't independently confirm the argument order preserves the original id-vs-issue.account comparison — flagging as a verification item rather than an asserted bug, since a swap here would silently affect an authorization gate."
+    },
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-09-30T18:02:47Z",
+     "body": "Clean, mechanical refactor: two call sites in NFTokenHelpers.cpp now delegate to RippleStateEntry::isAuthorized and RippleStateEntry::isDeepFrozen instead of doing the flag math inline. The replaced logic reads consistent with the original (side-selection via id > issue.account for auth; either-side flag for deep freeze), and the PR explicitly scopes this to a pure refactor stacked on prior PRs that already added/tested these members. No changed lines exhibit new bugs, resource issues, or security concerns."
+    },
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-10-05T14:53:16Z",
+     "body": "This is a small, well-scoped refactor that replaces manual trust-line flag checks with the existing `RippleStateEntry::isAuthorized`/`isDeepFrozen` helper methods. Both replaced blocks appear semantically equivalent to the removed logic (same flags for deep freeze; same canonical-ordering concern for authorization, now encapsulated in `isAuthorized`). No correctness, security, or style issues found in the changed lines; the lack of new tests is already explicitly acknowledged in the PR description as deferred to a later pass."
+    },
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-09T21:31:33Z",
+     "body": "No issues found."
+    },
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-10T03:25:00Z",
+     "body": "No issues found."
+    },
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-25T22:20:49Z",
+     "body": "No issues found."
+    }
+   ],
+   "reviewCommentsList": []
+  },
+  {
    "number": 8743,
    "title": "refactor: Remove redundant BatchSigner checks from Batch preflight",
    "url": "https://github.com/XRPLF/rippled/pull/8743",
    "state": "open",
    "author": "mvadari",
    "createdAt": "2026-11-20T17:16:00Z",
-   "updatedAt": "2026-11-20T17:42:30Z",
+   "updatedAt": "2026-11-25T21:19:18Z",
    "closedAt": null,
-   "labels": [
-    "Trivial"
-   ],
+   "labels": [],
    "comments": [
     {
      "author": "codecov[bot]",
@@ -44,17 +135,17 @@
      "url": "https://github.com/XRPLF/rippled/pull/8743#issuecomment-7045918835"
     }
    ],
-   "body": "## High Level Overview of Change\n\nRemove the separate duplicate, unsorted, and outer-account checks from the BatchSigner loop in `Batch::preflightSigValidated`. The required-signer membership check after them already rejects all three cases.\n\n## Context of Change\n\nThe membership walk requires each signer to be the next entry in the sorted, de-duplicated list of required signers. That list never contains the outer account. An unsorted signer, a duplicate signer, or the outer account therefore fails the walk with the same `temBAD_SIGNER` result. The removed checks only added specific log messages.\n\nNo result code changes, so no amendment is needed.\n\n## API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nExisting `xrpl.app.Batch` tests for unsorted signers, duplicate signers, and the outer account as signer expect `temBAD_SIGNER`. I did not build or run them locally; CI covers them.",
+   "body": "## High Level Overview of Change\n\nRemove the separate duplicate, unsorted, and outer-account checks from the BatchSigner loop in `Batch::preflightSigValidated`. The required-signer membership check after them already rejects all three cases.\n\n## Context of Change\n\nThe membership walk requires each signer to be the next entry in the sorted, de-duplicated list of required signers. That list never contains the outer account. An unsorted signer, a duplicate signer, or the outer account therefore fails the walk with the same `temBAD_SIGNER` result. The removed checks only added specific log messages.\n\nA zero signer is the one exception. A zero `Delegate` on an inner transaction makes zero a required signer, so an explicit check still rejects a zero BatchSigner with `temBAD_SIGNER`.\n\nNo result code changes, so no amendment is needed.\n\n## API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nExisting `xrpl.app.Batch` tests for unsorted signers, duplicate signers, and the outer account as signer expect `temBAD_SIGNER`. A new case in `testBatchDelegateConsent` covers an inner transaction delegated to the zero account with a matching zero BatchSigner; it fails with `tefBAD_AUTH` without the zero-signer check. `xrpl.app.Batch` passes locally.",
    "merged": false,
    "mergedAt": null,
    "draft": false,
    "base": "develop",
    "head": "XRPLF:mvadari/batch-signer-check-cleanup",
-   "additions": 4,
-   "deletions": 25,
-   "changedFiles": 1,
-   "commits": 1,
-   "reviewComments": 1,
+   "additions": 50,
+   "deletions": 20,
+   "changedFiles": 2,
+   "commits": 4,
+   "reviewComments": 3,
    "reviews": [
     {
      "author": "ripple-ai-reviewer[bot]",
@@ -67,6 +158,48 @@
      "state": "COMMENTED",
      "date": "2026-11-20T17:42:30Z",
      "body": "### 🟡 Changes recommended\n\nRemoving the zero-initialized sentinel allows a zero delegate with a matching BatchSigner to bypass the expected temBAD_SIGNER rejection, requiring an explicit zero-signer check and a regression test.\n\n<details open>\n<summary><strong>1 open issue</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject zero-valued delegate signers in batch preflight](https://github.com/XRPLF/rippled/pull/8743#discussion_r4645743144) · New\n</details>\n\n<details>\n<summary><strong>What changed in this PR</strong></summary>\n\nSimplifies Batch signer validation in `libxrpl` by relying on the existing required-signer membership check instead of separate validation checks.\n\n**Changes:**\n- Removes explicit duplicate, ordering, and outer-account checks and their debug messages.\n- Updates the comment to explain how exact membership matching handles these cases.\n\n| File | Description |\n| ---- | ----------- |\n| `src/​libxrpl/​tx/​transactors/​system/​Batch.cpp` | Simplifies the signer loop in `Batch::preflightSigValidated` and documents the remaining validation. |\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "dangell7",
+     "state": "COMMENTED",
+     "date": "2026-11-25T20:00:59Z",
+     "body": ""
+    },
+    {
+     "author": "dangell7",
+     "state": "APPROVED",
+     "date": "2026-11-25T20:23:05Z",
+     "body": "Looks good, approving on the condition that the zero signer check from the thread goes in."
+    },
+    {
+     "author": "mvadari",
+     "state": "COMMENTED",
+     "date": "2026-11-25T20:53:42Z",
+     "body": ""
+    },
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-25T20:55:48Z",
+     "body": "No issues found."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-11-25T21:00:05Z",
+     "body": "### 🟢 Approval recommended\n\nNo active review issues were identified in the Batch signer validation simplification.\n\n**No open issues** 🎉\n\n<details>\n<summary><strong>1 resolved since last review</strong></summary>\n\n- <picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-dark.svg\"><source media=\"(prefers-color-scheme: light)\" srcset=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.svg\"><img src=\"https://github.githubassets.com/static/images/icons/copilot-code-review/medium-v2-light.png\" alt=\"Medium severity\" width=\"62\" height=\"18\" align=\"texttop\"></picture> [Reject zero-valued delegate signers in batch preflight](https://github.com/XRPLF/rippled/pull/8743#discussion_r4645743144)\n</details>\n\n<sub>Review effort: Balanced</sub>"
+    },
+    {
+     "author": "ripple-ai-reviewer[bot]",
+     "state": "APPROVED",
+     "date": "2026-11-25T21:03:19Z",
+     "body": "No issues found."
+    },
+    {
+     "author": "copilot-pull-request-reviewer[bot]",
+     "state": "COMMENTED",
+     "date": "2026-11-25T21:19:18Z",
+     "body": "### 🟢 Approval recommended\n\nThe Batch signer validation simplification has no active review issues.\n\n**No open issues** 🎉\n\n<sub>Review effort: Balanced</sub>"
     }
    ],
    "reviewCommentsList": [
@@ -76,6 +209,20 @@
      "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
      "body": "Removing the zero-initialized sentinel also removes the `temBAD_SIGNER` rejection for account ID zero. An inner transaction with an explicit zero `sfDelegate` puts zero in `requiredSigners`, allowing a matching BatchSigner through this preflight; cryptographic verification does not reject the account/key mismatch. Keep an explicit zero-signer rejection and add a regression test for a zero delegate with a matching signer to preserve result-code compatibility.",
      "url": "https://github.com/XRPLF/rippled/pull/8743#discussion_r4645743144"
+    },
+    {
+     "author": "dangell7",
+     "date": "2026-11-25T20:00:59Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Confirmed, this changes a result code. A zero `Delegate` on an inner txn makes zero a required signer, since `preflight1` only rejects `Delegate == Account`, so a matching zero BatchSigner now passes preflight and fails `checkSign` in preclaim with `tefBAD_AUTH` instead of `temBAD_SIGNER`. Nothing reaches the ledger either way, but the description says no result code changes. I'd keep an explicit `signerAccount == beast::kZero` check that returns `temBAD_SIGNER` and add a test with an inner delegated to the zero account.",
+     "url": "https://github.com/XRPLF/rippled/pull/8743#discussion_r4700185504"
+    },
+    {
+     "author": "mvadari",
+     "date": "2026-11-25T20:53:42Z",
+     "path": "src/libxrpl/tx/transactors/system/Batch.cpp",
+     "body": "Fixed in 64989ae71e.",
+     "url": "https://github.com/XRPLF/rippled/pull/8743#discussion_r4700747018"
     }
    ]
   },
@@ -223,93 +370,6 @@
      "url": "https://github.com/XRPLF/rippled/pull/8627#discussion_r4542617250"
     }
    ]
-  },
-  {
-   "number": 8424,
-   "title": "refactor: Use RippleStateEntry checks in nft trust line helpers",
-   "url": "https://github.com/XRPLF/rippled/pull/8424",
-   "state": "open",
-   "author": "mvadari",
-   "createdAt": "2026-09-30T13:32:10Z",
-   "updatedAt": "2026-11-10T03:25:01Z",
-   "closedAt": null,
-   "labels": [],
-   "comments": [
-    {
-     "author": "codecov[bot]",
-     "date": "2026-09-30T13:33:45Z",
-     "body": "## [Codecov](https://app.codecov.io/gh/XRPLF/rippled/pull/8424?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=XRPLF) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n\n:loudspeaker: Thoughts on this report? [Let us know!](https://github.com/codecov/feedback/issues/255)",
-     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5912368592"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-05T14:52:31Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5996966375"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-10-05T14:52:46Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-5996970626"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-11-09T21:25:39Z",
-     "body": "This PR has conflicts, please resolve them in order for the PR to be reviewed.",
-     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-6751869815"
-    },
-    {
-     "author": "github-actions[bot]",
-     "date": "2026-11-10T03:08:23Z",
-     "body": "All conflicts have been resolved. Assigned reviewers can now start or resume their review.",
-     "url": "https://github.com/XRPLF/rippled/pull/8424#issuecomment-6757844361"
-    }
-   ],
-   "body": "## High Level Overview of Change\n\n`nft::checkTrustlineAuthorized` and `nft::checkTrustlineDeepFrozen` test the same line flags as `RippleStateEntry::isAuthorized` (#8391) and `isDeepFrozen` (#8386), so they now call those members. The functions stay free and keep their names and callers: they also read the issuer AccountRoot, check `fixEnforceNFTokenTrustlineV2`/`featureDeepFreeze`, and handle a missing line, so they do not fit on a single entry. The old deep-freeze check read `sfFlags` with a mask; `isDeepFrozen()` tests the same two single-bit flags with `isFlag`.\n\n## Context of Change\n\nPart of the Wrapped SLEs migration (design: step 2/3 of https://github.com/XRPLF/rippled/pull/7886). Trust line flag logic has one home on the typed wrapper instead of a copy in the NFToken helpers. Pure refactor: no amendment, no behavior change; any observable difference is a bug.\n\nStacked on #8422; review only the last commit.\n\nThis PR was fully written by AI (Claude Code) under human direction; the human author reviewed the diff.\n\n## API Impact\n\n- [x] `libxrpl` change (any change that may affect `libxrpl` or dependents of `libxrpl`)\n\n## Test Plan\n\nCompile-checked (`clang++ -fsyntax-only`) all 28 .cpp files that include `RippleStateEntry.h` or `RippleStateHelpers.h` or that this PR changes; clang-tidy and pre-commit clean on the changed files. No new tests (moved members get tests in a later pass). CI runs the full unit test suite.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)",
-   "merged": false,
-   "mergedAt": null,
-   "draft": false,
-   "base": "mvadari/rearch/ripplestate-removeEmptyHolding",
-   "head": "XRPLF:mvadari/rearch/ripplestate-nftCheckTrustline",
-   "additions": 2,
-   "deletions": 5,
-   "changedFiles": 1,
-   "commits": 1,
-   "reviewComments": 0,
-   "reviews": [
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-30T13:33:47Z",
-     "body": "Two-hunk refactor replacing manual trust-line flag checks with new RippleStateEntry helper calls (isAuthorized, isDeepFrozen). The deep-freeze replacement is a straightforward, verifiably equivalent simplification (OR of two single-bit flags matches the original bitmask check). The authorization replacement collapses a ternary flag selection into a two-argument call whose internal semantics aren't visible in this diff, so I can't independently confirm the argument order preserves the original id-vs-issue.account comparison — flagging as a verification item rather than an asserted bug, since a swap here would silently affect an authorization gate."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-09-30T18:02:47Z",
-     "body": "Clean, mechanical refactor: two call sites in NFTokenHelpers.cpp now delegate to RippleStateEntry::isAuthorized and RippleStateEntry::isDeepFrozen instead of doing the flag math inline. The replaced logic reads consistent with the original (side-selection via id > issue.account for auth; either-side flag for deep freeze), and the PR explicitly scopes this to a pure refactor stacked on prior PRs that already added/tested these members. No changed lines exhibit new bugs, resource issues, or security concerns."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-10-05T14:53:16Z",
-     "body": "This is a small, well-scoped refactor that replaces manual trust-line flag checks with the existing `RippleStateEntry::isAuthorized`/`isDeepFrozen` helper methods. Both replaced blocks appear semantically equivalent to the removed logic (same flags for deep freeze; same canonical-ordering concern for authorization, now encapsulated in `isAuthorized`). No correctness, security, or style issues found in the changed lines; the lack of new tests is already explicitly acknowledged in the PR description as deferred to a later pass."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-11-09T21:31:33Z",
-     "body": "No issues found."
-    },
-    {
-     "author": "xrplf-ai-reviewer[bot]",
-     "state": "APPROVED",
-     "date": "2026-11-10T03:25:00Z",
-     "body": "No issues found."
-    }
-   ],
-   "reviewCommentsList": []
   },
   {
    "number": 7722,
