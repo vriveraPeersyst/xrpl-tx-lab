@@ -1,6 +1,6 @@
 {
  "name": "AMMClawback",
- "fetchedAt": "2026-11-27T09:01:04.868Z",
+ "fetchedAt": "2026-11-28T09:01:01.718Z",
  "summary": {
   "status": "merged",
   "prs": 6,
@@ -9,7 +9,7 @@
   "issues": 4,
   "proposals": 2,
   "branches": [],
-  "lastActivity": "2026-09-08T17:44:27Z",
+  "lastActivity": "2026-11-28T00:30:16Z",
   "lastMerged": "2026-09-02T21:20:05Z",
   "release": "2.3.0",
   "totalComments": 278
@@ -2008,6 +2008,22 @@
  ],
  "issues": [
   {
+   "number": 7142,
+   "title": "AMMClawback preclaim missing holder LP token balance check",
+   "url": "https://github.com/XRPLF/rippled/issues/7142",
+   "state": "closed",
+   "author": "mvadari",
+   "createdAt": "2026-05-13T17:05:23Z",
+   "updatedAt": "2026-11-28T00:30:16Z",
+   "closedAt": "2026-11-28T00:30:16Z",
+   "labels": [
+    "Bug",
+    "AI Triage"
+   ],
+   "comments": 1,
+   "body": "**Severity**: LOW\n\n**Feature**: Clawback (cross-cutting)\n\n##### AMMClawback preclaim missing holder LP token balance check\n\n**Severity**: LOW\n\nAMMClawback::preclaim() verifies the AMM exists, the issuer has clawback flags, and the holder account exists, but does NOT check if the holder has any LP tokens in the AMM. The LP token balance check only happens in applyGuts(), returning tecAMM\\_BALANCE. Fee is charged but no clawback occurs.\n\n**Root cause**: AMMClawback::preclaim() at lines 70-98 checks AMM existence and clawback flags but omits an ammLPHolds check.\n\nsrc/libxrpl/tx/transactors/dex/AMMClawback.cpp:70-98\n\n**Exploit scenario**: 1. Issuer submits AMMClawback targeting a holder with no LP tokens. 2. Preclaim passes. 3. applyGuts returns tecAMM\\_BALANCE. 4. Fee is charged.\n\n**Financial impact**: Fee loss for submitter. No fund theft.\n\n**Suggested fix**: Add LP token balance check in preclaim."
+  },
+  {
    "number": 7148,
    "title": "AMMClawback doesn't revoke auction slot on LP token clawback",
    "url": "https://github.com/XRPLF/rippled/issues/7148",
@@ -2022,22 +2038,6 @@
    ],
    "comments": 0,
    "body": "**Severity**: LOW\n\n**Feature**: AMM\n\n##### AMMClawback doesn't revoke auction slot on LP token clawback\n\n**Severity**: LOW\n\nWhen an issuer claws back LP tokens from a holder who owns the AMM auction slot, the auction slot is not revoked. The clawed-back holder retains the discounted trading fee privilege (and auth accounts list) for up to 24 hours after their LP tokens are clawed back. This means a user whose tokens have been clawed back still receives preferential treatment on the AMM.\n\n**Root cause**: AMMClawback::applyGuts (lines 100-223) calls AMMWithdraw functions to withdraw and burn LP tokens, but never checks or updates the auction slot. The auction slot's sfAccount field continues to reference the clawed-back holder.\n\nsrc/libxrpl/tx/transactors/dex/AMMClawback.cpp:100-223\n\nTER AMMClawback::applyGuts(Sandbox& sb) \\{ ... /\\* no auction slot update \\*/ ... \\}\n\nsrc/libxrpl/tx/transactors/dex/AMMUtils.cpp:152-180\n\nstd::uint16\\_t getTradingFee(ReadView const& view, SLE const& ammSle, AccountID const& account) \\{\n\n```\nif (ammSle.isFieldPresent(sfAuctionSlot)) {\n\n auto const& auctionSlot = ...;\n\n if (auctionSlot[~sfAccount] == account)\n\n return auctionSlot[sfDiscountedFee];\n\n}\n```\n\n\\}\n\n**Exploit scenario**: 1. Issuer creates AMM with USD/EUR, both issued by them\n\n2. Bob deposits and wins the auction slot (paying LP tokens, gets discounted fee)\n3. Issuer decides to claw back Bob's LP tokens\n4. AMMClawback burns Bob's LP tokens and withdraws assets\n5. Bob still holds the auction slot with discounted fee for up to 24 hours\n6. Bob can trade through the AMM (using regular assets, not LP tokens) with the discounted fee\n7. Bob's auth accounts also still benefit from the discounted fee\n\n**Financial impact**: Limited: the clawed-back holder gets discounted fees (tradingFee/10) on trades for up to 24h. For a 1% fee pool, this is 0.1% fee instead of 1%. If Bob trades $1M volume, the savings would be \\~$9,000.\n\n**Invariant gap**: No invariant checks auction slot validity against LP token holdings.\n\n**Suggested fix**: In AMMClawback::applyGuts, after withdrawing tokens, check if the holder was the auction slot owner. If so, clear the auction slot (or set it to expired/empty).\n\n---\n\n### Additional Context\n\n# : AMMClawback doesn't revoke auction slot on LP token clawback\n\n## Verdict: Confirmed \\| Confidence: 95%\n\n---\n\n## Root Cause\n\nFile: src/xrpld/app/tx/detail/AMMClawback.cpp, lines 135-248\n\nAMMClawback::applyGuts performs LP token withdrawal and credit back to issuer, but never inspects or modifies the AMM's sfAuctionSlot field. The AMMWithdraw functions it delegates to also never touch the auction slot.\n\nMeanwhile, getTradingFee (AMMUtils.cpp:179-208) unconditionally checks the auction slot's sfAccount and returns sfDiscountedFee if the caller matches — regardless of whether the account still holds LP tokens.\n\n## Impact\n\nAfter clawback, the affected account continues trading at 1/10th the normal fee for up to 24 hours (auction slot expiration). Authorized accounts (sfAuthAccounts) also retain the discount.\n\nExample: On a pool with 1% fee, the clawed-back account pays 0.1% instead. On $1M daily volume, that's \\~$9,000 in fee savings.\n\nAmendment: featureAMMClawback — mainnet exposed.\n\n## Reproduction\n\nTest testAuctionSlotPersistsAfterClawback added to src/test/app/AMMClawback\\_test.cpp:\n\n1. Creates AMM pool with 1% trading fee (1000 basis points)\n2. Alice (creator) gets auction slot with discounted fee = 100\n3. Bob deposits so Alice isn't the only LP\n4. Issuer claws back ALL of Alice's LP tokens\n5. Alice has 0 LP tokens (verified)\n6. Alice still owns the auction slot (bug confirmed)\n7. getTradingFee returns 100 (discounted) instead of 1000 (full) (bug confirmed)\n\nBuild: cmake --build build/build/Debug — SUCCESS Test: rippled --unittest=AMMClawback — 0 failures, all bug-demonstrating assertions pass across 3 feature combinations\n\n## Suggested Fix\n\nIn AMMClawback::applyGuts, after LP token withdrawal, check if the holder is the auction slot owner. If so, clear sfAccount from the auction slot (or reset it entirely). Also remove the holder from sfAuthAccounts if present.\n\n## Key Files\n\n## Reproduction Unit Test\n\nAdded to src/test/app/AMMClawback\\_test.cpp:\n\n```cpp\ntestAuctionSlotPersistsAfterClawback(FeatureBitset features)\n{\n testcase(\"test auction slot persists after LP token clawback\");\n using namespace jtx;\n\n {\n Env env(*this, features);\n Account gw{\"gateway\"};\n Account alice{\"alice\"};\n Account bob{\"bob\"};\n env.fund(XRP(1000000), gw, alice, bob);\n env.close;\n\n env(fset(gw, asfAllowTrustLineClawback));\n env.close;\n\n auto const USD = gw[\"USD\"];\n env.trust(USD(100000), alice);\n env.trust(USD(100000), bob);\n env(pay(gw, alice, USD(10000)));\n env(pay(gw, bob, USD(10000)));\n env.close;\n\n // Alice creates AMM with 1% trading fee. Creator gets auction slot.\n AMM amm(env, alice, XRP(10000), USD(10000), false, 1000);\n env.close;\n\n BEAST_EXPECT(amm.expectAuctionSlot(100, 0, IOUAmount{0}));\n\n // Bob deposits so alice is not the only LP\n amm.deposit(bob, USD(5000), XRP(5000));\n env.close;\n\n // Issuer claws back ALL of alice's LP tokens\n env(amm::ammClawback(gw, alice, USD, XRP, std::nullopt));\n env.close;\n\n // Alice has 0 LP tokens\n BEAST_EXPECT(amm.expectLPTokens(alice, IOUAmount{0}));\n\n // BUG: Auction slot STILL references alice\n auto const ammSle = env.current->read(\n keylet::amm(USD.issue, xrpIssue));\n BEAST_EXPECT(ammSle);\n if (ammSle && ammSle->isFieldPresent(sfAuctionSlot))\n {\n auto const& auctionSlot =\n static_cast<STObject const&>(\n ammSle->peekAtField(sfAuctionSlot));\n auto const slotAccount = auctionSlot[~sfAccount];\n // BUG: alice still owns auction slot with 0 LP tokens\n BEAST_EXPECT(slotAccount && *slotAccount == alice.id);\n }\n\n // getTradingFee returns discounted fee (100) instead of full (1000)\n auto const tradingFee =\n getTradingFee(*env.current, *ammSle, alice.id);\n BEAST_EXPECT(tradingFee == 100); // BUG: should be 1000\n }\n}\n```"
-  },
-  {
-   "number": 7142,
-   "title": "AMMClawback preclaim missing holder LP token balance check",
-   "url": "https://github.com/XRPLF/rippled/issues/7142",
-   "state": "open",
-   "author": "mvadari",
-   "createdAt": "2026-05-13T17:05:23Z",
-   "updatedAt": "2026-05-13T19:13:28Z",
-   "closedAt": null,
-   "labels": [
-    "Bug",
-    "AI Triage"
-   ],
-   "comments": 0,
-   "body": "**Severity**: LOW\n\n**Feature**: Clawback (cross-cutting)\n\n##### AMMClawback preclaim missing holder LP token balance check\n\n**Severity**: LOW\n\nAMMClawback::preclaim() verifies the AMM exists, the issuer has clawback flags, and the holder account exists, but does NOT check if the holder has any LP tokens in the AMM. The LP token balance check only happens in applyGuts(), returning tecAMM\\_BALANCE. Fee is charged but no clawback occurs.\n\n**Root cause**: AMMClawback::preclaim() at lines 70-98 checks AMM existence and clawback flags but omits an ammLPHolds check.\n\nsrc/libxrpl/tx/transactors/dex/AMMClawback.cpp:70-98\n\n**Exploit scenario**: 1. Issuer submits AMMClawback targeting a holder with no LP tokens. 2. Preclaim passes. 3. applyGuts returns tecAMM\\_BALANCE. 4. Fee is charged.\n\n**Financial impact**: Fee loss for submitter. No fund theft.\n\n**Suggested fix**: Add LP token balance check in preclaim."
   },
   {
    "number": 6922,
